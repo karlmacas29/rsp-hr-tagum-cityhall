@@ -1,4 +1,4 @@
-# Quasar App (quasar-project)
+# Recruitment, Selection and Placement (Quasar Front End Project)
 
 A Quasar Project
 

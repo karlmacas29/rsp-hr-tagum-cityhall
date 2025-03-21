@@ -2,7 +2,7 @@
   <q-toolbar class="q-mb-none header">
     <div class="row items-center justify-between full-width">
       <div class="grid justify-start items-start q-pa-sm">
-        <h5 class="text-h4 q-ma-none"><b>Recruitment, Selection and Placement</b></h5>
+        <h5 class="text-h5 q-ma-none"><b>Recruitment, Selection and Placement</b></h5>
         <p class="q-ma-none">City of Human Resources</p>
       </div>
 

@@ -1,8 +1,9 @@
 <template>
-  <q-toolbar class="q-mb-none header q-px-md">
+  <q-toolbar class="q-mb-none header">
     <div class="row items-center justify-between full-width">
-      <div class="row items-center">
-        <h5 class="q-ml-sm text-h5"><b>City Human Resources</b></h5>
+      <div class="grid justify-start items-start q-pa-sm">
+        <h5 class="text-h4 q-ma-none"><b>Recruitment, Selection and Placement</b></h5>
+        <p class="q-ma-none">City of Human Resources</p>
       </div>
 
       <div class="row items-center">
@@ -23,8 +24,7 @@
 .header {
   background: white;
   border-bottom: 1px solid #eee;
-  height: 100px; /* Reduced height */
-  padding: 5px 16px; /* Adjust padding */
+  height: 90px; /* Reduced height */
 }
 
 .q-mb-none {

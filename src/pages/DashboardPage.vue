@@ -3,8 +3,21 @@
     <div class="column no-gap">
       <!-- Welcome Message -->
       <div class="q-mb-sm q-gutter-xs">
-        <h4 class="text-h4 text-weight-bolder"><b>Welcome back, Gov!</b></h4>
+        <h4 class="text-h4 text-weight-bolder q-my-none"><b>Welcome back, Gov!</b></h4>
         <p class="text-body2">Let’s take a look at the updated performance of the company.</p>
+      </div>
+
+      <!-- STATISTICS HEADER -->
+      <div class="row justify-between items-center">
+        <h5 class="text-h5 text-weight-bold q-my-md">Statistics Overview</h5>
+        <q-select
+          v-model="selectedDateFilter"
+          :options="dateFilters"
+          dense
+          outlined
+          class="date-filter"
+          @update:model-value="applyDateFilter"
+        />
       </div>
 
       <!-- STATISTICS CARDS -->
@@ -27,16 +40,16 @@
       <!-- MAIN CONTENT -->
       <div class="row q-mt-md justify-between">
         <div class="table-container">
+          <h5 class="text-h5 text-weight-bold q-mb-sm q-mt-none">Applicants Overview</h5>
           <q-table
             class="applicants-table"
             flat
             bordered
-            title="Applicants"
-            :rows="applicants"
+            :rows="filteredApplicants"
             :columns="columns"
             row-key="job"
             separator="cell"
-            hide-
+            :pagination="initialPagination"
           />
         </div>
 
@@ -106,10 +119,38 @@ export default {
       ],
       activeJobPost: 3342,
       applicants: [
-        { job: 'Computer Programmer', applicants: 10, pending: 2, qualified: 5, unqualified: 3 },
-        { job: 'Data Analyst', applicants: 10, pending: 2, qualified: 5, unqualified: 3 },
-        { job: 'Sample', applicants: 10, pending: 2, qualified: 5, unqualified: 3 },
-        { job: 'Sample', applicants: 10, pending: 2, qualified: 5, unqualified: 3 },
+        {
+          job: 'Computer Programmer',
+          applicants: 10,
+          pending: 2,
+          qualified: 5,
+          unqualified: 3,
+          date: '2025-03-21',
+        },
+        {
+          job: 'Data Analyst',
+          applicants: 10,
+          pending: 2,
+          qualified: 5,
+          unqualified: 3,
+          date: '2025-03-19',
+        },
+        {
+          job: 'Sample',
+          applicants: 10,
+          pending: 2,
+          qualified: 5,
+          unqualified: 3,
+          date: '2025-03-15',
+        },
+        {
+          job: 'Sample',
+          applicants: 10,
+          pending: 2,
+          qualified: 5,
+          unqualified: 3,
+          date: '2025-02-20',
+        },
       ],
       columns: [
         { name: 'job', label: 'Job Applied', align: 'left', field: 'job' },
@@ -118,68 +159,85 @@ export default {
         { name: 'qualified', label: 'Qualified', align: 'center', field: 'qualified' },
         { name: 'unqualified', label: 'Unqualified', align: 'center', field: 'unqualified' },
       ],
+      dateFilters: ['Weekly', 'Monthly', 'Yearly'],
+      selectedDateFilter: 'Weekly',
+      filteredApplicants: [],
     }
+  },
+  created() {
+    this.applyDateFilter()
+  },
+  methods: {
+    applyDateFilter() {
+      const today = new Date()
+      const startOfWeek = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate() - today.getDay(),
+      )
+      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+      const startOfYear = new Date(today.getFullYear(), 0, 1)
+
+      this.filteredApplicants = this.applicants.filter((applicant) => {
+        const applicantDate = new Date(applicant.date)
+        switch (this.selectedDateFilter) {
+          case 'Weekly':
+            return applicantDate >= startOfWeek
+          case 'Monthly':
+            return applicantDate >= startOfMonth
+          case 'Yearly':
+            return applicantDate >= startOfYear
+          default:
+            return true
+        }
+      })
+    },
   },
 }
 </script>
 
 <style scoped>
-/* Reduce spacing and padding */
-.q-page-container {
-  padding-top: 0px !important;
+/* Align header and filter */
+.row.justify-between.items-center {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.column.no-gap {
-  padding-top: 0px;
-  margin-top: 0px;
-  gap: 0px; /* Remove extra gaps */
+/* Date Filter Dropdown */
+.date-filter {
+  max-width: 180px;
 }
 
-.q-mb-sm {
-  margin-bottom: 4px !important; /* Reduce spacing below */
+/* Table container */
+.table-container {
+  flex: 1;
+  min-width: 75%;
+  /* paading : y x */
+  padding: 0 16px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
 }
 
-h5.text-h5 {
-  margin-top: 0px !important;
-  padding-top: 0px !important;
-}
-
-/* Reduce navbar height */
-.header {
-  height: 50px;
-}
-
-/* Improve card styling */
+/* Adjust statistics cards */
 .stat-card {
   flex: 1;
   max-width: calc(100% / 7 - 8px);
   text-align: center;
-  border-radius: 12px; /* Smooth rounded corners */
-  background: #fff; /* Ensure consistent background */
+  border-radius: 12px;
+  background: #fff;
   transition:
     transform 0.3s ease,
     box-shadow 0.3s ease;
-  padding: 16px; /* Adjust inner spacing */
+  padding: 16px;
 }
 
-/* Hover effect for interactivity */
 .stat-card:hover {
-  transform: translateY(-5px); /* Slight lift effect */
-  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2); /* Soft shadow */
+  transform: translateY(-5px);
+  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
 }
 
-/* Adjust spacing between cards */
-.row.justify-between {
-  gap: 8px;
-}
-
-/* Make table take up more space */
-.table-container {
-  flex: 1;
-  min-width: 75%;
-}
-
-/* Active Job Post card */
+/* Active Job Card */
 .job-card-container {
   width: 23%;
   margin-left: 8px;

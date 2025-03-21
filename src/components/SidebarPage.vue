@@ -1,8 +1,8 @@
 <template>
-  <q-drawer show-if-above v-model="drawer" side="left" bordered>
+  <q-drawer show-if-above v-model="drawer" side="left" :width="270" bordered>
     <!-- Logo Section -->
     <div class="logo-container">
-      <img src="/logo.png" alt="Tagum City Logo" class="logo" width="30px" />
+      <img src="/logo.png" alt="Tagum City Logo" class="logo" />
     </div>
 
     <!-- Header Section -->
@@ -10,7 +10,7 @@
 
     <q-list>
       <q-item
-        class="q-mx-md q-my-sm"
+        class="q-mx-sm q-my-sm"
         style="border-radius: 10px"
         v-for="(item, index) in menuItems"
         :key="index"
@@ -96,7 +96,7 @@ export default {
 }
 
 .logo {
-  width: 180px; /* Slightly smaller logo */
+  width: 140px; /* Slightly smaller logo */
   height: auto;
 }
 

@@ -1,34 +1,22 @@
 <template>
   <q-page class="q-pa-md">
-    <div class="column items-start q-mb-md q-pa-md">
-      <h5 class="text-h3 q-ma-none"><b>Plantilla</b></h5>
+    <div class="column items-start justify-center q-mb-md ">
+      <h5 class="text-h4 q-ma-none"><b>Plantilla</b></h5>
       <div class="q-pa-md q-gutter-sm">
         <!--  -->
-        <q-breadcrumbs class="q-pa-md" separator="/">
-          <q-breadcrumbs-el
-            v-for="(item, index) in breadcrumbItems"
-            :key="index"
-            :label="item.label"
-          />
+        <q-breadcrumbs class="q-ma-none" separator="/">
+          <q-breadcrumbs-el v-for="(item, index) in breadcrumbItems" :key="index" :label="item.label" />
 
           <!-- Multiple dropdowns in breadcrumbs -->
           <q-breadcrumbs-el v-for="(dropdown, index) in dropdowns" :key="index">
             <q-btn flat @click="toggleDropdown(index)">
               <span>{{ dropdown.selectedOption }}</span>
-              <q-icon
-                name="arrow_drop_down"
-                :class="{ 'rotate-up': dropdown.open, 'rotate-down': !dropdown.open }"
-              />
+              <q-icon name="arrow_drop_down" :class="{ 'rotate-up': dropdown.open, 'rotate-down': !dropdown.open }" />
             </q-btn>
             <q-menu anchor="bottom left" self="top left">
               <q-list>
-                <q-item
-                  v-for="(option, optIndex) in dropdown.options"
-                  :key="optIndex"
-                  clickable
-                  v-ripple
-                  @click="selectOption(index, option)"
-                >
+                <q-item v-for="(option, optIndex) in dropdown.options" :key="optIndex" clickable v-ripple
+                  @click="selectOption(index, option)">
                   <q-item-section>{{ option }}</q-item-section>
                 </q-item>
               </q-list>

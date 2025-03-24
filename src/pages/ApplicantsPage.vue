@@ -1,7 +1,7 @@
 <template>
   <q-page class="q-pa-md">
-    <div class="column items-start q-mb-md q-pa-md">
-      <h5 class="text-h3 q-ma-none"><b>Applicants</b></h5>
+    <div class="column items-start justify-center q-mb-md">
+      <h5 class="text-h4 q-ma-none"><b>Applicants</b></h5>
       <div class="q-pa-md q-gutter-sm">
         <q-breadcrumbs class="q-ma-none">
           <q-breadcrumbs-el class="text-bold" label="Home" />
@@ -13,14 +13,7 @@
 
     <!-- Date Range Picker -->
     <div class="row items-center q-gutter-sm">
-      <q-input
-        dense
-        outlined
-        readonly
-        v-model="formattedDateRange"
-        label="Selected Date Range"
-        class="col-6"
-      >
+      <q-input dense outlined readonly v-model="formattedDateRange" label="Selected Date Range" class="col-6">
         <template v-slot:append>
           <q-icon name="event" class="cursor-pointer">
             <q-popup-proxy>
@@ -125,6 +118,7 @@ h5 {
     transform 0.2s ease-in-out,
     box-shadow 0.2s ease-in-out;
 }
+
 .job-card:hover {
   transform: scale(1.03);
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);

@@ -3,20 +3,11 @@
     <div class="column items-start justify-center q-mb-md ">
       <h5 class="text-h4 q-ma-none"><b>Plantilla</b></h5>
       <div class="q-pa-md q-gutter-sm">
-<<<<<<< HEAD
-        <q-breadcrumbs class="q-pa-md" separator="/">
-          <q-breadcrumbs-el
-            v-for="(item, index) in breadcrumbItems"
-            :key="index"
-            :label="item.label"
-          />
-=======
         <!--  -->
         <q-breadcrumbs class="q-ma-none" separator="/">
           <q-breadcrumbs-el v-for="(item, index) in breadcrumbItems" :key="index" :label="item.label" />
 
           <!-- Multiple dropdowns in breadcrumbs -->
->>>>>>> 31ae6efccab008211edadd69d275e6598f025593
           <q-breadcrumbs-el v-for="(dropdown, index) in dropdowns" :key="index">
             <q-btn flat @click="toggleDropdown(index)">
               <span>{{ dropdown.selectedOption }}</span>

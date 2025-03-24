@@ -1,11 +1,11 @@
 <template>
   <q-page class="q-pa-md">
     <div class="column items-start justify-center q-mb-md">
-      <h5 class="text-h4 q-ma-none"><b>Applicants</b></h5>
+      <h5 class="text-h4 q-ma-none"><b>Job Lists</b></h5>
       <div class="q-pa-md q-gutter-sm">
         <q-breadcrumbs class="q-ma-none">
           <q-breadcrumbs-el class="text-bold" label="Home" />
-          <q-breadcrumbs-el class="text-bold" label="Applicant Lists" />
+          <q-breadcrumbs-el class="text-bold" label="Job Lists" />
           <!-- <q-breadcrumbs-el label="Breadcrumbs" /> -->
         </q-breadcrumbs>
       </div>
@@ -24,37 +24,77 @@
       </q-input>
     </div>
 
-    <!-- Job Position Cards -->
-    <div class="row q-col-gutter-md q-mt-md">
-      <div v-for="job in filteredJobs" :key="job.id" class="col-12 col-sm-6 col-md-4 col-lg-3">
-        <q-card class="job-card cursor-pointer" @click="viewApplicants(job.id)">
-          <q-card-section>
-            <div class="text-h6">{{ job.title }}</div>
-            <div class="text-caption text-grey">Posted on: {{ job.date }}</div>
-          </q-card-section>
+    <!-- Job Position Table -->
+    <div class="q-pa-md">
+      <q-table :rows="rows" :columns="columns" row-key="position" :pagination="{ rowsPerPage: 10 }"
+        class="my-sticky-header-table" flat bordered :grid="$q.screen.lt.md" style="width: 100%;">
+        <!-- Grid mode slot for mobile/small screens -->
+        <template v-slot:item="props">
+          <div class="q-pa-xs col-xs-12 col-sm-6 col-md-4" :key="props.row.position">
+            <q-card flat bordered>
+              <q-card-section>
+                <div class="text-h6">{{ props.row.position }}</div>
+                <div class="text-subtitle2">Posted: {{ props.row.postingDate }}</div>
+              </q-card-section>
 
-          <q-separator />
+              <q-separator />
 
-          <q-card-section class="row justify-between">
-            <q-badge color="blue" class="q-mb-xs">Applicants: {{ job.applicants }}</q-badge>
-            <q-badge color="orange" class="q-mb-xs">Pending: {{ job.pending }}</q-badge>
-            <q-badge color="green" class="q-mb-xs">Qualified: {{ job.qualified }}</q-badge>
-            <q-badge color="red">Unqualified: {{ job.unqualified }}</q-badge>
-          </q-card-section>
+              <q-list dense>
+                <q-item>
+                  <q-item-section>
+                    <q-item-label caption class="text-bold">Applicants</q-item-label>
+                    <q-item-label>{{ props.row.applicants }}</q-item-label>
+                  </q-item-section>
+                </q-item>
 
-          <q-separator />
+                <q-item>
+                  <q-item-section>
+                    <q-item-label caption>Pending</q-item-label>
+                    <q-item-label>{{ props.row.pending }}</q-item-label>
+                  </q-item-section>
+                </q-item>
 
-          <q-card-actions align="right">
-            <q-btn label="View" color="primary" icon="visibility" />
-          </q-card-actions>
-        </q-card>
-      </div>
+                <q-item>
+                  <q-item-section>
+                    <q-item-label caption>Qualified</q-item-label>
+                    <q-item-label>{{ props.row.qualified }}</q-item-label>
+                  </q-item-section>
+                </q-item>
+
+                <q-item>
+                  <q-item-section>
+                    <q-item-label caption>Unqualified</q-item-label>
+                    <q-item-label>{{ props.row.unqualified }}</q-item-label>
+                  </q-item-section>
+                </q-item>
+              </q-list>
+
+              <q-separator />
+
+              <q-card-actions align="right">
+                <q-btn flat round color="primary" icon="visibility" @click="viewDetails(props.row)">
+                  <q-tooltip>View</q-tooltip>
+                </q-btn>
+              </q-card-actions>
+            </q-card>
+          </div>
+        </template>
+
+        <!-- Default slot for action column on desktop -->
+        <template v-slot:body-cell-action="props">
+          <q-td :props="props">
+            <q-btn round dense color="primary" icon="visibility" @click="viewDetails(props.row)" size="sm">
+              <q-tooltip>View</q-tooltip>
+            </q-btn>
+          </q-td>
+        </template>
+      </q-table>
     </div>
   </q-page>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 
 const dateRange = ref({ from: '', to: '' })
 const formattedDateRange = ref('')
@@ -64,45 +104,142 @@ const updateFormattedDate = () => {
   formattedDateRange.value = from && to ? `${from} - ${to}` : ''
 }
 
-const jobs = ref([
+const columns = [
   {
-    id: 1,
-    title: 'Computer Programmer II',
-    date: '2025-01-20',
-    applicants: 10,
-    pending: 5,
-    qualified: 5,
-    unqualified: 5,
+    name: 'officePosition',
+    required: true,
+    label: 'Office',
+    align: 'left',
+    field: row => row.officePosition,
+    sortable: true
   },
   {
-    id: 2,
-    title: 'Systems Analyst',
-    date: '2025-02-20',
+    name: 'position',
+    label: 'Position',
+    align: 'left',
+    field: 'position',
+    sortable: true
+  },
+  {
+    name: 'postingDate',
+    align: 'left',
+    label: 'Posting Date',
+    field: 'postingDate',
+    sortable: true
+  },
+  {
+    name: 'applicants',
+    align: 'center',
+    label: 'No. of Applicants',
+    field: 'applicants',
+    sortable: true
+  },
+  {
+    name: 'pending',
+    align: 'center',
+    label: 'Pending',
+    field: 'pending',
+    sortable: true
+  },
+  {
+    name: 'qualified',
+    align: 'center',
+    label: 'Qualified',
+    field: 'qualified',
+    sortable: true
+  },
+  {
+    name: 'unqualified',
+    align: 'center',
+    label: 'Unqualified',
+    field: 'unqualified',
+    sortable: true
+  },
+  {
+    name: 'action',
+    align: 'center',
+    label: 'Action',
+    field: 'action',
+    sortable: false
+  }
+]
+
+const rows = [
+  {
+    officePosition: 'ICT Department',
+    position: 'Computer Programmer II',
+    postingDate: '01-20-2025',
+    applicants: 10,
+    pending: 0,
+    qualified: 5,
+    unqualified: 5,
+    action: ''
+  },
+  {
+    officePosition: 'ICT Department',
+    position: 'Systems Analyst',
+    postingDate: '02-26-2025',
     applicants: 20,
     pending: 0,
     qualified: 0,
     unqualified: 0,
+    action: ''
   },
   {
-    id: 3,
-    title: 'Data Analyst',
-    date: '2025-03-20',
-    applicants: 15,
-    pending: 3,
-    qualified: 7,
-    unqualified: 5,
-  },
-])
+    officePosition: 'ICT Department',
+    position: 'Data Analyst',
+    postingDate: '03-20-2025',
+    applicants: 0,
+    pending: 0,
+    qualified: 0,
+    unqualified: 0,
+    action: ''
+  }
+]
 
-const filteredJobs = computed(() => jobs.value)
-
-const viewApplicants = (id) => {
-  console.log(`Viewing applicants for job ID: ${id}`)
+const viewDetails = (row) => {
+  console.log('View details for:', row.position)
+  // Add your logic to view details
 }
+
+
 </script>
 
-<style scoped>
-/* Reduce spacing between heading and position text */
+<style scoped lang="scss">
+.my-sticky-header-table {
+
+  .q-table__top {
+    padding: 12px 20px;
+  }
+
+  thead tr:first-child th {
+    background-color: #f5f5f5;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    font-size: 16px;
+    /* Larger font for headers */
+    padding: 16px;
+    /* More padding */
+  }
+
+  tbody td {
+    padding: 14px 16px;
+    /* More padding for cells */
+    font-size: 15px;
+    /* Larger font for content */
+  }
+
+  .q-table__grid-item {
+    margin-bottom: 12px;
+  }
+
+  /* Make the card view larger too */
+  .q-card {
+    font-size: 16px;
+  }
+}
+
 h5 {
   margin-bottom: 0;
 }

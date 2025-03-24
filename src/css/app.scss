@@ -1,4 +1,12 @@
 // app global css in SCSS form
+// Base font size calculation based on viewport width
+:root {
+  --base-font-size: calc(14px + (16 - 14) * ((100vw - 300px) / (1920 - 300)));
+}
+
+html {
+  font-size: var(--base-font-size);
+}
 @font-face {
   font-family: 'CustomFont';
   src: url('/fonts/Poppins-Regular.ttf') format('truetype');

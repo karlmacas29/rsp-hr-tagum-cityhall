@@ -1,22 +1,31 @@
 <template>
   <q-page class="q-pa-md">
-    <div class="column items-start justify-center q-mb-md ">
+    <div class="column items-start justify-center q-mb-md">
       <h5 class="text-h4 q-ma-none"><b>Plantilla</b></h5>
       <div class="q-pa-md q-gutter-sm">
-        <!--  -->
         <q-breadcrumbs class="q-ma-none" separator="/">
-          <q-breadcrumbs-el v-for="(item, index) in breadcrumbItems" :key="index" :label="item.label" />
-
-          <!-- Multiple dropdowns in breadcrumbs -->
+          <q-breadcrumbs-el
+            v-for="(item, index) in breadcrumbItems"
+            :key="index"
+            :label="item.label"
+          />
           <q-breadcrumbs-el v-for="(dropdown, index) in dropdowns" :key="index">
             <q-btn flat @click="toggleDropdown(index)">
               <span>{{ dropdown.selectedOption }}</span>
-              <q-icon name="arrow_drop_down" :class="{ 'rotate-up': dropdown.open, 'rotate-down': !dropdown.open }" />
+              <q-icon
+                name="arrow_drop_down"
+                :class="{ 'rotate-up': dropdown.open, 'rotate-down': !dropdown.open }"
+              />
             </q-btn>
-            <q-menu anchor="bottom left" self="top left">
+            <q-menu v-model="dropdown.open" anchor="bottom left" self="top left">
               <q-list>
-                <q-item v-for="(option, optIndex) in dropdown.options" :key="optIndex" clickable v-ripple
-                  @click="selectOption(index, option)">
+                <q-item
+                  v-for="(option, optIndex) in dropdown.options"
+                  :key="optIndex"
+                  clickable
+                  v-ripple
+                  @click="selectOption(index, option)"
+                >
                   <q-item-section>{{ option }}</q-item-section>
                 </q-item>
               </q-list>
@@ -33,9 +42,41 @@
       </q-card-section>
       <q-separator />
       <q-card-section>
-        <q-table flat bordered :rows="positions" :columns="columns" row-key="id" />
+        <q-table flat bordered :rows="positions" :columns="columns" row-key="id">
+          <template v-slot:body-cell-funded="props">
+            <q-td :props="props">
+              <q-toggle
+                v-model="props.row.funded"
+                :color="props.row.funded ? 'green' : 'red'"
+                checked-icon="check"
+                unchecked-icon="close"
+                :false-value="false"
+                :true-value="true"
+                @update:model-value="handleToggle(props.row)"
+              />
+            </q-td>
+          </template>
+        </q-table>
       </q-card-section>
     </q-card>
+
+    <!-- Modal for Uploading File -->
+    <q-dialog v-model="showModal">
+      <q-card>
+        <q-card-section>
+          <div class="text-h6">Upload Verification File</div>
+        </q-card-section>
+
+        <q-card-section>
+          <q-file v-model="selectedFile" label="Choose a file" filled />
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn label="Confirm" color="green" :disabled="!selectedFile" @click="confirmUpload" />
+          <q-btn label="Cancel" color="red" flat @click="cancelUpload" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
@@ -48,18 +89,17 @@ const breadcrumbItems = ref([])
 // Dropdown state and options
 const dropdowns = ref([
   {
-    selectedOption: 'Select a option',
+    selectedOption: 'Select an option',
     options: ['Option 1', 'Option 2', 'Option 3'],
     open: false,
   },
   {
-    selectedOption: 'Select a option2',
+    selectedOption: 'Select an option2',
     options: ['Option 1', 'Option 2', 'Option 3'],
     open: false,
   },
 ])
 
-// Handlers
 const toggleDropdown = (index) => {
   dropdowns.value.forEach((dropdown, i) => {
     dropdown.open = i === index ? !dropdown.open : false
@@ -71,6 +111,7 @@ const selectOption = (index, option) => {
   dropdowns.value[index].open = false
 }
 
+// Positions data
 const positions = ref([
   {
     id: 1,
@@ -79,9 +120,8 @@ const positions = ref([
     sg: '15',
     position: 'HR Manager',
     employee: 'John Doe',
-    funded: 'Yes',
+    funded: false,
     status: 'Active',
-    action: '',
   },
   {
     id: 2,
@@ -90,15 +130,15 @@ const positions = ref([
     sg: '18',
     position: 'Software Engineer',
     employee: 'Jane Smith',
-    funded: 'No',
+    funded: false,
     status: 'Inactive',
-    action: '',
   },
 ])
 
+// Table columns
 const columns = [
-  { name: 'page_no', label: 'Page No', field: 'page_no', align: 'left' },
-  { name: 'item_no', label: 'Item No', field: 'item_no', align: 'left' },
+  { name: 'page_no', label: 'Page No', field: 'pageNo', align: 'left' },
+  { name: 'item_no', label: 'Item No', field: 'itemNo', align: 'left' },
   { name: 'sg', label: 'SG', field: 'sg', align: 'left' },
   { name: 'position', label: 'Position', field: 'position', align: 'left' },
   { name: 'employee', label: 'Employee', field: 'employee', align: 'left' },
@@ -110,11 +150,33 @@ const columns = [
     format: (val, row) => (row.funded ? 'Yes' : 'No'),
   },
   { name: 'status', label: 'Status', field: 'status', align: 'left' },
-  { name: 'action', label: 'Action', field: 'action', align: 'left' },
 ]
 
-const addPosition = () => {
-  console.log('Add Position Clicked')
+// Modal & File Upload State
+const showModal = ref(false)
+const selectedFile = ref(null)
+const currentRow = ref(null)
+
+// Handle Toggle Click
+const handleToggle = (row) => {
+  if (!row.funded) {
+    currentRow.value = row
+    showModal.value = true
+  }
+}
+
+// Confirm Upload (Switch to Yes)
+const confirmUpload = () => {
+  if (selectedFile.value && currentRow.value) {
+    currentRow.value.funded = true // Set to Yes
+    showModal.value = false
+    selectedFile.value = null
+  }
+}
+
+// Cancel Upload (Keep it as No)
+const cancelUpload = () => {
+  showModal.value = false
 }
 </script>
 
@@ -134,12 +196,6 @@ const addPosition = () => {
       color: #4299e1;
     }
   }
-}
-
-.domain-dropdown,
-.db-dropdown {
-  border-radius: 6px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .q-btn-with-icon {

@@ -3,15 +3,12 @@
     <div class="column items-start q-mb-md q-pa-md">
       <h5 class="text-h3 q-ma-none"><b>Plantilla</b></h5>
       <div class="q-pa-md q-gutter-sm">
-        <!--  -->
         <q-breadcrumbs class="q-pa-md" separator="/">
           <q-breadcrumbs-el
             v-for="(item, index) in breadcrumbItems"
             :key="index"
             :label="item.label"
           />
-
-          <!-- Multiple dropdowns in breadcrumbs -->
           <q-breadcrumbs-el v-for="(dropdown, index) in dropdowns" :key="index">
             <q-btn flat @click="toggleDropdown(index)">
               <span>{{ dropdown.selectedOption }}</span>
@@ -84,21 +81,52 @@ const selectOption = (index, option) => {
 }
 
 const positions = ref([
-  { id: 1, title: 'HR Manager', department: 'Human Resources' },
-  { id: 2, title: 'Software Engineer', department: 'IT' },
+  {
+    id: 1,
+    pageNo: 1,
+    itemNo: 101,
+    sg: '15',
+    position: 'HR Manager',
+    employee: 'John Doe',
+    funded: 'Yes',
+    status: 'Active',
+    action: '',
+  },
+  {
+    id: 2,
+    pageNo: 2,
+    itemNo: 102,
+    sg: '18',
+    position: 'Software Engineer',
+    employee: 'Jane Smith',
+    funded: 'No',
+    status: 'Inactive',
+    action: '',
+  },
 ])
 
 const columns = [
-  { name: 'id', label: 'ID', field: 'id', align: 'left' },
-  { name: 'title', label: 'Title', field: 'title', align: 'left' },
-  { name: 'department', label: 'Department', field: 'department', align: 'left' },
+  { name: 'page_no', label: 'Page No', field: 'page_no', align: 'left' },
+  { name: 'item_no', label: 'Item No', field: 'item_no', align: 'left' },
+  { name: 'sg', label: 'SG', field: 'sg', align: 'left' },
+  { name: 'position', label: 'Position', field: 'position', align: 'left' },
+  { name: 'employee', label: 'Employee', field: 'employee', align: 'left' },
+  {
+    name: 'funded',
+    label: 'Funded',
+    field: 'funded',
+    align: 'center',
+    format: (val, row) => (row.funded ? 'Yes' : 'No'),
+  },
+  { name: 'status', label: 'Status', field: 'status', align: 'left' },
+  { name: 'action', label: 'Action', field: 'action', align: 'left' },
 ]
 
 const addPosition = () => {
   console.log('Add Position Clicked')
 }
 </script>
-``
+
 <style lang="scss" scoped>
 .custom-breadcrumbs {
   border: 1px solid #e2e8f0;

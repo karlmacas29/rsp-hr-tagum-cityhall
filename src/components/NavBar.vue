@@ -30,7 +30,7 @@
 
             </q-item>
 
-            <q-item clickable v-close-popup>
+            <q-item clickable @click="onLogout" v-close-popup>
               <q-item-section avatar>
                 <q-avatar icon="logout" color="negative" text-color="white" />
               </q-item-section>
@@ -45,6 +45,16 @@
     </div>
   </q-toolbar>
 </template>
+
+<script setup>
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+const onLogout = () => {
+  router.push('/login')
+}
+</script>
 
 <style scoped>
 .header {

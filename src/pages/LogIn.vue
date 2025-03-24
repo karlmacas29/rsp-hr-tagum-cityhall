@@ -27,13 +27,18 @@
         <div>
           <form action="">
             <div class="q-gutter-md" style="width: 400px">
-              <q-input outlined v-model="text" label="Username" />
-              <q-input outlined v-model="text" label="Password" />
+              <q-input outlined v-model="username" label="Username" type="text" />
+              <q-input outlined v-model="password" label="Password" :type="showPass ? 'text' : 'password'">
+                <template v-slot:append>
+                  <q-btn @click="passwordVisible" round flat color="white" class="text-grey"
+                    :icon="showPass ? 'visibility' : 'visibility_off'" />
+                </template>
+              </q-input>
             </div>
           </form>
         </div>
         <div>
-          <q-btn label="Login" color="primary" size="md" style="width: 200px" rounded />
+          <q-btn @click="login" label="Login" color="primary" size="md" style="width: 200px" rounded />
         </div>
       </div>
     </div>
@@ -41,7 +46,24 @@
 </template>
 
 <script>
+
 export default {
   name: 'LogIn',
+  data() {
+    return {
+      username: '',
+      password: '',
+      showPass: false
+    }
+  },
+  methods: {
+    login() {
+      console.log('Login Clicked')
+      this.$router.push('/dashboard')
+    },
+    passwordVisible() {
+      this.showPass = !this.showPass
+    }
+  }
 }
 </script>

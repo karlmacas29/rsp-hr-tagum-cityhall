@@ -9,60 +9,27 @@
     <div class="header-container"></div>
 
     <q-list>
-      <q-item
-        class="q-mx-sm q-my-sm"
-        style="border-radius: 10px"
-        v-for="(item, index) in menuItems"
-        :key="index"
-        clickable
-        v-ripple
-        :to="item.route"
-        :active-class="'active-menu'"
-      >
+      <q-item class="q-mx-sm q-my-sm" style="border-radius: 10px" v-for="(item, index) in menuItems" :key="index"
+        clickable v-ripple :to="item.route" :active-class="'active-menu'">
         <q-item-section avatar>
           <q-icon :name="item.icon" />
         </q-item-section>
         <q-item-section>{{ item.label }}</q-item-section>
       </q-item>
-
-      <q-expansion-item
-        style="border-radius: 10px"
-        class="q-mx-md q-my-sm"
-        label="Rater Management"
-        icon="star"
-      >
-        <q-card>
-          <q-card-section>
-            <q-list class="q-gutter-sm">
-              <q-item
-                clickable
-                v-ripple
-                style="border-radius: 10px"
-                to="/raters"
-                :active-class="'active-menu'"
-              >
-                <q-item-section avatar>
-                  <q-icon name="star" />
-                </q-item-section>
-                <q-item-section>Raters</q-item-section>
-              </q-item>
-              <q-item clickable v-ripple style="border-radius: 10px" :active-class="'active-menu'">
-                <q-item-section avatar>
-                  <q-icon name="description" />
-                </q-item-section>
-                <q-item-section>Reports</q-item-section>
-              </q-item>
-              <q-item clickable v-ripple style="border-radius: 10px" :active-class="'active-menu'">
-                <q-item-section avatar>
-                  <q-icon name="pending_actions" />
-                </q-item-section>
-                <q-item-section>Criteria</q-item-section>
-              </q-item>
-            </q-list>
-          </q-card-section>
-        </q-card>
+      <!-- rater -->
+      <q-expansion-item class="q-mx-sm q-my-sm" icon="assignment_ind" label="Rater Management">
+        <div>
+          <q-item class="q-mx-sm q-my-sm" style="border-radius: 10px" v-for="(item, index) in ratersManage" :key="index"
+            clickable v-ripple :to="item.route" :active-class="'active-menu'">
+            <q-item-section avatar>
+              <q-icon :name="item.icon" />
+            </q-item-section>
+            <q-item-section>{{ item.label }}</q-item-section>
+          </q-item>
+        </div>
       </q-expansion-item>
     </q-list>
+    <!-- footer -->
   </q-drawer>
 </template>
 
@@ -78,7 +45,11 @@ export default {
 
         { label: 'Activity Log', route: '/activity-log', icon: 'history' },
       ],
-      ratersManage: [],
+      ratersManage: [
+        { label: 'Raters', route: '/raters', icon: 'groups' },
+        { label: 'Reports', route: '/reports', icon: 'assessment' },
+        { label: 'Criteria', route: '/criteria', icon: 'rule' },
+      ],
     }
   },
 }
@@ -90,32 +61,38 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 5px 0; /* Reduce padding */
-  margin-bottom: 2px; /* Reduce space below logo */
+  padding: 5px 0;
+  /* Reduce padding */
+  margin-bottom: 2px;
+  /* Reduce space below logo */
   margin-top: 40px;
 }
 
 .logo {
-  width: 140px; /* Slightly smaller logo */
+  width: 140px;
+  /* Slightly smaller logo */
   height: auto;
 }
 
 /* Header Section */
 .header-container {
   text-align: center;
-  margin-bottom: 2px !important; /* Further reduce space */
+  margin-bottom: 2px !important;
+  /* Further reduce space */
   padding-bottom: 0 !important;
 }
 
 .company-title {
-  font-size: 16px; /* Reduce font size slightly */
+  font-size: 16px;
+  /* Reduce font size slightly */
   font-weight: bold;
-  margin-bottom: 0 !important; /* Remove extra space below title */
+  margin-bottom: 0 !important;
+  /* Remove extra space below title */
 }
 
 /* Active menu styling */
 .active-menu {
-  background-color: #388e3c !important;
+  background-color: #00B034 !important;
   color: white !important;
   font-weight: bold;
 }

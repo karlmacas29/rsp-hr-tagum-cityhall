@@ -8,13 +8,39 @@
 
       <div class="row items-center">
         <q-btn round flat dense icon="notifications" class="q-mr-md" />
-        <q-avatar size="36px">
-          <img src="https://placehold.co/45x45" alt="User Avatar" />
-        </q-avatar>
-        <div class="q-ml-sm">
-          <div class="text-bold text-body1">Gavano</div>
-          <div class="text-caption">HR Manager</div>
-        </div>
+        <q-btn-dropdown flat :ripple="false">
+          <template v-slot:label>
+            <q-avatar size="45px">
+              <img src="https://placehold.co/45x45" alt="User Avatar" />
+            </q-avatar>
+            <div class="q-ml-sm column justify-start items-start">
+              <div class="text-bold text-body1" style="font-size:13px;">Gavano E. Gavano</div>
+              <div class="text-caption">HR Manager</div>
+            </div>
+          </template>
+
+          <q-list>
+            <q-item clickable v-close-popup>
+              <q-item-section avatar>
+                <q-avatar icon="settings" color="primary" text-color="white" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Settings</q-item-label>
+              </q-item-section>
+
+            </q-item>
+
+            <q-item clickable v-close-popup>
+              <q-item-section avatar>
+                <q-avatar icon="logout" color="negative" text-color="white" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Logout</q-item-label>
+              </q-item-section>
+
+            </q-item>
+          </q-list>
+        </q-btn-dropdown>
       </div>
     </div>
   </q-toolbar>
@@ -24,7 +50,8 @@
 .header {
   background: white;
   border-bottom: 1px solid #eee;
-  height: 90px; /* Reduced height */
+  height: 90px;
+  /* Reduced height */
 }
 
 .q-mb-none {

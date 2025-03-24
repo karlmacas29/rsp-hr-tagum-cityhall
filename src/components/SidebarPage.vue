@@ -17,8 +17,11 @@
         <q-item-section>{{ item.label }}</q-item-section>
       </q-item>
       <!-- rater -->
-      <q-expansion-item class="q-mx-sm q-my-sm" icon="assignment_ind" label="Rater Management">
-        <div>
+      <q-expansion-item style="border-radius: 30px" class="q-mx-sm q-my-sm" icon="assignment_ind"
+        label="Rater Management">
+
+        <q-card class="q-py-none content-container">
+
           <q-item class="q-mx-sm q-my-sm" style="border-radius: 10px" v-for="(item, index) in ratersManage" :key="index"
             clickable v-ripple :to="item.route" :active-class="'active-menu'">
             <q-item-section avatar>
@@ -26,7 +29,8 @@
             </q-item-section>
             <q-item-section>{{ item.label }}</q-item-section>
           </q-item>
-        </div>
+        </q-card>
+
       </q-expansion-item>
     </q-list>
     <!-- footer -->
@@ -41,7 +45,7 @@ export default {
       menuItems: [
         { label: 'Dashboard', route: '/dashboard', icon: 'dashboard' },
         { label: 'Plantilla', route: '/plantilla', icon: 'list' },
-        { label: 'Job Posts', route: '/applicants', icon: 'person' },
+        { label: 'Job Posts', route: '/applicants', icon: 'post_add' },
 
         { label: 'Activity Log', route: '/activity-log', icon: 'history' },
       ],
@@ -56,6 +60,13 @@ export default {
 </script>
 
 <style scoped>
+.content-container {
+  border-left: 2px solid black;
+  /* Change color as needed */
+  padding-left: 5px;
+  margin-left: 25px;
+}
+
 /* Logo Section */
 .logo-container {
   display: flex;

@@ -45,7 +45,7 @@ export default {
       menuItems: [
         { label: 'Dashboard', route: '/dashboard', icon: 'dashboard' },
         { label: 'Plantilla', route: '/plantilla', icon: 'list' },
-        { label: 'Job Posts', route: '/applicants', icon: 'post_add' },
+        { label: 'Job Posts', route: '/job-post', icon: 'post_add' },
 
         { label: 'Activity Log', route: '/activity-log', icon: 'history' },
       ],

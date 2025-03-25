@@ -1,11 +1,11 @@
 <template>
   <q-page class="q-pa-md">
     <div class="column items-start justify-center q-mb-md">
-      <h5 class="text-h4 q-ma-none"><b>Job Lists</b></h5>
+      <h5 class="text-h4 q-ma-none"><b>Job Posts</b></h5>
       <div class="q-pa-md q-gutter-sm">
         <q-breadcrumbs class="q-ma-none">
           <q-breadcrumbs-el class="text-bold" label="Home" />
-          <q-breadcrumbs-el class="text-bold" label="Job Lists" />
+          <q-breadcrumbs-el class="text-bold" label="Job Posts" />
           <!-- <q-breadcrumbs-el label="Breadcrumbs" /> -->
         </q-breadcrumbs>
       </div>
@@ -83,7 +83,7 @@
         <!-- Default slot for action column on desktop -->
         <template v-slot:body-cell-action="props">
           <q-td :props="props">
-            <q-btn round dense color="primary" icon="visibility" @click="viewDetails(props.row)" size="sm">
+            <q-btn round dense color="primary" icon="visibility" @click="viewDetails(props.row)" size="md">
               <q-tooltip>View</q-tooltip>
             </q-btn>
           </q-td>

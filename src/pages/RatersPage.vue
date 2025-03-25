@@ -12,9 +12,9 @@
     </div>
 
     <q-card>
-      <q-card-section>
-        <div class="text-h6">Raters</div>
-        <q-btn color="primary" label="Add Rater" @click="addRater" />
+      <q-card-section class="row justify-between items-center">
+        <div class="text-h5 text-bold">Raters List</div>
+        <q-btn color="primary" label="Add Rater" @click="addRater" icon="add" />
       </q-card-section>
       <q-separator />
       <q-card-section>

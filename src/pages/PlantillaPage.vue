@@ -5,16 +5,8 @@
       <div class="q-pa-md q-gutter-sm">
         <q-breadcrumbs class="q-ma-none" separator="/">
           <q-breadcrumbs-el>
-            <q-select
-              style="width: 280px"
-              v-model="selectedOffice"
-              :options="officePositions"
-              label="City Hall Office Positions"
-              outlined
-              emit-value
-              map-options
-              @update:model-value="onOfficeSelect"
-            >
+            <q-select style="width: 280px" v-model="selectedOffice" :options="officePositions"
+              label="City Hall Office Positions" outlined emit-value map-options @update:model-value="onOfficeSelect">
               <template v-slot:option="scope">
                 <q-item v-bind="scope.itemProps" :class="{ 'bg-grey-2': scope.selected }">
                   <q-item-section>
@@ -39,36 +31,18 @@
         <q-table flat bordered :rows="positions" :columns="columns" row-key="id">
           <template v-slot:body-cell-funded="props">
             <q-td :props="props">
-              <q-toggle
-                :model-value="props.row.funded"
-                :color="props.row.funded ? 'green' : 'red'"
-                checked-icon="check"
-                unchecked-icon="close"
-                :disable="props.row.funded || props.row.employee !== ''"
-                @click="handleToggle(props.row)"
-              />
+              <q-toggle :model-value="props.row.funded" :color="props.row.funded ? 'green' : 'red'" checked-icon="check"
+                unchecked-icon="close" :disable="props.row.funded || props.row.employee !== ''"
+                @click="handleToggle(props.row)" />
             </q-td>
           </template>
 
           <template v-slot:body-cell-action="props">
             <q-td :props="props">
-              <q-btn
-                flat
-                dense
-                round
-                color="blue"
-                icon="visibility"
-                @click="viewPosition(props.row)"
-              />
-              <q-btn
-                v-if="props.row.employee"
-                flat
-                dense
-                round
-                color="green"
-                icon="print"
-                @click="printPosition(props.row)"
-              />
+              <q-btn v-if="props.row.funded" flat dense round color="blue" icon="post_add"
+                @click="viewPosition(props.row)" />
+              <q-btn v-if="props.row.employee" flat dense round color="green" icon="print"
+                @click="printPosition(props.row)" />
             </q-td>
           </template>
         </q-table>
@@ -95,28 +69,64 @@
 
     <!-- Modal for Vacant Position -->
     <q-dialog v-model="showVacantPositionModal">
-      <q-card>
-        <q-card-section class="bg-blue text-white">
-          <div class="text-h6">Vacant Position Details</div>
+      <q-card class="q-pa-lg" style="width: 80vw;">
+        <q-card-section>
+          <div class="text-h6">Plantilla Job Post</div>
+          <div class="text-subtitle2 text-grey">Administrative & Fiscal Management Group</div>
         </q-card-section>
 
         <q-card-section>
           <div class="row q-col-gutter-md">
-            <div class="col-6"><strong>Position:</strong> {{ selectedPosition.position }}</div>
-            <div class="col-6"><strong>Item No:</strong> {{ selectedPosition.itemNo }}</div>
-            <div class="col-6"><strong>Page No:</strong> {{ selectedPosition.pageNo }}</div>
-            <div class="col-6"><strong>Salary Grade:</strong> {{ selectedPosition.sg }}</div>
-            <div class="col-12">
-              <strong>Status:</strong>
-              <q-badge :color="selectedPosition.funded ? 'green' : 'red'">
-                {{ selectedPosition.funded ? 'Funded' : 'Unfunded' }}
-              </q-badge>
+            <div class="col-6">
+              <q-input v-model="jobTitle" label="Job Title" outlined dense />
+            </div>
+            <div class="col-6">
+              <q-input v-model="jobRole" label="Job Role/Position" outlined dense />
+            </div>
+          </div>
+
+          <div class="row q-col-gutter-md q-mt-sm">
+            <div class="col-6">
+              <q-input v-model="startingDate" label="Starting Date" type="date" outlined dense />
+            </div>
+            <div class="col-6">
+              <q-input v-model="endedDate" label="Ended Date" type="date" outlined dense />
             </div>
           </div>
         </q-card-section>
 
-        <q-card-actions align="right">
-          <q-btn label="Close" color="primary" flat v-close-popup />
+        <q-card-section>
+          <div class="text-subtitle1 q-mb-sm">Qualification Standard</div>
+          <q-markup-table flat bordered>
+            <thead>
+              <tr>
+                <th class="text-left">Education</th>
+                <th class="text-left">Experience</th>
+                <th class="text-left">Training</th>
+                <th class="text-left">Eligibility</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <q-select v-model="education" :options="['Bachelor\'s Degree']" outlined dense />
+                </td>
+                <td>
+                  <q-select v-model="experience" :options="['Something']" outlined dense />
+                </td>
+                <td>
+                  <q-select v-model="training" :options="['Something']" outlined dense />
+                </td>
+                <td>
+                  <q-select v-model="eligibility" :options="['Something']" outlined dense />
+                </td>
+              </tr>
+            </tbody>
+          </q-markup-table>
+        </q-card-section>
+
+        <q-card-actions align="right" class="q-pa-md">
+          <q-btn color="primary" label="Post" @click="submitJobPost" class="full-width" />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -178,6 +188,15 @@
 import { ref } from 'vue'
 
 const selectedOffice = ref(null)
+
+const jobTitle = ref('')
+const jobRole = ref('')
+const startingDate = ref('')
+const endedDate = ref('')
+const education = ref(null)
+const experience = ref(null)
+const training = ref(null)
+const eligibility = ref(null)
 
 const officePositions = ref([
   { value: 'mayor', label: 'City Mayor', department: 'Executive Office' },

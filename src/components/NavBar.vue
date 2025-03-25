@@ -20,7 +20,7 @@
           </template>
 
           <q-list>
-            <q-item clickable v-close-popup>
+            <q-item clickable @click="onSetting" v-close-popup>
               <q-item-section avatar>
                 <q-avatar icon="settings" color="primary" text-color="white" />
               </q-item-section>
@@ -53,6 +53,10 @@ const router = useRouter()
 
 const onLogout = () => {
   router.push('/login')
+}
+
+const onSetting = () => {
+  router.push('/settings')
 }
 </script>
 

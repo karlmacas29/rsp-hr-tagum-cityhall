@@ -4,32 +4,21 @@
       <h5 class="text-h4 q-ma-none"><b>Plantilla</b></h5>
       <div class="q-pa-md q-gutter-sm">
         <q-breadcrumbs class="q-ma-none" separator="/">
-          <q-breadcrumbs-el
-            v-for="(item, index) in breadcrumbItems"
-            :key="index"
-            :label="item.label"
-          />
-          <q-breadcrumbs-el v-for="(dropdown, index) in dropdowns" :key="index">
-            <q-btn flat @click="toggleDropdown(index)">
-              <span>{{ dropdown.selectedOption }}</span>
-              <q-icon
-                name="arrow_drop_down"
-                :class="{ 'rotate-up': dropdown.open, 'rotate-down': !dropdown.open }"
-              />
-            </q-btn>
-            <q-menu v-model="dropdown.open" anchor="bottom left" self="top left">
-              <q-list>
-                <q-item
-                  v-for="(option, optIndex) in dropdown.options"
-                  :key="optIndex"
-                  clickable
-                  v-ripple
-                  @click="selectOption(index, option)"
-                >
-                  <q-item-section>{{ option }}</q-item-section>
+          <q-breadcrumbs-el>
+            <q-select style="width:230px;" v-model="selectedOffice" :options="officePositions"
+              label="City Hall Office Positions" outlined emit-value map-options @update:model-value="onOfficeSelect">
+              <template v-slot:option="scope">
+                <q-item v-bind="scope.itemProps" :class="{ 'bg-grey-2': scope.selected }">
+                  <q-item-section>
+                    <q-item-label>{{ scope.opt.label }}</q-item-label>
+                    <q-item-label caption>{{ scope.opt.department }}</q-item-label>
+                  </q-item-section>
                 </q-item>
-              </q-list>
-            </q-menu>
+              </template>
+            </q-select>
+          </q-breadcrumbs-el>
+          <q-breadcrumbs-el>
+            <!--  -->
           </q-breadcrumbs-el>
         </q-breadcrumbs>
       </div>
@@ -45,15 +34,9 @@
         <q-table flat bordered :rows="positions" :columns="columns" row-key="id">
           <template v-slot:body-cell-funded="props">
             <q-td :props="props">
-              <q-toggle
-                v-model="props.row.funded"
-                :color="props.row.funded ? 'green' : 'red'"
-                checked-icon="check"
-                unchecked-icon="close"
-                :false-value="false"
-                :true-value="true"
-                @update:model-value="handleToggle(props.row)"
-              />
+              <q-toggle v-model="props.row.funded" :color="props.row.funded ? 'green' : 'red'" checked-icon="check"
+                unchecked-icon="close" :false-value="false" :true-value="true"
+                @update:model-value="handleToggle(props.row)" />
             </q-td>
           </template>
         </q-table>
@@ -83,32 +66,67 @@
 <script setup>
 import { ref } from 'vue'
 
-// Breadcrumb items
-const breadcrumbItems = ref([])
-
-// Dropdown state and options
-const dropdowns = ref([
+const selectedOffice = ref(null)
+const officePositions = ref([
   {
-    selectedOption: 'Select an option',
-    options: ['Option 1', 'Option 2', 'Option 3'],
-    open: false,
+    value: 'mayor',
+    label: 'City Mayor',
+    department: 'Executive Office'
   },
   {
-    selectedOption: 'Select an option2',
-    options: ['Option 1', 'Option 2', 'Option 3'],
-    open: false,
+    value: 'viceMayor',
+    label: 'Vice Mayor',
+    department: 'Executive Office'
   },
+  {
+    value: 'cityAdministrator',
+    label: 'City Administrator',
+    department: 'Administrative Services'
+  },
+  {
+    value: 'financeDirector',
+    label: 'Finance Director',
+    department: 'Finance Department'
+  },
+  {
+    value: 'humanResourcesManager',
+    label: 'Human Resources Manager',
+    department: 'Human Resources'
+  },
+  {
+    value: 'publicWorksDirector',
+    label: 'Public Works Director',
+    department: 'Public Works Department'
+  },
+  {
+    value: 'cityPlanner',
+    label: 'City Planner',
+    department: 'Urban Planning'
+  },
+  {
+    value: 'healthOfficer',
+    label: 'City Health Officer',
+    department: 'Health Department'
+  },
+  {
+    value: 'treasurerController',
+    label: 'Treasurer/Controller',
+    department: 'Finance Department'
+  },
+  {
+    value: 'legalCounsel',
+    label: 'City Legal Counsel',
+    department: 'Legal Department'
+  }
 ])
 
-const toggleDropdown = (index) => {
-  dropdowns.value.forEach((dropdown, i) => {
-    dropdown.open = i === index ? !dropdown.open : false
-  })
-}
-
-const selectOption = (index, option) => {
-  dropdowns.value[index].selectedOption = option
-  dropdowns.value[index].open = false
+const onOfficeSelect = (selectedPosition) => {
+  // Optional method to handle selection
+  console.log('Selected Position:', selectedPosition)
+  // You can add additional logic here, such as:
+  // - Fetching more details about the position
+  // - Updating parent component
+  // - Triggering additional actions
 }
 
 // Positions data

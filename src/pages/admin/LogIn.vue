@@ -59,7 +59,7 @@ export default {
   methods: {
     login() {
       console.log('Login Clicked')
-      this.$router.push('/dashboard')
+      this.$router.push('/admin')
     },
     passwordVisible() {
       this.showPass = !this.showPass

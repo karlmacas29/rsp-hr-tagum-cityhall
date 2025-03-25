@@ -1,20 +1,20 @@
 const routes = [
+  { path: '/', component: () => import('pages/admin/LogIn.vue') },
   {
-    path: '/',
+    path: '/admin',
     component: () => import('layouts/MainLayout.vue'),
     children: [
       { path: '', redirect: '/dashboard' }, // 👈 Add this line to auto-redirect
-      { path: 'dashboard', component: () => import('pages/DashboardPage.vue') },
-      { path: 'job-post', component: () => import('pages/JobPostPage.vue') },
-      { path: 'plantilla', component: () => import('pages/PlantillaPage.vue') },
-      { path: 'raters', component: () => import('pages/RatersPage.vue') },
-      { path: 'reports', component: () => import('pages/ReportsPage.vue') },
-      { path: 'activity-log', component: () => import('pages/ActivityLog.vue') },
-      { path: 'criteria', component: () => import('pages/CriteriaRater.vue') },
-      { path: 'settings', component: () => import('pages/SettingPage.vue') },
+      { path: '/dashboard', component: () => import('pages/admin/DashboardPage.vue') },
+      { path: '/job-post', component: () => import('pages/admin/JobPostPage.vue') },
+      { path: '/plantilla', component: () => import('pages/admin/PlantillaPage.vue') },
+      { path: '/raters', component: () => import('pages/admin/RatersPage.vue') },
+      { path: '/reports', component: () => import('pages/admin/ReportsPage.vue') },
+      { path: '/activity-log', component: () => import('pages/admin/ActivityLog.vue') },
+      { path: '/criteria', component: () => import('pages/admin/CriteriaRater.vue') },
+      { path: '/settings', component: () => import('pages/admin/SettingPage.vue') },
     ],
   },
-  { path: '/login', component: () => import('pages/LogIn.vue') },
   // 404 Page
   {
     path: '/:pathMatch(.*)*',

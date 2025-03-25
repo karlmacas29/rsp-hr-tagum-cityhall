@@ -52,7 +52,7 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 
 const onLogout = () => {
-  router.push('/login')
+  router.push('/')
 }
 
 const onSetting = () => {

@@ -12,10 +12,11 @@
     </div>
     <div>
       <q-table :rows="rows" :columns="columns" row-key="name" flat bordered>
-        <template v-slot:body-cell-status="props">
+        <template v-slot:body-cell-actions="props">
           <q-td :props="props">
-            <q-icon :name="props.value === 'Active' ? 'check_circle' : 'cancel'"
-              :color="props.value === 'Active' ? 'positive' : 'negative'" />
+            <q-btn round dense color="primary" icon="visibility" size="md">
+              <q-tooltip>View</q-tooltip>
+            </q-btn>
           </q-td>
         </template>
       </q-table>
@@ -33,37 +34,43 @@ export default {
           name: 'plantilla_id',
           label: 'Plantilla Item ID',
           align: 'left',
-          field: 'plantilla_id'
+          field: 'plantilla_id',
+          sortable: true,
         },
         {
           name: 'office',
           label: 'Office',
           align: 'left',
-          field: 'office'
+          field: 'office',
+          sortable: true,
         },
         {
           name: 'salary_grade',
           label: 'Salary Grade',
           align: 'left',
-          field: 'salary_grade'
+          field: 'salary_grade',
+          sortable: true,
         },
         {
           name: 'position',
           label: 'Position',
           align: 'left',
-          field: 'position'
+          field: 'position',
+          sortable: true,
         },
         {
           name: 'name',
           label: 'Name',
           align: 'left',
-          field: 'name'
+          field: 'name',
+          sortable: true,
         },
         {
-          name: 'status',
-          label: 'Status',
+          name: 'actions',
+          label: 'Actions',
           align: 'center',
-          field: 'status'
+          field: 'actions',
+          sortable: false,
         }
       ],
       rows: [
@@ -73,7 +80,7 @@ export default {
           salary_grade: '10',
           position: 'Computer Programmer',
           name: 'Juan A. Reyes',
-          status: 'Active'
+          actions: ''
         },
         {
           plantilla_id: '2',
@@ -81,7 +88,7 @@ export default {
           salary_grade: '10',
           position: 'Computer Programmer',
           name: 'Maria E. Reyes',
-          status: 'Active'
+          actions: ''
         },
         {
           plantilla_id: '3',
@@ -89,7 +96,7 @@ export default {
           salary_grade: '10',
           position: 'System Analyst',
           name: 'Juan E. Reyes',
-          status: 'Active'
+          actions: ''
         }
       ]
     }

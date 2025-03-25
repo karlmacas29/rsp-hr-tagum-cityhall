@@ -127,6 +127,10 @@ const officePositions = ref([
     value: 'legalCounsel',
     label: 'City Legal Counsel',
     department: 'Legal Department'
+  }, {
+    value: 'informationCommunicationTechnology',
+    label: 'City of Information Communication and Technology',
+    department: 'City of Information Communication and Technology'
   }
 ])
 
@@ -138,9 +142,6 @@ const onOfficeSelect = (selectedPosition) => {
   // - Updating parent component
   // - Triggering additional actions
 }
-
-
-
 
 // Positions data
 const positions = ref([

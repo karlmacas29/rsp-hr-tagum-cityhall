@@ -15,6 +15,7 @@ const routes = [
       { path: '/settings', component: () => import('pages/admin/SettingPage.vue') },
     ],
   },
+  { path: '/user-rater', component: () => import('pages/rater/LoginRaterPage.vue') },
   // 404 Page
   {
     path: '/:pathMatch(.*)*',

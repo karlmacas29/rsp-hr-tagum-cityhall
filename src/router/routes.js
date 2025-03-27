@@ -1,10 +1,25 @@
+import { useAuthStore } from 'src/stores/authStore';
+
 const routes = [
   {
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
     children: [
-      { path: '', redirect: '/dashboard' }, // 👈 Add this line to auto-redirect
-      { path: 'dashboard', component: () => import('pages/DashboardPage.vue') },
+      { path: '', redirect: '/dashboard' },
+      {
+        path: 'dashboard',
+        component: () => import('pages/DashboardPage.vue'),
+        beforeEnter: (to, from, next) => {
+          const authStore = useAuthStore();
+          authStore.checkAuth(); // Check if the user is authenticated
+
+          if (authStore.isAuthenticated) {
+            next(); // Allow access
+          } else {
+            next('/login'); // Redirect to login if not authenticated
+          }
+        },
+      },
       { path: 'job-post', component: () => import('pages/JobPostPage.vue') },
       { path: 'plantilla', component: () => import('pages/PlantillaPage.vue') },
       { path: 'raters', component: () => import('pages/RatersPage.vue') },
@@ -15,11 +30,10 @@ const routes = [
     ],
   },
   { path: '/login', component: () => import('pages/LogIn.vue') },
-  // 404 Page
   {
     path: '/:pathMatch(.*)*',
     component: () => import('layouts/ErrorPage.vue'),
   },
-]
+];
 
-export default routes
+export default routes;

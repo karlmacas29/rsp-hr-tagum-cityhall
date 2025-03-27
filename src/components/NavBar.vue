@@ -14,8 +14,12 @@
               <img src="https://placehold.co/45x45" alt="User Avatar" />
             </q-avatar>
             <div class="q-ml-sm column justify-start items-start">
-              <div class="text-bold text-body1" style="font-size:13px;">Gavano E. Gavano</div>
-              <div class="text-caption">HR Manager</div>
+              <div class="text-bold text-body1" style="font-size:13px;">
+                {{ authStore.user?.name || 'Guest' }}
+              </div>
+              <div class="text-caption">
+                {{ authStore.user?.position || 'Guest' }}
+              </div>
             </div>
           </template>
 
@@ -27,7 +31,6 @@
               <q-item-section>
                 <q-item-label>Settings</q-item-label>
               </q-item-section>
-
             </q-item>
 
             <q-item clickable @click="onLogout" v-close-popup>
@@ -37,7 +40,6 @@
               <q-item-section>
                 <q-item-label>Logout</q-item-label>
               </q-item-section>
-
             </q-item>
           </q-list>
         </q-btn-dropdown>
@@ -47,17 +49,20 @@
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router'
+import { useRouter } from 'vue-router';
+import { useAuthStore } from 'src/stores/authStore';
 
-const router = useRouter()
+const router = useRouter();
+const authStore = useAuthStore();
 
-const onLogout = () => {
-  router.push('/login')
-}
+const onLogout = async () => {
+  await authStore.logout(); // Call the logout action
+  router.push('/login'); // Redirect to the login page
+};
 
 const onSetting = () => {
-  router.push('/settings')
-}
+  router.push('/settings');
+};
 </script>
 
 <style scoped>
@@ -65,7 +70,6 @@ const onSetting = () => {
   background: white;
   border-bottom: 1px solid #eee;
   height: 90px;
-  /* Reduced height */
 }
 
 .q-mb-none {

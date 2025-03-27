@@ -27,7 +27,7 @@
         <div>
           <form action="">
             <div class="q-gutter-md" style="width: 400px">
-              <q-input outlined v-model="username" label="Username" type="text" />
+              <q-input outlined v-model="email" label="Email" type="text" />
               <q-input outlined v-model="password" label="Password" :type="showPass ? 'text' : 'password'">
                 <template v-slot:append>
                   <q-btn @click="passwordVisible" round flat color="white" class="text-grey"
@@ -46,24 +46,40 @@
 </template>
 
 <script>
+import { useAuthStore } from 'src/stores/authStore';
 
 export default {
   name: 'LogIn',
   data() {
     return {
-      username: '',
+      email: '',
       password: '',
-      showPass: false
-    }
+      showPass: false,
+    };
+  },
+  setup() {
+    const authStore = useAuthStore();
+    return { authStore };
   },
   methods: {
-    login() {
-      console.log('Login Clicked')
-      this.$router.push('/dashboard')
+    async login() {
+      try {
+        const success = await this.authStore.login(this.email, this.password);
+
+        if (success) {
+          // Redirect to the dashboard
+          this.$router.push('/dashboard');
+        }
+      } catch (error) {
+        this.$q.notify({
+          type: 'negative',
+          message: error.message,
+        });
+      }
     },
     passwordVisible() {
-      this.showPass = !this.showPass
-    }
-  }
-}
+      this.showPass = !this.showPass;
+    },
+  },
+};
 </script>

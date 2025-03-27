@@ -1,4 +1,4 @@
-import { useAuthStore } from 'src/stores/authStore';
+
 
 const routes = [
   { path: '/', component: () => import('pages/admin/LogIn.vue') },

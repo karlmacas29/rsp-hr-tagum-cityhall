@@ -32,7 +32,6 @@
     <q-card>
       <q-card-section>
         <div class="text-h6">Plantilla</div>
-        <q-btn color="primary" label="Add Position" @click="addPosition" />
       </q-card-section>
       <q-separator />
       <q-card-section>
@@ -58,7 +57,7 @@
                 dense
                 round
                 color="blue"
-                icon="post_add"
+                :icon="props.row.funded && props.row.employee != '' ? 'visibility' : 'post_add'"
                 @click="viewPosition(props.row)"
               />
               <q-btn
@@ -96,7 +95,7 @@
 
     <!-- Vacant Position Modal -->
     <q-dialog v-model="showVacantPositionModal">
-      <q-card class="q-pa-lg" style="width: 80vw">
+      <q-card class="q-pa-lg" style="width: 1200px; max-width: 80vw">
         <q-card-section>
           <div class="text-h6">Plantilla Job Post</div>
           <div class="text-subtitle2 text-grey">Administrative & Fiscal Management Group</div>
@@ -135,7 +134,9 @@
             </thead>
             <tbody>
               <tr>
-                <td><q-select v-model="education" :options="['Bachelor\'s Degree']" outlined dense /></td>
+                <td>
+                  <q-select v-model="education" :options="['Bachelor\'s Degree']" outlined dense />
+                </td>
                 <td><q-select v-model="experience" :options="['Something']" outlined dense /></td>
                 <td><q-select v-model="training" :options="['Something']" outlined dense /></td>
                 <td><q-select v-model="eligibility" :options="['Something']" outlined dense /></td>
@@ -150,55 +151,21 @@
       </q-card>
     </q-dialog>
 
-    <!-- Filled Position Modal -->
-    <q-dialog v-model="showFilledPositionModal" persistent>
-      <q-card class="full-width" style="max-width: 600px">
-        <q-card-section class="row items-center">
-          <div class="col">
-            <div class="text-h6">Qualification Standard</div>
-            <div class="text-subtitle2">Application Information</div>
-          </div>
-          <q-btn icon="close" flat round dense v-close-popup />
-        </q-card-section>
-
-        <q-card-section class="row">
-          <div class="col-4">
-            <q-avatar size="200px" color="grey-3" />
-            <div class="text-center q-mt-md">
-              <div class="text-subtitle1">{{ selectedPosition?.employee || 'Employee Name' }}</div>
-              <q-badge color="green" outline>Active</q-badge>
-            </div>
-          </div>
-          <div class="col-8">
-            <q-tabs v-model="tab" active-color="primary" indicator-color="primary" align="justify">
-              <q-tab name="education" label="Education" />
-              <q-tab name="experience" label="Experience" />
-              <q-tab name="training" label="Training" />
-              <q-tab name="eligibility" label="Eligibility" />
-            </q-tabs>
-
-            <q-tab-panels v-model="tab">
-              <q-tab-panel name="education">
-                <div class="text-subtitle1 q-mb-md">Current Position</div>
-                <q-input :model-value="currentPosition" label="Position" outlined readonly />
-                <div class="text-subtitle1 q-mt-md q-mb-md">Higher Education</div>
-                <q-input :model-value="higherEducation" label="Degree" outlined readonly />
-              </q-tab-panel>
-            </q-tab-panels>
-          </div>
-        </q-card-section>
-
-        <q-card-actions align="right">
-          <q-btn label="Print" color="grey" flat />
-          <q-btn label="Update" color="primary" />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
+    <!-- Quality Standard Modal (now a separate component) -->
+    <QualityStandardModal
+      v-model:show="showFilledPositionModal"
+      :employee-name="selectedPosition?.employee"
+      :current-position="currentPosition"
+      :higher-education="higherEducation"
+      @print="printPosition(selectedPosition)"
+      @update="handleUpdatePosition"
+    />
   </q-page>
 </template>
 
 <script setup>
 import { ref } from 'vue'
+import QualityStandardModal from 'components/QualityStandardModal.vue'
 
 const selectedOffice = ref(null)
 const showModal = ref(false)
@@ -207,7 +174,6 @@ const showFilledPositionModal = ref(false)
 const selectedFile = ref(null)
 const currentRow = ref(null)
 const selectedPosition = ref(null)
-const tab = ref('education')
 
 const jobTitle = ref('')
 const jobRole = ref('')
@@ -223,15 +189,31 @@ const higherEducation = ref('')
 const officePositions = [
   { value: 'mayor', label: 'City Mayor', department: 'Executive Office' },
   { value: 'viceMayor', label: 'Vice Mayor', department: 'Executive Office' },
-  { value: 'cityAdministrator', label: 'City Administrator', department: 'Administrative Services' },
+  {
+    value: 'cityAdministrator',
+    label: 'City Administrator',
+    department: 'Administrative Services',
+  },
   { value: 'financeDirector', label: 'Finance Director', department: 'Finance Department' },
-  { value: 'humanResourcesManager', label: 'Human Resources Manager', department: 'Human Resources' },
-  { value: 'publicWorksDirector', label: 'Public Works Director', department: 'Public Works Department' },
+  {
+    value: 'humanResourcesManager',
+    label: 'Human Resources Manager',
+    department: 'Human Resources',
+  },
+  {
+    value: 'publicWorksDirector',
+    label: 'Public Works Director',
+    department: 'Public Works Department',
+  },
   { value: 'cityPlanner', label: 'City Planner', department: 'Urban Planning' },
   { value: 'healthOfficer', label: 'City Health Officer', department: 'Health Department' },
   { value: 'treasurerController', label: 'Treasurer/Controller', department: 'Finance Department' },
   { value: 'legalCounsel', label: 'City Legal Counsel', department: 'Legal Department' },
-  { value: 'informationCommunicationTechnology', label: 'ICT Department', department: 'ICT Department' },
+  {
+    value: 'informationCommunicationTechnology',
+    label: 'ICT Department',
+    department: 'ICT Department',
+  },
 ]
 
 const positions = [
@@ -263,7 +245,13 @@ const columns = [
   { name: 'sg', label: 'SG', field: 'sg', align: 'left', sortable: true },
   { name: 'position', label: 'Position', field: 'position', align: 'left', sortable: true },
   { name: 'employee', label: 'Employee', field: 'employee', align: 'left', sortable: true },
-  { name: 'funded', label: 'Funded', field: (row) => (row.funded ? 'Yes' : 'No'), align: 'center', sortable: true },
+  {
+    name: 'funded',
+    label: 'Funded',
+    field: (row) => (row.funded ? 'Yes' : 'No'),
+    align: 'center',
+    sortable: true,
+  },
   { name: 'status', label: 'Status', field: 'status', align: 'left', sortable: true },
   { name: 'action', label: 'Action', field: 'action', align: 'center' },
 ]
@@ -307,13 +295,14 @@ const printPosition = (row) => {
   console.log('Printing:', row)
 }
 
-const addPosition = () => {
-  console.log('Add Position clicked')
-}
-
 const submitJobPost = () => {
   console.log('Job Post Submitted')
   showVacantPositionModal.value = false
+}
+
+const handleUpdatePosition = () => {
+  console.log('Update position logic here')
+  // Add your update logic here
 }
 </script>
 

@@ -2,7 +2,8 @@
   "compilerOptions": {
     "baseUrl": "./",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "!src/components/QualificationStandardModal.vue": ["src/alternativePath/QualificationStandardModal.vue"]
     }
   }
 }

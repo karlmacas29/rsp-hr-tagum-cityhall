@@ -38,7 +38,8 @@
           </form>
         </div>
         <div>
-          <q-btn @click="login" label="Login" color="primary" size="md" style="width: 200px" rounded />
+          <q-btn @click="login" :disabled="isLoad" :loading="isLoad" label="Login" color="primary" size="md"
+            style="width: 200px" rounded />
         </div>
       </div>
     </div>

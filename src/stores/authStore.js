@@ -9,9 +9,9 @@ export const useAuthStore = defineStore('auth', {
   }),
 
   actions: {
-    async login(email, password) {
+    async login(username, password) {
       try {
-        const response = await api.post('/login', { email, password });
+        const response = await api.post('/login', { username, password });
 
         if (response.data.status) {
           this.token = response.data.token;
@@ -26,6 +26,10 @@ export const useAuthStore = defineStore('auth', {
           throw new Error(response.data.message || 'Login failed');
         }
       } catch (error) {
+        // Handle inactive user or other errors
+        if (error.response?.status === 403) {
+          throw new Error('Your account is inactive. Please contact the administrator.');
+        }
         throw new Error(error.response?.data?.message || 'An error occurred during login');
       }
     },

@@ -27,7 +27,7 @@
         <div>
           <form action="">
             <div class="q-gutter-md" style="width: 400px">
-              <q-input outlined v-model="email" label="Email" type="text" />
+              <q-input outlined v-model="username" label="Username" type="text" />
               <q-input outlined v-model="password" label="Password" :type="showPass ? 'text' : 'password'">
                 <template v-slot:append>
                   <q-btn @click="passwordVisible" round flat color="white" class="text-grey"
@@ -41,6 +41,9 @@
           <q-btn @click="login" :disabled="isLoad" :loading="isLoad" label="Login" color="primary" size="md"
             style="width: 200px" rounded />
         </div>
+        <div v-if="errorMessage" class="text-negative q-mt-md">
+          {{ errorMessage }}
+        </div>
       </div>
     </div>
   </div>
@@ -53,9 +56,11 @@ export default {
   name: 'LogIn',
   data() {
     return {
-      email: '',
+      username: '',
       password: '',
       showPass: false,
+      isLoad: false,
+      errorMessage: '', // Store error messages
     };
   },
   setup() {
@@ -64,18 +69,19 @@ export default {
   },
   methods: {
     async login() {
+      this.isLoad = true;
+      this.errorMessage = ''; // Clear previous error messages
       try {
-        const success = await this.authStore.login(this.email, this.password);
+        const success = await this.authStore.login(this.username, this.password);
 
         if (success) {
           // Redirect to the dashboard
           this.$router.push('/dashboard');
         }
       } catch (error) {
-        this.$q.notify({
-          type: 'negative',
-          message: error.message,
-        });
+        this.errorMessage = error.message; // Display error message
+      } finally {
+        this.isLoad = false;
       }
     },
     passwordVisible() {

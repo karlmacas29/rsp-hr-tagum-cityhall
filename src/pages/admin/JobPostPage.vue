@@ -120,6 +120,16 @@
       </q-card>
     </div>
 
+    <template v-slot:body-cell-status="props">
+  <q-td :props="props">
+    <q-badge :color="getStatusColor(props.row.status)" class="q-pa-sm">
+      {{ props.row.status }}
+      <q-tooltip v-if="props.row.status === 'Pending'">
+        Click "View QS" to evaluate
+      </q-tooltip>
+    </q-badge>
+  </q-td>
+</template>
    <!-- Job Details Dialog -->
 <q-dialog v-model="showJobDetails" persistent>
   <q-card style="width: 800px; max-width: 90vw;">
@@ -211,11 +221,25 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+    <!-- Quality Standard Modal -->
+<QualityStandardModal
+  v-model="showQSModal"
+  :mode="qsModalMode"
+  :employee-name="selectedApplicant.name"
+  :applied-position="selectedJob.position"
+  :application-status="selectedApplicant.status"
+  @qualified="markAsQualified"
+  @unqualified="markAsUnqualified"
+  @view-pds="viewApplicantPDS"
+  @submit="submitEvaluation"
+/>
   </q-page>
 </template>
 
 <script setup>
 import { ref } from 'vue'
+import QualityStandardModal from 'components/QualityStandardModal.vue'
+
 
 const dateRange = ref({ from: '', to: '' })
 const formattedDateRange = ref('')
@@ -225,6 +249,14 @@ const updateFormattedDate = () => {
   formattedDateRange.value = from && to ? `${from} - ${to}` : ''
 }
 
+// Quality Standard Modal state
+const showQSModal = ref(false)
+const qsModalMode = ref('applicant')
+const selectedApplicant = ref({
+  id: null,
+  name: '',
+  status: ''
+})
 const columns = [
   {
     name: 'officePosition',
@@ -365,8 +397,12 @@ const backToJobDetails = () => {
 }
 
 const viewApplicantQS = (applicant) => {
-  console.log('View QS for:', applicant.name)
-  // Add your View QS logic here
+  selectedApplicant.value = {
+    id: applicant.id,
+    name: applicant.name,
+    status: applicant.status
+  }
+  showQSModal.value = true
 }
 
 const getStatusColor = (status) => {
@@ -376,6 +412,38 @@ const getStatusColor = (status) => {
     case 'Unqualified': return 'negative'
     default: return 'grey'
   }
+}
+const markAsQualified = () => {
+  // Update applicant status in your data
+  const applicant = applicants.value.find(a => a.id === selectedApplicant.value.id)
+  if (applicant) {
+    applicant.status = 'Qualified'
+  }
+  showQSModal.value = false
+  // You might want to add API call here to persist the change
+}
+
+const markAsUnqualified = () => {
+  // Update applicant status in your data
+  const applicant = applicants.value.find(a => a.id === selectedApplicant.value.id)
+  if (applicant) {
+    applicant.status = 'Unqualified'
+  }
+  showQSModal.value = false
+  // You might want to add API call here to persist the change
+}
+
+const viewApplicantPDS = () => {
+  // Implement PDS viewing logic
+  console.log('View PDS for:', selectedApplicant.value.name)
+  // You might want to open another dialog or route here
+  showQSModal.value = false
+}
+
+const submitEvaluation = () => {
+  // Implement submission logic
+  console.log('Submit evaluation for:', selectedApplicant.value.name)
+  showQSModal.value = false
 }
 </script>
 

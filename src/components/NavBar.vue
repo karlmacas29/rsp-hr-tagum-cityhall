@@ -14,11 +14,11 @@
               <img src="https://placehold.co/45x45" alt="User Avatar" />
             </q-avatar>
             <div class="q-ml-sm column justify-start items-start">
-              <div class="text-bold text-body1" style="font-size:13px;">
-                {{ authStore.user?.name || 'Guest' }}
+              <div v-if="authStore.user" class="text-bold text-body1" style="font-size:13px;">
+                {{ authStore.user.name }}
               </div>
-              <div class="text-caption">
-                {{ authStore.user?.position || 'Guest' }}
+              <div v-if="authStore.user" class="text-caption">
+                {{ authStore.user.position }}
               </div>
             </div>
           </template>
@@ -56,8 +56,12 @@ const router = useRouter();
 const authStore = useAuthStore();
 
 const onLogout = async () => {
-  await authStore.logout(); // Call the logout action
-  router.push('/login'); // Redirect to the login page
+  try {
+    await authStore.logout(); // Call the logout action from authStore
+    router.push('/'); // Redirect to the login page
+  } catch (error) {
+    console.error('Logout failed:', error);
+  }
 };
 
 const onSetting = () => {

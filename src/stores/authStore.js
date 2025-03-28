@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { api } from 'boot/axios'; // Use the Axios instance from your boot file
+import { api } from 'boot/axios';
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -16,7 +16,7 @@ export const useAuthStore = defineStore('auth', {
         if (response.data.status) {
           this.token = response.data.token;
           this.isAuthenticated = true;
-          this.user = response.data.user; // Save user info, including position
+          this.user = response.data.user; // Save user info, including name and position
 
           // Save the token in a cookie
           document.cookie = `auth_token=${this.token}; path=/; SameSite=None; Secure`;
@@ -32,7 +32,6 @@ export const useAuthStore = defineStore('auth', {
 
     async logout() {
       try {
-        // Call the backend logout endpoint
         await api.post('/logout');
 
         // Clear the local state
@@ -57,7 +56,7 @@ export const useAuthStore = defineStore('auth', {
         this.token = token;
         this.isAuthenticated = true;
 
-        // Optionally, fetch user info from the backend
+        // Optionally, fetch user info from the backend if needed
         // Example: this.fetchUser();
       } else {
         this.token = null;

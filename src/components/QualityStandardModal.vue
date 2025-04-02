@@ -15,13 +15,7 @@
         <!-- Left Card (Smaller) -->
         <q-card class="col-3 q-mr-md">
           <q-card-section class="column items-center q-pa-md">
-            <img
-              src="/img/examplePr.png"
-              style="border-radius: 100px"
-              alt=""
-              width="150"
-              height="150"
-            />
+            <img src="/img/examplePr.png" style="border-radius: 100px" alt="" width="150" height="150" />
 
             <div class="text-h6 text-center q-mb-sm">{{ employeeName }}</div>
             <q-badge color="positive" class="q-mb-md">Active</q-badge>
@@ -57,14 +51,7 @@
 
         <!-- Right Card (Larger) -->
         <q-card class="col">
-          <q-tabs
-            v-model="tab"
-            dense
-            class="text-grey-8"
-            active-color="primary"
-            indicator-color="primary"
-            align="left"
-          >
+          <q-tabs v-model="tab" dense class="text-grey-8" active-color="primary" indicator-color="primary" align="left">
             <q-tab name="education" label="Education" />
             <q-tab name="experience" label="Experience" />
             <q-tab name="training" label="Training" />
@@ -241,11 +228,12 @@ export default defineComponent({
   props: {
     show: {
       type: Boolean,
-      required: true,
+      required: false,
     },
     employeeName: {
       type: String,
       default: 'Mahusay, Jograd M.',
+
     },
   },
   emits: ['update:show', 'update'],

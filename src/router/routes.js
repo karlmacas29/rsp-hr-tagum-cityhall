@@ -1,36 +1,67 @@
-import { useAuthStore } from 'src/stores/authStore';
-
 const routes = [
-  { path: '/', component: () => import('pages/admin/LogIn.vue') },
+  {
+    path: '/',
+    name: 'Admin Login',
+    meta: { guest: true },
+    component: () => import('pages/admin/LogIn.vue'),
+  },
   {
     path: '/admin',
     component: () => import('layouts/MainLayout.vue'),
-    beforeEnter: (to, from, next) => {
-      const authStore = useAuthStore();
-      authStore.checkAuth(); // Ensure the authentication state is updated
-
-      if (authStore.isAuthenticated) {
-        next(); // Allow access if authenticated
-      } else {
-        next('/'); // Redirect to login if not authenticated
-      }
-    },
+    meta: { auth: true },
     children: [
-      { path: '/dashboard', component: () => import('pages/admin/DashboardPage.vue') },
-      { path: '/job-post', component: () => import('pages/admin/JobPostPage.vue') },
-      { path: '/plantilla', component: () => import('pages/admin/PlantillaPage.vue') },
-      { path: '/raters', component: () => import('pages/admin/RatersPage.vue') },
-      { path: '/reports', component: () => import('pages/admin/ReportsPage.vue') },
-      { path: '/activity-log', component: () => import('pages/admin/ActivityLog.vue') },
-      { path: '/criteria', component: () => import('pages/admin/CriteriaRater.vue') },
-      { path: '/settings', component: () => import('pages/admin/SettingPage.vue') },
+      {
+        path: '/dashboard',
+        name: 'Admin Dashboard',
+        component: () => import('pages/admin/DashboardPage.vue'),
+      },
+      {
+        path: '/job-post',
+        name: 'Admin JobPost',
+        component: () => import('pages/admin/JobPostPage.vue'),
+      },
+      {
+        path: '/plantilla',
+        name: 'Admin Plantilla',
+        component: () => import('pages/admin/PlantillaPage.vue'),
+      },
+      {
+        path: '/raters',
+        name: 'Admin Raters',
+        component: () => import('pages/admin/RatersPage.vue'),
+      },
+      {
+        path: '/reports',
+        name: 'Admin Report Raters',
+        component: () => import('pages/admin/ReportsPage.vue'),
+      },
+      {
+        path: '/activity-log',
+        name: 'Admin Activity Log',
+        component: () => import('pages/admin/ActivityLog.vue'),
+      },
+      {
+        path: '/criteria',
+        name: 'Admin Raters Criteria',
+        component: () => import('pages/admin/CriteriaRater.vue'),
+      },
+      {
+        path: '/settings',
+        name: 'Admin Settings',
+        component: () => import('pages/admin/SettingPage.vue'),
+      },
     ],
   },
-  { path: '/user-rater', component: () => import('pages/rater/LoginRaterPage.vue') },
   {
-    path: '/:pathMatch(.*)*',
+    path: '/user-rater',
+    name: 'Rater Login',
+    meta: { guest: true },
+    component: () => import('pages/rater/LoginRaterPage.vue'),
+  },
+  {
+    path: '/:catchAll(.*)*',
     component: () => import('layouts/ErrorPage.vue'),
   },
-];
+]
 
-export default routes;
+export default routes

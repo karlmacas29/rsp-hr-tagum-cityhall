@@ -6,7 +6,7 @@ import {
   createWebHashHistory,
 } from 'vue-router'
 import routes from './routes'
-// import { useAuthStore } from 'src/stores/authStore';
+import { useAuthStore } from 'src/stores/authStore'
 
 /*
  * If not building with SSR mode, you can
@@ -34,6 +34,18 @@ export default defineRouter(function (/* { store, ssrContext } */) {
     history: createHistory(process.env.VUE_ROUTER_BASE),
   })
 
+  Router.beforeEach(async (to) => {
+    const authStore = useAuthStore()
+    await authStore.checkAuth()
+
+    if (authStore.isAuthenticated && to.meta.guest) {
+      return { name: 'Admin Dashboard' }
+    }
+
+    if (!authStore.isAuthenticated && to.meta.auth) {
+      return { name: 'Admin Login' }
+    }
+  })
   // Global route guard
   // Router.beforeEach((to, from, next) => {
   //   const authStore = useAuthStore();

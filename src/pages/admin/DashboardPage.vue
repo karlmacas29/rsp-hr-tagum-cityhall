@@ -10,24 +10,14 @@
       <!-- STATISTICS HEADER -->
       <div class="row justify-between items-center">
         <h5 class="text-h5 text-weight-bold q-my-md">Statistics Overview</h5>
-        <q-select
-          v-model="selectedDateFilter"
-          :options="dateFilters"
-          dense
-          outlined
-          class="date-filter"
-          @update:model-value="applyDateFilter"
-        />
+        <q-select v-model="selectedDateFilter" :options="dateFilters" dense outlined class="date-filter"
+          @update:model-value="applyDateFilter" />
       </div>
 
       <!-- STATISTICS CARDS -->
       <div class="row justify-between">
-        <q-card
-          v-for="(stat, index) in stats"
-          :key="index"
-          class="stat-card text-dark"
-          :style="{ backgroundColor: stat.color }"
-        >
+        <q-card v-for="(stat, index) in stats" :key="index" class="stat-card text-dark"
+          :style="{ backgroundColor: stat.color }">
           <q-card-section class="q-pa-sm">
             <q-icon :name="stat.icon" size="30px" class="q-mb-sm" />
             <div class="text-subtitle1">{{ stat.title }}</div>
@@ -41,16 +31,8 @@
       <div class="row q-mt-md justify-between">
         <div class="table-container">
           <h5 class="text-h5 text-weight-bold q-mb-sm q-mt-none">Applicants Overview</h5>
-          <q-table
-            class="applicants-table"
-            flat
-            bordered
-            :rows="filteredApplicants"
-            :columns="columns"
-            row-key="job"
-            separator="cell"
-            :pagination="initialPagination"
-          />
+          <q-table class="applicants-table" flat bordered :rows="filteredApplicants" :columns="columns" row-key="job"
+            separator="cell" />
         </div>
 
         <div class="job-card-container">

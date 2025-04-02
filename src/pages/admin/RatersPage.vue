@@ -49,48 +49,20 @@
 
         <q-card-section>
           <!-- Select Batch -->
-          <q-select
-            v-model="selectedBatch"
-            :options="batches"
-            option-value="id"
-            option-label="display"
-            label="Select Batch"
-            outlined
-            emit-value
-            map-options
-            @update:model-value="fetchPositions"
-          />
+          <q-select v-model="selectedBatch" :options="batches" option-value="id" option-label="display"
+            label="Select Batch" outlined emit-value map-options @update:model-value="fetchPositions" />
 
           <q-separator class="q-mt-md q-mb-md" />
 
           <!-- Select Position -->
-          <q-select
-            v-model="selectedPosition"
-            :options="positions"
-            option-value="id"
-            option-label="name"
-            label="Select Position"
-            outlined
-            emit-value
-            map-options
-            :disable="!selectedBatch"
-          />
+          <q-select v-model="selectedPosition" :options="positions" option-value="id" option-label="name"
+            label="Select Position" outlined emit-value map-options :disable="!selectedBatch" />
 
           <q-separator class="q-mt-md q-mb-md" />
 
           <!-- Search and Select Rater -->
-          <q-select
-            v-model="selectedRater"
-            :options="availableRaters"
-            option-value="id"
-            option-label="name"
-            label="Search Rater"
-            use-input
-            outlined
-            emit-value
-            map-options
-            @filter="filterRaters"
-          >
+          <q-select v-model="selectedRater" :options="availableRaters" option-value="id" option-label="name"
+            label="Search Rater" use-input outlined emit-value map-options @filter="filterRaters">
             <template v-slot:prepend>
               <q-icon name="search" />
             </template>
@@ -98,7 +70,8 @@
         </q-card-section>
 
         <q-card-actions align="right">
-          <q-btn label="Add Rater" color="primary" @click="addRater" :disable="!selectedRater || !selectedBatch || !selectedPosition" />
+          <q-btn label="Add Rater" color="primary" @click="addRater"
+            :disable="!selectedRater || !selectedBatch || !selectedPosition" />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -106,8 +79,10 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { useRaterStore } from 'stores/raterStore'
+import { onMounted, ref } from 'vue'
 
+const useRater = useRaterStore()
 const showModal = ref(false)
 const selectedBatch = ref(null)
 const selectedPosition = ref(null)
@@ -121,10 +96,7 @@ const batches = ref([
 
 const positions = ref([])
 
-const raters = ref([
-  { id: 1, name: 'John Doe', batchDate: '2024-03-15', position: 'Senior Rater', status: 'Pending' },
-  { id: 2, name: 'Jane Smith', batchDate: '2024-02-28', position: 'Junior Rater', status: 'Completed' },
-])
+const raters = ref([])
 
 const availableRaters = ref([
   { id: 1, name: 'John Doe' },
@@ -135,10 +107,10 @@ const availableRaters = ref([
 ])
 
 const columns = [
-  { name: 'id', label: 'ID', field: 'id', align: 'left' },
-  { name: 'name', label: 'Name', field: 'name', align: 'left' },
+  { name: 'ID', label: 'ID', field: 'ID', align: 'left', sortable: true },
+  { name: 'Rater', label: 'Raters Name', field: 'Rater', align: 'left', sortable: true },
   { name: 'batchDate', label: 'Assigned Batch', field: 'batchDate', align: 'left' },
-  { name: 'position', label: 'Position', field: 'position', align: 'left' },
+  { name: 'Position', label: 'Position', field: 'Position', align: 'left', sortable: true },
   { name: 'status', label: 'Status', field: 'status', align: 'left' },
   { name: 'actions', label: 'Action', align: 'center' }, // New Action Column
 ]
@@ -214,4 +186,11 @@ const addRater = () => {
 const viewRater = (rater) => {
   console.log('Viewing rater:', rater)
 }
+
+
+onMounted(async () => {
+  await useRater.fetchRaters()
+
+  raters.value = useRater.raters
+})
 </script>

@@ -1,7 +1,12 @@
 import { defineRouter } from '#q-app/wrappers'
-import { createRouter, createMemoryHistory, createWebHistory, createWebHashHistory } from 'vue-router'
+import {
+  createRouter,
+  createMemoryHistory,
+  createWebHistory,
+  createWebHashHistory,
+} from 'vue-router'
 import routes from './routes'
-import { useAuthStore } from 'src/stores/authStore';
+// import { useAuthStore } from 'src/stores/authStore';
 
 /*
  * If not building with SSR mode, you can
@@ -15,7 +20,9 @@ import { useAuthStore } from 'src/stores/authStore';
 export default defineRouter(function (/* { store, ssrContext } */) {
   const createHistory = process.env.SERVER
     ? createMemoryHistory
-    : (process.env.VUE_ROUTER_MODE === 'history' ? createWebHistory : createWebHashHistory)
+    : process.env.VUE_ROUTER_MODE === 'history'
+      ? createWebHistory
+      : createWebHashHistory
 
   const Router = createRouter({
     scrollBehavior: () => ({ left: 0, top: 0 }),
@@ -24,28 +31,28 @@ export default defineRouter(function (/* { store, ssrContext } */) {
     // Leave this as is and make changes in quasar.conf.js instead!
     // quasar.conf.js -> build -> vueRouterMode
     // quasar.conf.js -> build -> publicPath
-    history: createHistory(process.env.VUE_ROUTER_BASE)
+    history: createHistory(process.env.VUE_ROUTER_BASE),
   })
 
   // Global route guard
-  Router.beforeEach((to, from, next) => {
-    const authStore = useAuthStore();
+  // Router.beforeEach((to, from, next) => {
+  //   const authStore = useAuthStore();
 
-    // Check if the route requires authentication
-    const requiresAuth = to.path.startsWith('/admin') || to.path.startsWith('/dashboard');
+  //   // Check if the route requires authentication
+  //   const requiresAuth = to.path.startsWith('/admin') || to.path.startsWith('/dashboard');
 
-    if (requiresAuth) {
-      authStore.checkAuth(); // Ensure the authentication state is updated
+  //   if (requiresAuth) {
+  //     authStore.checkAuth(); // Ensure the authentication state is updated
 
-      if (authStore.isAuthenticated) {
-        next(); // Allow access if authenticated
-      } else {
-        next('/'); // Redirect to login if not authenticated
-      }
-    } else {
-      next(); // Allow access to public routes
-    }
-  });
+  //     if (authStore.isAuthenticated) {
+  //       next(); // Allow access if authenticated
+  //     } else {
+  //       next('/'); // Redirect to login if not authenticated
+  //     }
+  //   } else {
+  //     next(); // Allow access to public routes
+  //   }
+  // });
 
   return Router
 })

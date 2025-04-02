@@ -72,12 +72,7 @@ export default {
       this.isLoad = true;
       this.errorMessage = ''; // Clear previous error messages
       try {
-        const success = await this.authStore.login(this.username, this.password);
-
-        if (success) {
-          // Redirect to the dashboard
-          this.$router.push('/dashboard');
-        }
+        await this.authStore.login(this.username, this.password);
       } catch (error) {
         this.errorMessage = error.message; // Display error message
       } finally {

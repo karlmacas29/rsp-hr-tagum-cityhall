@@ -12,13 +12,7 @@
 
     <!-- Date Range Picker -->
     <div class="row items-center q-gutter-sm q-mb-md">
-      <q-input
-        dense
-        outlined
-        readonly
-        v-model="formattedDateRange"
-        label="Selected Date Range"
-      >
+      <q-input dense outlined readonly v-model="formattedDateRange" label="Selected Date Range">
         <template v-slot:append>
           <q-icon name="event" class="cursor-pointer">
             <q-popup-proxy>
@@ -33,7 +27,7 @@
     <div class="q-pa-md">
       <q-card>
         <q-table
-          :rows="rows"
+          :rows="filteredJobs"
           :columns="columns"
           row-key="position"
           :pagination="{ rowsPerPage: 10 }"
@@ -46,10 +40,10 @@
           <!-- Grid mode slot for mobile/small screens -->
           <template v-slot:item="props">
             <div class="q-pa-xs col-xs-12 col-sm-6 col-md-4" :key="props.row.position">
-              <q-card flat bordered>
+              <q-card flat bordered class="job-card">
                 <q-card-section>
                   <div class="text-h6">{{ props.row.position }}</div>
-                  <div class="text-subtitle2">Posted: {{ props.row.postingDate }}</div>
+                  <div class="text-subtitle2">Posted: {{ formatDate(props.row.postingDate) }}</div>
                 </q-card-section>
 
                 <q-separator />
@@ -122,7 +116,7 @@
 
     <!-- Job Details Dialog -->
     <q-dialog v-model="showJobDetails" persistent>
-      <q-card style="width: 800px; max-width: 90vw;">
+      <q-card style="width: 800px; max-width: 90vw">
         <q-card-section class="row items-center q-pb-none">
           <div class="text-h6">Job Details</div>
           <q-space />
@@ -142,6 +136,10 @@
                 <q-icon name="work" class="q-mr-sm" />
                 <strong>Position:</strong> {{ selectedJob.position }}
               </div>
+              <div class="text-subtitle1 q-mb-xs">
+                <q-icon name="event" class="q-mr-sm" />
+                <strong>Posting Date:</strong> {{ formatDate(selectedJob.postingDate) }}
+              </div>
             </div>
           </div>
 
@@ -151,15 +149,18 @@
           <div class="q-pl-md">
             <div class="text-subtitle2 q-mb-xs">BASIC QUALIFICATIONS:</div>
             <ol class="q-pl-md">
-              <li>Must be graduated any 4 year course</li>
-              <li>Preferably BS/IT with relevant experience</li>
-              <li>Fresh graduates are welcome to apply</li>
+              <li v-for="(qual, index) in selectedJob.qualifications" :key="index">{{ qual }}</li>
             </ol>
           </div>
         </q-card-section>
 
         <q-card-actions align="right">
-          <q-btn label="View Applicants" color="primary" @click="showApplicantsDialog" />
+          <q-btn
+            label="View Applicants"
+            color="primary"
+            @click="showApplicantsDialog"
+            :disable="selectedJob.applicants === 0"
+          />
           <q-btn flat label="Close" color="primary" v-close-popup />
         </q-card-actions>
       </q-card>
@@ -167,7 +168,7 @@
 
     <!-- Applicants Dialog -->
     <q-dialog v-model="showApplicants" persistent>
-      <q-card style="width: 800px; max-width: 90vw;">
+      <q-card style="width: 800px; max-width: 90vw">
         <q-card-section class="row items-center q-pb-none">
           <div class="text-h6">Applicants for {{ selectedJob.position }}</div>
           <q-space />
@@ -176,12 +177,13 @@
 
         <q-card-section>
           <q-table
-            :rows="applicants"
+            :rows="filteredApplicants"
             :columns="applicantColumns"
             row-key="id"
             flat
             bordered
             hide-pagination
+            :loading="loadingApplicants"
           >
             <template v-slot:body-cell-status="props">
               <q-td :props="props">
@@ -197,10 +199,16 @@
                   flat
                   color="primary"
                   label="View QS"
-                  @click="viewApplicantQS(props.row)"
+                  @click="openQualificationModal(props.row)"
                   size="sm"
                 />
               </q-td>
+            </template>
+
+            <template v-slot:no-data>
+              <div class="full-width row flex-center text-grey-8 q-gutter-sm">
+                <span>No applicants found</span>
+              </div>
             </template>
           </q-table>
         </q-card-section>
@@ -212,141 +220,52 @@
       </q-card>
     </q-dialog>
 
-    <!-- Qualification Standard Modal (Matches 2nd image layout with 3rd image functionality) -->
-    <q-dialog v-model="showQSModal" persistent>
-      <q-card style="width: 700px; max-width: 95vw;">
-        <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6">Qualification Standard</div>
-          <div class="text-subtitle1 q-ml-md">Application Information</div>
-          <q-space />
-          <q-btn icon="close" flat round dense v-close-popup />
-        </q-card-section>
+    <!-- Qualification Standard Modal -->
+    <QualityStandardModal
+      v-model="showQSModal"
+      variant="applicant"
+      :applicant-data="selectedApplicant"
+      :position-requirements="positionRequirements"
+      @view-pds="viewApplicantPDS"
+      @toggle-qualification="handleQualificationToggle"
+      @submit="submitEvaluation"
+      @close="closeQualificationModal"
+    />
 
-        <q-card-section>
-          <!-- Applicant Name Header -->
-          <div class="text-h5 text-center q-mb-md">{{ selectedApplicant.name }}</div>
-
-          <div class="row q-col-gutter-md">
-            <!-- Left Card - Application Details (Smaller) -->
-            <div class="col-4">
-              <q-card flat bordered class="full-height">
-                <q-card-section>
-                  <div class="text-subtitle2 q-mb-sm">Application Details</div>
-                  <q-list dense>
-                    <q-item>
-                      <q-item-section>
-                        <q-item-label caption>Office</q-item-label>
-                        <q-item-label>{{ selectedJob.officePosition }}</q-item-label>
-                      </q-item-section>
-                    </q-item>
-                    <q-item>
-                      <q-item-section>
-                        <q-item-label caption>Applied Position</q-item-label>
-                        <q-item-label>{{ selectedJob.position }}</q-item-label>
-                      </q-item-section>
-                    </q-item>
-                    <q-item>
-                      <q-item-section>
-                        <q-item-label caption>Status</q-item-label>
-                        <q-item-label>
-                          <q-badge :color="getStatusColor(selectedApplicant.status)" class="q-pa-xs">
-                            {{ selectedApplicant.status }}
-                          </q-badge>
-                        </q-item-label>
-                      </q-item-section>
-                    </q-item>
-                  </q-list>
-                </q-card-section>
-              </q-card>
-            </div>
-
-            <!-- Right Card - Quantifications (Larger) -->
-            <div class="col-8">
-              <q-card flat bordered class="full-height">
-                <q-card-section>
-                  <div class="text-subtitle2 q-mb-sm">Quantifications</div>
-                  <q-list dense>
-                    <q-item>
-                      <q-item-section>Education</q-item-section>
-                      <q-item-section side>
-                        <q-icon name="check_circle" color="positive" v-if="checkQualification('Education')" />
-                        <q-icon name="cancel" color="negative" v-else />
-                      </q-item-section>
-                    </q-item>
-                    <q-item>
-                      <q-item-section>Experience</q-item-section>
-                      <q-item-section side>
-                        <q-icon name="check_circle" color="positive" v-if="checkQualification('Experience')" />
-                        <q-icon name="cancel" color="negative" v-else />
-                      </q-item-section>
-                    </q-item>
-                    <q-item>
-                      <q-item-section>Training</q-item-section>
-                      <q-item-section side>
-                        <q-icon name="check_circle" color="positive" v-if="checkQualification('Training')" />
-                        <q-icon name="cancel" color="negative" v-else />
-                      </q-item-section>
-                    </q-item>
-                    <q-item>
-                      <q-item-section>Eligibility</q-item-section>
-                      <q-item-section side>
-                        <q-icon name="check_circle" color="positive" v-if="checkQualification('Eligibility')" />
-                        <q-icon name="cancel" color="negative" v-else />
-                      </q-item-section>
-                    </q-item>
-                  </q-list>
-                </q-card-section>
-              </q-card>
-            </div>
-          </div>
-
-          <!-- Recommendation Section (From 3rd image) -->
-          <div class="row q-mt-md">
-            <q-card flat bordered class="full-width">
-              <q-card-section>
-                <div class="text-subtitle2 q-mb-sm">Recommendation</div>
-                <div class="row q-gutter-sm">
-                  <q-btn
-                    flat
-                    color="primary"
-                    label="VIEW PDS"
-                    @click="viewApplicantPDS"
-                    class="text-uppercase"
-                  />
-                  <q-btn
-                    flat
-                    :color="selectedApplicant.status === 'Qualified' ? 'negative' : 'positive'"
-                    :label="selectedApplicant.status === 'Qualified' ? 'MARK UNQUALIFIED' : 'MARK QUALIFIED'"
-                    @click="toggleQualification"
-                    class="text-uppercase"
-                  />
-                  <q-btn
-                    color="positive"
-                    label="SUBMIT"
-                    @click="submitEvaluation"
-                    class="text-uppercase"
-                  />
-                </div>
-              </q-card-section>
-            </q-card>
-          </div>
-        </q-card-section>
-      </q-card>
-    </q-dialog>
+    <!-- PDS Modal -->
+    <PDSModal
+      v-model="showPDSModal"
+      :applicant="selectedApplicant"
+      @close="closePDSModal"
+      @view-qs="openQualificationFromPDS"
+    />
   </q-page>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { date } from 'quasar'
+import QualityStandardModal from 'components/QualityStandardModal.vue'
+import PDSModal from 'components/PDSModal.vue'
 
+// Explicit component registration
+defineOptions({
+  components: { QualityStandardModal, PDSModal },
+})
+
+const { formatDate } = date
+
+// Date Range Filter
 const dateRange = ref({ from: '', to: '' })
 const formattedDateRange = ref('')
 
 const updateFormattedDate = () => {
   const { from, to } = dateRange.value
-  formattedDateRange.value = from && to ? `${from} - ${to}` : ''
+  formattedDateRange.value =
+    from && to ? `${formatDate(from, 'MMM D, YYYY')} - ${formatDate(to, 'MMM D, YYYY')}` : ''
 }
 
+// Job Posts Data
 const columns = [
   {
     name: 'officePosition',
@@ -368,12 +287,13 @@ const columns = [
     align: 'left',
     label: 'Posting Date',
     field: 'postingDate',
+    format: (val) => formatDate(val, 'MMM D, YYYY'),
     sortable: true,
   },
   {
     name: 'applicants',
     align: 'center',
-    label: 'No. of Applicants',
+    label: 'Applicants',
     field: 'applicants',
     sortable: true,
   },
@@ -401,98 +321,201 @@ const columns = [
   {
     name: 'action',
     align: 'center',
-    label: 'Action',
+    label: 'Actions',
     field: 'action',
     sortable: false,
   },
 ]
 
-const rows = [
+const jobs = ref([
   {
+    id: 1,
     officePosition: 'ICT Department',
     position: 'Computer Programmer II',
-    postingDate: '01-20-2025',
+    postingDate: '2025-01-20',
     applicants: 10,
     pending: 0,
     qualified: 5,
     unqualified: 5,
-    action: '',
+    qualifications: [
+      'Must be graduated any 4 year course',
+      'Preferably BS/IT with relevant experience',
+      'Fresh graduates are welcome to apply',
+    ],
   },
   {
+    id: 2,
     officePosition: 'ICT Department',
     position: 'Systems Analyst',
-    postingDate: '02-26-2025',
+    postingDate: '2025-02-26',
     applicants: 20,
     pending: 0,
     qualified: 0,
     unqualified: 0,
-    action: '',
+    qualifications: [
+      "Bachelor's degree in Computer Science or related field",
+      'Minimum 3 years systems analysis experience',
+      'Strong analytical and problem-solving skills',
+    ],
   },
   {
-    officePosition: 'ICT Department',
-    position: 'Data Analyst',
-    postingDate: '03-20-2025',
-    applicants: 0,
-    pending: 0,
-    qualified: 0,
-    unqualified: 0,
-    action: '',
+    id: 3,
+    officePosition: 'Human Resources',
+    position: 'HR Manager',
+    postingDate: '2025-03-15',
+    applicants: 8,
+    pending: 2,
+    qualified: 3,
+    unqualified: 3,
+    qualifications: [
+      "Bachelor's degree in Human Resources or related field",
+      'Minimum 5 years HR experience',
+      'Knowledge of labor laws and regulations',
+    ],
   },
-]
+])
 
+const filteredJobs = computed(() => {
+  if (!dateRange.value.from || !dateRange.value.to) return jobs.value
+
+  return jobs.value.filter((job) => {
+    const jobDate = new Date(job.postingDate)
+    const fromDate = new Date(dateRange.value.from)
+    const toDate = new Date(dateRange.value.to)
+    return jobDate >= fromDate && jobDate <= toDate
+  })
+})
+
+// Job Details Dialog
 const showJobDetails = ref(false)
-const showApplicants = ref(false)
-const showQSModal = ref(false)
 const selectedJob = ref({
+  id: null,
   officePosition: '',
   position: '',
   postingDate: '',
   applicants: 0,
   pending: 0,
   qualified: 0,
-  unqualified: 0
+  unqualified: 0,
+  qualifications: [],
 })
 
+const viewJobDetails = (job) => {
+  selectedJob.value = { ...job }
+  showJobDetails.value = true
+}
+
+// Applicants Dialog
+const showApplicants = ref(false)
+const loadingApplicants = ref(false)
 const applicantColumns = [
   { name: 'name', label: 'Name', field: 'name', align: 'left', sortable: true },
-  { name: 'appliedDate', label: 'Applied Date', field: 'appliedDate', align: 'left' },
+  {
+    name: 'appliedDate',
+    label: 'Applied Date',
+    field: 'appliedDate',
+    align: 'left',
+    format: (val) => formatDate(val, 'MMM D, YYYY'),
+  },
   { name: 'status', label: 'Status', field: 'status', align: 'center' },
   {
     name: 'action',
     label: 'Action',
     field: 'action',
     align: 'center',
-    sortable: false
-  }
+    sortable: false,
+  },
 ]
 
 const applicants = ref([
-  { id: 1, name: 'John Doe', appliedDate: '2025-01-25', status: 'Qualified' },
-  { id: 2, name: 'Jane Smith', appliedDate: '2025-01-26', status: 'Pending' },
-  { id: 3, name: 'Robert Johnson', appliedDate: '2025-01-27', status: 'Unqualified' }
+  {
+    id: 1,
+    name: 'John Smith',
+    photo: 'https://cdn.quasar.dev/img/avatar.png',
+    appliedDate: '2025-03-16',
+    status: 'Pending',
+    education: [
+      { degree: "Bachelor's in HR Management", institution: 'State University', year: '2018' },
+    ],
+    experience: [{ position: 'HR Assistant', organization: 'Tech Corp', years: '3' }],
+    training: [{ program: 'Advanced HR Certification', provider: 'HR Institute', hours: '40' }],
+    eligibility: [],
+    personalInfo: {
+      dateOfBirth: 'January 01, 2003',
+      placeOfBirth: 'Tagum City',
+      sex: 'Male',
+      civilStatus: 'Single',
+      genderPreference: 'Man',
+      height: '60',
+      weight: '60kg',
+      bloodType: 'A',
+      telephone: '127455824',
+      mobile: '098765432198'
+    }
+  },
+  {
+    id: 2,
+    name: 'Sarah Johnson',
+    photo: 'https://cdn.quasar.dev/img/avatar2.jpg',
+    appliedDate: '2025-03-17',
+    status: 'Qualified',
+    education: [
+      {
+        degree: "Master's in Organizational Psychology",
+        institution: 'City College',
+        year: '2020',
+      },
+    ],
+    experience: [{ position: 'HR Specialist', organization: 'Global Solutions', years: '5' }],
+    training: [{ program: 'Leadership Training', provider: 'Management Academy', hours: '60' }],
+    eligibility: [
+      { certification: 'Professional HR License', authority: 'National Board', year: '2021' },
+    ],
+    personalInfo: {
+      dateOfBirth: 'February 15, 1995',
+      placeOfBirth: 'Davao City',
+      sex: 'Female',
+      civilStatus: 'Married',
+      genderPreference: 'Woman',
+      height: '55',
+      weight: '50kg',
+      bloodType: 'B',
+      telephone: '987654321',
+      mobile: '09123456789'
+    }
+  },
+  {
+    id: 3,
+    name: 'Michael Brown',
+    photo: 'https://cdn.quasar.dev/img/avatar3.jpg',
+    appliedDate: '2025-03-18',
+    status: 'Unqualified',
+    education: [
+      { degree: "Bachelor's in Business Admin", institution: 'Community College', year: '2019' },
+    ],
+    experience: [{ position: 'Office Manager', organization: 'Small Business Inc.', years: '2' }],
+    training: [],
+    eligibility: [],
+    personalInfo: {
+      dateOfBirth: 'March 30, 1990',
+      placeOfBirth: 'Cebu City',
+      sex: 'Male',
+      civilStatus: 'Single',
+      genderPreference: 'Man',
+      height: '58',
+      weight: '65kg',
+      bloodType: 'O',
+      telephone: '123456789',
+      mobile: '09234567890'
+    }
+  },
 ])
 
-const selectedApplicant = ref({
-  id: null,
-  name: '',
-  status: 'Pending'
+const filteredApplicants = computed(() => {
+  return applicants.value.filter(
+    (applicant) => applicant.appliedDate >= selectedJob.value.postingDate,
+  )
 })
-
-const checkQualification = (type) => {
-  // Example qualification checks - replace with your actual logic
-  switch(type) {
-    case 'Education': return true
-    case 'Experience': return true
-    case 'Training': return false
-    case 'Eligibility': return true
-    default: return false
-  }
-}
-
-const viewJobDetails = (job) => {
-  selectedJob.value = job
-  showJobDetails.value = true
-}
 
 const showApplicantsDialog = () => {
   showJobDetails.value = false
@@ -504,42 +527,114 @@ const backToJobDetails = () => {
   showJobDetails.value = true
 }
 
-const viewApplicantQS = (applicant) => {
+// Qualification Standard Modal
+const showQSModal = ref(false)
+const selectedApplicant = ref({
+  id: null,
+  name: '',
+  photo: '',
+  position: '',
+  status: 'Pending',
+  applicationDate: '',
+  education: [],
+  experience: [],
+  training: [],
+  eligibility: [],
+  personalInfo: {}
+})
+
+const positionRequirements = ref({
+  education: "Bachelor's Degree in related field",
+  preferredEducation: "Master's Degree preferred",
+  experience: 'Minimum 3 years relevant experience',
+  preferredExperience: '5+ years in leadership role',
+  training: 'Certification in relevant field',
+  preferredTraining: 'Multiple advanced certifications',
+  eligibility: 'Professional license required',
+  preferredCertification: 'Additional specialized certifications',
+})
+
+const openQualificationModal = (applicant) => {
   selectedApplicant.value = {
-    id: applicant.id,
-    name: applicant.name,
-    status: applicant.status
+    ...applicant,
+    position: selectedJob.value.position,
   }
   showQSModal.value = true
 }
 
-const getStatusColor = (status) => {
-  switch(status) {
-    case 'Qualified': return 'positive'
-    case 'Pending': return 'warning'
-    case 'Unqualified': return 'negative'
-    default: return 'grey'
+const closeQualificationModal = () => {
+  showQSModal.value = false
+}
+
+const handleQualificationToggle = (newStatus) => {
+  selectedApplicant.value.status = newStatus
+  // Update the applicant in the applicants list
+  const applicant = applicants.value.find((a) => a.id === selectedApplicant.value.id)
+  if (applicant) {
+    applicant.status = newStatus
+  }
+
+  // Update counts in the jobs list
+  const job = jobs.value.find((j) => j.id === selectedJob.value.id)
+  if (job) {
+    if (newStatus === 'Qualified') {
+      job.qualified++
+      job.pending > 0 ? job.pending-- : job.unqualified--
+    } else if (newStatus === 'Unqualified') {
+      job.unqualified++
+      job.pending > 0 ? job.pending-- : job.qualified--
+    }
   }
 }
 
-const toggleQualification = () => {
-  selectedApplicant.value.status =
-    selectedApplicant.value.status === 'Qualified' ? 'Unqualified' : 'Qualified'
-  // Update the applicant in the applicants list
-  const applicant = applicants.value.find(a => a.id === selectedApplicant.value.id)
-  if (applicant) {
-    applicant.status = selectedApplicant.value.status
-  }
-}
+// PDS Modal Functions
+const showPDSModal = ref(false)
 
 const viewApplicantPDS = () => {
-  console.log('Viewing PDS for:', selectedApplicant.value.name)
+  showPDSModal.value = true
+  showQSModal.value = false
+}
+
+const closePDSModal = () => {
+  showPDSModal.value = false
+}
+
+const openQualificationFromPDS = () => {
+  showPDSModal.value = false
+  showQSModal.value = true
+}
+
+// Utility Functions
+const getStatusColor = (status) => {
+  switch (status) {
+    case 'Qualified':
+      return 'positive'
+    case 'Pending':
+      return 'warning'
+    case 'Unqualified':
+      return 'negative'
+    default:
+      return 'grey'
+  }
 }
 
 const submitEvaluation = () => {
   console.log('Submitted evaluation for:', selectedApplicant.value.name)
   showQSModal.value = false
 }
+
+// Initialize with some default date range
+onMounted(() => {
+  const today = new Date()
+  const lastMonth = new Date()
+  lastMonth.setMonth(today.getMonth() - 1)
+
+  dateRange.value = {
+    from: formatDate(lastMonth, 'YYYY/MM/DD'),
+    to: formatDate(today, 'YYYY/MM/DD'),
+  }
+  updateFormattedDate()
+})
 </script>
 
 <style scoped lang="scss">
@@ -568,6 +663,14 @@ const submitEvaluation = () => {
 
   .q-card {
     font-size: 16px;
+    transition:
+      transform 0.2s ease-in-out,
+      box-shadow 0.2s ease-in-out;
+
+    &:hover {
+      transform: scale(1.03);
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
+    }
   }
 }
 
@@ -577,17 +680,6 @@ h5 {
 
 .q-gutter-md {
   margin-bottom: 4px;
-}
-
-.job-card {
-  transition:
-    transform 0.2s ease-in-out,
-    box-shadow 0.2s ease-in-out;
-
-  &:hover {
-    transform: scale(1.03);
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
-  }
 }
 
 .q-dialog__inner--minimized > div {
@@ -610,34 +702,43 @@ h5 {
   }
 }
 
-/* Styles for the QS modal */
-.full-height {
-  height: 100%;
-}
-
-.q-item__label--caption {
-  opacity: 0.7;
-  font-size: 0.8em;
-}
-
+.text-subtitle1,
 .text-subtitle2 {
   font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.q-btn {
-  &__content {
-    text-transform: uppercase;
-    font-weight: 500;
-    letter-spacing: 0.5px;
-  }
 }
 
 .q-card {
   &--bordered {
     border: 1px solid #ddd;
-    border-radius: 8px;
+    border-radius: 4px;
   }
+}
+
+.q-markup-table {
+  width: 100%;
+
+  th,
+  td {
+    padding: 8px 12px;
+  }
+
+  thead tr {
+    background-color: #f5f5f5;
+  }
+}
+
+.bg-grey-3 {
+  background-color: #eee;
+}
+
+.q-btn {
+  &__content {
+    font-weight: 500;
+  }
+}
+
+/* Add this to completely hide pagination */
+.q-table__bottom {
+  display: none;
 }
 </style>

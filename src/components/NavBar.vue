@@ -15,10 +15,10 @@
             </q-avatar>
             <div class="q-ml-sm column justify-start items-start">
               <div v-if="authStore.user" class="text-bold text-body1" style="font-size:13px;">
-                {{ authStore.user.name }}
+                {{ authStore.user?.name || 'Guest' }}
               </div>
               <div v-if="authStore.user" class="text-caption">
-                {{ authStore.user.position }}
+                {{ authStore.user?.position || 'Guest' }}
               </div>
             </div>
           </template>
@@ -58,7 +58,7 @@ const authStore = useAuthStore();
 const onLogout = async () => {
   try {
     await authStore.logout(); // Call the logout action from authStore
-    router.push('/'); // Redirect to the login page
+
   } catch (error) {
     console.error('Logout failed:', error);
   }

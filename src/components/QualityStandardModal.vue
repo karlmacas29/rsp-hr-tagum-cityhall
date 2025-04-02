@@ -55,14 +55,8 @@
 
           <!-- Right Card (Tabs) -->
           <q-card class="col">
-            <q-tabs
-              v-model="tab"
-              dense
-              class="text-grey-8"
-              active-color="primary"
-              indicator-color="primary"
-              align="left"
-            >
+            <q-tabs v-model="tab" dense class="text-grey-8" active-color="primary" indicator-color="primary"
+              align="left">
               <q-tab name="education" label="Education" />
               <q-tab name="experience" label="Experience" />
               <q-tab name="training" label="Training" />

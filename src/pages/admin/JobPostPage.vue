@@ -120,60 +120,50 @@
       </q-card>
     </div>
 
-    <template v-slot:body-cell-status="props">
-  <q-td :props="props">
-    <q-badge :color="getStatusColor(props.row.status)" class="q-pa-sm">
-      {{ props.row.status }}
-      <q-tooltip v-if="props.row.status === 'Pending'">
-        Click "View QS" to evaluate
-      </q-tooltip>
-    </q-badge>
-  </q-td>
-</template>
-   <!-- Job Details Dialog -->
-<q-dialog v-model="showJobDetails" persistent>
-  <q-card style="width: 800px; max-width: 90vw;">
-    <q-card-section class="row items-center q-pb-none">
-      <div class="text-h6">Job Details</div>
-      <q-space />
-      <q-btn icon="close" flat round dense v-close-popup />
-    </q-card-section>
+    <!-- Job Details Dialog -->
+    <q-dialog v-model="showJobDetails" persistent>
+      <q-card style="width: 800px; max-width: 90vw;">
+        <q-card-section class="row items-center q-pb-none">
+          <div class="text-h6">Job Details</div>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup />
+        </q-card-section>
 
-    <q-card-section>
-      <div class="text-h5 text-center q-mb-md">{{ selectedJob.position }}</div>
+        <q-card-section>
+          <div class="text-h5 text-center q-mb-md">{{ selectedJob.position }}</div>
 
-      <div class="row q-col-gutter-md">
-        <div class="col-12">
-          <div class="text-subtitle1 q-mb-xs">
-            <q-icon name="business" class="q-mr-sm" />
-            <strong>Office:</strong> {{ selectedJob.officePosition }}
+          <div class="row q-col-gutter-md">
+            <div class="col-12">
+              <div class="text-subtitle1 q-mb-xs">
+                <q-icon name="business" class="q-mr-sm" />
+                <strong>Office:</strong> {{ selectedJob.officePosition }}
+              </div>
+              <div class="text-subtitle1 q-mb-xs">
+                <q-icon name="work" class="q-mr-sm" />
+                <strong>Position:</strong> {{ selectedJob.position }}
+              </div>
+            </div>
           </div>
-          <div class="text-subtitle1 q-mb-xs">
-            <q-icon name="work" class="q-mr-sm" />
-            <strong>Position:</strong> {{ selectedJob.position }}
+
+          <q-separator class="q-my-md" />
+
+          <div class="text-h6 q-mb-sm">Qualification Standard/Requirements</div>
+          <div class="q-pl-md">
+            <div class="text-subtitle2 q-mb-xs">BASIC QUALIFICATIONS:</div>
+            <ol class="q-pl-md">
+              <li>Must be graduated any 4 year course</li>
+              <li>Preferably BS/IT with relevant experience</li>
+              <li>Fresh graduates are welcome to apply</li>
+            </ol>
           </div>
-        </div>
-      </div>
+        </q-card-section>
 
-      <q-separator class="q-my-md" />
-
-      <div class="text-h6 q-mb-sm">Qualification Standard/Requirements</div>
-      <div class="q-pl-md">
-        <div class="text-subtitle2 q-mb-xs">BASIC QUALIFICATIONS:</div>
-        <ol class="q-pl-md">
-          <li>Must be graduated any 4 year course</li>
-          <li>Preferably BS/IT with relevant experience</li>
-          <li>Fresh graduates are welcome to apply</li>
-        </ol>
-      </div>
-    </q-card-section>
-
-    <q-card-actions align="right">
-      <q-btn label="View Applicants" color="primary" @click="showApplicantsDialog" />
-      <q-btn flat label="Close" color="primary" v-close-popup />
-    </q-card-actions>
-  </q-card>
-</q-dialog>
+        <q-card-actions align="right">
+          <q-btn label="View Applicants" color="primary" @click="showApplicantsDialog" />
+          <q-btn flat label="Close" color="primary" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
 
     <!-- Applicants Dialog -->
     <q-dialog v-model="showApplicants" persistent>
@@ -191,7 +181,7 @@
             row-key="id"
             flat
             bordered
-            hide-pagination=""
+            hide-pagination
           >
             <template v-slot:body-cell-status="props">
               <q-td :props="props">
@@ -221,25 +211,133 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
-    <!-- Quality Standard Modal -->
-<QualityStandardModal
-  v-model="showQSModal"
-  :mode="qsModalMode"
-  :employee-name="selectedApplicant.name"
-  :applied-position="selectedJob.position"
-  :application-status="selectedApplicant.status"
-  @qualified="markAsQualified"
-  @unqualified="markAsUnqualified"
-  @view-pds="viewApplicantPDS"
-  @submit="submitEvaluation"
-/>
+
+    <!-- Qualification Standard Modal (Matches 2nd image layout with 3rd image functionality) -->
+    <q-dialog v-model="showQSModal" persistent>
+      <q-card style="width: 700px; max-width: 95vw;">
+        <q-card-section class="row items-center q-pb-none">
+          <div class="text-h6">Qualification Standard</div>
+          <div class="text-subtitle1 q-ml-md">Application Information</div>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup />
+        </q-card-section>
+
+        <q-card-section>
+          <!-- Applicant Name Header -->
+          <div class="text-h5 text-center q-mb-md">{{ selectedApplicant.name }}</div>
+
+          <div class="row q-col-gutter-md">
+            <!-- Left Card - Application Details (Smaller) -->
+            <div class="col-4">
+              <q-card flat bordered class="full-height">
+                <q-card-section>
+                  <div class="text-subtitle2 q-mb-sm">Application Details</div>
+                  <q-list dense>
+                    <q-item>
+                      <q-item-section>
+                        <q-item-label caption>Office</q-item-label>
+                        <q-item-label>{{ selectedJob.officePosition }}</q-item-label>
+                      </q-item-section>
+                    </q-item>
+                    <q-item>
+                      <q-item-section>
+                        <q-item-label caption>Applied Position</q-item-label>
+                        <q-item-label>{{ selectedJob.position }}</q-item-label>
+                      </q-item-section>
+                    </q-item>
+                    <q-item>
+                      <q-item-section>
+                        <q-item-label caption>Status</q-item-label>
+                        <q-item-label>
+                          <q-badge :color="getStatusColor(selectedApplicant.status)" class="q-pa-xs">
+                            {{ selectedApplicant.status }}
+                          </q-badge>
+                        </q-item-label>
+                      </q-item-section>
+                    </q-item>
+                  </q-list>
+                </q-card-section>
+              </q-card>
+            </div>
+
+            <!-- Right Card - Quantifications (Larger) -->
+            <div class="col-8">
+              <q-card flat bordered class="full-height">
+                <q-card-section>
+                  <div class="text-subtitle2 q-mb-sm">Quantifications</div>
+                  <q-list dense>
+                    <q-item>
+                      <q-item-section>Education</q-item-section>
+                      <q-item-section side>
+                        <q-icon name="check_circle" color="positive" v-if="checkQualification('Education')" />
+                        <q-icon name="cancel" color="negative" v-else />
+                      </q-item-section>
+                    </q-item>
+                    <q-item>
+                      <q-item-section>Experience</q-item-section>
+                      <q-item-section side>
+                        <q-icon name="check_circle" color="positive" v-if="checkQualification('Experience')" />
+                        <q-icon name="cancel" color="negative" v-else />
+                      </q-item-section>
+                    </q-item>
+                    <q-item>
+                      <q-item-section>Training</q-item-section>
+                      <q-item-section side>
+                        <q-icon name="check_circle" color="positive" v-if="checkQualification('Training')" />
+                        <q-icon name="cancel" color="negative" v-else />
+                      </q-item-section>
+                    </q-item>
+                    <q-item>
+                      <q-item-section>Eligibility</q-item-section>
+                      <q-item-section side>
+                        <q-icon name="check_circle" color="positive" v-if="checkQualification('Eligibility')" />
+                        <q-icon name="cancel" color="negative" v-else />
+                      </q-item-section>
+                    </q-item>
+                  </q-list>
+                </q-card-section>
+              </q-card>
+            </div>
+          </div>
+
+          <!-- Recommendation Section (From 3rd image) -->
+          <div class="row q-mt-md">
+            <q-card flat bordered class="full-width">
+              <q-card-section>
+                <div class="text-subtitle2 q-mb-sm">Recommendation</div>
+                <div class="row q-gutter-sm">
+                  <q-btn
+                    flat
+                    color="primary"
+                    label="VIEW PDS"
+                    @click="viewApplicantPDS"
+                    class="text-uppercase"
+                  />
+                  <q-btn
+                    flat
+                    :color="selectedApplicant.status === 'Qualified' ? 'negative' : 'positive'"
+                    :label="selectedApplicant.status === 'Qualified' ? 'MARK UNQUALIFIED' : 'MARK QUALIFIED'"
+                    @click="toggleQualification"
+                    class="text-uppercase"
+                  />
+                  <q-btn
+                    color="positive"
+                    label="SUBMIT"
+                    @click="submitEvaluation"
+                    class="text-uppercase"
+                  />
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
 <script setup>
 import { ref } from 'vue'
-import QualityStandardModal from 'components/QualityStandardModal.vue'
-
 
 const dateRange = ref({ from: '', to: '' })
 const formattedDateRange = ref('')
@@ -249,14 +347,6 @@ const updateFormattedDate = () => {
   formattedDateRange.value = from && to ? `${from} - ${to}` : ''
 }
 
-// Quality Standard Modal state
-const showQSModal = ref(false)
-const qsModalMode = ref('applicant')
-const selectedApplicant = ref({
-  id: null,
-  name: '',
-  status: ''
-})
 const columns = [
   {
     name: 'officePosition',
@@ -352,6 +442,7 @@ const rows = [
 
 const showJobDetails = ref(false)
 const showApplicants = ref(false)
+const showQSModal = ref(false)
 const selectedJob = ref({
   officePosition: '',
   position: '',
@@ -380,6 +471,23 @@ const applicants = ref([
   { id: 2, name: 'Jane Smith', appliedDate: '2025-01-26', status: 'Pending' },
   { id: 3, name: 'Robert Johnson', appliedDate: '2025-01-27', status: 'Unqualified' }
 ])
+
+const selectedApplicant = ref({
+  id: null,
+  name: '',
+  status: 'Pending'
+})
+
+const checkQualification = (type) => {
+  // Example qualification checks - replace with your actual logic
+  switch(type) {
+    case 'Education': return true
+    case 'Experience': return true
+    case 'Training': return false
+    case 'Eligibility': return true
+    default: return false
+  }
+}
 
 const viewJobDetails = (job) => {
   selectedJob.value = job
@@ -413,36 +521,23 @@ const getStatusColor = (status) => {
     default: return 'grey'
   }
 }
-const markAsQualified = () => {
-  // Update applicant status in your data
-  const applicant = applicants.value.find(a => a.id === selectedApplicant.value.id)
-  if (applicant) {
-    applicant.status = 'Qualified'
-  }
-  showQSModal.value = false
-  // You might want to add API call here to persist the change
-}
 
-const markAsUnqualified = () => {
-  // Update applicant status in your data
+const toggleQualification = () => {
+  selectedApplicant.value.status =
+    selectedApplicant.value.status === 'Qualified' ? 'Unqualified' : 'Qualified'
+  // Update the applicant in the applicants list
   const applicant = applicants.value.find(a => a.id === selectedApplicant.value.id)
   if (applicant) {
-    applicant.status = 'Unqualified'
+    applicant.status = selectedApplicant.value.status
   }
-  showQSModal.value = false
-  // You might want to add API call here to persist the change
 }
 
 const viewApplicantPDS = () => {
-  // Implement PDS viewing logic
-  console.log('View PDS for:', selectedApplicant.value.name)
-  // You might want to open another dialog or route here
-  showQSModal.value = false
+  console.log('Viewing PDS for:', selectedApplicant.value.name)
 }
 
 const submitEvaluation = () => {
-  // Implement submission logic
-  console.log('Submit evaluation for:', selectedApplicant.value.name)
+  console.log('Submitted evaluation for:', selectedApplicant.value.name)
   showQSModal.value = false
 }
 </script>
@@ -488,11 +583,11 @@ h5 {
   transition:
     transform 0.2s ease-in-out,
     box-shadow 0.2s ease-in-out;
-}
 
-.job-card:hover {
-  transform: scale(1.03);
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
+  &:hover {
+    transform: scale(1.03);
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
+  }
 }
 
 .q-dialog__inner--minimized > div {
@@ -504,11 +599,45 @@ h5 {
   border-radius: 0;
 }
 
-.q-card-section ol {
-  padding-left: 1.5em;
-  margin: 0.5em 0;
+.q-card-section {
+  ol {
+    padding-left: 1.5em;
+    margin: 0.5em 0;
+  }
+
+  li {
+    margin-bottom: 0.5em;
+  }
 }
-.q-card-section li {
-  margin-bottom: 0.5em;
+
+/* Styles for the QS modal */
+.full-height {
+  height: 100%;
+}
+
+.q-item__label--caption {
+  opacity: 0.7;
+  font-size: 0.8em;
+}
+
+.text-subtitle2 {
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.q-btn {
+  &__content {
+    text-transform: uppercase;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+  }
+}
+
+.q-card {
+  &--bordered {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+  }
 }
 </style>

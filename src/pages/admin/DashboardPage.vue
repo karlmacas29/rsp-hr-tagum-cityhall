@@ -2,9 +2,15 @@
   <q-page class="q-pa-md">
     <div class="column no-gap">
       <!-- Welcome Message -->
-      <div class="q-mb-sm q-gutter-xs">
-        <h4 class="text-h4 text-weight-bolder q-my-none"><b>Welcome back, Gov!</b></h4>
-        <p class="text-body2">Let’s take a look at the updated performance of the company.</p>
+      <div>
+        <div v-if="authStore.user != null" class="q-mb-sm q-gutter-xs">
+          <h4 class="text-h4 text-weight-bolder q-my-none"><b>Welcome to RSP, {{ authStore.user.name }}!</b></h4>
+          <p class="text-body2">Let’s take a look at the updated performance of the city hall.</p>
+        </div>
+        <div v-else class="q-mb-sm q-gutter-xs">
+          <h4 class="text-h4 text-weight-bolder q-my-none"><q-skeleton type="text" /></h4>
+          <p class="text-body2"><q-skeleton type="text" /></p>
+        </div>
       </div>
 
       <!-- STATISTICS HEADER -->
@@ -42,6 +48,9 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useAuthStore } from 'src/stores/authStore';
+
+const authStore = useAuthStore();
 
 import StatusOverview from 'src/components/Dashboard/StatusOverview.vue'
 

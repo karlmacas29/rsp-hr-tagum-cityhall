@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { api } from 'src/boot/axios'
+import { toast } from 'src/boot/toast' // Import toast instance
 
 export const useRaterStore = defineStore('raters', {
   state: () => ({
@@ -15,10 +16,8 @@ export const useRaterStore = defineStore('raters', {
       try {
         const response = await api.get('/raters')
         this.raters = response.data
-        console.log(response.data)
-      } catch (err) {
-        this.error = 'Failed to load raters.'
-        console.error(err)
+      } catch {
+        toast.error('Failed to Load Raters')
       } finally {
         this.loading = false
       }

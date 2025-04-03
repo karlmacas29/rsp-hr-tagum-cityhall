@@ -1,5 +1,5 @@
 <template>
-  <div class="fullscreen bg-primary text-white text-center q-pa-md flex flex-center">
+  <div class="fullscreen bg-white text-primary text-center q-pa-md flex flex-center">
     <div>
       <div style="font-size: 30vh">
         404
@@ -19,7 +19,7 @@ export default {
   name: 'ErrorPage',
   methods: {
     goHome() {
-      this.$router.push('/')
+      this.$router.push('/dashboard')
     },
   },
 }

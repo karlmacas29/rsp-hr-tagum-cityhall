@@ -10,15 +10,35 @@
         <q-btn round flat dense icon="notifications" class="q-mr-md" />
         <q-btn-dropdown flat :ripple="false">
           <template v-slot:label>
-            <q-avatar size="45px">
-              <img src="https://placehold.co/45x45" alt="User Avatar" />
-            </q-avatar>
-            <div class="q-ml-sm column justify-start items-start">
+            <div>
               <div v-if="authStore.user" class="text-bold text-body1" style="font-size:13px;">
-                {{ authStore.user?.name || 'Guest' }}
+                <q-avatar size="45px" color="black" text-color="white">
+                  {{ authStore.user?.name?.charAt(0).toUpperCase() }}
+                </q-avatar>
               </div>
-              <div v-if="authStore.user" class="text-caption">
-                {{ authStore.user?.position || 'Guest' }}
+              <div v-else class="text-bold text-body1" style="width: 45px">
+                <q-skeleton type="circle" />
+              </div>
+            </div>
+
+            <div class="q-ml-sm column justify-start items-start">
+              <!-- username -->
+              <div>
+                <div v-if="authStore.user" class="text-bold text-body1" style="font-size:13px;">
+                  {{ authStore.user?.name || 'Guest' }}
+                </div>
+                <div v-else class="text-bold text-body1" style="width: 100px">
+                  <q-skeleton type="text" />
+                </div>
+              </div>
+              <!-- roles -->
+              <div>
+                <div v-if="authStore.user" class="text-caption" style="font-size:13px;">
+                  {{ authStore.user?.position || 'Guest' }}
+                </div>
+                <div v-else class="text-caption " style="width: 100px">
+                  <q-skeleton type="text" />
+                </div>
               </div>
             </div>
           </template>
@@ -73,7 +93,7 @@ const onSetting = () => {
 .header {
   background: white;
   border-bottom: 1px solid #eee;
-  height: 90px;
+  height: 70px;
 }
 
 .q-mb-none {

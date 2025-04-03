@@ -2,8 +2,8 @@
   <q-toolbar class="q-mb-none header">
     <div class="row items-center justify-between full-width">
       <div class="grid justify-start items-start q-pa-sm">
-        <h5 class="text-h5 q-ma-none"><b>Recruitment, Selection and Placement</b></h5>
-        <p class="q-ma-none">City of Human Resources</p>
+        <h5 class="text-h6 q-ma-none"><b>Recruitment, Selection and Placement</b></h5>
+        <p class="q-ma-none" style="font-size:12px;">City of Human Resources</p>
       </div>
 
       <div class="row items-center">
@@ -33,7 +33,7 @@
               </div>
               <!-- roles -->
               <div>
-                <div v-if="authStore.user" class="text-caption" style="font-size:13px;">
+                <div v-if="authStore.user" class="text-caption" style="font-size:11px;">
                   {{ authStore.user?.position || 'Guest' }}
                 </div>
                 <div v-else class="text-caption " style="width: 100px">

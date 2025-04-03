@@ -26,7 +26,7 @@
         </div>
         <div>
           <form action="">
-            <div class="q-gutter-md" style="width: 400px">
+            <div class="q-gutter-md" style="width: 300px">
               <q-input outlined v-model="username" label="Username" type="text" />
               <q-input outlined v-model="password" label="Password" :type="showPass ? 'text' : 'password'">
                 <template v-slot:append>

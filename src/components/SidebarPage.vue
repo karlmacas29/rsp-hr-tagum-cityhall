@@ -2,14 +2,14 @@
   <q-drawer show-if-above v-model="drawer" side="left" :width="230" bordered>
     <!-- Logo Section -->
     <div class="logo-container">
-      <img src="/logo.png" alt="Tagum City Logo" class="logo" style="width:100px;" />
+      <img src="/logo.png" alt="Tagum City Logo" class="logo" style="width:130px;" />
     </div>
 
     <!-- Header Section -->
     <div class="header-container"></div>
 
     <q-list dense>
-      <q-item dense class="q-mx-xs q-my-xs" style="border-radius: 8px; padding: 10px 10px;"
+      <q-item dense class="q-mx-xs q-my-xs" style="border-radius: 8px; padding: 8px 10px;"
         v-for="(item, index) in menuItems" :key="index" clickable v-ripple :to="item.route"
         :active-class="'active-menu'">
         <q-item-section avatar>
@@ -18,10 +18,10 @@
         <q-item-section>{{ item.label }}</q-item-section>
       </q-item>
       <!-- rater -->
-      <q-expansion-item dense style="border-radius: 20px " class="q-mx-xs q-my-xs" icon="assignment_ind"
-        label="Rater Management">
+      <q-expansion-item dense style="border-radius: 20px; padding: 0 ; margin: 0; " class="q-mx-xs q-my-xs"
+        icon="assignment_ind" label="Rater Management">
         <q-card class="q-py-none content-container">
-          <q-item dense class="q-mx-xs q-my-xs" style="border-radius: 8px ; padding: 10px 10px;"
+          <q-item dense class="q-mx-xs q-my-xs" style="border-radius: 8px ; padding: 8px 10px;"
             v-for="(item, index) in ratersManage" :key="index" clickable v-ripple :to="item.route"
             :active-class="'active-menu'">
             <q-item-section avatar>

@@ -16,7 +16,9 @@ export const useRaterStore = defineStore('raters', {
       try {
         const response = await api.get('/raters')
         this.raters = response.data
+        console.log(response.data)
       } catch {
+        this.error = 'Failed to load raters.'
         toast.error('Failed to Load Raters')
       } finally {
         this.loading = false

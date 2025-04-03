@@ -5,7 +5,7 @@
       <div>
         <div v-if="authStore.user != null" class="q-mb-sm q-gutter-xs">
           <h4 class="text-h4 text-weight-bolder q-my-none"><b>Welcome to RSP, {{ authStore.user.name }}!</b></h4>
-          <p class="text-body2">Let’s take a look at the updated performance of the city hall.</p>
+          <p class="text-body1">Let’s take a look at the updated performance of the city hall.</p>
         </div>
         <div v-else class="q-mb-sm q-gutter-xs">
           <h4 class="text-h4 text-weight-bolder q-my-none"><q-skeleton type="text" /></h4>
@@ -16,8 +16,7 @@
       <!-- STATISTICS HEADER -->
       <div class="row justify-between items-center">
         <h5 class="text-h5 text-weight-bold q-my-md">Statistics Overview</h5>
-        <q-select v-model="selectedDateFilter" :options="dateFilters" dense outlined class="date-filter"
-          @update:model-value="applyDateFilter" />
+
       </div>
 
       <!-- STATISTICS CARDS -->
@@ -26,7 +25,12 @@
       <!-- MAIN CONTENT -->
       <div class="row q-mt-md justify-between">
         <div class="table-container">
-          <h5 class="text-h5 text-weight-bold q-mb-sm q-mt-none">Applicants Overview</h5>
+          <div class="row justify-between q-mb-sm items-center">
+            <h5 class="text-h5 text-weight-bold q-ma-none">Applicants Overview</h5>
+            <q-select v-model="selectedDateFilter" :options="dateFilters" dense outlined class="date-filter"
+              @update:model-value="applyDateFilter" />
+          </div>
+
           <q-table class="applicants-table" flat bordered :rows="filteredApplicants" :columns="columns" row-key="job"
             separator="cell" />
         </div>
@@ -138,11 +142,7 @@ onMounted(() => {
 
 <style scoped>
 /* Align header and filter */
-.row.justify-between.items-center {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
+
 
 /* Date Filter Dropdown */
 .date-filter {
@@ -154,7 +154,7 @@ onMounted(() => {
   flex: 1;
   min-width: 75%;
   /* paading : y x */
-  padding: 0 16px;
+  padding: 5px 16px;
   background-color: #f9f9f9;
   border-radius: 8px;
 }

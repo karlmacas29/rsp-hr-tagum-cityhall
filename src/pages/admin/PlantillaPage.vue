@@ -1,8 +1,8 @@
 <template>
   <q-page class="q-pa-md">
     <div class="column items-start q-mb-md">
-      <h5 class="text-h4 q-ma-none"><b>Plantilla</b></h5>
-      <div class="q-pa-md q-gutter-sm">
+
+      <div class="q-ma-none q-gutter-sm">
         <PlantillaSelection></PlantillaSelection>
       </div>
     </div>

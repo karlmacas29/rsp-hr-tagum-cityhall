@@ -8,6 +8,7 @@ const routes = [
   {
     path: '/admin',
     component: () => import('layouts/MainLayout.vue'),
+    name: 'Admin',
     meta: { auth: true },
     children: [
       {

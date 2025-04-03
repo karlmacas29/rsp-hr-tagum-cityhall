@@ -16,7 +16,8 @@
         <q-btn color="primary" label="Add Rater" @click="showModal = true" icon="add" />
       </q-card-section>
       <q-separator />
-      <q-card-section>
+      <!--  -->
+      <q-card-section v-if="!useRater.loading">
         <q-table flat bordered :rows="raters" :columns="columns" row-key="id">
           <!-- Status Column -->
           <template v-slot:body-cell-status="props">
@@ -36,6 +37,56 @@
             </q-td>
           </template>
         </q-table>
+      </q-card-section>
+      <!--  -->
+      <q-card-section v-else>
+        <q-markup-table flat bordered>
+          <thead>
+            <tr>
+              <th class="text-left" style="width: 150px">
+                <q-skeleton animation="blink" type="text" />
+              </th>
+              <th class="text-right">
+                <q-skeleton animation="blink" type="text" />
+              </th>
+              <th class="text-right">
+                <q-skeleton animation="blink" type="text" />
+              </th>
+              <th class="text-right">
+                <q-skeleton animation="blink" type="text" />
+              </th>
+              <th class="text-right">
+                <q-skeleton animation="blink" type="text" />
+              </th>
+              <th class="text-right">
+                <q-skeleton animation="blink" type="text" />
+              </th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr v-for="n in 5" :key="n">
+              <td class="text-left">
+                <q-skeleton animation="blink" type="text" width="85px" />
+              </td>
+              <td class="text-right">
+                <q-skeleton animation="blink" type="text" width="50px" />
+              </td>
+              <td class="text-right">
+                <q-skeleton animation="blink" type="text" width="35px" />
+              </td>
+              <td class="text-right">
+                <q-skeleton animation="blink" type="text" width="65px" />
+              </td>
+              <td class="text-right">
+                <q-skeleton animation="blink" type="text" width="25px" />
+              </td>
+              <td class="text-right">
+                <q-skeleton animation="blink" type="text" width="85px" />
+              </td>
+            </tr>
+          </tbody>
+        </q-markup-table>
       </q-card-section>
     </q-card>
 
@@ -190,7 +241,6 @@ const viewRater = (rater) => {
 
 onMounted(async () => {
   await useRater.fetchRaters()
-
   raters.value = useRater.raters
 })
 </script>

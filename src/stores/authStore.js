@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { api } from 'boot/axios'
+import { toast } from 'src/boot/toast' // Import toast instance
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -22,16 +23,17 @@ export const useAuthStore = defineStore('auth', {
           document.cookie = `auth_token=${this.token}; path=/; SameSite=None; Secure`
 
           // Redirect to the dashboard
+          toast.success('You are now logged in!')
           this.router.push({ name: 'Admin Dashboard' })
         } else {
-          throw new Error(response.data.message || 'Login failed')
+          toast.error('Login Failed!')
         }
       } catch (error) {
         // Handle inactive user or other errors
         if (error.response?.status === 403) {
-          throw new Error('Your account is inactive. Please contact the administrator.')
+          toast.error('Your account is inactive. Please contact the administrator.')
         }
-        throw new Error(error.response?.data?.message || 'An error occurred during login')
+        toast.error('An error occurred during login')
       }
     },
 
@@ -61,9 +63,11 @@ export const useAuthStore = defineStore('auth', {
             '; expires=Thu, 01 Jan 1970 00:00:00 GMT;',
         ]
         cookieSettings.forEach((setting) => (document.cookie = setting))
+
+        toast.success('Logout Success!')
         this.router.push({ name: 'Admin Login' })
-      } catch (error) {
-        console.error('Logout failed:', error)
+      } catch {
+        toast.error('An error occurred during logout or token error')
       }
     },
 

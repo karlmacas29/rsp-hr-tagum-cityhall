@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div v-if="!vwActiveStore.loading" class="row justify-evenly q-gutter-md">
+        <div v-if="!vwActiveStore.loading" class="row justify-evenly ">
             <!-- <div class="row justify-between">
                 <q-card v-for="(stat, index) in stats" :key="index" class="stat-card text-dark"
                     :style="{ backgroundColor: stat.color }">
@@ -25,7 +25,7 @@
 
         </div>
         <div v-else class="row justify-center items-center q-mx-auto">
-            <q-spinner-dots color="primary" size="100px" class="q-ma-md" />
+            <q-spinner-dots size="100px" color="primary" class=" q-ma-md" />
         </div>
     </div>
 </template>
@@ -88,7 +88,6 @@ const stats = ref([
 
 onMounted(async () => {
     dataR.value = await vwActiveStore.fetch_vwActive()
-    console.log(dataR)
 })
 </script>
 

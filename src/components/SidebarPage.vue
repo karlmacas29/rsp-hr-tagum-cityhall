@@ -60,7 +60,7 @@ export default {
 
 <style scoped>
 .content-container {
-  border-left: 2px solid black;
+  border-left: 2px solid rgb(133, 133, 133);
   /* Change color as needed */
   padding-left: 5px;
   margin-left: 25px;

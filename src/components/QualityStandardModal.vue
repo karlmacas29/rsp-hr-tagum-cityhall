@@ -7,7 +7,7 @@
           <div class="text-h5 text-bold">Qualification Standard</div>
           <div class="text-subtitle1">Application Information</div>
         </div>
-        <q-btn icon="close" flat round dense v-close-popup class="close-btn" />
+        <q-btn icon="close" flat round dense v-close-popup class="close-btn" @click="onClose" />
       </q-card-section>
 
       <!-- Employee View -->
@@ -16,15 +16,21 @@
           <!-- Left Card (Employee Info) -->
           <q-card class="col-3 q-mr-md">
             <q-card-section class="column items-center q-pa-md">
-              <img src="/img/examplePr.png" style="border-radius: 100px" alt="" width="150" height="150" />
+              <img
+                :src="employeeData.photo || '/img/default-avatar.png'"
+                style="border-radius: 100px"
+                alt="Employee Photo"
+                width="150"
+                height="150"
+              />
 
-              <div class="text-h6 text-center q-mb-sm">{{ employeeName }}</div>
+              <div class="text-h6 text-center q-mb-sm">{{ employeeData.name }}</div>
               <q-badge color="positive" class="q-mb-md">Active</q-badge>
 
               <div class="full-width">
                 <div class="text-center q-mb-sm">
                   <div class="text-caption text-grey-7">Current Position</div>
-                  <div class="text-weight-medium">{{ currentPosition }}</div>
+                  <div class="text-weight-medium">{{ employeeData.position }}</div>
                 </div>
 
                 <q-separator class="q-my-md" />
@@ -33,7 +39,7 @@
                   <div class="text-caption text-grey-7">Employment Type</div>
                   <div class="text-weight-medium">
                     <q-icon name="check" color="positive" size="sm" />
-                    {{ employmentType }}
+                    {{ employeeData.employmentType }}
                   </div>
                 </div>
 
@@ -72,7 +78,7 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="(edu, index) in educationData" :key="'edu-' + index">
+                    <tr v-for="(edu, index) in employeeData.education" :key="'edu-'+index">
                       <td>{{ edu.degree }}</td>
                       <td>{{ edu.institution }}</td>
                       <td>{{ edu.year }}</td>
@@ -90,8 +96,8 @@
                   </thead>
                   <tbody>
                     <tr>
-                      <td>{{ requiredDegree }}</td>
-                      <td>{{ preferredQualification }}</td>
+                      <td>{{ positionRequirements.education }}</td>
+                      <td>{{ positionRequirements.preferredEducation }}</td>
                     </tr>
                   </tbody>
                 </q-markup-table>
@@ -109,7 +115,7 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="(exp, index) in experienceData" :key="'exp-' + index">
+                    <tr v-for="(exp, index) in employeeData.experience" :key="'exp-'+index">
                       <td>{{ exp.position }}</td>
                       <td>{{ exp.organization }}</td>
                       <td>{{ exp.years }}</td>
@@ -127,8 +133,8 @@
                   </thead>
                   <tbody>
                     <tr>
-                      <td>{{ requiredExperience }}</td>
-                      <td>{{ preferredExperience }}</td>
+                      <td>{{ positionRequirements.experience }}</td>
+                      <td>{{ positionRequirements.preferredExperience }}</td>
                     </tr>
                   </tbody>
                 </q-markup-table>
@@ -146,7 +152,7 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="(train, index) in trainingData" :key="'train-' + index">
+                    <tr v-for="(train, index) in employeeData.training" :key="'train-'+index">
                       <td>{{ train.program }}</td>
                       <td>{{ train.provider }}</td>
                       <td>{{ train.hours }}</td>
@@ -164,8 +170,8 @@
                   </thead>
                   <tbody>
                     <tr>
-                      <td>{{ requiredTraining }}</td>
-                      <td>{{ preferredTraining }}</td>
+                      <td>{{ positionRequirements.training }}</td>
+                      <td>{{ positionRequirements.preferredTraining }}</td>
                     </tr>
                   </tbody>
                 </q-markup-table>
@@ -183,7 +189,7 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="(elig, index) in eligibilityData" :key="'elig-' + index">
+                    <tr v-for="(elig, index) in employeeData.eligibility" :key="'elig-'+index">
                       <td>{{ elig.certification }}</td>
                       <td>{{ elig.authority }}</td>
                       <td>{{ elig.year }}</td>
@@ -201,8 +207,8 @@
                   </thead>
                   <tbody>
                     <tr>
-                      <td>{{ requiredEligibility }}</td>
-                      <td>{{ preferredCertification }}</td>
+                      <td>{{ positionRequirements.eligibility }}</td>
+                      <td>{{ positionRequirements.preferredCertification }}</td>
                     </tr>
                   </tbody>
                 </q-markup-table>
@@ -214,43 +220,209 @@
 
       <!-- Applicant View -->
       <template v-else>
-        <div class="row q-pa-md no-wrap" style="min-height: 400px">
-          <q-card class="col-12">
-            <q-card-section>
-              <div class="text-h4 q-mb-md">{{ applicantName }}</div>
+        <div class="row q-pa-md no-wrap" style="min-height: 550px">
+          <!-- Left Card (Applicant Info) -->
+          <q-card class="col-3 q-mr-md">
+            <q-card-section class="column items-center q-pa-md">
+              <q-avatar size="120px">
+                <img :src="applicantData.photo || '/img/default-avatar.png'" />
+              </q-avatar>
 
-              <div class="row q-col-gutter-md">
-                <div class="col-6">
-                  <div class="text-subtitle1">Application Details</div>
-                  <q-list dense bordered>
-                    <q-item>
-                      <q-item-section>Applied Position:</q-item-section>
-                      <q-item-section side>{{ appliedPosition }}</q-item-section>
-                    </q-item>
-                    <q-item>
-                      <q-item-section>Status:</q-item-section>
-                      <q-item-section side>
-                        <q-badge :color="applicationStatus === 'Qualified' ? 'positive' : 'warning'">
-                          {{ applicationStatus }}
-                        </q-badge>
-                      </q-item-section>
-                    </q-item>
-                  </q-list>
+              <div class="text-h6 text-center q-mb-sm">{{ applicantData.name }}</div>
+              <q-badge :color="statusColor" class="q-mb-md">{{ applicantData.status }}</q-badge>
+
+              <div class="full-width">
+                <div class="text-center q-mb-sm">
+                  <div class="text-caption text-grey-7">Applied Position</div>
+                  <div class="text-weight-medium">{{ applicantData.position }}</div>
                 </div>
 
-                <div class="col-6">
-                  <div class="text-subtitle1">Qualifications</div>
-                  <q-list dense bordered>
-                    <q-item v-for="(qual, index) in qualifications" :key="index">
-                      <q-item-section>{{ qual.name }}</q-item-section>
-                      <q-item-section side>
-                        <q-icon :name="qual.met ? 'check' : 'close'" :color="qual.met ? 'positive' : 'negative'" />
-                      </q-item-section>
-                    </q-item>
-                  </q-list>
+                <q-separator class="q-my-md" />
+
+                <div class="text-center q-mb-sm">
+                  <div class="text-caption text-grey-7">Application Date</div>
+                  <div class="text-weight-medium">{{ applicantData.applicationDate }}</div>
+                </div>
+
+                <q-separator class="q-my-md" />
+
+                <div class="text-center">
+                  <div class="text-caption text-grey-7">Overall Status</div>
+                  <div class="text-weight-medium" :class="`text-${statusColor}`">
+                    {{ overallStatus }}
+                  </div>
                 </div>
               </div>
             </q-card-section>
+          </q-card>
+
+          <!-- Right Card (Tabs) -->
+          <q-card class="col">
+            <q-tabs
+              v-model="tab"
+              dense
+              class="text-grey-8"
+              active-color="primary"
+              indicator-color="primary"
+              align="left"
+            >
+              <q-tab name="education" label="Education" />
+              <q-tab name="experience" label="Experience" />
+              <q-tab name="training" label="Training" />
+              <q-tab name="eligibility" label="Eligibility" />
+            </q-tabs>
+
+            <q-separator />
+
+            <q-tab-panels v-model="tab" class="q-pa-none">
+              <!-- Education Tab -->
+              <q-tab-panel name="education">
+                <div class="text-h6 q-mb-md">Applicant Education</div>
+                <q-markup-table flat bordered class="qualification-table">
+                  <thead>
+                    <tr>
+                      <th class="text-left">Degree</th>
+                      <th class="text-left">Institution</th>
+                      <th class="text-left">Year Graduated</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(edu, index) in applicantData.education" :key="'edu-'+index">
+                      <td>{{ edu.degree }}</td>
+                      <td>{{ edu.institution }}</td>
+                      <td>{{ edu.year }}</td>
+                    </tr>
+                  </tbody>
+                </q-markup-table>
+
+                <div class="text-h6 q-mt-md q-mb-md">Position Qualification Standard</div>
+                <q-markup-table flat bordered class="qualification-table">
+                  <thead>
+                    <tr>
+                      <th class="text-left">Required Degree</th>
+                      <th class="text-left">Preferred Qualification</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>{{ positionRequirements.education }}</td>
+                      <td>{{ positionRequirements.preferredEducation }}</td>
+                    </tr>
+                  </tbody>
+                </q-markup-table>
+              </q-tab-panel>
+
+              <!-- Experience Tab -->
+              <q-tab-panel name="experience">
+                <div class="text-h6 q-mb-md">Applicant Experience</div>
+                <q-markup-table flat bordered class="qualification-table">
+                  <thead>
+                    <tr>
+                      <th class="text-left">Position</th>
+                      <th class="text-left">Organization</th>
+                      <th class="text-left">Years</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(exp, index) in applicantData.experience" :key="'exp-'+index">
+                      <td>{{ exp.position }}</td>
+                      <td>{{ exp.organization }}</td>
+                      <td>{{ exp.years }}</td>
+                    </tr>
+                  </tbody>
+                </q-markup-table>
+
+                <div class="text-h6 q-mt-md q-mb-md">Position Qualification Standard</div>
+                <q-markup-table flat bordered class="qualification-table">
+                  <thead>
+                    <tr>
+                      <th class="text-left">Required Experience</th>
+                      <th class="text-left">Preferred Experience</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>{{ positionRequirements.experience }}</td>
+                      <td>{{ positionRequirements.preferredExperience }}</td>
+                    </tr>
+                  </tbody>
+                </q-markup-table>
+              </q-tab-panel>
+
+              <!-- Training Tab -->
+              <q-tab-panel name="training">
+                <div class="text-h6 q-mb-md">Applicant Training</div>
+                <q-markup-table flat bordered class="qualification-table">
+                  <thead>
+                    <tr>
+                      <th class="text-left">Training Program</th>
+                      <th class="text-left">Provider</th>
+                      <th class="text-left">Hours</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(train, index) in applicantData.training" :key="'train-'+index">
+                      <td>{{ train.program }}</td>
+                      <td>{{ train.provider }}</td>
+                      <td>{{ train.hours }}</td>
+                    </tr>
+                  </tbody>
+                </q-markup-table>
+
+                <div class="text-h6 q-mt-md q-mb-md">Position Qualification Standard</div>
+                <q-markup-table flat bordered class="qualification-table">
+                  <thead>
+                    <tr>
+                      <th class="text-left">Required Training</th>
+                      <th class="text-left">Preferred Training</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>{{ positionRequirements.training }}</td>
+                      <td>{{ positionRequirements.preferredTraining }}</td>
+                    </tr>
+                  </tbody>
+                </q-markup-table>
+              </q-tab-panel>
+
+              <!-- Eligibility Tab -->
+              <q-tab-panel name="eligibility">
+                <div class="text-h6 q-mb-md">Applicant Eligibility</div>
+                <q-markup-table flat bordered class="qualification-table">
+                  <thead>
+                    <tr>
+                      <th class="text-left">Certification</th>
+                      <th class="text-left">Issuing Authority</th>
+                      <th class="text-left">Year Obtained</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(elig, index) in applicantData.eligibility" :key="'elig-'+index">
+                      <td>{{ elig.certification }}</td>
+                      <td>{{ elig.authority }}</td>
+                      <td>{{ elig.year }}</td>
+                    </tr>
+                  </tbody>
+                </q-markup-table>
+
+                <div class="text-h6 q-mt-md q-mb-md">Position Qualification Standard</div>
+                <q-markup-table flat bordered class="qualification-table">
+                  <thead>
+                    <tr>
+                      <th class="text-left">Required Eligibility</th>
+                      <th class="text-left">Preferred Certification</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>{{ positionRequirements.eligibility }}</td>
+                      <td>{{ positionRequirements.preferredCertification }}</td>
+                    </tr>
+                  </tbody>
+                </q-markup-table>
+              </q-tab-panel>
+            </q-tab-panels>
           </q-card>
         </div>
       </template>
@@ -262,9 +434,12 @@
         </template>
         <template v-else>
           <q-btn label="View PDS" color="primary" outline @click="onViewPDS" />
-          <q-btn :label="applicationStatus === 'Qualified' ? 'Mark Unqualified' : 'Mark Qualified'"
-            :color="applicationStatus === 'Qualified' ? 'negative' : 'positive'" @click="toggleQualification" />
-          <q-btn label="Submit" color="positive" @click="onSubmit" />
+          <q-btn
+            :label="applicantData.status === 'Qualified' ? 'Mark Unqualified' : 'Mark Qualified'"
+            :color="applicantData.status === 'Qualified' ? 'negative' : 'positive'"
+            @click="toggleQualificationStatus"
+          />
+          <q-btn label="Submit Evaluation" color="positive" @click="onSubmit" />
         </template>
       </q-card-actions>
     </q-card>
@@ -272,10 +447,10 @@
 </template>
 
 <script>
-import { defineComponent, ref, watch } from 'vue'
+import { defineComponent, ref, computed, watch } from 'vue'
 
 export default defineComponent({
-  name: 'QualityStandardModal',
+  name: 'QualificationStandardModal',
   props: {
     show: {
       type: Boolean,
@@ -287,70 +462,81 @@ export default defineComponent({
       validator: (value) => ['employee', 'applicant'].includes(value)
     },
     // Employee props
-    employeeName: {
-      type: String,
-      default: 'Mahusay, Jograd M.'
-    },
-    currentPosition: {
-      type: String,
-      default: 'Computer Programmer II'
-    },
-    employmentType: {
-      type: String,
-      default: 'Casual'
-    },
-    educationData: {
-      type: Array,
-      default: () => [
-        { degree: "Bachelor's Degree", institution: "University of Example", year: "2018" }
-      ]
-    },
-    experienceData: {
-      type: Array,
-      default: () => [
-        { position: "Software Developer", organization: "Tech Solutions Inc.", years: "3" }
-      ]
-    },
-    trainingData: {
-      type: Array,
-      default: () => [
-        { program: "Advanced Programming", provider: "Tech Academy", hours: "40" }
-      ]
-    },
-    eligibilityData: {
-      type: Array,
-      default: () => [
-        { certification: "Professional License", authority: "State Board", year: "2020" }
-      ]
+    employeeData: {
+      type: Object,
+      default: () => ({
+        name: 'Employee Name',
+        photo: '',
+        position: 'Current Position',
+        employmentType: 'Regular',
+        education: [
+          { degree: "Bachelor's Degree", institution: "University of Example", year: "2018" }
+        ],
+        experience: [
+          { position: "Software Developer", organization: "Tech Solutions Inc.", years: "3" }
+        ],
+        training: [
+          { program: "Advanced Programming", provider: "Tech Academy", hours: "40" }
+        ],
+        eligibility: [
+          { certification: "Professional License", authority: "State Board", year: "2020" }
+        ]
+      })
     },
     // Applicant props
-    applicantName: {
-      type: String,
-      default: 'King, Fahad M.'
+    applicantData: {
+      type: Object,
+      default: () => ({
+        name: 'Applicant Name',
+        photo: '',
+        position: 'Applied Position',
+        status: 'Pending',
+        applicationDate: '2023-01-01',
+        education: [
+          { degree: "Bachelor's Degree", institution: "University of Example", year: "2018" }
+        ],
+        experience: [
+          { position: "Software Developer", organization: "Tech Solutions Inc.", years: "3" }
+        ],
+        training: [
+          { program: "Advanced Programming", provider: "Tech Academy", hours: "40" }
+        ],
+        eligibility: [
+          { certification: "Professional License", authority: "State Board", year: "2020" }
+        ]
+      })
     },
-    appliedPosition: {
-      type: String,
-      default: 'Computer Programmer II'
-    },
-    applicationStatus: {
-      type: String,
-      default: 'Pending'
-    },
-    applicantQualifications: {
-      type: Array,
-      default: () => [
-        { name: 'Education', met: true },
-        { name: 'Experience', met: true },
-        { name: 'Training', met: false },
-        { name: 'Eligibility', met: true }
-      ]
+    positionRequirements: {
+      type: Object,
+      default: () => ({
+        education: "Bachelor's Degree in related field",
+        preferredEducation: "Master's Degree preferred",
+        experience: "Minimum 3 years relevant experience",
+        preferredExperience: "5+ years in leadership role",
+        training: "Certification in relevant field",
+        preferredTraining: "Multiple advanced certifications",
+        eligibility: "Professional license required",
+        preferredCertification: "Additional specialized certifications"
+      })
     }
   },
-  emits: ['update:show', 'update', 'view-pds', 'toggle-qualification', 'submit'],
+  emits: ['update:show', 'update', 'view-pds', 'toggle-qualification', 'submit', 'close'],
   setup(props, { emit }) {
     const localShow = ref(props.show)
     const tab = ref('education')
-    const qualifications = ref(props.applicantQualifications)
+
+    const statusColor = computed(() => {
+      switch (props.applicantData.status) {
+        case 'Qualified': return 'positive'
+        case 'Pending': return 'warning'
+        case 'Unqualified': return 'negative'
+        default: return 'grey'
+      }
+    })
+
+    const overallStatus = computed(() => {
+      return props.applicantData.status === 'Qualified' ? 'Meets Requirements' : 'Under Review'
+    })
 
     watch(
       () => props.show,
@@ -365,22 +551,28 @@ export default defineComponent({
       }
     })
 
+    const onClose = () => {
+      emit('close')
+    }
+
     const onUpdate = () => emit('update')
     const onViewPDS = () => emit('view-pds')
     const onSubmit = () => emit('submit')
-    const toggleQualification = () => {
-      const newStatus = props.applicationStatus === 'Qualified' ? 'Unqualified' : 'Qualified'
+    const toggleQualificationStatus = () => {
+      const newStatus = props.applicantData.status === 'Qualified' ? 'Unqualified' : 'Qualified'
       emit('toggle-qualification', newStatus)
     }
 
     return {
       localShow,
       tab,
-      qualifications,
+      statusColor,
+      overallStatus,
+      onClose,
       onUpdate,
       onViewPDS,
       onSubmit,
-      toggleQualification
+      toggleQualificationStatus
     }
   }
 })
@@ -429,5 +621,23 @@ export default defineComponent({
 
 .q-list--bordered {
   border-radius: 8px;
+}
+
+.q-tab-panels {
+  background: none;
+  border-radius: 0;
+}
+
+.q-markup-table {
+  width: 100%;
+}
+
+.q-markup-table th,
+.q-markup-table td {
+  padding: 8px 12px;
+}
+
+.q-markup-table thead tr {
+  background-color: #f5f5f5;
 }
 </style>

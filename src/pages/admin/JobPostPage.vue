@@ -587,21 +587,39 @@ const handleQualificationToggle = (newStatus) => {
   }
 }
 
-// PDS Modal Functions
+// PDS Modal Functions - Updated Code
 const showPDSModal = ref(false)
 
 const viewApplicantPDS = () => {
-  showPDSModal.value = true
-  showQSModal.value = false
+  // Make sure selectedApplicant has complete data before opening the modal
+  if (selectedApplicant.value && selectedApplicant.value.id) {
+    // Find the complete applicant record if needed
+    const fullApplicantData = applicants.value.find(a => a.id === selectedApplicant.value.id);
+    if (fullApplicantData) {
+      // Update with full data
+      selectedApplicant.value = { ...fullApplicantData, position: selectedJob.value.position };
+    }
+
+    // Close QS modal first, then open PDS modal with slight delay to prevent modal conflicts
+    showQSModal.value = false;
+    setTimeout(() => {
+      showPDSModal.value = true;
+    }, 100);
+  } else {
+    console.error('No applicant selected or incomplete applicant data');
+  }
 }
 
 const closePDSModal = () => {
-  showPDSModal.value = false
+  showPDSModal.value = false;
 }
 
 const openQualificationFromPDS = () => {
-  showPDSModal.value = false
-  showQSModal.value = true
+  // First close PDS modal, then open QS modal with slight delay
+  showPDSModal.value = false;
+  setTimeout(() => {
+    showQSModal.value = true;
+  }, 100);
 }
 
 // Utility Functions

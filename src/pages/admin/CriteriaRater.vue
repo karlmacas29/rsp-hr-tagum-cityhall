@@ -303,6 +303,7 @@
 </template>
 
 <script>
+import { toast } from 'src/boot/toast' // Import toast instance
 export default {
   name: 'CriteriaRater',
 
@@ -370,11 +371,12 @@ export default {
     },
     updateRating() {
       this.calculateAllTotals()
-      this.$q.notify({
-        color: 'positive',
-        message: 'Rating criteria updated successfully',
-        icon: 'check_circle',
-      })
+      // this.$q.notify({
+      //   color: 'positive',
+      //   message: 'Rating criteria updated successfully',
+      //   icon: 'check_circle',
+      // })
+      toast.success('Rating criteria updated successfully')
     },
     calculateAllTotals() {
       this.calculateTotals(this.applicant1)

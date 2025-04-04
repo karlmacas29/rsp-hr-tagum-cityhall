@@ -40,7 +40,6 @@ export default defineRouter(function (/* { store, ssrContext } */) {
     // Only check authentication for specific routes
     if (to.name === 'Admin' || to.name === 'Admin Login') {
       await authStore.checkAuth()
-
       if (authStore.isAuthenticated && to.meta.guest) {
         return { name: 'Admin Dashboard' }
       }
@@ -50,38 +49,6 @@ export default defineRouter(function (/* { store, ssrContext } */) {
       }
     }
   })
-
-  // Router.beforeEach(async (to) => {
-  //   const authStore = useAuthStore()
-  //   await authStore.checkAuth()
-
-  //   if (authStore.isAuthenticated && to.meta.guest) {
-  //     return { name: 'Admin Dashboard' }
-  //   }
-
-  //   if (!authStore.isAuthenticated && to.meta.auth) {
-  //     return { name: 'Admin Login' }
-  //   }
-  // })
-  // Global route guard
-  // Router.beforeEach((to, from, next) => {
-  //   const authStore = useAuthStore()
-
-  //   // Check if the route requires authentication
-  //   const requiresAuth = to.path.startsWith('/admin') || to.path.startsWith('/dashboard')
-
-  //   if (requiresAuth) {
-  //     authStore.checkAuth() // Ensure the authentication state is updated
-
-  //     if (authStore.isAuthenticated) {
-  //       next() // Allow access if authenticated
-  //     } else {
-  //       next('/login') // Redirect to login if not authenticated
-  //     }
-  //   } else {
-  //     next() // Allow access to public routes
-  //   }
-  // })
 
   return Router
 })

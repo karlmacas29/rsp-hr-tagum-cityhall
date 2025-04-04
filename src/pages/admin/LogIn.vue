@@ -25,63 +25,47 @@
           </div>
         </div>
         <div>
-          <form action="">
-            <div class="q-gutter-md" style="width: 300px">
-              <q-input outlined v-model="username" label="Username" type="text" />
-              <q-input outlined v-model="password" label="Password" :type="showPass ? 'text' : 'password'">
+          <form @submit.prevent="login" class=" grid justify-center items-center">
+            <div class="q-gutter-x-sm q-mb-sm" style="width: 340px">
+              <q-input outlined v-model="username" label="Username" type="text" :error="!!errorMessage.username" :error-message="errorMessage.username?.[0]" />
+              <q-input outlined v-model="password" label="Password" :type="showPass ? 'text' : 'password'" :error="!!errorMessage.password" :error-message="errorMessage.password?.[0]">
                 <template v-slot:append>
                   <q-btn @click="passwordVisible" round flat color="white" class="text-grey"
                     :icon="showPass ? 'visibility' : 'visibility_off'" />
                 </template>
               </q-input>
             </div>
+            <div class="row justify-center items-center">
+              <q-btn type="submit" :disabled="authStore.loading" :loading="authStore.loading" label="Login" color="primary" size="md"
+                style="width: 200px" rounded />
+            </div>
           </form>
         </div>
-        <div>
-          <q-btn @click="login" :disabled="isLoad" :loading="isLoad" label="Login" color="primary" size="md"
-            style="width: 200px" rounded />
-        </div>
-        <div v-if="errorMessage" class="text-negative q-mt-md">
-          {{ errorMessage }}
-        </div>
+        
       </div>
     </div>
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref } from 'vue';
 import { useAuthStore } from 'src/stores/authStore';
 
-export default {
-  name: 'LogIn',
-  data() {
-    return {
-      username: '',
-      password: '',
-      showPass: false,
-      isLoad: false,
-      errorMessage: '', // Store error messages
-    };
-  },
-  setup() {
-    const authStore = useAuthStore();
-    return { authStore };
-  },
-  methods: {
-    async login() {
-      this.isLoad = true;
-      this.errorMessage = ''; // Clear previous error messages
-      try {
-        await this.authStore.login(this.username, this.password);
-      } catch (error) {
-        this.errorMessage = error.message; // Display error message
-      } finally {
-        this.isLoad = false;
-      }
-    },
-    passwordVisible() {
-      this.showPass = !this.showPass;
-    },
-  },
+const username = ref('');
+const password = ref('');
+// 
+const showPass = ref(false);
+// 
+const errorMessage = ref([]);
+
+const authStore = useAuthStore();
+
+const login = async () => {
+  await authStore.login(username.value, password.value);
+  errorMessage.value = authStore.errors
+};
+
+const passwordVisible = () => {
+  showPass.value = !showPass.value;
 };
 </script>

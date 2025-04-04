@@ -40,7 +40,6 @@ export default defineRouter(function (/* { store, ssrContext } */) {
     // Only check authentication for specific routes
     if (to.name === 'Admin' || to.name === 'Admin Login') {
       await authStore.checkAuth()
-
       if (authStore.isAuthenticated && to.meta.guest) {
         return { name: 'Admin Dashboard' }
       }

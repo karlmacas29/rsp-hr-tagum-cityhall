@@ -1,17 +1,19 @@
 <template>
   <q-page class="q-pa-md">
+    <!-- Navigation and Job Posts Header -->
     <div class="column items-start justify-center q-mb-md">
       <h5 class="text-h4 q-ma-none"><b>Job Posts</b></h5>
       <div class="q-pa-md q-gutter-sm">
         <q-breadcrumbs class="q-ma-none">
           <q-breadcrumbs-el class="text-bold" label="Home" />
           <q-breadcrumbs-el class="text-bold" label="Job Posts" />
+          <q-breadcrumbs-el v-if="showingDetails" class="text-bold" :label="selectedJob.position" />
         </q-breadcrumbs>
       </div>
     </div>
 
-    <!-- Date Range Picker -->
-    <div class="row items-center q-gutter-sm q-mb-md">
+    <!-- Date Range Picker (only visible in list view) -->
+    <div v-if="!showingDetails" class="row items-center q-gutter-sm q-mb-md">
       <q-input dense outlined readonly v-model="formattedDateRange" label="Selected Date Range">
         <template v-slot:append>
           <q-icon name="event" class="cursor-pointer">
@@ -23,8 +25,8 @@
       </q-input>
     </div>
 
-    <!-- Job Position Table -->
-    <div class="q-pa-md">
+    <!-- Job List View -->
+    <div v-if="!showingDetails" class="q-pa-md">
       <q-card>
         <q-table
           :rows="filteredJobs"
@@ -114,18 +116,17 @@
       </q-card>
     </div>
 
-    <!-- Job Details Dialog -->
-    <q-dialog v-model="showJobDetails" persistent>
-      <q-card style="width: 800px; max-width: 90vw">
-        <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6">Job Details</div>
-          <q-space />
-          <q-btn icon="close" flat round dense v-close-popup />
+    <!-- Job Details View (Instead of Dialog) -->
+    <div v-if="showingDetails">
+      <q-card class="q-mb-md" flat bordered>
+        <q-card-section>
+          <div class="row items-center">
+            <q-btn icon="arrow_back" flat round dense class="q-mr-sm" @click="goBackToList"/>
+            <div class="text-h5">{{ selectedJob.position }}</div>
+          </div>
         </q-card-section>
 
         <q-card-section>
-          <div class="text-h5 text-center q-mb-md">{{ selectedJob.position }}</div>
-
           <div class="row q-col-gutter-md">
             <div class="col-12">
               <div class="text-subtitle1 q-mb-xs">
@@ -158,21 +159,16 @@
           <q-btn
             label="View Applicants"
             color="primary"
-            @click="showApplicantsDialog"
+            @click="showApplicantsPage"
             :disable="selectedJob.applicants === 0"
           />
-          <q-btn flat label="Close" color="primary" v-close-popup />
         </q-card-actions>
       </q-card>
-    </q-dialog>
 
-    <!-- Applicants Dialog -->
-    <q-dialog v-model="showApplicants" persistent>
-      <q-card style="width: 800px; max-width: 90vw">
+      <!-- Applicants Section (Conditionally shown on job details page) -->
+      <q-card v-if="showingApplicants" flat bordered>
         <q-card-section class="row items-center q-pb-none">
           <div class="text-h6">Applicants for {{ selectedJob.position }}</div>
-          <q-space />
-          <q-btn icon="close" flat round dense v-close-popup />
         </q-card-section>
 
         <q-card-section>
@@ -214,13 +210,12 @@
         </q-card-section>
 
         <q-card-actions align="right">
-          <q-btn flat label="Back to Job Details" color="primary" @click="backToJobDetails" />
-          <q-btn flat label="Close" color="primary" v-close-popup />
+          <q-btn flat label="Hide Applicants" color="primary" @click="hideApplicants" />
         </q-card-actions>
       </q-card>
-    </q-dialog>
+    </div>
 
-    <!-- Qualification Standard Modal -->
+    <!-- Keep the modals for QS and PDS -->
     <QualityStandardModal
       v-model="showQSModal"
       variant="applicant"
@@ -232,7 +227,6 @@
       @close="closeQualificationModal"
     />
 
-    <!-- PDS Modal -->
     <PDSModal
       v-model="showPDSModal"
       :applicant="selectedApplicant"
@@ -254,6 +248,10 @@ defineOptions({
 })
 
 const { formatDate } = date
+
+// Page State
+const showingDetails = ref(false)
+const showingApplicants = ref(false)
 
 // Date Range Filter
 const dateRange = ref({ from: '', to: '' })
@@ -386,8 +384,7 @@ const filteredJobs = computed(() => {
   })
 })
 
-// Job Details Dialog
-const showJobDetails = ref(false)
+// Job Details page navigation
 const selectedJob = ref({
   id: null,
   officePosition: '',
@@ -402,11 +399,16 @@ const selectedJob = ref({
 
 const viewJobDetails = (job) => {
   selectedJob.value = { ...job }
-  showJobDetails.value = true
+  showingDetails.value = true
+  showingApplicants.value = false
 }
 
-// Applicants Dialog
-const showApplicants = ref(false)
+const goBackToList = () => {
+  showingDetails.value = false
+  showingApplicants.value = false
+}
+
+// Applicants View
 const loadingApplicants = ref(false)
 const applicantColumns = [
   { name: 'name', label: 'Name', field: 'name', align: 'left', sortable: true },
@@ -517,17 +519,16 @@ const filteredApplicants = computed(() => {
   )
 })
 
-const showApplicantsDialog = () => {
-  showJobDetails.value = false
-  showApplicants.value = true
+// Applicant actions
+const showApplicantsPage = () => {
+  showingApplicants.value = true
 }
 
-const backToJobDetails = () => {
-  showApplicants.value = false
-  showJobDetails.value = true
+const hideApplicants = () => {
+  showingApplicants.value = false
 }
 
-// Qualification Standard Modal
+// Qualification Standard Modal - keep this as a modal
 const showQSModal = ref(false)
 const selectedApplicant = ref({
   id: null,
@@ -587,7 +588,7 @@ const handleQualificationToggle = (newStatus) => {
   }
 }
 
-// PDS Modal Functions - Updated Code
+// PDS Modal - keep this as a modal
 const showPDSModal = ref(false)
 
 const viewApplicantPDS = () => {
@@ -698,10 +699,6 @@ h5 {
 
 .q-gutter-md {
   margin-bottom: 4px;
-}
-
-.q-dialog__inner--minimized > div {
-  max-width: 90vw;
 }
 
 .q-tab-panels {

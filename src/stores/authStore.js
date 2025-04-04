@@ -54,6 +54,7 @@ export const useAuthStore = defineStore('auth', {
     },
     // Logout function when it has token
     async logout() {
+      this.loading = true // Set loading state
       const token = document.cookie
         .split('; ')
         .find((row) => row.startsWith('auth_token='))

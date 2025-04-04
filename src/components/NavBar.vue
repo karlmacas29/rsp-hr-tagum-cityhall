@@ -53,8 +53,15 @@
               </q-item-section>
             </q-item>
 
-            <q-item clickable @click="onLogout" v-close-popup>
-              <q-item-section avatar>
+            <q-item clickable @click="onLogout">
+              <q-item-section v-if="authStore.loading" avatar>
+                <q-avatar color="negative"  >
+                  <q-spinner
+                    color="white"
+                  />
+                </q-avatar>
+              </q-item-section>
+              <q-item-section v-else avatar>
                 <q-avatar icon="logout" color="negative" text-color="white" />
               </q-item-section>
               <q-item-section>
@@ -76,12 +83,7 @@ const router = useRouter();
 const authStore = useAuthStore();
 
 const onLogout = async () => {
-  try {
     await authStore.logout(); // Call the logout action from authStore
-
-  } catch (error) {
-    console.error('Logout failed:', error);
-  }
 };
 
 const onSetting = () => {

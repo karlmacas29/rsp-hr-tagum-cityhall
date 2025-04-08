@@ -14,13 +14,13 @@
             </div> -->
 
             <q-card v-for="(dataR, index) in dataR" :key="index" class=" text-dark "
-                style="background-color: #FFF ; width:190px ; border-top: 8px solid green; border-radius: 12px;">
+                style="background-color: #FFF ; width:190px ; border-top: 8px solid #00B034; border-radius: 12px;">
                 <q-card-section class="q-pa-lg row justify-between items-center">
                     <div>
                         <div class="text-subtitle1 text-bold">{{ dataR.status }}</div>
                         <div class="text-h4">{{ dataR.count }}</div>
                         <div class="text-caption">{{ dataR?.caption || 'Employee' }}</div>
-                    </div> 
+                    </div>
                     <div><q-icon name='post_add' size="30px" /></div>
                 </q-card-section>
             </q-card>

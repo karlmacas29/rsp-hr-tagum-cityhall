@@ -9,7 +9,7 @@
     <div class="header-container"></div>
 
     <q-list dense>
-      <q-item dense class="q-mx-xs q-my-xs" style="border-radius: 8px; padding: 8px 10px;"
+      <q-item dense class="q-mx-xs q-my-xs" style="border-radius: 8px; padding: 8px 11px;"
         v-for="(item, index) in menuItems" :key="index" clickable v-ripple :to="item.route"
         :active-class="'active-menu'">
         <q-item-section avatar>
@@ -18,7 +18,7 @@
         <q-item-section>{{ item.label }}</q-item-section>
       </q-item>
       <!-- rater -->
-      <q-expansion-item dense style="border-radius: 20px; padding: 0 ; margin: 0; " class="q-mx-xs q-my-xs"
+      <q-expansion-item v-model="expanded" dense style="border-radius: 20px; padding: 0 ; margin: 0; " class="q-mx-xs q-my-xs"
         icon="assignment_ind" label="Rater Management">
         <q-card class="q-py-none content-container">
           <q-item dense class="q-mx-xs q-my-xs" style="border-radius: 8px ; padding: 8px 10px;"
@@ -36,26 +36,37 @@
   </q-drawer>
 </template>
 
-<script>
-export default {
-  data() {
-    return {
-      drawer: true,
-      menuItems: [
-        { label: 'Dashboard', route: '/dashboard', icon: 'dashboard' },
-        { label: 'Plantilla', route: '/plantilla', icon: 'list' },
-        { label: 'Job Posts', route: '/job-post', icon: 'post_add' },
+<script setup>
+import { onMounted, ref } from 'vue'
+import {useRoute} from 'vue-router'
 
-        { label: 'Activity Log', route: '/activity-log', icon: 'history' },
-      ],
-      ratersManage: [
-        { label: 'Raters', route: '/raters', icon: 'groups' },
-        { label: 'Reports', route: '/reports', icon: 'assessment' },
-        { label: 'Criteria', route: '/criteria', icon: 'rule' },
-      ],
+const route = useRoute()
+const drawer = ref(true)
+const expanded = ref(false)
+
+const menuItems = ref([
+  { label: 'Dashboard', route: '/dashboard', icon: 'dashboard' },
+  { label: 'Plantilla', route: '/plantilla', icon: 'list' },
+  { label: 'Job Posts', route: '/job-post', icon: 'post_add' },
+  { label: 'Activity Log', route: '/activity-log', icon: 'history' },
+])
+
+const ratersManage = ref([
+  { label: 'Raters', route: '/raters', icon: 'groups' },
+  { label: 'Reports', route: '/reports', icon: 'assessment' },
+  { label: 'Criteria', route: '/criteria', icon: 'rule' },
+])
+
+onMounted(() => {
+  // Set the active menu item based on the current route
+  const currentRoute = route.path
+  // Check if the current route matches any of the main menu items
+  ratersManage.value.forEach(item => {
+    if (currentRoute === item.route) {
+      expanded.value = true
     }
-  },
-}
+  })
+})
 </script>
 
 <style scoped>

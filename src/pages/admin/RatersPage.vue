@@ -35,10 +35,9 @@
                 :key="col.name"
                 :props="props"
               >
-                <div v-if="col.name !== 'actions'">
+                <div v-if="col.name !== 'actions' && col.search">
                   <div>{{ col.label }}</div>
                   <q-input
-                    v-if="col.search"
                     dense
                     outlined
                     v-model="filters[col.field]"
@@ -47,11 +46,11 @@
                     style="min-width: 100px"
                   >
                     <template v-slot:append>
-                      <q-icon 
-                        v-if="filters[col.field]" 
-                        name="clear" 
-                        class="cursor-pointer" 
-                        @click.stop="filters[col.field] = ''" 
+                      <q-icon
+                        v-if="filters[col.field]"
+                        name="clear"
+                        class="cursor-pointer"
+                        @click.stop="filters[col.field] = ''"
                       />
                     </template>
                   </q-input>
@@ -63,12 +62,16 @@
             </q-tr>
           </template>
 
-          <!-- Your existing body-cell templates -->
-          <template v-slot:body-cell-status="props">
+          <!-- Body cell templates -->
+          <template v-slot:body-cell-pending="props">
             <q-td :props="props">
-              <q-badge :color="props.row.status != 'Completed' ? 'green' : 'orange'">
-                {{ props.row?.status || 'Completed' }}
-              </q-badge>
+              {{ props.row.pending || 0 }}
+            </q-td>
+          </template>
+
+          <template v-slot:body-cell-completed="props">
+            <q-td :props="props">
+              {{ props.row.completed || 0 }}
             </q-td>
           </template>
 
@@ -77,22 +80,25 @@
               <q-btn flat round dense icon="visibility" @click="viewRater(props.row)">
                 <q-tooltip>View</q-tooltip>
               </q-btn>
+              <q-btn flat round dense icon="edit" @click="editRater(props.row)" class="q-ml-sm">
+                <q-tooltip>Edit</q-tooltip>
+              </q-btn>
             </q-td>
           </template>
         </q-table>
       </q-card-section>
 
       <q-card-section v-else>
-        <!-- Add skeleton here if needed -->
+        <q-skeleton height="150px" square />
       </q-card-section>
     </q-card>
 
-    <!-- Modal -->
+    <!-- Add Rater Modal -->
     <q-dialog v-model="showModal" persistent transition-show="scale" transition-hide="scale">
-      <q-card style="width: 400px; max-width: 90vw;">
+      <q-card style="width: 500px; max-width: 90vw;">
         <q-card-section class="row items-center justify-between">
           <div class="text-h6"><b>Add Rater</b></div>
-          <q-btn icon="close" flat round dense @click="showModal = false" />
+          <q-btn icon="close" flat round dense @click="closeModal" />
         </q-card-section>
 
         <q-card-section>
@@ -100,62 +106,98 @@
             Please fill in all required fields.
           </q-banner>
 
-          <div class="text-subtitle1 q-mb-sm text-weight-medium">1. Select Batch</div>
-          <q-select
-            v-model="selectedBatch"
-            :options="batches"
-            option-value="id"
-            option-label="display"
-            label="Select Batch"
-            outlined
-            dense
-            emit-value
-            map-options
-            @update:model-value="fetchPositions"
-          />
-
-          <q-separator class="q-mt-md q-mb-md" />
-
-          <div class="text-subtitle1 q-mb-sm text-weight-medium">2. Choose Position(s)</div>
-          <q-checkbox
-            v-model="selectAllPositions"
-            label="Select All"
-            @update:model-value="toggleAllPositions"
-            :disable="!selectedBatch || positions.length === 0"
-            dense
-          />
-          <div class="q-pa-sm scroll" style="max-height: 150px">
-            <q-checkbox
-              v-for="position in positions"
-              :key="position.id"
-              v-model="selectedPositions"
-              :val="position.id"
-              :label="position.name"
-              :disable="!selectedBatch"
+          <!-- 1. Select Batch -->
+          <div class="q-mb-md">
+            <div class="text-subtitle2 text-weight-medium">Select Batch</div>
+            <q-select
+              v-model="selectedBatch"
+              :options="batches"
+              option-value="id"
+              option-label="display"
+              label="Select a batch"
+              outlined
               dense
+              emit-value
+              map-options
+              @update:model-value="fetchPositions"
             />
           </div>
 
           <q-separator class="q-mt-md q-mb-md" />
 
-          <div class="text-subtitle1 q-mb-sm text-weight-medium">3. Search & Add Rater</div>
-          <q-select
-            v-model="selectedRater"
-            :options="availableRaters"
-            option-value="id"
-            option-label="name"
-            label="Search Rater"
-            use-input
-            outlined
-            dense
-            emit-value
-            map-options
-            @filter="filterRaters"
-          >
-            <template v-slot:prepend>
-              <q-icon name="search" />
-            </template>
-          </q-select>
+          <!-- 2. Select Positions (Dropdown with checkboxes) -->
+          <div class="q-mb-md">
+            <div class="text-subtitle2 text-weight-medium">Select Positions to Rate</div>
+            <q-select
+              v-model="selectedPositions"
+              multiple
+              :options="positions"
+              option-value="id"
+              option-label="name"
+              label="Select one or more positions"
+              outlined
+              dense
+              use-chips
+              emit-value
+              map-options
+              :disable="!selectedBatch"
+            >
+              <template v-slot:option="scope">
+                <q-item v-bind="scope.itemProps">
+                  <q-item-section>
+                    <q-item-label>{{ scope.opt.name }}</q-item-label>
+                  </q-item-section>
+                  <q-item-section side>
+                    <q-checkbox :model-value="scope.selected" />
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
+          </div>
+
+          <q-separator class="q-mt-md q-mb-md" />
+
+          <!-- 3. Select Office -->
+          <div class="q-mb-md">
+            <div class="text-subtitle2 text-weight-medium">Select Office</div>
+            <q-select
+              v-model="selectedOffice"
+              :options="offices"
+              option-value="id"
+              option-label="name"
+              label="Select office"
+              outlined
+              dense
+              emit-value
+              map-options
+              :disable="!selectedBatch || selectedPositions.length === 0"
+            />
+          </div>
+
+          <q-separator class="q-mt-md q-mb-md" />
+
+          <!-- 4. Select Rater -->
+          <div class="q-mb-md">
+            <div class="text-subtitle2 text-weight-medium">Select Rater</div>
+            <q-select
+              v-model="selectedRater"
+              :options="filteredAvailableRaters"
+              option-value="id"
+              option-label="name"
+              label="Search and select rater"
+              use-input
+              outlined
+              dense
+              emit-value
+              map-options
+              :disable="!selectedOffice"
+              @filter="filterRaters"
+            >
+              <template v-slot:prepend>
+                <q-icon name="search" />
+              </template>
+            </q-select>
+          </div>
         </q-card-section>
 
         <q-card-actions align="right">
@@ -164,7 +206,7 @@
             color="primary"
             @click="addRater"
             :loading="isSubmitting"
-            :disable="!selectedRater || !selectedBatch || selectedPositions.length === 0"
+            :disable="!selectedRater || !selectedBatch || selectedPositions.length === 0 || !selectedOffice"
           />
         </q-card-actions>
       </q-card>
@@ -174,14 +216,14 @@
 
 <script setup>
 import { useRaterStore } from 'stores/raterStore'
-import { onMounted, ref, computed,watch } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 
 const filters = ref({
   ID: '',
   Rater: '',
   batchDate: '',
   Position: '',
-  status: ''
+  Office: ''
 })
 
 const filteredRaters = computed(() => {
@@ -195,14 +237,13 @@ const filteredRaters = computed(() => {
 })
 
 const useRater = useRaterStore()
-
 const showModal = ref(false)
 const showError = ref(false)
 const isSubmitting = ref(false)
 
 const selectedBatch = ref(null)
 const selectedPositions = ref([])
-const selectAllPositions = ref(false)
+const selectedOffice = ref(null)
 const selectedRater = ref(null)
 
 const batches = ref([
@@ -211,60 +252,117 @@ const batches = ref([
   { id: 3, display: 'Customer Support Hiring (Posted: 2024-01-20)', date: '2024-01-20' },
 ])
 
-const positions = ref([])
-const raters = ref([])
-
-const availableRaters = ref([
-  { id: 1, name: 'John Doe' },
-  { id: 2, name: 'Jane Smith' },
-  { id: 3, name: 'Alice Johnson' },
-  { id: 4, name: 'Bob Williams' },
-  { id: 5, name: 'Charlie Brown' },
+const offices = ref([
+  { id: 1, name: 'Main Office' },
+  { id: 2, name: 'Regional Office - North' },
+  { id: 3, name: 'Regional Office - South' },
 ])
 
+const positions = ref([])
+const raters = ref([
+  {
+    id: 1,
+    Rater: 'John Doe',
+    batchDate: '2024-03-15',
+    Position: 'Frontend Developer',
+    Office: 'Main Office',
+    pending: 3,
+    completed: 2
+  },
+  {
+    id: 2,
+    Rater: 'Jane Smith',
+    batchDate: '2024-02-28',
+    Position: 'Social Media Manager',
+    Office: 'Main Office',
+    pending: 1,
+    completed: 4
+  },
+  {
+    id: 3,
+    Rater: 'Alice Johnson',
+    batchDate: '2024-01-20',
+    Position: 'Customer Support Representative',
+    Office: 'Regional Office - North',
+    pending: 0,
+    completed: 5
+  }
+])
+
+const availableRaters = ref([
+  { id: 1, name: 'John Doe', officeId: 1 },
+  { id: 2, name: 'Jane Smith', officeId: 1 },
+  { id: 3, name: 'Alice Johnson', officeId: 2 },
+  { id: 4, name: 'Bob Williams', officeId: 3 },
+  { id: 5, name: 'Charlie Brown', officeId: 3 },
+])
+
+const filteredAvailableRaters = computed(() => {
+  if (!selectedOffice.value) return availableRaters.value
+  return availableRaters.value.filter(rater =>
+    rater.officeId === selectedOffice.value
+  )
+})
+
 const columns = [
-  { 
-    name: 'ID', 
-    label: 'ID', 
-    field: 'ID', 
-    align: 'left', 
-    sortable: false,
-    search: true 
-  },
-  { 
-    name: 'Rater', 
-    label: 'Raters Name', 
-    field: 'Rater', 
-    align: 'left', 
-    sortable: false,
-    search: true 
-  },
-  { 
-    name: 'batchDate', 
-    label: 'Assigned Batch', 
-    field: 'batchDate', 
+  {
+    name: 'ID',
+    label: 'ID',
+    field: 'id',
     align: 'left',
-    search: true 
+
+    search: true
   },
-  { 
-    name: 'Position', 
-    label: 'Position', 
-    field: 'Position', 
-    align: 'left', 
-    sortable: false,
-    search: true 
-  },
-  { 
-    name: 'status', 
-    label: 'Status', 
-    field: 'status', 
+  {
+    name: 'Rater',
+    label: 'Rater Name',
+    field: 'Rater',
     align: 'left',
-    search: true 
+
+    search: true
   },
-  { 
-    name: 'actions', 
-    label: 'Action', 
-    align: 'center' 
+  {
+    name: 'batchDate',
+    label: 'Assigned Batch',
+    field: 'batchDate',
+    align: 'left',
+
+    search: true
+  },
+  {
+    name: 'Position',
+    label: 'Position',
+    field: 'Position',
+    align: 'left',
+
+    search: true
+  },
+  {
+    name: 'Office',
+    label: 'Office',
+    field: 'Office',
+    align: 'left',
+  
+    search: true
+  },
+  {
+    name: 'pending',
+    label: 'Pending',
+    field: 'pending',
+    align: 'center',
+    sortable: false
+  },
+  {
+    name: 'completed',
+    label: 'Completed',
+    field: 'completed',
+    align: 'center',
+    sortable: false
+  },
+  {
+    name: 'actions',
+    label: 'Actions',
+    align: 'center'
   }
 ]
 
@@ -287,40 +385,49 @@ const batchPositions = {
 const fetchPositions = (batchId) => {
   positions.value = batchPositions[batchId] || []
   selectedPositions.value = []
-  selectAllPositions.value = false
+  selectedOffice.value = null
+  selectedRater.value = null
 }
 
-const toggleAllPositions = (val) => {
-  selectedPositions.value = val ? positions.value.map(pos => pos.id) : []
+const closeModal = () => {
+  showModal.value = false
+  selectedBatch.value = null
+  selectedPositions.value = []
+  selectedOffice.value = null
+  selectedRater.value = null
+  showError.value = false
 }
-
-watch(selectedPositions, (newVal) => {
-  selectAllPositions.value = newVal.length === positions.value.length && positions.value.length > 0
-})
 
 const filterRaters = (val, update) => {
   if (val === '') {
     update(() => {
       availableRaters.value = [
-        { id: 1, name: 'John Doe' },
-        { id: 2, name: 'Jane Smith' },
-        { id: 3, name: 'Alice Johnson' },
-        { id: 4, name: 'Bob Williams' },
-        { id: 5, name: 'Charlie Brown' },
+        { id: 1, name: 'John Doe', officeId: 1 },
+        { id: 2, name: 'Jane Smith', officeId: 1 },
+        { id: 3, name: 'Alice Johnson', officeId: 2 },
+        { id: 4, name: 'Bob Williams', officeId: 3 },
+        { id: 5, name: 'Charlie Brown', officeId: 3 },
       ]
     })
     return
   }
 
   update(() => {
-    availableRaters.value = availableRaters.value.filter((rater) =>
-      rater.name.toLowerCase().includes(val.toLowerCase())
+    const searchTerm = val.toLowerCase()
+    availableRaters.value = [
+      { id: 1, name: 'John Doe', officeId: 1 },
+      { id: 2, name: 'Jane Smith', officeId: 1 },
+      { id: 3, name: 'Alice Johnson', officeId: 2 },
+      { id: 4, name: 'Bob Williams', officeId: 3 },
+      { id: 5, name: 'Charlie Brown', officeId: 3 },
+    ].filter(rater =>
+      rater.name.toLowerCase().includes(searchTerm)
     )
   })
 }
 
 const addRater = () => {
-  if (!selectedBatch.value || selectedPositions.value.length === 0 || !selectedRater.value) {
+  if (!selectedBatch.value || selectedPositions.value.length === 0 || !selectedRater.value || !selectedOffice.value) {
     showError.value = true
     return
   }
@@ -329,36 +436,47 @@ const addRater = () => {
   isSubmitting.value = true
 
   const batchInfo = batches.value.find(b => b.id === selectedBatch.value) || {}
-  const raterName = availableRaters.value.find(r => r.id === selectedRater.value)?.name || ''
+  const officeInfo = offices.value.find(o => o.id === selectedOffice.value) || {}
+  const raterInfo = availableRaters.value.find(r => r.id === selectedRater.value) || {}
 
   selectedPositions.value.forEach(positionId => {
     const positionName = positions.value.find(p => p.id === positionId)?.name || ''
 
     const newRater = {
       id: raters.value.length + 1,
-      Rater: raterName,
+      Rater: raterInfo.name,
       batchDate: batchInfo.date,
       Position: positionName,
-      status: 'Pending',
+      Office: officeInfo.name,
+      pending: Math.floor(Math.random() * 5),
+      completed: Math.floor(Math.random() * 5)
     }
 
     raters.value.push(newRater)
   })
 
-  selectedBatch.value = null
-  selectedPositions.value = []
-  selectAllPositions.value = false
-  selectedRater.value = null
-  showModal.value = false
+  closeModal()
   isSubmitting.value = false
 }
 
 const viewRater = (rater) => {
   console.log('Viewing rater:', rater)
+  // Implement your view logic here
+}
+
+const editRater = (rater) => {
+  console.log('Editing rater:', rater)
+  // Implement your edit logic here
 }
 
 onMounted(async () => {
   await useRater.fetchRaters()
-  raters.value = useRater.raters
+  // raters.value = useRater.raters // Uncomment when your store is ready
 })
 </script>
+
+<style scoped>
+.q-table {
+  width: 100%;
+}
+</style>

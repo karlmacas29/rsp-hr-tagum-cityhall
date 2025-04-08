@@ -18,17 +18,58 @@
       <q-separator />
       <!--  -->
       <q-card-section v-if="!useRater.loading">
-        <q-table flat bordered :rows="raters" :columns="columns" row-key="id">
-          <!-- Status Column -->
+        <q-table
+          flat
+          bordered
+          :rows="filteredRaters"
+          :columns="columns"
+          row-key="id"
+        >
+          <!-- Header slots for searchable columns -->
+          <template v-slot:header="props">
+            <q-tr :props="props">
+              <q-th
+                v-for="col in props.cols"
+                :key="col.name"
+                :props="props"
+              >
+                <div v-if="col.name !== 'actions'">
+                  <div>{{ col.label }}</div>
+                  <q-input
+                    v-if="col.search"
+                    dense
+                    outlined
+                    v-model="filters[col.field]"
+                    :placeholder="`Search ${col.label}`"
+                    class="q-mt-xs"
+                    style="min-width: 100px"
+                  >
+                    <template v-slot:append>
+                      <q-icon 
+                        v-if="filters[col.field]" 
+                        name="clear" 
+                        class="cursor-pointer" 
+                        @click.stop="filters[col.field] = ''" 
+                      />
+                    </template>
+                  </q-input>
+                </div>
+                <div v-else>
+                  {{ col.label }}
+                </div>
+              </q-th>
+            </q-tr>
+          </template>
+
+          <!-- Your existing body-cell templates -->
           <template v-slot:body-cell-status="props">
             <q-td :props="props">
-              <q-badge :color="props.row.status === 'Completed' ? 'green' : 'orange'">
-                {{ props.row.status }}
+              <q-badge :color="props.row.status != 'Completed' ? 'green' : 'orange'">
+                {{ props.row?.status || 'Completed' }}
               </q-badge>
             </q-td>
           </template>
 
-          <!-- Action Column (View Button with Tooltip) -->
           <template v-slot:body-cell-actions="props">
             <q-td :props="props">
               <q-btn flat round dense icon="visibility" @click="viewRater(props.row)">
@@ -131,7 +172,25 @@
 
 <script setup>
 import { useRaterStore } from 'stores/raterStore'
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed } from 'vue'
+
+const filters = ref({
+  ID: '',
+  Rater: '',
+  batchDate: '',
+  Position: '',
+  status: ''
+})
+
+const filteredRaters = computed(() => {
+  return raters.value.filter(row => {
+    return Object.entries(filters.value).every(([key, value]) => {
+      if (!value) return true // Skip if filter is empty
+      const rowValue = row[key]?.toString().toLowerCase() || ''
+      return rowValue.includes(value.toLowerCase())
+    })
+  })
+})
 
 const useRater = useRaterStore()
 const showModal = ref(false)
@@ -158,12 +217,49 @@ const availableRaters = ref([
 ])
 
 const columns = [
-  { name: 'ID', label: 'ID', field: 'ID', align: 'left', sortable: true },
-  { name: 'Rater', label: 'Raters Name', field: 'Rater', align: 'left', sortable: true },
-  { name: 'batchDate', label: 'Assigned Batch', field: 'batchDate', align: 'left' },
-  { name: 'Position', label: 'Position', field: 'Position', align: 'left', sortable: true },
-  { name: 'status', label: 'Status', field: 'status', align: 'left' },
-  { name: 'actions', label: 'Action', align: 'center' }, // New Action Column
+  { 
+    name: 'ID', 
+    label: 'ID', 
+    field: 'ID', 
+    align: 'left', 
+    sortable: false,
+    search: true 
+  },
+  { 
+    name: 'Rater', 
+    label: 'Raters Name', 
+    field: 'Rater', 
+    align: 'left', 
+    sortable: false,
+    search: true 
+  },
+  { 
+    name: 'batchDate', 
+    label: 'Assigned Batch', 
+    field: 'batchDate', 
+    align: 'left',
+    search: true 
+  },
+  { 
+    name: 'Position', 
+    label: 'Position', 
+    field: 'Position', 
+    align: 'left', 
+    sortable: false,
+    search: true 
+  },
+  { 
+    name: 'status', 
+    label: 'Status', 
+    field: 'status', 
+    align: 'left',
+    search: true 
+  },
+  { 
+    name: 'actions', 
+    label: 'Action', 
+    align: 'center' 
+  }
 ]
 
 // Dummy Positions for Each Batch

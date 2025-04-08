@@ -50,7 +50,7 @@
                 <div class="column">
                   <div>{{ col.label }}</div>
                   <q-input
-                    v-if="col.name !== 'action'"
+                    v-if="col.searchable !== false && col.name !== 'action'"
                     v-model="searchFilters[col.name]"
                     dense
                     outlined
@@ -362,14 +362,14 @@ const columns = [
     label: 'Office',
     align: 'left',
     field: (row) => row.officePosition,
-
+    searchable: true
   },
   {
     name: 'position',
     label: 'Position',
     align: 'left',
     field: 'position',
-
+    searchable: true
   },
   {
     name: 'postingDate',
@@ -377,41 +377,42 @@ const columns = [
     label: 'Posting Date',
     field: 'postingDate',
     format: (val) => formatDate(val, 'MMM D, YYYY'),
-
+    searchable: true
   },
   {
     name: 'applicants',
     align: 'center',
     label: 'Applicants',
     field: 'applicants',
-
+    searchable: false
   },
   {
     name: 'pending',
     align: 'center',
     label: 'Pending',
     field: 'pending',
-
+    searchable: false
   },
   {
     name: 'qualified',
     align: 'center',
     label: 'Qualified',
     field: 'qualified',
-
+    searchable: false
   },
   {
     name: 'unqualified',
     align: 'center',
     label: 'Unqualified',
     field: 'unqualified',
+    searchable: false
   },
   {
     name: 'action',
     align: 'center',
     label: 'Actions',
     field: 'action',
-    
+    searchable: false
   },
 ]
 

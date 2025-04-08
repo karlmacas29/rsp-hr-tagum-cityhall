@@ -1,13 +1,17 @@
 <template>
     <div class="">
+        <div class="q-mt-lg">
+            <h4 class="text-h3 q-ma-none"><b>Plantilla</b></h4>
+            <!-- <p class="text-bold row items-center" v-html="getSelectedPath" /> -->
+        </div>
         <q-breadcrumbs separator=">" class="text-grey">
             <q-breadcrumbs-el class="breadcrumb-item">
-                <q-select class="rounded-borders q-ml-sm q-mr-sm custom-select" rounded outlined
+                <q-select class="rounded-borders q-ml-sm q-mr-sm custom-select" outlined use-chips
                     bg-color="light-green-1" color="green-9" v-model="selectedValues[0]"
-                    :options="getOptionsForLevel(0)" :label="levels[0]" use-input hide-selected fill-input clearable
+                    :options="getOptionsForLevel(0)" label="City Hall Office" hint="Select Office" use-input hide-selected fill-input clearable
                     input-debounce="300" @filter="(val, update) => filterOptions(val, update, 0)"
                     @update:model-value="handleSelection(0)" @clear="clearSelection(0)" :loading="usePlantilla.loading"
-                    :style="{ minWidth: '150px', maxWidth: '180px' }">
+                    :style="{ maxWidth: '100%', width: '300px'}">
                     <template v-slot:no-option>
                         <q-item dense>
                             <q-item-section class="text-grey text-subtitle2">No results</q-item-section>
@@ -16,7 +20,7 @@
                 </q-select>
             </q-breadcrumbs-el>
 
-            <template v-for="(level, index) in levels.slice(1)" :key="index + 1">
+            <!-- <template v-for="(level, index) in levels.slice(1)" :key="index + 1">
                 <q-breadcrumbs-el v-if="shouldShowLevel(index + 1)" class="breadcrumb-item">
                     <q-select class="rounded-borders q-ml-sm q-mr-sm custom-select" rounded outlined
                         bg-color="light-green-1" color="green-9" v-model="selectedValues[index + 1]"
@@ -31,13 +35,10 @@
                         </template>
                     </q-select>
                 </q-breadcrumbs-el>
-            </template>
+            </template> -->
         </q-breadcrumbs>
 
-        <div class="q-mt-lg">
-            <h4 class="text-h3 q-ma-none"><b>Plantilla</b></h4>
-            <p class="text-bold row items-center" v-html="getSelectedPath" />
-        </div>
+        
     </div>
 </template>
 
@@ -73,6 +74,7 @@ const getUniqueValues = (level) => {
     return Array.from(values).sort();
 };
 
+// eslint-disable-next-line no-unused-vars
 const shouldShowLevel = (index) => {
     if (index > 0 && !selectedValues.value[0]) return false;
 
@@ -110,8 +112,9 @@ const getOptionsForLevel = (index) => {
     return filteredOptions.value[index] || [];
 };
 
+// eslint-disable-next-line no-unused-vars
 const getSelectedPath = computed(() => {
-    return selectedValues.value.filter(val => val !== null).join('<p class="text-green q-py-none q-ma-none q-px-md"> > </p>');
+    return selectedValues.value
 });
 
 // Watch loading state & update options when data is ready

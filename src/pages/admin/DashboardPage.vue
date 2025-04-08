@@ -36,9 +36,9 @@
         </div>
 
         <div class="job-card-container">
-          <q-card class=" text-dark "
-                style="background-color: #FFF ; width:230px ; border-top: 8px solid green; border-radius: 12px;">
-                <q-card-section class="q-pa-lg row justify-between items-center">
+          <q-card class=" text-dark stat-card"
+                style="background-color: #FFF ; width:230px ; border-top: 8px solid #00b034; border-radius: 12px;">
+                <q-card-section class="q-pa-lg row justify-between items-center ">
                     <div>
                         <div class="text-subtitle1 text-bold">Active Job Post</div>
                         <div class="text-h4">{{ activeJobPost }}</div>
@@ -154,7 +154,18 @@ onMounted(() => {
 <style scoped>
 /* Align header and filter */
 
+/* Adjust statistics cards */
+.stat-card {
+    border-radius: 12px;
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease;
+}
 
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+}
 /* Date Filter Dropdown */
 .date-filter {
   max-width: 180px;

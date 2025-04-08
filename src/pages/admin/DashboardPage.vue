@@ -37,13 +37,13 @@
 
         <div class="job-card-container">
           <q-card class=" text-dark "
-                style="background-color: #FFF ; width:230px ; border-top: 8px solid green; border-radius: 12px;">
+                style="background-color: #FFF ; width:230px ; border-top: 8px solid #00B034; border-radius: 12px;">
                 <q-card-section class="q-pa-lg row justify-between items-center">
                     <div>
                         <div class="text-subtitle1 text-bold">Active Job Post</div>
                         <div class="text-h4">{{ activeJobPost }}</div>
                         <div class="text-caption">Post</div>
-                    </div> 
+                    </div>
                     <div><q-icon name='work' size="30px" /></div>
                 </q-card-section>
             </q-card>

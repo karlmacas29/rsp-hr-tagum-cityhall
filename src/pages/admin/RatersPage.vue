@@ -1,5 +1,6 @@
 <template>
   <q-page class="q-pa-md">
+    <!-- Header -->
     <div class="column items-start justify-center q-mb-md">
       <h5 class="text-h4 q-ma-none"><b>Raters</b></h5>
       <div class="q-pa-md q-gutter-sm">
@@ -10,13 +11,14 @@
       </div>
     </div>
 
+    <!-- Card -->
     <q-card>
       <q-card-section class="row justify-between items-center">
         <div class="text-h5 text-bold">Raters List</div>
         <q-btn color="primary" label="Add Rater" @click="showModal = true" icon="add" />
       </q-card-section>
       <q-separator />
-      <!--  -->
+
       <q-card-section v-if="!useRater.loading">
         <q-table
           flat
@@ -79,82 +81,77 @@
           </template>
         </q-table>
       </q-card-section>
-      <!--  -->
-      <q-card-section v-else>
-        <q-markup-table flat bordered>
-          <thead>
-            <tr>
-              <th class="text-left" style="width: 150px">
-                <q-skeleton animation="blink" type="text" />
-              </th>
-              <th class="text-right">
-                <q-skeleton animation="blink" type="text" />
-              </th>
-              <th class="text-right">
-                <q-skeleton animation="blink" type="text" />
-              </th>
-              <th class="text-right">
-                <q-skeleton animation="blink" type="text" />
-              </th>
-              <th class="text-right">
-                <q-skeleton animation="blink" type="text" />
-              </th>
-              <th class="text-right">
-                <q-skeleton animation="blink" type="text" />
-              </th>
-            </tr>
-          </thead>
 
-          <tbody>
-            <tr v-for="n in 5" :key="n">
-              <td class="text-left">
-                <q-skeleton animation="blink" type="text" width="85px" />
-              </td>
-              <td class="text-right">
-                <q-skeleton animation="blink" type="text" width="50px" />
-              </td>
-              <td class="text-right">
-                <q-skeleton animation="blink" type="text" width="35px" />
-              </td>
-              <td class="text-right">
-                <q-skeleton animation="blink" type="text" width="65px" />
-              </td>
-              <td class="text-right">
-                <q-skeleton animation="blink" type="text" width="25px" />
-              </td>
-              <td class="text-right">
-                <q-skeleton animation="blink" type="text" width="85px" />
-              </td>
-            </tr>
-          </tbody>
-        </q-markup-table>
+      <q-card-section v-else>
+        <!-- Add skeleton here if needed -->
       </q-card-section>
     </q-card>
 
-    <!-- Add Rater Modal -->
-    <q-dialog v-model="showModal" persistent>
-      <q-card style="width: 400px">
+    <!-- Modal -->
+    <q-dialog v-model="showModal" persistent transition-show="scale" transition-hide="scale">
+      <q-card style="width: 400px; max-width: 90vw;">
         <q-card-section class="row items-center justify-between">
           <div class="text-h6"><b>Add Rater</b></div>
           <q-btn icon="close" flat round dense @click="showModal = false" />
         </q-card-section>
 
         <q-card-section>
-          <!-- Select Batch -->
-          <q-select v-model="selectedBatch" :options="batches" option-value="id" option-label="display"
-            label="Select Batch" outlined emit-value map-options @update:model-value="fetchPositions" />
+          <q-banner v-if="showError" class="bg-red-2 text-red-10 q-mb-md">
+            Please fill in all required fields.
+          </q-banner>
+
+          <div class="text-subtitle1 q-mb-sm text-weight-medium">1. Select Batch</div>
+          <q-select
+            v-model="selectedBatch"
+            :options="batches"
+            option-value="id"
+            option-label="display"
+            label="Select Batch"
+            outlined
+            dense
+            emit-value
+            map-options
+            @update:model-value="fetchPositions"
+          />
 
           <q-separator class="q-mt-md q-mb-md" />
 
-          <!-- Select Position -->
-          <q-select v-model="selectedPosition" :options="positions" option-value="id" option-label="name"
-            label="Select Position" outlined emit-value map-options :disable="!selectedBatch" />
+          <div class="text-subtitle1 q-mb-sm text-weight-medium">2. Choose Position(s)</div>
+          <q-checkbox
+            v-model="selectAllPositions"
+            label="Select All"
+            @update:model-value="toggleAllPositions"
+            :disable="!selectedBatch || positions.length === 0"
+            dense
+          />
+          <div class="q-pa-sm scroll" style="max-height: 150px">
+            <q-checkbox
+              v-for="position in positions"
+              :key="position.id"
+              v-model="selectedPositions"
+              :val="position.id"
+              :label="position.name"
+              :disable="!selectedBatch"
+              dense
+            />
+          </div>
 
           <q-separator class="q-mt-md q-mb-md" />
 
-          <!-- Search and Select Rater -->
-          <q-select v-model="selectedRater" :options="availableRaters" option-value="id" option-label="name"
-            label="Search Rater" use-input outlined emit-value map-options @filter="filterRaters">
+          <div class="text-subtitle1 q-mb-sm text-weight-medium">3. Search & Add Rater</div>
+          <q-select
+            v-model="selectedRater"
+            :options="availableRaters"
+            option-value="id"
+            option-label="name"
+            label="Search Rater"
+            use-input
+            outlined
+            dense
+            emit-value
+            map-options
+            @filter="filterRaters"
+          >
             <template v-slot:prepend>
               <q-icon name="search" />
             </template>
@@ -162,8 +159,13 @@
         </q-card-section>
 
         <q-card-actions align="right">
-          <q-btn label="Add Rater" color="primary" @click="addRater"
-            :disable="!selectedRater || !selectedBatch || !selectedPosition" />
+          <q-btn
+            label="Add Rater"
+            color="primary"
+            @click="addRater"
+            :loading="isSubmitting"
+            :disable="!selectedRater || !selectedBatch || selectedPositions.length === 0"
+          />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -172,7 +174,7 @@
 
 <script setup>
 import { useRaterStore } from 'stores/raterStore'
-import { onMounted, ref, computed } from 'vue'
+import { onMounted, ref, computed,watch } from 'vue'
 
 const filters = ref({
   ID: '',
@@ -193,9 +195,14 @@ const filteredRaters = computed(() => {
 })
 
 const useRater = useRaterStore()
+
 const showModal = ref(false)
+const showError = ref(false)
+const isSubmitting = ref(false)
+
 const selectedBatch = ref(null)
-const selectedPosition = ref(null)
+const selectedPositions = ref([])
+const selectAllPositions = ref(false)
 const selectedRater = ref(null)
 
 const batches = ref([
@@ -205,7 +212,6 @@ const batches = ref([
 ])
 
 const positions = ref([])
-
 const raters = ref([])
 
 const availableRaters = ref([
@@ -262,7 +268,6 @@ const columns = [
   }
 ]
 
-// Dummy Positions for Each Batch
 const batchPositions = {
   1: [
     { id: 101, name: 'Frontend Developer' },
@@ -279,12 +284,20 @@ const batchPositions = {
   ],
 }
 
-// Load Positions When a Batch is Selected
 const fetchPositions = (batchId) => {
   positions.value = batchPositions[batchId] || []
+  selectedPositions.value = []
+  selectAllPositions.value = false
 }
 
-// Search & Filter Available Raters
+const toggleAllPositions = (val) => {
+  selectedPositions.value = val ? positions.value.map(pos => pos.id) : []
+}
+
+watch(selectedPositions, (newVal) => {
+  selectAllPositions.value = newVal.length === positions.value.length && positions.value.length > 0
+})
+
 const filterRaters = (val, update) => {
   if (val === '') {
     update(() => {
@@ -306,34 +319,43 @@ const filterRaters = (val, update) => {
   })
 }
 
-// Add Rater to the Table
 const addRater = () => {
-  const batchInfo = batches.value.find(b => b.id === selectedBatch.value) || {}
-  const positionName = positions.value.find(p => p.id === selectedPosition.value)?.name || ''
-  const raterName = availableRaters.value.find(r => r.id === selectedRater.value)?.name || ''
-
-  const newRater = {
-    id: raters.value.length + 1,
-    name: raterName,
-    batchDate: batchInfo.date,
-    position: positionName,
-    status: 'Pending',
+  if (!selectedBatch.value || selectedPositions.value.length === 0 || !selectedRater.value) {
+    showError.value = true
+    return
   }
 
-  raters.value.push(newRater)
+  showError.value = false
+  isSubmitting.value = true
 
-  // Reset fields and close modal
+  const batchInfo = batches.value.find(b => b.id === selectedBatch.value) || {}
+  const raterName = availableRaters.value.find(r => r.id === selectedRater.value)?.name || ''
+
+  selectedPositions.value.forEach(positionId => {
+    const positionName = positions.value.find(p => p.id === positionId)?.name || ''
+
+    const newRater = {
+      id: raters.value.length + 1,
+      Rater: raterName,
+      batchDate: batchInfo.date,
+      Position: positionName,
+      status: 'Pending',
+    }
+
+    raters.value.push(newRater)
+  })
+
   selectedBatch.value = null
-  selectedPosition.value = null
+  selectedPositions.value = []
+  selectAllPositions.value = false
   selectedRater.value = null
   showModal.value = false
+  isSubmitting.value = false
 }
 
-// Handle View Button Click
 const viewRater = (rater) => {
   console.log('Viewing rater:', rater)
 }
-
 
 onMounted(async () => {
   await useRater.fetchRaters()

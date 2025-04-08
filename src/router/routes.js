@@ -54,6 +54,28 @@ const routes = [
     ],
   },
   {
+    path: '/home',
+    name: 'Userpage',
+    component: () => import('layouts/UserMainLayout.vue'),
+    children: [
+      {
+        path: '/home',
+        name: 'Homepage',
+        component: () => import('pages/user/UserHomePage.vue'),
+      },
+      {
+        path: '/jobList',
+        name: 'Joblist',
+        component: () => import('pages/user/UserJobList.vue'),
+      },
+      {
+        path: '/jobList/details/:id',
+        name: 'Joblist Details',
+        component: () => import('pages/user/ViewJobDetails.vue'),
+      },
+    ],
+  },
+  {
     path: '/user-rater',
     name: 'Rater Login',
     meta: { guest: true },

@@ -25,7 +25,7 @@
                 <div>
                     <h4 class="text-bold">Latest Job Posts</h4>
                 </div>
-                <div><q-btn color="primary" @click="router.push(`/jobList`)">See All</q-btn></div>
+                <div><q-btn color="primary" @click="router.push({name: 'Joblist'})">See All</q-btn></div>
             </div>
             <!-- Job List -->
             <div>
@@ -39,8 +39,8 @@
                         <q-card-section class="bg-grey-2">
                             <div class="row items-center no-wrap">
                                 <div class="col">
-                                <div class="text-h5 text-bold">{{ job.title }}</div>
-                                <div class="text-subtitle1">{{ job.company }}</div>
+                                  <div class="text-h5 text-bold">{{ job.title }}</div>
+                                  <div class="text-subtitle1">{{ job.company }}</div>
                                 </div>
                                 
                                 <div class="col-auto">
@@ -55,7 +55,7 @@
 
                             <q-card-section>
                             <div class="text-caption text-grey q-mb-sm">
-                                <q-icon name="place" size="xs" /> {{ job.location }}
+                                <q-icon name="event" size="xs" /> Posted on February 17, 2025
                             </div>
                             <div>
                               <div class="text-weight-bold q-mt-sm">BRIEF QUALIFICATIONS:</div>

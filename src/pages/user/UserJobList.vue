@@ -53,7 +53,7 @@
 
                         <q-card-section>
                         <div class="text-caption text-grey q-mb-sm">
-                            <q-icon name="place" size="xs" /> {{ job.location }}
+                            <q-icon name="event" size="xs" /> Posted on February 17, 2025
                         </div>
                         <div>
                             <div class="text-weight-bold q-mt-sm">BRIEF QUALIFICATIONS:</div>

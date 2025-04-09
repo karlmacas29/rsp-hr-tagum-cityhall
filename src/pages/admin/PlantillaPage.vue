@@ -1,6 +1,6 @@
 <template>
   <q-page class="q-pa-md">
-    <div class="column items-start q-mb-xl">
+    <div class="q-mb-xl">
       <div class="q-ma-none q-gutter-sm">
         <PlantillaSelection></PlantillaSelection>
       </div>
@@ -23,52 +23,78 @@
           <!-- Header with search boxes -->
           <template v-slot:header="props">
             <q-tr :props="props">
-              <q-th v-for="col in props.cols" :key="col.name" :props="props">
-                {{ col.label }}
-                <q-input 
-                  v-if="col.name !== 'action' && col.name !== 'funded'" 
-                  dense 
-                  outlined 
-                  class="q-mt-sm" 
-                  v-model="filters[col.name]" 
-                  placeholder="Search" 
-                />
-                <q-select
-                  v-if="col.name === 'funded'"
-                  dense
-                  outlined
-                  class="q-mt-sm"
-                  v-model="filters[col.name]"
-                  :options="['All', 'Yes', 'No']"
-                  placeholder="Filter"
-                />
+              <q-th v-for="col in props.cols" :key="col.name" :props="props" :style="col.name === 'position' ? 'width: 200px; white-space: normal;' : ''">
+              {{ col.label }}
+              <q-input 
+                v-if="col.name !== 'action' && col.name !== 'fd'" 
+                dense 
+                outlined 
+                class="q-mt-sm" 
+                v-model="filters[col.name]" 
+                placeholder="Search" 
+              />
+              <q-select
+                v-if="col.name === 'fd'"
+                dense
+                outlined
+                class="q-mt-sm"
+                v-model="filters[col.name]"
+                :options="['All', 'Yes', 'No']"
+                placeholder="Filter"
+              />
               </q-th>
             </q-tr>
           </template>
-
-          <template v-slot:body-cell-funded="props">
-            <q-td :props="props">
-              <q-toggle 
-                :model-value="props.row.funded" 
-                :color="props.row.funded ? 'green' : 'red'" 
-                checked-icon="check"
-                unchecked-icon="close" 
-                :disable="props.row.funded || props.row.employee !== ''"
-                @click="handleToggle(props.row)" 
-              />
+          <!-- Add body cell template for PageNo -->
+          <template v-slot:body-cell-PageNo="props">
+            <q-td :props="props" style="width: 110px; white-space: normal;">
+              {{ props.value }}
             </q-td>
           </template>
+
+          <!-- Add body cell template for ItemNo -->
+          <template v-slot:body-cell-ItemNo="props">
+            <q-td :props="props" style="width: 110px; white-space: normal;">
+              {{ props.value }}
+            </q-td>
+          </template>
+
+          <!-- Add body cell template for Salary Grade -->
+          <template v-slot:body-cell-SG="props">
+            <q-td :props="props" style="width: 140px; white-space: normal;">
+              {{ props.value }}
+            </q-td>
+          </template>
+
+          <!-- Add body cell template for position -->
+          <template v-slot:body-cell-position="props">
+            <q-td :props="props" style="width: 300px; white-space: normal;">
+              {{ props.value }}
+            </q-td>
+          </template>
+
+          <template v-slot:body-cell-fd="props">
+            <q-td :props="props">
+              <q-toggle 
+                v-model="props.row.Funded"
+                true-value="1"
+                false-value="0"
+                color="green"
+                @update:model-value="handleFundedToggle(props.row)"
+                />
+              </q-td>
+            </template>
 
           <template v-slot:body-cell-action="props">
             <q-td :props="props">
               <q-btn 
-                v-if="props.row.funded" 
-                flat 
-                dense 
-                round 
-                color="blue"
-                :icon="props.row.funded && props.row.employee != '' ? 'visibility' : 'post_add'"
-                @click="viewPosition(props.row)" 
+              v-if="props.row.funded" 
+              flat 
+              dense 
+              round 
+              color="blue"
+              :icon="props.row.funded && props.row.employee != '' ? 'visibility' : 'post_add'"
+              @click="viewPosition(props.row)" 
               />
               <q-btn 
                 v-if="props.row.employee" 
@@ -210,6 +236,9 @@
 import { ref, onMounted, computed } from 'vue'
 import QualityStandardModal from 'components/QualityStandardModal.vue'
 import PlantillaSelection from 'components/PlantillaSelection.vue'
+import { usePlantillaStore } from 'stores/plantillaStore';
+
+const usePlantilla = usePlantillaStore();
 
 const showModal = ref(false)
 const showVacantPositionModal = ref(false)
@@ -226,7 +255,7 @@ const filters = ref({
   sg: '',
   position: '',
   employee: '',
-  funded: 'All',
+  fd: 'All',
   status: ''
 })
 
@@ -241,80 +270,47 @@ const eligibility = ref(null)
 const currentPosition = ref('')
 const higherEducation = ref('')
 
-const positions = ref([
-  {
-    id: 1,
-    pageNo: 1,
-    itemNo: 101,
-    sg: '15',
-    position: 'HR Manager',
-    employee: 'Mahusay, Jograd M.',
-    funded: true,
-    status: 'Active',
-  },
-  {
-    id: 2,
-    pageNo: 2,
-    itemNo: 102,
-    sg: '18',
-    position: 'Software Engineer',
-    employee: '',
-    funded: false,
-    status: 'Inactive',
-  },
-])
+const positions = ref([])
 
 const columns = [
-  { name: 'page_no', label: 'Page No', field: 'pageNo', align: 'left', sortable: false },
-  { name: 'item_no', label: 'Item No', field: 'itemNo', align: 'left', sortable: false },
-  { name: 'sg', label: 'Salary Grade', field: 'sg', align: 'left', sortable: false },
+  { name: 'PageNo', label: 'Page No', field: 'PageNo', align: 'left', sortable: false },
+  { name: 'ItemNo', label: 'Item No', field: 'ItemNo', align: 'left', sortable: false },
+  { name: 'SG', label: 'Salary Grade', field: 'SG', align: 'left', sortable: false },
   { name: 'position', label: 'Position', field: 'position', align: 'left', sortable: false },
-  { name: 'employee', label: 'Employee', field: 'employee', align: 'left', sortable: false },
+  { name: 'Name2', label: 'Employee', field: 'Name2', align: 'left', sortable: false },
   {
-    name: 'funded',
+    name: 'fd',
     label: 'Funded',
-    field: (row) => (row.funded ? 'Yes' : 'No'),
+    field: 'Funded',
     align: 'left',
     sortable: false,
   },
-  { name: 'status', label: 'Status', field: 'status', align: 'left', sortable: false },
+  { name: 'Status', label: 'Status', field: 'Status', align: 'left', sortable: false },
   { name: 'action', label: 'Action', field: 'action', align: 'center' },
 ]
 
 // Create a computed property to filter the positions based on search inputs
 const filteredPositions = computed(() => {
   return positions.value.filter(row => {
-    // Check each column filter
-    if (filters.value.page_no && !String(row.pageNo).toLowerCase().includes(filters.value.page_no.toLowerCase())) {
-      return false
-    }
-    if (filters.value.item_no && !String(row.itemNo).toLowerCase().includes(filters.value.item_no.toLowerCase())) {
-      return false
-    }
-    if (filters.value.sg && !String(row.sg).toLowerCase().includes(filters.value.sg.toLowerCase())) {
-      return false
-    }
-    if (filters.value.position && !row.position.toLowerCase().includes(filters.value.position.toLowerCase())) {
-      return false
-    }
-    if (filters.value.employee && !row.employee.toLowerCase().includes(filters.value.employee.toLowerCase())) {
-      return false
-    }
-    if (filters.value.funded !== 'All') {
-      if (filters.value.funded === 'Yes' && !row.funded) {
-        return false
-      }
-      if (filters.value.funded === 'No' && row.funded) {
-        return false
+    for (const key in filters.value) {
+      if (filters.value[key]) {
+        if (key === 'fd') {
+          if (filters.value[key] !== 'All') {
+            const isYes = filters.value[key] === 'Yes';
+            if (isYes !== !!row.Funded) return false;
+          }
+        } else {
+          const filterValue = String(filters.value[key]).toLowerCase();
+          const rowValue = String(row[key] || '').toLowerCase();
+          if (!rowValue.includes(filterValue)) return false;
+        }
       }
     }
-    if (filters.value.status && !row.status.toLowerCase().includes(filters.value.status.toLowerCase())) {
-      return false
-    }
-    return true
+    return true;
   })
 })
 
+// eslint-disable-next-line no-unused-vars
 const handleToggle = (row) => {
   if (!row.employee && !row.funded) {
     currentRow.value = row
@@ -354,11 +350,22 @@ const submitJobPost = () => {
   console.log('Job Post Submitted')
   showVacantPositionModal.value = false
 }
-
 const handleUpdatePosition = () => {
   console.log('Update position logic here')
   // Add your update logic here
 }
+
+// not yet
+const handleFundedToggle = async (row) => {
+  try {
+    // Update the store or make API call here
+    await usePlantilla.updatePlantillaFunded(row.id, !!row.Funded);
+  } catch (error) {
+    console.error('Error updating funded status:', error);
+    row.Funded = !row.Funded; // Revert on error
+  }
+}
+
 
 // Clear filters function
 const clearFilters = () => {
@@ -371,10 +378,16 @@ const clearFilters = () => {
   })
 }
 
-onMounted(() => {
+onMounted(async() => {
   // Fetch data or perform any setup when the component is mounted
   startingDate.value = new Date().toISOString().split('T')[0].replace(/-/g, '/')
   endedDate.value = new Date().toISOString().split('T')[0].replace(/-/g, '/')
+
+  await usePlantilla.fetchPlantillaData();
+  positions.value = usePlantilla.plantillaData.map(item => ({
+    ...item,
+    status: item.status || 'Vacant',
+  }))
 })
 </script>
 

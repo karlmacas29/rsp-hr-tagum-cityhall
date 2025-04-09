@@ -1,133 +1,73 @@
 <template>
-    <div class="">
-        <div class="q-mt-lg">
-            <h4 class="text-h3 q-ma-none"><b>Plantilla</b></h4>
-            <!-- <p class="text-bold row items-center" v-html="getSelectedPath" /> -->
-        </div>
-        <q-breadcrumbs separator=">" class="text-grey">
-            <q-breadcrumbs-el class="breadcrumb-item">
-                <q-select class="rounded-borders q-ml-sm q-mr-sm custom-select" outlined use-chips
-                    bg-color="light-green-1" color="green-9" v-model="selectedValues[0]"
-                    :options="getOptionsForLevel(0)" label="City Hall Office" hint="Select Office" use-input hide-selected fill-input clearable
-                    input-debounce="300" @filter="(val, update) => filterOptions(val, update, 0)"
-                    @update:model-value="handleSelection(0)" @clear="clearSelection(0)" :loading="usePlantilla.loading"
-                    :style="{ maxWidth: '100%', width: '300px'}">
+        <q-card class="row justify-between items-center q-pa-md q-ma-none" flat bordered>
+            <div>
+                <div class="text-h4 text-bold">Plantilla</div>
+            </div>
+            <div>
+                <q-select class="rounded-borders q-ml-sm q-mr-sm custom-select" outlined
+                    bg-color="light-green-1" color="green-9" v-model="selectedValue"
+                    :options="getOptions()" label="Select City Hall Office" use-input hide-selected fill-input clearable
+                    input-debounce="300" @filter="filterOptions" @update:model-value="handleSelection"
+                    :loading="usePlantilla.loading" :style="{ maxWidth: '100%', width: '800px'}">
                     <template v-slot:no-option>
                         <q-item dense>
                             <q-item-section class="text-grey text-subtitle2">No results</q-item-section>
                         </q-item>
                     </template>
                 </q-select>
-            </q-breadcrumbs-el>
-
-            <!-- <template v-for="(level, index) in levels.slice(1)" :key="index + 1">
-                <q-breadcrumbs-el v-if="shouldShowLevel(index + 1)" class="breadcrumb-item">
-                    <q-select class="rounded-borders q-ml-sm q-mr-sm custom-select" rounded outlined
-                        bg-color="light-green-1" color="green-9" v-model="selectedValues[index + 1]"
-                        :options="getOptionsForLevel(index + 1)" :label="level" use-input hide-selected fill-input
-                        clearable input-debounce="300" @filter="(val, update) => filterOptions(val, update, index + 1)"
-                        @update:model-value="handleSelection(index + 1)" @clear="clearSelection(index + 1)"
-                        :loading="usePlantilla.loading" :style="{ minWidth: '150px', maxWidth: '180px' }">
-                        <template v-slot:no-option>
-                            <q-item dense>
-                                <q-item-section class="text-grey text-subtitle2">No results</q-item-section>
-                            </q-item>
-                        </template>
-                    </q-select>
-                </q-breadcrumbs-el>
-            </template> -->
-        </q-breadcrumbs>
-
-        
-    </div>
+            </div>
+        </q-card>
+    <!-- {{ selectedValue}} -->
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { usePlantillaStore } from 'stores/plantillaStore';
 
 const usePlantilla = usePlantillaStore();
-const levels = ['office', 'office2', 'group', 'division', 'section', 'unit', 'position'];
-
-const selectedValues = ref(new Array(levels.length).fill(null));
-const filteredOptions = ref(new Array(levels.length).fill([]));
+const selectedValue = ref(null);
+const filteredOptions = ref([]);
 const officeData = ref([]);
 
-const getUniqueValues = (level) => {
-    const fieldName = levels[level];
+const getOptions = () => {
+    return filteredOptions.value || [];
+};
+
+const getUniqueValues = () => {
     if (!officeData.value.length) return [];
-
     const values = new Set();
-    let filteredData = [...officeData.value];
 
-    for (let i = 0; i < level; i++) {
-        if (selectedValues.value[i] !== null) {
-            const prevField = levels[i];
-            filteredData = filteredData.filter(office => office[prevField] === selectedValues.value[i]);
-        }
-    }
-
-    filteredData.forEach(office => {
-        if (office[fieldName]) values.add(office[fieldName]);
+    officeData.value.forEach(office => {
+        if (office.office) values.add(office.office);
     });
 
     return Array.from(values).sort();
 };
 
-// eslint-disable-next-line no-unused-vars
-const shouldShowLevel = (index) => {
-    if (index > 0 && !selectedValues.value[0]) return false;
-
-    const options = getUniqueValues(index);
-    filteredOptions.value[index] = options;
-    return options.length > 0;
-};
-
-// Lazy load options
-const filterOptions = (val, update, index) => {
+const filterOptions = (val, update) => {
     if (usePlantilla.loading) return; // Prevent filtering while loading data
 
     update(() => {
         const needle = val.toLowerCase();
-        filteredOptions.value[index] = getUniqueValues(index).filter(v => v.toLowerCase().includes(needle));
+        filteredOptions.value = getUniqueValues().filter(v => v.toLowerCase().includes(needle));
     });
 };
 
-const handleSelection = (index) => {
-    for (let i = index + 1; i < levels.length; i++) {
-        selectedValues.value[i] = null;
-        filteredOptions.value[i] = getUniqueValues(i);
-    }
+const handleSelection = () => {
+    // Handle any additional logic when a selection is made
 };
-
-const clearSelection = (index) => {
-    selectedValues.value[index] = null;
-    for (let i = index + 1; i < levels.length; i++) {
-        selectedValues.value[i] = null;
-        filteredOptions.value[i] = [];
-    }
-};
-
-const getOptionsForLevel = (index) => {
-    return filteredOptions.value[index] || [];
-};
-
-// eslint-disable-next-line no-unused-vars
-const getSelectedPath = computed(() => {
-    return selectedValues.value
-});
 
 // Watch loading state & update options when data is ready
 watch(() => usePlantilla.loading, (isLoading) => {
     if (!isLoading) {
-        filteredOptions.value[0] = getUniqueValues(0);
+        filteredOptions.value = getUniqueValues();
     }
 });
 
 onMounted(async () => {
     await usePlantilla.fetchPlantilla();
     officeData.value = Array.isArray(usePlantilla.plantilla) ? usePlantilla.plantilla : [];
-    filteredOptions.value[0] = getUniqueValues(0);
+    filteredOptions.value = getUniqueValues();
 });
 </script>
 

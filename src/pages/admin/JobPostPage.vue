@@ -5,7 +5,6 @@
       <h5 class="text-h4 q-ma-none"><b>Job Posts</b></h5>
       <div class="q-pa-md q-gutter-sm">
         <q-breadcrumbs class="q-ma-none">
-          <q-breadcrumbs-el class="text-bold" label="Home" />
           <q-breadcrumbs-el class="text-bold" label="Job Posts" />
           <q-breadcrumbs-el v-if="showingDetails" class="text-bold" :label="selectedJob.position" />
         </q-breadcrumbs>
@@ -1019,7 +1018,7 @@ onMounted(() => {
   }
 
   thead tr:first-child th {
-    background-color: #f5f5f5;
+    background-color: #FFF;
     position: sticky;
     top: 0;
     z-index: 1;

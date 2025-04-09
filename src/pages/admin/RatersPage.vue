@@ -6,7 +6,6 @@
       <div class="q-pa-md q-gutter-sm">
         <q-breadcrumbs class="q-ma-none">
           <q-breadcrumbs-el class="text-bold" label="Raters" />
-          <q-breadcrumbs-el class="text-bold" label="Raters List" />
         </q-breadcrumbs>
       </div>
     </div>

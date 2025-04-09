@@ -86,6 +86,7 @@ export const useAuthStore = defineStore('auth', {
         this.router.push({ name: 'Admin Login' })
       } catch {
         toast.error('An error occurred during logout or token error')
+        this.router.push({ name: 'Admin Login' })
       }
     },
     // checking if the user is authenticated
@@ -124,6 +125,7 @@ export const useAuthStore = defineStore('auth', {
               '; expires=Thu, 01 Jan 1970 00:00:00 GMT;',
           ]
           cookieSettings.forEach((setting) => (document.cookie = setting))
+          this.router.push({ name: 'Admin Login' })
         }
       } else {
         this.token = null

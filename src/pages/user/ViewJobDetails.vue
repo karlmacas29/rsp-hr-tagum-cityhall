@@ -1,7 +1,7 @@
 <template>
     <q-page padding>
     <!-- Header with back button and title -->
-    <div class="row justify-between items-center q-my-md q-px-xl">
+    <div class="row justify-between items-center q-my-md q-mx-xl q-px-xl">
       <div class="row items-center">
         <q-btn icon="arrow_back" flat round color="black" to="/jobList" />
         <div class="column q-ml-sm">
@@ -28,13 +28,13 @@
               <div class="text-green text-h5 text-weight-bold">COMPUTER PROGRAMMER II</div>
               <div class="row items-center">
                 <q-icon name="business" size="xs" color="grey-8" />
-                <span class="q-ml-xs text-caption text-grey-8">CITY OF INFORMATION COMMUNICATIONS & TECHNOLOGY MANAGEMENT OFFICE</span>
+                <span class="q-ml-xs text-body1 text-grey-8">CITY OF INFORMATION COMMUNICATIONS & TECHNOLOGY MANAGEMENT OFFICE</span>
               </div>
               <div class="row items-center">
                 <q-icon name="school" size="xs" color="grey-8" />
-                <span class="q-ml-xs text-caption text-grey-8">COLLEGE GRADUATE</span>
+                <span class="q-ml-xs text-body1 text-grey-8">COLLEGE GRADUATE</span>
               </div>
-              <div class="text-caption text-grey q-mt-xs">5 Permanent</div>
+              <div class="text-body1 text-grey q-mt-xs">5 Permanent</div>
             </div>
           </div>
           <q-btn label="APPLY NOW" color="green" />

@@ -1,116 +1,165 @@
 <template>
-  <q-page class="q-pa-md">
-    <div class="q-mb-xl">
-      <div class="q-ma-none q-gutter-sm">
-        <PlantillaSelection></PlantillaSelection>
+  <q-page>
+    <div class="row">
+      <div class="col-3">
+        <div>
+          <PlantillaSelection @structure-selected="handleStructureSelection"></PlantillaSelection>
+        </div>
       </div>
-    </div>
-    
-    <q-card>
-      <q-card-section class="row justify-end">
-        <q-btn color="primary" @click="clearFilters" icon="clear_all">Clear All</q-btn>
-      </q-card-section>
-      <q-separator />
-      <q-card-section>
-        <q-table 
-          flat 
-          bordered 
-          :rows="filteredPositions" 
-          :columns="columns" 
-          row-key="id"
-          :filter="filter"
-        >
-          <!-- Header with search boxes -->
-          <template v-slot:header="props">
-            <q-tr :props="props">
-              <q-th v-for="col in props.cols" :key="col.name" :props="props" :style="col.name === 'position' ? 'width: 200px; white-space: normal;' : ''">
-              {{ col.label }}
-              <q-input 
-                v-if="col.name !== 'action' && col.name !== 'fd'" 
-                dense 
-                outlined 
-                class="q-mt-sm" 
-                v-model="filters[col.name]" 
-                placeholder="Search" 
-              />
-              <q-select
-                v-if="col.name === 'fd'"
-                dense
-                outlined
-                class="q-mt-sm"
-                v-model="filters[col.name]"
-                :options="['All', 'Yes', 'No']"
-                placeholder="Filter"
-              />
-              </q-th>
-            </q-tr>
-          </template>
-          <!-- Add body cell template for PageNo -->
-          <template v-slot:body-cell-PageNo="props">
-            <q-td :props="props" style="width: 110px; white-space: normal;">
-              {{ props.value }}
-            </q-td>
-          </template>
+      <div class="col-9 q-pa-md q-gutter-md">
+        <q-card v-if="getStructureTitle() != ''" class="q-pa-md">
+          <div class="text-h4 text-bold">
+            {{ getStructureTitle() }}
+          </div>
+        </q-card>
+      <q-card v-if="currentStructure">
+        <q-card-section class="row justify-between">
+          <q-btn color="primary" @click="clearFilters" icon="clear_all">Clear All</q-btn>
+        </q-card-section>
+        <q-separator />
+        <q-card-section>
+          <q-table 
+            flat 
+            bordered 
+            :rows="filteredPositions" 
+            :columns="columns" 
+            row-key="id"
+            :filter="filter"
+            :q-pagination="pagination"
+            v-model:pagination="pagination"
+            :rows-per-page-options="[]"
 
-          <!-- Add body cell template for ItemNo -->
-          <template v-slot:body-cell-ItemNo="props">
-            <q-td :props="props" style="width: 110px; white-space: normal;">
-              {{ props.value }}
-            </q-td>
-          </template>
-
-          <!-- Add body cell template for Salary Grade -->
-          <template v-slot:body-cell-SG="props">
-            <q-td :props="props" style="width: 140px; white-space: normal;">
-              {{ props.value }}
-            </q-td>
-          </template>
-
-          <!-- Add body cell template for position -->
-          <template v-slot:body-cell-position="props">
-            <q-td :props="props" style="width: 300px; white-space: normal;">
-              {{ props.value }}
-            </q-td>
-          </template>
-
-          <template v-slot:body-cell-fd="props">
-            <q-td :props="props">
-              <q-toggle 
-                v-model="props.row.Funded"
-                true-value="1"
-                false-value="0"
-                color="green"
-                @update:model-value="handleFundedToggle(props.row)"
+          >
+            <!-- Header with search boxes -->
+            <template v-slot:header="props">
+              <q-tr :props="props">
+                <q-th v-for="col in props.cols" :key="col.name" :props="props" :style="col.name === 'position' ? 'width: 200px; white-space: normal;' : ''">
+                {{ col.label }}
+                <q-input 
+                  v-if="col.name !== 'action' && col.name !== 'fd'" 
+                  dense 
+                  outlined 
+                  class="q-mt-sm" 
+                  v-model="filters[col.name]" 
+                  placeholder="Search" 
                 />
+                <q-select
+                  v-if="col.name === 'fd'"
+                  dense
+                  outlined
+                  class="q-mt-sm"
+                  v-model="filters[col.name]"
+                  :options="['All', 'Yes', 'No']"
+                  placeholder="Filter"
+                />
+                </q-th>
+              </q-tr>
+            </template>
+            <!-- Add body cell template for PageNo -->
+            <template v-slot:body-cell-PageNo="props">
+              <q-td :props="props" style="width: 80px; white-space: normal;">
+                {{ props.value }}
               </q-td>
             </template>
 
-          <template v-slot:body-cell-action="props">
-            <q-td :props="props">
-              <q-btn 
-              v-if="props.row.funded" 
-              flat 
-              dense 
-              round 
-              color="blue"
-              :icon="props.row.funded && props.row.employee != '' ? 'visibility' : 'post_add'"
-              @click="viewPosition(props.row)" 
-              />
-              <q-btn 
-                v-if="props.row.employee" 
+            <!-- Add body cell template for ItemNo -->
+            <template v-slot:body-cell-ItemNo="props">
+              <q-td :props="props" style="width: 70px; white-space: normal;">
+                {{ props.value }}
+              </q-td>
+            </template>
+
+            <!-- Add body cell template for Salary Grade -->
+            <template v-slot:body-cell-SG="props">
+              <q-td :props="props" style="width: 80px; white-space: normal;">
+                {{ props.value }}
+              </q-td>
+            </template>
+
+            <!-- Add body cell template for position -->
+            <template v-slot:body-cell-position="props">
+              <q-td :props="props" style="width: 230px; white-space: normal;">
+                {{ props.value }}
+              </q-td>
+            </template>
+            <!-- for switch -->
+            <template v-slot:body-cell-fd="props">
+              <q-td :props="props">
+                <q-toggle 
+                  v-model="props.row.Funded"
+                  color="green"
+                  true-value="1"
+                  false-value="0"
+                  checked-icon="check"
+                  unchecked-icon="clear"
+                  @update:model-value="handleFundedToggle(props.row)"
+                  />
+                </q-td>
+              </template>
+              <!-- Add body cell template for position -->
+              <template v-slot:body-cell-status="props">
+                <q-td :props="props" style="width: 70px; white-space: normal;">
+                  {{ props.status }}
+                </q-td>
+              </template>
+
+            <template v-slot:body-cell-action="props">
+              <q-td :props="props">
+                <q-btn 
+                v-if="props.row.Funded" 
                 flat 
                 dense 
                 round 
-                color="green" 
-                icon="print"
-                @click="printPosition(props.row)" 
-              />
-            </q-td>
-          </template>
-        </q-table>
-      </q-card-section>
-    </q-card>
+                color="blue"
+                :icon="props.row.Funded == '1' ? 'visibility' : 'post_add'"
+                @click="viewPosition(props.row)" 
+                />
+                <q-btn 
+                  v-if="props.row.Name2 != ''" 
+                  flat 
+                  dense 
+                  round 
+                  color="green" 
+                  icon="print"
+                  @click="printPosition(props.row)" 
+                />
+              </q-td>
+            </template>
+            <!-- button next page -->
+            <template v-slot:bottom>
+              <div class="q-pa-sm row justify-end items-center" style="width: 100%;">
+                <q-btn
+                  flat
+                  round
+                  dense
+                  icon="chevron_left"
+                  :disable="pagination.page === 1"
+                  @click="pagination.page--"
+                />
+                <span class="q-mx-sm">
+                  Page {{ pagination.page }} / {{ Math.ceil(filteredPositions.length / pagination.rowsPerPage) || 1 }}
+                </span>
+                <q-btn
+                  flat
+                  round
+                  dense
+                  icon="chevron_right"
+                  :disable="(pagination.page * pagination.rowsPerPage) >= filteredPositions.length"
+                  @click="pagination.page++"
+                />
+              </div>
+            </template>
 
+          </q-table>
+        </q-card-section>
+      </q-card>
+      <div v-else class="text-center q-pa-xl">
+        <q-icon name="info" size="3em" color="grey-7" />
+        <p class="text-h6 text-grey-8 q-mt-md">Select an City Office from the sidebar to view positions</p>
+      </div>
+      </div>
+    </div>
+    
     <!-- Upload File Modal -->
     <q-dialog v-model="showModal">
       <q-card>
@@ -250,14 +299,22 @@ const filter = ref('')
 
 // Add filter object to store search values for each column
 const filters = ref({
-  page_no: '',
-  item_no: '',
-  sg: '',
+  PageNo: '',
+  ItemNo: '',
+  SG: '',
   position: '',
-  employee: '',
+  Name2: '',
   fd: 'All',
-  status: ''
+  Status: ''
 })
+
+// Add current structure selection
+const currentStructure = ref(null)
+
+const pagination = ref({
+  page: 1,
+  rowsPerPage: 7,
+});
 
 const jobTitle = ref('City Office of ...')
 const jobRole = ref('Software Engineer')
@@ -285,18 +342,53 @@ const columns = [
     align: 'left',
     sortable: false,
   },
-  { name: 'Status', label: 'Status', field: 'Status', align: 'left', sortable: false },
+  { name: 'Status', label: 'Status', field: 'status', align: 'left', sortable: false },
   { name: 'action', label: 'Action', field: 'action', align: 'center' },
 ]
 
-// Create a computed property to filter the positions based on search inputs
+// Create a computed property to filter the positions based on search inputs and structure selection
 const filteredPositions = computed(() => {
-  return positions.value.filter(row => {
+  // Return empty array if no structure is selected
+  if (!currentStructure.value) {
+    return [];
+  }
+  
+  // Filter by organizational structure
+  let filtered = positions.value.filter(row => {
+    // Match by office
+    if (currentStructure.value.office && 
+        (!row.office || row.office !== currentStructure.value.office)) {
+      return false;
+    }
+    
+    // Match by division if specified
+    if (currentStructure.value.division && 
+        (!row.division || row.division !== currentStructure.value.division)) {
+      return false;
+    }
+    
+    // Match by section if specified
+    if (currentStructure.value.section && 
+        (!row.section || row.section !== currentStructure.value.section)) {
+      return false;
+    }
+    
+    // Match by unit if specified
+    if (currentStructure.value.unit && 
+        (!row.unit || row.unit !== currentStructure.value.unit)) {
+      return false;
+    }
+    
+    return true;
+  });
+  
+  // Then apply the search filters
+  return filtered.filter(row => {
     for (const key in filters.value) {
       if (filters.value[key]) {
         if (key === 'fd') {
           if (filters.value[key] !== 'All') {
-            const isYes = filters.value[key] === 'Yes';
+            const isYes = filters.value[key] === '1';
             if (isYes !== !!row.Funded) return false;
           }
         } else {
@@ -307,8 +399,36 @@ const filteredPositions = computed(() => {
       }
     }
     return true;
-  })
+  });
 })
+
+// Handle structure selection from PlantillaSelection component
+const handleStructureSelection = (selectedData) => {
+  currentStructure.value = selectedData;
+  // Clear search filters when changing structure selection
+  clearSearchFilters();
+}
+
+// Get a descriptive title for the current structure selection
+const getStructureTitle = () => {
+  if (!currentStructure.value) return '';
+  
+  let title = currentStructure.value.office || '';
+  
+  // if (currentStructure.value.division) {
+  //   title += ` > ${currentStructure.value.division}`;
+  // }
+  
+  // if (currentStructure.value.section) {
+  //   title += ` > ${currentStructure.value.section}`;
+  // }
+  
+  // if (currentStructure.value.unit) {
+  //   title += ` > ${currentStructure.value.unit}`;
+  // }
+  
+  return title;
+}
 
 // eslint-disable-next-line no-unused-vars
 const handleToggle = (row) => {
@@ -350,12 +470,12 @@ const submitJobPost = () => {
   console.log('Job Post Submitted')
   showVacantPositionModal.value = false
 }
+
 const handleUpdatePosition = () => {
   console.log('Update position logic here')
   // Add your update logic here
 }
 
-// not yet
 const handleFundedToggle = async (row) => {
   try {
     // Update the store or make API call here
@@ -366,11 +486,10 @@ const handleFundedToggle = async (row) => {
   }
 }
 
-
-// Clear filters function
-const clearFilters = () => {
+// Clear search filters only (not structure selection)
+const clearSearchFilters = () => {
   Object.keys(filters.value).forEach(key => {
-    if (key === 'funded') {
+    if (key === 'fd') {
       filters.value[key] = 'All'
     } else {
       filters.value[key] = ''
@@ -378,13 +497,25 @@ const clearFilters = () => {
   })
 }
 
+// Clear all filters including structure selection
+const clearFilters = () => {
+  clearSearchFilters();
+  filters.value.PageNo = '',
+  filters.value.ItemNo = '',
+  filters.value.SG = '',
+  filters.value.position = '',
+  filters.value.Name2 = '',
+  filters.value.fd = 'All',
+  filters.value.Status = ''
+}
+
 onMounted(async() => {
   // Fetch data or perform any setup when the component is mounted
   startingDate.value = new Date().toISOString().split('T')[0].replace(/-/g, '/')
   endedDate.value = new Date().toISOString().split('T')[0].replace(/-/g, '/')
 
-  await usePlantilla.fetchPlantillaData();
-  positions.value = usePlantilla.plantillaData.map(item => ({
+  await usePlantilla.fetchPlantilla();
+  positions.value = usePlantilla.plantilla.map(item => ({
     ...item,
     status: item.status || 'Vacant',
   }))

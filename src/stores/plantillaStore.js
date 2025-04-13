@@ -8,6 +8,7 @@ export const usePlantillaStore = defineStore('plantilla', {
     plantillaData: [],
     loading: false,
     error: null,
+    selectedDetails: null,
   }),
 
   actions: {

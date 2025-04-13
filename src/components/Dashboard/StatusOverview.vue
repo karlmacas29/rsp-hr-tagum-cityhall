@@ -154,6 +154,13 @@ const stats = ref([
     icon: 'verified',
   },
   {
+    title: 'Temporary',
+    valueKey: 'TEMPORARY',
+    caption: 'Employee',
+    color: '#FFF',
+    icon: 'work_history',
+  },
+  {
     title: 'Casual',
     valueKey: 'CASUAL',
     caption: 'Employee',
@@ -174,13 +181,7 @@ const stats = ref([
     color: '#FFF',
     icon: 'monetization_on',
   },
-  {
-    title: 'Temporary',
-    valueKey: 'TEMPORARY',
-    caption: 'Employee',
-    color: '#FFF',
-    icon: 'work_history',
-  },
+  
 ])
 
 const getStatValue = (valueKey) => {

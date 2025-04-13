@@ -1,9 +1,11 @@
 <template>
-  <q-layout view="hHh LpR fFf">
+  <q-layout view="lHh Lpr lFf">
     <!-- Sidebar -->
     <SidebarPage />
-    <q-page-container>
+    <q-header class="text-black">
       <NavBarPage />
+    </q-header>
+    <q-page-container>
       <router-view />
     </q-page-container>
   </q-layout>

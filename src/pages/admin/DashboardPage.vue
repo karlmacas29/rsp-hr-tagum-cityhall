@@ -48,8 +48,8 @@
           />
         </div>
 
-        <div class="job-card-container">
-          <q-card class="text-dark stat-card" style="background-color: #FFF; width:230px; border-top: 8px solid #00b034; border-radius: 12px;">
+        <div class="job-card-container q-px-xl">
+          <q-card class="text-dark stat-card" style="background-color: #FFF; width:100%; border-top: 8px solid #00b034; border-radius: 12px;">
             <q-card-section class="q-pa-lg row justify-between items-center">
               <div>
                 <div class="text-subtitle1 text-bold">Active Job Post</div>

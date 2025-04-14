@@ -78,11 +78,15 @@
 <script setup>
 import { useRouter } from 'vue-router';
 import { useAuthStore } from 'src/stores/authStore';
+import { useLogsStore } from 'stores/logsStore'; 
+
+const logStore = useLogsStore()
 
 const router = useRouter();
 const authStore = useAuthStore();
 
 const onLogout = async () => {
+    await logStore.logAction('Logged Out')
     await authStore.logout(); // Call the logout action from authStore
 };
 

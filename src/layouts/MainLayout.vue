@@ -11,14 +11,12 @@
   </q-layout>
 </template>
 
-<script>
+<script setup>
 import SidebarPage from 'src/components/SidebarPage.vue'
 import NavBarPage from 'src/components/NavBar.vue'
+import { onMounted } from 'vue';
 
-export default {
-  components: {
-    SidebarPage,
-    NavBarPage,
-  },
-}
+onMounted(async()=> {
+  
+})
 </script>

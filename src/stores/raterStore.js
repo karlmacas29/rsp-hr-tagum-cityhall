@@ -5,11 +5,21 @@ import { toast } from 'src/boot/toast' // Import toast instance
 export const useRaterStore = defineStore('raters', {
   state: () => ({
     raters: [],
+    ratersBatch: [],
     loading: false,
     error: null,
   }),
 
   actions: {
+    async fetchRatersBatch() {
+      try {
+        const response = await api.get('/raters_batch') // Replace with your Laravel API URL (this api perform CRUD so Read is Get to get data it was use by Laravel apiResources)
+        this.ratersBatch = response.data
+      } catch (error) {
+        console.error('Error fetching data:', error)
+        toast.error('Failed to Load Raters Batch')
+      }
+    },
     async fetchRaters() {
       this.loading = true
       this.error = null

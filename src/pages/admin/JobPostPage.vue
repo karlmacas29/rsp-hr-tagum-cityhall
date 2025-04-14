@@ -11,7 +11,7 @@
       </div>
     </div>
 
-    <!-- Date Range Picker (only visible in list view) -->
+    <!-- Date Range Picker -->
     <div v-if="!showingDetails" class="row items-center q-gutter-sm q-mb-md">
       <q-input dense outlined readonly v-model="formattedDateRange" label="Selected Date Range">
         <template v-slot:append>
@@ -38,7 +38,6 @@
           :grid="$q.screen.lt.md"
           style="width: 100%"
         >
-          <!-- Header with search inputs -->
           <template v-slot:header="props">
             <q-tr :props="props">
               <q-th
@@ -62,7 +61,6 @@
             </q-tr>
           </template>
 
-          <!-- Grid mode slot for mobile/small screens -->
           <template v-slot:item="props">
             <div class="q-pa-xs col-xs-12 col-sm-6 col-md-4" :key="props.row.position">
               <q-card flat bordered class="job-card">
@@ -120,7 +118,6 @@
             </div>
           </template>
 
-          <!-- Default slot for action column on desktop -->
           <template v-slot:body-cell-action="props">
             <q-td :props="props">
               <q-btn
@@ -139,7 +136,7 @@
       </q-card>
     </div>
 
-    <!-- Job Details View (Instead of Dialog) -->
+    <!-- Job Details View -->
     <div v-if="showingDetails">
       <q-card class="q-mb-md" flat bordered>
         <q-card-section>
@@ -179,8 +176,8 @@
         </q-card-section>
       </q-card>
 
-      <!-- Applicants Section (Always shown on job details page if there are applicants) -->
-      <q-card v-if="selectedJob.applicants > 0" flat bordered>
+      <!-- Applicants Section -->
+      <q-card flat bordered>
         <q-card-section class="row items-center q-pb-none">
           <div class="text-h6">Applicants for {{ selectedJob.position }}</div>
         </q-card-section>
@@ -209,25 +206,18 @@
                 <q-btn
                   flat
                   color="primary"
-                  :label="props.row.isSubmitted ? 'View QS (Locked)' : 'View QS'"
+                  :label="props.row.isSubmitted ? 'View Evaluation' : 'Evaluate'"
                   @click="openQualificationModal(props.row)"
                   size="sm"
-                  :icon="props.row.isSubmitted ? 'lock' : undefined"
                 />
               </q-td>
-            </template>
-
-            <template v-slot:no-data>
-              <div class="full-width row flex-center text-grey-8 q-gutter-sm">
-                <span>No applicants found</span>
-              </div>
             </template>
           </q-table>
         </q-card-section>
       </q-card>
     </div>
 
-    <!-- Keep the modals for QS and PDS -->
+    <!-- Quality Standard Modal -->
     <QualityStandardModal
       v-model="showQSModal"
       variant="applicant"
@@ -237,8 +227,10 @@
       @toggle-qualification="handleQualificationToggle"
       @submit="promptSubmitEvaluation"
       @close="closeQualificationModal"
+      :is-submitted="selectedApplicant.isSubmitted"
     />
 
+    <!-- PDS Modal -->
     <PDSModal
       v-model="showPDSModal"
       :applicant="selectedApplicant"
@@ -246,7 +238,7 @@
       @view-qs="openQualificationFromPDS"
     />
 
-    <!-- Confirmation Dialog for Evaluation Submission -->
+    <!-- Confirmation Dialog -->
     <q-dialog v-model="showConfirmationModal" persistent>
       <q-card style="min-width: 400px; border-radius: 8px;">
         <q-card-section class="row items-center q-pb-none">
@@ -277,31 +269,9 @@
           </div>
         </q-card-section>
 
-        <q-card-section>
-          <div class="text-caption text-negative">
-            <q-icon name="warning" color="negative" class="q-mr-xs" />
-            Once submitted, the status cannot be changed.
-          </div>
-        </q-card-section>
-
-        <q-separator />
-
         <q-card-actions align="right" class="q-pa-md">
-          <q-btn
-            flat
-            label="Cancel"
-            color="grey-7"
-            v-close-popup
-            class="q-px-md"
-          />
-          <q-btn
-            label="Confirm Submission"
-            color="primary"
-            @click="submitEvaluation"
-            v-close-popup
-            class="q-px-md"
-            unelevated
-          />
+          <q-btn flat label="Cancel" color="grey-7" v-close-popup />
+          <q-btn label="Confirm Submission" color="primary" @click="submitEvaluation" v-close-popup />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -314,17 +284,10 @@ import { date } from 'quasar'
 import QualityStandardModal from 'components/QualityStandardModal.vue'
 import PDSModal from 'components/PDSModal.vue'
 
-// Explicit component registration
-defineOptions({
-  components: { QualityStandardModal, PDSModal },
-})
-
 const { formatDate } = date
 
 // Page State
 const showingDetails = ref(false)
-
-// Pagination Configuration
 const pagination = ref({
   sortBy: 'postingDate',
   descending: true,
@@ -335,8 +298,6 @@ const pagination = ref({
 // Date Range Filter
 const dateRange = ref({ from: '', to: '' })
 const formattedDateRange = ref('')
-
-// Search filters for each column
 const searchFilters = ref({
   officePosition: '',
   position: '',
@@ -418,280 +379,53 @@ const columns = [
 const jobs = ref([
   {
     id: 1,
-    officePosition: 'ICT Department',
-    position: 'Computer Programmer II',
-    postingDate: '2025-01-20',
+    officePosition: 'Human Resources',
+    position: 'HR Manager',
+    postingDate: '2025-04-01',
     applicants: 10,
-    pending: 0,
-    qualified: 5,
-    unqualified: 5,
+    pending: 5,
+    qualified: 3,
+    unqualified: 2,
     qualifications: [
-      'Must be graduated any 4 year course',
-      'Preferably BS/IT with relevant experience',
-      'Fresh graduates are welcome to apply',
+      'Bachelor’s Degree in Human Resources or related field',
+      'At least 5 years of experience in HR management',
+      'Strong leadership and communication skills',
     ],
   },
   {
     id: 2,
-    officePosition: 'ICT Department',
-    position: 'Systems Analyst',
-    postingDate: '2025-02-26',
-    applicants: 20,
-    pending: 0,
-    qualified: 0,
-    unqualified: 0,
+    officePosition: 'Finance Department',
+    position: 'Accountant',
+    postingDate: '2025-03-15',
+    applicants: 8,
+    pending: 4,
+    qualified: 2,
+    unqualified: 2,
     qualifications: [
-      "Bachelor's degree in Computer Science or related field",
-      'Minimum 3 years systems analysis experience',
-      'Strong analytical and problem-solving skills',
+      'Bachelor’s Degree in Accounting or Finance',
+      'CPA license is preferred',
+      'Proficiency in financial software and tools',
     ],
   },
   {
     id: 3,
-    officePosition: 'Human Resources',
-    position: 'HR Manager',
-    postingDate: '2025-03-15',
-    applicants: 8,
-    pending: 2,
-    qualified: 3,
-    unqualified: 3,
-    qualifications: [
-      "Bachelor's degree in Human Resources or related field",
-      'Minimum 5 years HR experience',
-      'Knowledge of labor laws and regulations',
-    ],
-  },
-  {
-    id: 4,
-    officePosition: 'Finance Department',
-    position: 'Senior Accountant',
-    postingDate: '2025-01-10',
-    applicants: 15,
-    pending: 3,
-    qualified: 8,
-    unqualified: 4,
-    qualifications: [
-      "Bachelor's degree in Accounting",
-      'CPA license required',
-      'Minimum 5 years accounting experience',
-    ],
-  },
-  {
-    id: 5,
-    officePosition: 'Marketing Department',
-    position: 'Digital Marketing Specialist',
-    postingDate: '2025-02-15',
-    applicants: 12,
-    pending: 1,
-    qualified: 7,
-    unqualified: 4,
-    qualifications: [
-      "Bachelor's degree in Marketing or related field",
-      '2+ years digital marketing experience',
-      'Experience with SEO and social media marketing',
-    ],
-  },
-  {
-    id: 6,
-    officePosition: 'Operations',
-    position: 'Operations Manager',
-    postingDate: '2025-03-01',
-    applicants: 9,
-    pending: 0,
-    qualified: 6,
-    unqualified: 3,
-    qualifications: [
-      "Bachelor's degree in Business Administration",
-      '5+ years operations management experience',
-      'Strong leadership and organizational skills',
-    ],
-  },
-  {
-    id: 7,
-    officePosition: 'Customer Support',
-    position: 'Support Team Lead',
-    postingDate: '2025-01-25',
-    applicants: 7,
-    pending: 1,
-    qualified: 4,
-    unqualified: 2,
-    qualifications: [
-      "Bachelor's degree preferred",
-      '3+ years customer service experience',
-      '1+ years in a leadership role',
-    ],
-  },
-  {
-    id: 8,
-    officePosition: 'Research & Development',
-    position: 'Research Scientist',
-    postingDate: '2025-02-10',
-    applicants: 5,
-    pending: 0,
-    qualified: 3,
-    unqualified: 2,
-    qualifications: [
-      "PhD in relevant scientific field",
-      '2+ years research experience',
-      'Published research papers preferred',
-    ],
-  },
-  {
-    id: 9,
-    officePosition: 'Legal Department',
-    position: 'Corporate Lawyer',
-    postingDate: '2025-03-05',
-    applicants: 4,
-    pending: 0,
-    qualified: 2,
-    unqualified: 2,
-    qualifications: [
-      "Juris Doctor degree",
-      'Active bar membership',
-      '3+ years corporate law experience',
-    ],
-  },
-  {
-    id: 10,
-    officePosition: 'Administration',
-    position: 'Executive Assistant',
-    postingDate: '2025-01-15',
-    applicants: 18,
-    pending: 2,
-    qualified: 10,
-    unqualified: 6,
-    qualifications: [
-      "Bachelor's degree preferred",
-      '5+ years executive support experience',
-      'Excellent organizational and communication skills',
-    ],
-  },
-  {
-    id: 11,
-    officePosition: 'Sales Department',
-    position: 'Sales Representative',
-    postingDate: '2025-02-20',
-    applicants: 22,
-    pending: 5,
-    qualified: 12,
-    unqualified: 5,
-    qualifications: [
-      "Bachelor's degree in Business or related field",
-      '2+ years sales experience',
-      'Proven track record of meeting sales targets',
-    ],
-  },
-  {
-    id: 12,
-    officePosition: 'Quality Assurance',
-    position: 'QA Engineer',
-    postingDate: '2025-03-10',
-    applicants: 11,
-    pending: 1,
-    qualified: 7,
-    unqualified: 3,
-    qualifications: [
-      "Bachelor's degree in Computer Science or related field",
-      '3+ years QA experience',
-      'Experience with automated testing tools',
-    ],
-  },
-  {
-    id: 13,
-    officePosition: 'Public Relations',
-    position: 'PR Specialist',
-    postingDate: '2025-01-30',
-    applicants: 9,
-    pending: 0,
-    qualified: 5,
-    unqualified: 4,
-    qualifications: [
-      "Bachelor's degree in Communications or related field",
-      '3+ years PR experience',
-      'Excellent writing and media relations skills',
-    ],
-  },
-  {
-    id: 14,
-    officePosition: 'Facilities Management',
-    position: 'Facilities Coordinator',
-    postingDate: '2025-02-05',
-    applicants: 6,
-    pending: 0,
-    qualified: 4,
-    unqualified: 2,
-    qualifications: [
-      "Bachelor's degree in Facilities Management or related field",
-      '2+ years facilities experience',
-      'Knowledge of building systems and maintenance',
-    ],
-  },
-  {
-    id: 15,
-    officePosition: 'Training Department',
-    position: 'Training Specialist',
+    officePosition: 'IT Department',
+    position: 'Software Developer',
     postingDate: '2025-03-20',
-    applicants: 8,
-    pending: 1,
+    applicants: 15,
+    pending: 7,
     qualified: 5,
-    unqualified: 2,
-    qualifications: [
-      "Bachelor's degree in Education or related field",
-      '3+ years training experience',
-      'Excellent presentation and facilitation skills',
-    ],
-  },
-  {
-    id: 16,
-    officePosition: 'Security Department',
-    position: 'Security Analyst',
-    postingDate: '2025-01-05',
-    applicants: 7,
-    pending: 0,
-    qualified: 4,
     unqualified: 3,
     qualifications: [
-      "Bachelor's degree in Cybersecurity or related field",
-      'Security certifications preferred',
-      '2+ years security analysis experience',
-    ],
-  },
-  {
-    id: 17,
-    officePosition: 'Product Development',
-    position: 'Product Manager',
-    postingDate: '2025-02-15',
-    applicants: 10,
-    pending: 2,
-    qualified: 6,
-    unqualified: 2,
-    qualifications: [
-      "Bachelor's degree in Business or related field",
-      '5+ years product management experience',
-      'Strong analytical and leadership skills',
-    ],
-  },
-  {
-    id: 18,
-    officePosition: 'Health & Safety',
-    position: 'Safety Officer',
-    postingDate: '2025-03-25',
-    applicants: 5,
-    pending: 0,
-    qualified: 3,
-    unqualified: 2,
-    qualifications: [
-      "Bachelor's degree in Occupational Safety or related field",
-      'Safety certifications required',
-      '3+ years safety management experience',
+      'Bachelor’s Degree in Computer Science or related field',
+      'Experience with JavaScript, Vue.js, and Quasar Framework',
+      'Strong problem-solving and debugging skills',
     ],
   },
 ])
 
 const filteredJobs = computed(() => {
   let filtered = jobs.value
-
-  // Apply date range filter if set
   if (dateRange.value.from && dateRange.value.to) {
     filtered = filtered.filter((job) => {
       const jobDate = new Date(job.postingDate)
@@ -700,16 +434,11 @@ const filteredJobs = computed(() => {
       return jobDate >= fromDate && jobDate <= toDate
     })
   }
-
-  // Apply search filters
   return filtered.filter(job => {
     return Object.entries(searchFilters.value).every(([key, value]) => {
-      if (!value) return true // Skip if no filter value
-
+      if (!value) return true
       const jobValue = job[key]
-      if (jobValue === undefined) return true // Skip if column not in job object
-
-      // Handle different data types
+      if (jobValue === undefined) return true
       if (typeof jobValue === 'string') {
         return jobValue.toLowerCase().includes(value.toLowerCase())
       } else if (typeof jobValue === 'number') {
@@ -722,7 +451,6 @@ const filteredJobs = computed(() => {
   })
 })
 
-// Job Details page navigation
 const selectedJob = ref({
   id: null,
   officePosition: '',
@@ -738,6 +466,11 @@ const selectedJob = ref({
 const viewJobDetails = (job) => {
   selectedJob.value = { ...job }
   showingDetails.value = true
+  applicants.value = applicants.value.map(applicant => ({
+    ...applicant,
+    status: 'Pending',
+    isSubmitted: false
+  }))
 }
 
 const goBackToList = () => {
@@ -760,7 +493,6 @@ const applicantColumns = [
     label: 'Status',
     field: 'status',
     align: 'center',
-    format: (val, row) => row.isSubmitted ? `${val} (Locked)` : val
   },
   {
     name: 'action',
@@ -774,87 +506,31 @@ const applicantColumns = [
 const applicants = ref([
   {
     id: 1,
-    name: 'John Smith',
-    photo: 'https://cdn.quasar.dev/img/avatar.png',
-    appliedDate: '2025-03-16',
+    name: 'John Doe',
+    appliedDate: '2025-04-02',
     status: 'Pending',
     isSubmitted: false,
-    education: [
-      { degree: "Bachelor's in HR Management", institution: 'State University', year: '2018' },
-    ],
-    experience: [{ position: 'HR Assistant', organization: 'Tech Corp', years: '3' }],
-    training: [{ program: 'Advanced HR Certification', provider: 'HR Institute', hours: '40' }],
-    eligibility: [],
-    personalInfo: {
-      dateOfBirth: 'January 01, 2003',
-      placeOfBirth: 'Tagum City',
-      sex: 'Male',
-      civilStatus: 'Single',
-      genderPreference: 'Man',
-      height: '60',
-      weight: '60kg',
-      bloodType: 'A',
-      telephone: '127455824',
-      mobile: '098765432198'
-    }
   },
   {
     id: 2,
-    name: 'Sarah Johnson',
-    photo: 'https://cdn.quasar.dev/img/avatar2.jpg',
-    appliedDate: '2025-03-17',
-    status: 'Qualified',
+    name: 'Jane Smith',
+    appliedDate: '2025-04-03',
+    status: 'Pending',
     isSubmitted: false,
-    education: [
-      {
-        degree: "Master's in Organizational Psychology",
-        institution: 'City College',
-        year: '2020',
-      },
-    ],
-    experience: [{ position: 'HR Specialist', organization: 'Global Solutions', years: '5' }],
-    training: [{ program: 'Leadership Training', provider: 'Management Academy', hours: '60' }],
-    eligibility: [
-      { certification: 'Professional HR License', authority: 'National Board', year: '2021' },
-    ],
-    personalInfo: {
-      dateOfBirth: 'February 15, 1995',
-      placeOfBirth: 'Davao City',
-      sex: 'Female',
-      civilStatus: 'Married',
-      genderPreference: 'Woman',
-      height: '55',
-      weight: '50kg',
-      bloodType: 'B',
-      telephone: '987654321',
-      mobile: '09123456789'
-    }
   },
   {
     id: 3,
-    name: 'Michael Brown',
-    photo: 'https://cdn.quasar.dev/img/avatar3.jpg',
-    appliedDate: '2025-03-18',
-    status: 'Unqualified',
+    name: 'Alice Johnson',
+    appliedDate: '2025-04-04',
+    status: 'Pending',
     isSubmitted: false,
-    education: [
-      { degree: "Bachelor's in Business Admin", institution: 'Community College', year: '2019' },
-    ],
-    experience: [{ position: 'Office Manager', organization: 'Small Business Inc.', years: '2' }],
-    training: [],
-    eligibility: [],
-    personalInfo: {
-      dateOfBirth: 'March 30, 1990',
-      placeOfBirth: 'Cebu City',
-      sex: 'Male',
-      civilStatus: 'Single',
-      genderPreference: 'Man',
-      height: '58',
-      weight: '65kg',
-      bloodType: 'O',
-      telephone: '123456789',
-      mobile: '09234567890'
-    }
+  },
+  {
+    id: 4,
+    name: 'Bob Brown',
+    appliedDate: '2025-04-05',
+    status: 'Pending',
+    isSubmitted: false,
   },
 ])
 
@@ -864,7 +540,7 @@ const filteredApplicants = computed(() => {
   )
 })
 
-// Qualification Standard Modal - keep this as a modal
+// Qualification Standard Modal
 const showQSModal = ref(false)
 const selectedApplicant = ref({
   id: null,
@@ -899,6 +575,7 @@ const openQualificationModal = (applicant) => {
   selectedApplicant.value = {
     ...applicant,
     position: selectedJob.value.position,
+    applicationDate: formatDate(applicant.appliedDate, 'MMM D, YYYY')
   }
   showQSModal.value = true
 }
@@ -908,96 +585,82 @@ const closeQualificationModal = () => {
 }
 
 const handleQualificationToggle = (newStatus) => {
-  // Check if evaluation has been submitted
   if (selectedApplicant.value.isSubmitted) {
-    console.warn('Cannot change status after submission');
-    return;
+    console.warn('Cannot change status after submission')
+    return
   }
+  selectedApplicant.value.status = newStatus
+}
 
-  selectedApplicant.value.status = newStatus;
-  // Update the applicant in the applicants list
-  const applicant = applicants.value.find((a) => a.id === selectedApplicant.value.id);
-  if (applicant) {
-    applicant.status = newStatus;
+const promptSubmitEvaluation = () => {
+  if (selectedApplicant.value.status === 'Pending') {
+    console.warn('Please select Qualified or Unqualified before submitting')
+    return
   }
+  showConfirmationModal.value = true
+}
 
-  // Update counts in the jobs list
-  const job = jobs.value.find((j) => j.id === selectedJob.value.id);
-  if (job) {
-    if (newStatus === 'Qualified') {
-      job.qualified++;
-      job.pending > 0 ? job.pending-- : job.unqualified--;
-    } else if (newStatus === 'Unqualified') {
-      job.unqualified++;
-      job.pending > 0 ? job.pending-- : job.qualified--;
+const submitEvaluation = () => {
+  const applicantIndex = applicants.value.findIndex(a => a.id === selectedApplicant.value.id)
+  if (applicantIndex !== -1) {
+    applicants.value[applicantIndex] = {
+      ...applicants.value[applicantIndex],
+      status: selectedApplicant.value.status,
+      isSubmitted: true
     }
   }
-}
 
-// Show confirmation dialog before submitting
-const promptSubmitEvaluation = () => {
-  showConfirmationModal.value = true;
-}
+  const jobIndex = jobs.value.findIndex(j => j.id === selectedJob.value.id)
+  if (jobIndex !== -1) {
+    const job = jobs.value[jobIndex]
+    const status = selectedApplicant.value.status
 
-// Actually submit the evaluation
-const submitEvaluation = () => {
-  console.log('Submitted evaluation for:', selectedApplicant.value.name);
-
-  // Update the applicant's submission status
-  const applicantIndex = applicants.value.findIndex(a => a.id === selectedApplicant.value.id);
-  if (applicantIndex !== -1) {
-    applicants.value[applicantIndex].isSubmitted = true;
+    if (status === 'Qualified') {
+      job.qualified++
+      job.pending--
+    } else if (status === 'Unqualified') {
+      job.unqualified++
+      job.pending--
+    }
   }
 
-  showQSModal.value = false;
-  showConfirmationModal.value = false;
+  showQSModal.value = false
+  showConfirmationModal.value = false
 }
 
-// PDS Modal - keep this as a modal
+// PDS Modal functions
 const showPDSModal = ref(false)
-
 const viewApplicantPDS = () => {
   if (selectedApplicant.value && selectedApplicant.value.id) {
-    const fullApplicantData = applicants.value.find(a => a.id === selectedApplicant.value.id);
+    const fullApplicantData = applicants.value.find(a => a.id === selectedApplicant.value.id)
     if (fullApplicantData) {
-      selectedApplicant.value = { ...fullApplicantData, position: selectedJob.value.position };
+      selectedApplicant.value = { ...fullApplicantData, position: selectedJob.value.position }
     }
-
-    showQSModal.value = false;
+    showQSModal.value = false
     setTimeout(() => {
-      showPDSModal.value = true;
-    }, 100);
-  } else {
-    console.error('No applicant selected or incomplete applicant data');
+      showPDSModal.value = true
+    }, 100)
   }
 }
-
 const closePDSModal = () => {
-  showPDSModal.value = false;
+  showPDSModal.value = false
 }
-
 const openQualificationFromPDS = () => {
-  showPDSModal.value = false;
+  showPDSModal.value = false
   setTimeout(() => {
-    showQSModal.value = true;
-  }, 100);
+    showQSModal.value = true
+  }, 100)
 }
 
-// Utility Functions
 const getStatusColor = (status) => {
   switch (status) {
-    case 'Qualified':
-      return 'positive'
-    case 'Pending':
-      return 'warning'
-    case 'Unqualified':
-      return 'negative'
-    default:
-      return 'grey'
+    case 'Qualified': return 'positive'
+    case 'Pending': return 'warning'
+    case 'Unqualified': return 'negative'
+    default: return 'grey'
   }
 }
 
-// Initialize with some default date range
 onMounted(() => {
   const today = new Date()
   const lastMonth = new Date()
@@ -1025,7 +688,6 @@ onMounted(() => {
     font-size: 16px;
     padding: 16px;
 
-    /* New styles for header cells with inputs */
     .column {
       display: flex;
       flex-direction: column;
@@ -1069,7 +731,6 @@ onMounted(() => {
     }
   }
 
-  /* Pagination styles */
   .q-table__bottom {
     border-top: 1px solid #ddd;
     padding: 8px 16px;

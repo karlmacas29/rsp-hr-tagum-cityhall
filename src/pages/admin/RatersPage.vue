@@ -74,6 +74,23 @@
             </q-td>
           </template>
 
+            <!-- Custom cell for displaying position as badges -->
+            <template v-slot:body-cell-Position="props">
+            <q-td :props="props">
+              <div class="row q-gutter-xs">
+              <q-badge
+                v-for="(pos, index) in props.row.position"
+                :key="index"
+                color="primary"
+                text-color="white"
+                class="q-pa-xs"
+              >
+                {{ pos }}
+              </q-badge>
+              </div>
+            </q-td>
+            </template>
+
           <template v-slot:body-cell-actions="props">
             <q-td :props="props">
               <q-btn flat round dense icon="visibility" @click="viewRater(props.row)">
@@ -225,15 +242,7 @@ const filters = ref({
   Office: ''
 })
 
-const filteredRaters = computed(() => {
-  return raters.value.filter(row => {
-    return Object.entries(filters.value).every(([key, value]) => {
-      if (!value) return true // Skip if filter is empty
-      const rowValue = row[key]?.toString().toLowerCase() || ''
-      return rowValue.includes(value.toLowerCase())
-    })
-  })
-})
+const filteredRaters = ref([]) //data
 
 const useRater = useRaterStore()
 const showModal = ref(false)
@@ -315,7 +324,7 @@ const columns = [
   {
     name: 'Rater',
     label: 'Rater Name',
-    field: 'Rater',
+    field: 'raters',
     align: 'left',
 
     search: true
@@ -323,15 +332,15 @@ const columns = [
   {
     name: 'batchDate',
     label: 'Assigned Batch',
-    field: 'batchDate',
+    field: 'assign_batch',
     align: 'left',
 
     search: true
   },
   {
     name: 'Position',
-    label: 'Position',
-    field: 'Position',
+    label: 'Position to Rate',
+    field: 'position',
     align: 'left',
 
     search: true
@@ -339,7 +348,7 @@ const columns = [
   {
     name: 'Office',
     label: 'Office',
-    field: 'Office',
+    field: 'office',
     align: 'left',
   
     search: true
@@ -469,8 +478,8 @@ const editRater = (rater) => {
 }
 
 onMounted(async () => {
-  await useRater.fetchRaters()
-  // raters.value = useRater.raters // Uncomment when your store is ready
+  await useRater.fetchRatersBatch()
+  filteredRaters.value = useRater.ratersBatch
 })
 </script>
 

@@ -9,28 +9,41 @@
       </div>
     </div>
     <q-card>
+      
       <q-card-section>
-        <div class="text-h6">Activity Log</div>
-      </q-card-section>
-      <q-separator />
-      <q-card-section>
-        <q-table flat bordered :rows="logs" :columns="columns" row-key="id" />
+        <q-table flat bordered :rows="logs" :columns="columns" row-key="id" >
+            <!-- Add body cell template for position -->
+            <template v-slot:body-cell-user_agent="props">
+              <q-td :props="props" style="width: 230px; white-space: normal;">
+                {{ props.value }}
+              </q-td>
+            </template>
+        </q-table>
       </q-card-section>
     </q-card>
   </q-page>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
+import { useLogsStore } from 'stores/logsStore'; 
 
-const logs = ref([
-  { id: 1, action: 'User logged in', timestamp: '2025-03-17 10:00 AM' },
-  { id: 2, action: 'Admin updated job post', timestamp: '2025-03-17 11:30 AM' },
-])
+const logStore = useLogsStore()
+
+const logs = ref([])
 
 const columns = [
-  { name: 'id', label: 'ID', field: 'id', align: 'left' },
-  { name: 'action', label: 'Action', field: 'action', align: 'left' },
-  { name: 'timestamp', label: 'Timestamp', field: 'timestamp', align: 'left' },
+        { name: 'id', label: 'User ID', field: 'user_id' },
+        { name: 'username', label: 'Username', field: 'username' },
+        { name: 'actions', label: 'Action', field: 'actions' },
+        { name: 'position', label: 'Position', field: 'position' },
+        { name: 'date_performed', label: 'Date', field: 'date_performed' },
+        { name: 'user_agent', label: 'User Agent', field: 'user_agent' },
+        { name: 'ip_address', label: 'IP Address', field: 'ip_address' }
 ]
+
+onMounted(async()=>{
+  await logStore.fetchLogs()
+  logs.value = logStore.logs
+})
 </script>

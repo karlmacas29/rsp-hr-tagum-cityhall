@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { api } from 'boot/axios'
 import { toast } from 'src/boot/toast' // Import toast instance
+import { useLogsStore } from 'stores/logsStore'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -50,6 +51,9 @@ export const useAuthStore = defineStore('auth', {
         this.loading = false // Set loading state
         this.errors = error.response.data.errors
         // toast.error('An error occurred during login')
+      } finally {
+        const logsStore = useLogsStore()
+        await logsStore.logAction('Logged In')
       }
     },
     // Logout function when it has token
@@ -84,8 +88,9 @@ export const useAuthStore = defineStore('auth', {
 
         toast.success('Logout Success!')
         this.router.push({ name: 'Admin Login' })
-      } catch {
+      } catch (error) {
         toast.error('An error occurred during logout or token error')
+        console.log(error)
         this.router.push({ name: 'Admin Login' })
       }
     },

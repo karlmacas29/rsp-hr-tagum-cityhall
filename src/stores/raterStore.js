@@ -13,11 +13,15 @@ export const useRaterStore = defineStore('raters', {
   actions: {
     async fetchRatersBatch() {
       try {
+        this.loading = true
         const response = await api.get('/raters_batch') // Replace with your Laravel API URL (this api perform CRUD so Read is Get to get data it was use by Laravel apiResources)
         this.ratersBatch = response.data
       } catch (error) {
+        this.loading = false
         console.error('Error fetching data:', error)
         toast.error('Failed to Load Raters Batch')
+      } finally {
+        this.loading = false
       }
     },
     async fetchRaters() {

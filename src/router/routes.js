@@ -51,6 +51,12 @@ const routes = [
         name: 'Admin Settings',
         component: () => import('pages/admin/SettingPage.vue'),
       },
+      // page in a page
+      {
+        path: '/dashboard/status/:name',
+        name: 'Dashboard Status',
+        component: () => import('pages/admin/Dashboard/StatusPageView.vue'),
+      },
     ],
   },
   {

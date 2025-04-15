@@ -1,5 +1,5 @@
 <template>
-  <q-dialog v-model="localShow" persistent>
+  <q-dialog v-model="localShow" persistent @show="onModalShow">
     <q-card class="qualification-modal" style="width: 1200px; max-width: 95vw">
       <!-- Header Section -->
       <q-card-section class="row justify-between header text-black q-pa-md">
@@ -7,7 +7,14 @@
           <div class="text-h5 text-bold">Qualification Standard</div>
           <div class="text-subtitle1">Application Information</div>
         </div>
-        <q-btn icon="close" flat round dense v-close-popup class="close-btn" @click="onClose" />
+        <q-btn
+          icon="close"
+          flat
+          round
+          dense
+          class="close-btn"
+          @click="onClose"
+        />
       </q-card-section>
 
       <!-- Applicant View -->
@@ -22,7 +29,7 @@
             <div class="text-h6 text-center q-mb-sm">{{ applicantData.name }}</div>
             <q-badge :color="statusColor" class="q-mb-md">
               {{ applicantData.status }}
-              <q-icon v-if="isSubmitted" name="lock" class="q-ml-xs" />
+              <q-icon v-if="evaluationLocked" name="lock" class="q-ml-xs" />
             </q-badge>
 
             <div class="full-width">
@@ -233,13 +240,13 @@
           :label="applicantData.status === 'Qualified' ? 'Mark Unqualified' : 'Mark Qualified'"
           :color="applicantData.status === 'Qualified' ? 'negative' : 'positive'"
           @click="toggleQualificationStatus"
-          :disable="isSubmitted"
+          :disable="evaluationLocked"
         />
         <q-btn
           label="Submit Evaluation"
           color="positive"
           @click="onSubmit"
-          :disable="isSubmitted || applicantData.status === 'Pending'"
+          :disable="evaluationLocked || applicantData.status === 'Pending'"
         />
       </q-card-actions>
     </q-card>
@@ -262,10 +269,11 @@ export default defineComponent({
     positionRequirements: Object,
     isSubmitted: Boolean
   },
-  emits: ['update:show', 'view-pds', 'toggle-qualification', 'submit', 'close'],
+  emits: ['update:show', 'view-pds', 'toggle-qualification', 'submit', 'close', 'check-evaluation-status'],
   setup(props, { emit }) {
     const localShow = ref(props.show)
     const tab = ref('education')
+    const evaluationLocked = ref(props.isSubmitted)
 
     const statusColor = computed(() => {
       switch (props.applicantData.status) {
@@ -280,26 +288,51 @@ export default defineComponent({
       return props.applicantData.status === 'Qualified' ? 'Meets Requirements' : 'Under Review'
     })
 
+    // Watch for changes in isSubmitted prop and update evaluationLocked accordingly
+    watch(() => props.isSubmitted, (newVal) => {
+      evaluationLocked.value = newVal
+    }, { immediate: true })
+
     watch(() => props.show, (newVal) => {
       localShow.value = newVal
+      if (newVal) {
+        checkEvaluationStatus()
+      }
     })
 
     watch(localShow, (newVal) => {
       emit('update:show', newVal)
     })
 
+    const checkEvaluationStatus = () => {
+      evaluationLocked.value = props.isSubmitted
+      emit('check-evaluation-status')
+    }
+
+    const onModalShow = () => {
+      checkEvaluationStatus()
+    }
+
     const onClose = () => {
       emit('close')
     }
 
-    const onViewPDS = () => emit('view-pds')
+    const onViewPDS = () => {
+      emit('view-pds')
+    }
+
     const onSubmit = () => {
-      if (!props.isSubmitted && props.applicantData.status !== 'Pending') {
+      // Only allow submission if not already locked and status is not Pending
+      if (!evaluationLocked.value && props.applicantData.status !== 'Pending') {
         emit('submit')
+        // Lock the evaluation after submission
+        evaluationLocked.value = true
       }
     }
+
     const toggleQualificationStatus = () => {
-      if (!props.isSubmitted) {
+      // Only allow status toggle if not already locked
+      if (!evaluationLocked.value) {
         const newStatus = props.applicantData.status === 'Qualified' ? 'Unqualified' : 'Qualified'
         emit('toggle-qualification', newStatus)
       }
@@ -310,10 +343,13 @@ export default defineComponent({
       tab,
       statusColor,
       overallStatus,
+      evaluationLocked,
       onClose,
       onViewPDS,
       onSubmit,
-      toggleQualificationStatus
+      toggleQualificationStatus,
+      onModalShow,
+      checkEvaluationStatus
     }
   }
 })

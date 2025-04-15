@@ -13,7 +13,7 @@
           </div>
         </q-card>
       <q-card v-if="currentStructure">
-        <q-card-section class="row justify-between">
+        <q-card-section class="row justify-end">
           <q-btn color="primary" @click="clearFilters" icon="clear_all">Clear All</q-btn>
         </q-card-section>
         <q-separator />
@@ -127,18 +127,27 @@
                 dense 
                 round 
                 color="blue"
+
                 :icon="props.row.Funded == '1' ? 'visibility' : 'post_add'"
                 @click="viewPosition(props.row)" 
-                />
+                >
+                <q-tooltip>
+                  {{ props.row.Funded == '1'? 'View PDS' : 'Create Job Post'}}
+                </q-tooltip>
+                </q-btn>
                 <q-btn 
-                  v-if="props.row.Name1 != ''" 
+                  v-if="props.row.Name1 != null " 
                   flat 
                   dense 
                   round 
                   color="green" 
                   icon="print"
                   @click="printPosition(props.row)" 
-                />
+                >
+              <q-tooltip>
+                Print
+              </q-tooltip>
+              </q-btn>
               </q-td>
             </template>
             <!-- button next page -->

@@ -26,7 +26,7 @@
               <img :src="applicantData.photo || '/img/default-avatar.png'" />
             </q-avatar>
 
-            <div class="text-h6 text-center q-mb-sm">{{ applicantData.name }}</div>
+            <div class="text-h6 text-center q-mb-sm">{{ applicantData.Name1 }}</div>
             <q-badge :color="statusColor" class="q-mb-md">
               {{ applicantData.status }}
               <q-icon v-if="evaluationLocked" name="lock" class="q-ml-xs" />
@@ -253,106 +253,60 @@
   </q-dialog>
 </template>
 
-<script>
-import { defineComponent, ref, computed, watch } from 'vue'
+<script setup>
+import { ref, computed, watch } from 'vue'
 
-export default defineComponent({
-  name: 'QualityStandardModal',
-  props: {
-    show: Boolean,
-    variant: {
-      type: String,
-      default: 'employee',
-      validator: (value) => ['employee', 'applicant'].includes(value)
-    },
-    applicantData: Object,
-    positionRequirements: Object,
-    isSubmitted: Boolean
+const props = defineProps({
+  show: Boolean,
+  variant: {
+    type: String,
+    default: 'employee',
+    validator: (value) => ['employee', 'applicant'].includes(value)
   },
-  emits: ['update:show', 'view-pds', 'toggle-qualification', 'submit', 'close', 'check-evaluation-status'],
-  setup(props, { emit }) {
-    const localShow = ref(props.show)
-    const tab = ref('education')
-    const evaluationLocked = ref(props.isSubmitted)
+  applicantData: Object,
+  positionRequirements: Object,
+  isSubmitted: Boolean
+})
 
-    const statusColor = computed(() => {
-      switch (props.applicantData.status) {
-        case 'Qualified': return 'positive'
-        case 'Pending': return 'warning'
-        case 'Unqualified': return 'negative'
-        default: return 'grey'
-      }
-    })
+const emit = defineEmits(['update:show', 'view-pds', 'toggle-qualification', 'submit', 'close'])
 
-    const overallStatus = computed(() => {
-      return props.applicantData.status === 'Qualified' ? 'Meets Requirements' : 'Under Review'
-    })
+const localShow = ref(props.show)
+const tab = ref('education')
 
-    // Watch for changes in isSubmitted prop and update evaluationLocked accordingly
-    watch(() => props.isSubmitted, (newVal) => {
-      evaluationLocked.value = newVal
-    }, { immediate: true })
-
-    watch(() => props.show, (newVal) => {
-      localShow.value = newVal
-      if (newVal) {
-        checkEvaluationStatus()
-      }
-    })
-
-    watch(localShow, (newVal) => {
-      emit('update:show', newVal)
-    })
-
-    const checkEvaluationStatus = () => {
-      evaluationLocked.value = props.isSubmitted
-      emit('check-evaluation-status')
-    }
-
-    const onModalShow = () => {
-      checkEvaluationStatus()
-    }
-
-    const onClose = () => {
-      emit('close')
-    }
-
-    const onViewPDS = () => {
-      emit('view-pds')
-    }
-
-    const onSubmit = () => {
-      // Only allow submission if not already locked and status is not Pending
-      if (!evaluationLocked.value && props.applicantData.status !== 'Pending') {
-        emit('submit')
-        // Lock the evaluation after submission
-        evaluationLocked.value = true
-      }
-    }
-
-    const toggleQualificationStatus = () => {
-      // Only allow status toggle if not already locked
-      if (!evaluationLocked.value) {
-        const newStatus = props.applicantData.status === 'Qualified' ? 'Unqualified' : 'Qualified'
-        emit('toggle-qualification', newStatus)
-      }
-    }
-
-    return {
-      localShow,
-      tab,
-      statusColor,
-      overallStatus,
-      evaluationLocked,
-      onClose,
-      onViewPDS,
-      onSubmit,
-      toggleQualificationStatus,
-      onModalShow,
-      checkEvaluationStatus
-    }
+const statusColor = computed(() => {
+  switch (props.applicantData.status) {
+    case 'Qualified': return 'positive'
+    case 'Pending': return 'warning'
+    case 'Unqualified': return 'negative'
+    default: return 'grey'
   }
 })
+
+const overallStatus = computed(() => {
+  return props.applicantData.status === 'Qualified' ? 'Meets Requirements' : 'Under Review'
+})
+
+watch(() => props.show, (newVal) => {
+  localShow.value = newVal
+})
+
+watch(localShow, (newVal) => {
+  emit('update:show', newVal)
+})
+
+const onClose = () => emit('close')
+const onViewPDS = () => emit('view-pds')
+const onSubmit = () => {
+  if (!props.isSubmitted && props.applicantData.status !== 'Pending') {
+    emit('submit')
+  }
+}
+const toggleQualificationStatus = () => {
+  if (!props.isSubmitted) {
+    const newStatus = props.applicantData.status === 'Qualified' ? 'Unqualified' : 'Qualified'
+    emit('toggle-qualification', newStatus)
+  }
+}
 </script>
 
 <style scoped lang="scss">

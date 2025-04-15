@@ -82,6 +82,13 @@
                 {{ props.value }}
               </q-td>
             </template>
+
+            <!-- Add body cell template for position -->
+            <template v-slot:body-cell-Name1="props">
+              <q-td :props="props" style="width: 230px; white-space: normal;">
+                {{ props.value }}
+              </q-td>
+            </template>
             <!-- for switch -->
             <template v-slot:body-cell-fd="props">
               <q-td :props="props">
@@ -115,7 +122,7 @@
                 @click="viewPosition(props.row)" 
                 />
                 <q-btn 
-                  v-if="props.row.Name2 != ''" 
+                  v-if="props.row.Name1 != ''" 
                   flat 
                   dense 
                   round 
@@ -334,7 +341,7 @@ const columns = [
   { name: 'ItemNo', label: 'Item No', field: 'ItemNo', align: 'left', sortable: false },
   { name: 'SG', label: 'Salary Grade', field: 'SG', align: 'left', sortable: false },
   { name: 'position', label: 'Position', field: 'position', align: 'left', sortable: false },
-  { name: 'Name2', label: 'Employee', field: 'Name2', align: 'left', sortable: false },
+  { name: 'Name1', label: 'Employee', field: 'Name1', align: 'left', sortable: false },
   {
     name: 'fd',
     label: 'Funded',
@@ -342,7 +349,7 @@ const columns = [
     align: 'left',
     sortable: false,
   },
-  { name: 'Status', label: 'Status', field: 'status', align: 'left', sortable: false },
+  { name: 'Status', label: 'Status', field: 'Status', align: 'left', sortable: false },
   { name: 'action', label: 'Action', field: 'action', align: 'center' },
 ]
 
@@ -517,7 +524,7 @@ onMounted(async() => {
   await usePlantilla.fetchPlantilla();
   positions.value = usePlantilla.plantilla.map(item => ({
     ...item,
-    status: item.status || 'Vacant',
+    
   }))
 })
 </script>

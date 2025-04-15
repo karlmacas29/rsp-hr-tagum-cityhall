@@ -56,7 +56,7 @@ const stats = ref([
     icon: 'assignment_ind',
   },
   {
-    title: 'Co-Terminus',
+    title: 'Co-Terminous',
     valueKey: 'CO-TERMINOUS',
     caption: 'Employee',
     color: '#FFF',

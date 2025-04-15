@@ -28,7 +28,7 @@
             :q-pagination="pagination"
             v-model:pagination="pagination"
             :rows-per-page-options="[]"
-
+            :loading="usePlantilla.loading"
           >
             <!-- Header with search boxes -->
             <template v-slot:header="props">
@@ -104,9 +104,18 @@
                 </q-td>
               </template>
               <!-- Add body cell template for position -->
-              <template v-slot:body-cell-status="props">
+              <template v-slot:body-cell-Status="props">
                 <q-td :props="props" style="width: 70px; white-space: normal;">
-                  {{ props.status }}
+                  <q-badge class="q-pa-xs" :class="props.row.Status == 'ELECTIVE' ? 'bg-blue' :
+                                   props.row.Status == 'APPOINTED' ? 'bg-purple' :
+                                   props.row.Status == 'CO-TERMINOUS' ? 'bg-brown' :
+                                   props.row.Status == 'REGULAR' ? 'bg-green' :
+                                   props.row.Status == 'TEMPORARY' ? 'bg-yellow text-black' :
+                                   props.row.Status == 'CASUAL' ? 'bg-grey-4' :
+                                   props.row.Status == 'JOB ORDER' ? 'bg-light-blue' :
+                                   props.row.Status == 'HONORARIUM' ? 'bg-black' : 'bg-grey'">
+                    {{ props.row.Status }}
+                  </q-badge>
                 </q-td>
               </template>
 
@@ -157,6 +166,11 @@
               </div>
             </template>
 
+            <template v-slot:loading>
+              <q-inner-loading showing color="primary">
+                <q-linear-progress indeterminate color="primary" class="q-mt-sm" />
+              </q-inner-loading>
+            </template>
           </q-table>
         </q-card-section>
       </q-card>
@@ -280,6 +294,8 @@
     <QualityStandardModal 
       v-model:show="showFilledPositionModal" 
       :employee-name="selectedPosition?.employee"
+      :applicant-data="selectedApplicant"
+      :position-requirements="positionRequirements"
       :current-position="currentPosition" 
       :higher-education="higherEducation" 
       @print="printPosition(selectedPosition)"
@@ -313,6 +329,32 @@ const filters = ref({
   Name2: '',
   fd: 'All',
   Status: ''
+})
+
+const positionRequirements = ref({
+  education: "Bachelor's Degree in related field",
+  preferredEducation: "Master's Degree preferred",
+  experience: 'Minimum 3 years relevant experience',
+  preferredExperience: '5+ years in leadership role',
+  training: 'Certification in relevant field',
+  preferredTraining: 'Multiple advanced certifications',
+  eligibility: 'Professional license required',
+  preferredCertification: 'Additional specialized certifications',
+})
+
+const selectedApplicant = ref({
+  id: null,
+  name: '',
+  photo: '',
+  position: '',
+  status: 'Pending',
+  isSubmitted: false,
+  applicationDate: '',
+  education: [],
+  experience: [],
+  training: [],
+  eligibility: [],
+  personalInfo: {}
 })
 
 // Add current structure selection
@@ -395,8 +437,9 @@ const filteredPositions = computed(() => {
       if (filters.value[key]) {
         if (key === 'fd') {
           if (filters.value[key] !== 'All') {
-            const isYes = filters.value[key] === '1';
-            if (isYes !== !!row.Funded) return false;
+            const isYes = filters.value[key] === 'Yes';
+            const rowFunded = row.Funded === '1' || row.Funded === true;
+            if (isYes !== rowFunded) return false;
           }
         } else {
           const filterValue = String(filters.value[key]).toLowerCase();
@@ -460,7 +503,8 @@ const cancelUpload = () => {
 
 const viewPosition = (row) => {
   selectedPosition.value = row
-  if (row.employee) {
+  if (row.Name1) {
+    selectedApplicant.value.name = row.Name1
     currentPosition.value = row.position
     higherEducation.value = 'Bachelor of Science in Management'
     showFilledPositionModal.value = true
@@ -524,7 +568,7 @@ onMounted(async() => {
   await usePlantilla.fetchPlantilla();
   positions.value = usePlantilla.plantilla.map(item => ({
     ...item,
-    
+    Status: item.Status || 'VACANT'
   }))
 })
 </script>

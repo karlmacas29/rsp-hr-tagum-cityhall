@@ -11,12 +11,25 @@
     <q-card>
       
       <q-card-section>
-        <q-table flat bordered :rows="logs" :columns="columns" row-key="id" >
+        <q-table 
+          flat 
+          bordered 
+          :rows="logs" 
+          :columns="columns" 
+          row-key="id"
+          :loading="logStore.loading"
+        >
             <!-- Add body cell template for position -->
             <template v-slot:body-cell-user_agent="props">
               <q-td :props="props" style="width: 230px; white-space: normal;">
-                {{ props.value }}
+          {{ props.value }}
               </q-td>
+            </template>
+            
+            <template v-slot:loading>
+              <q-inner-loading showing color="primary">
+                <q-linear-progress indeterminate color="primary" class="q-mt-sm" />
+              </q-inner-loading>
             </template>
         </q-table>
       </q-card-section>

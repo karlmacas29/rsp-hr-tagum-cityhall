@@ -11,12 +11,41 @@
     <q-card>
       
       <q-card-section>
-        <q-table flat bordered :rows="logs" :columns="columns" row-key="id" >
+        <q-table 
+          flat 
+          bordered 
+          :rows="logs" 
+          :columns="columns" 
+          row-key="id"
+          :loading="logStore.loading"
+        >
             <!-- Add body cell template for position -->
+            <template v-slot:body-cell-date_performed="props">
+              <q-td :props="props" style="width: 230px; white-space: normal;">
+              <q-badge class="bg-teal" outline>
+                {{ new Date(props.value).toLocaleString('en-US', {
+                  month: 'long',
+                  day: 'numeric',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: true
+                }) }}
+              </q-badge>
+              </q-td>
+            </template>
+            <!-- Add body cell template for useragent -->
             <template v-slot:body-cell-user_agent="props">
               <q-td :props="props" style="width: 230px; white-space: normal;">
-                {{ props.value }}
+              {{ props.value }}
               </q-td>
+            </template>
+            
+
+            <template v-slot:loading>
+              <q-inner-loading showing color="primary">
+                <q-linear-progress indeterminate color="primary" class="q-mt-sm" />
+              </q-inner-loading>
             </template>
         </q-table>
       </q-card-section>

@@ -18,13 +18,14 @@
       </q-card-section>
       <q-separator />
 
-      <q-card-section v-if="!useRater.loading">
+      <q-card-section >
         <q-table
           flat
           bordered
           :rows="filteredRaters"
           :columns="columns"
           row-key="id"
+          :loading="useRater.loading"
         >
           <!-- Header slots for searchable columns -->
           <template v-slot:header="props">
@@ -101,12 +102,14 @@
               </q-btn>
             </q-td>
           </template>
+          <template v-slot:loading>
+              <q-inner-loading showing color="primary">
+                <q-linear-progress indeterminate color="primary" class="q-mt-sm" />
+              </q-inner-loading>
+            </template>
         </q-table>
       </q-card-section>
 
-      <q-card-section v-else>
-        <q-skeleton height="150px" square />
-      </q-card-section>
     </q-card>
 
     <!-- Add Rater Modal -->
@@ -244,7 +247,8 @@ const filters = ref({
 
 const filteredRaters = ref([]) //data
 
-const useRater = useRaterStore()
+const useRater = useRaterStore() //userRater
+
 const showModal = ref(false)
 const showError = ref(false)
 const isSubmitting = ref(false)

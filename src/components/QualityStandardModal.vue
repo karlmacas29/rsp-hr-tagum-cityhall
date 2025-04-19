@@ -1,5 +1,5 @@
 <template>
-  <q-dialog v-model="localShow" persistent>
+  <q-dialog v-model="localShow" persistent @show="onModalShow">
     <q-card class="qualification-modal" style="width: 1200px; max-width: 95vw">
       <!-- Header Section -->
       <q-card-section class="row justify-between header text-black q-pa-md">
@@ -7,7 +7,14 @@
           <div class="text-h5 text-bold">Qualification Standard</div>
           <div class="text-subtitle1">Application Information</div>
         </div>
-        <q-btn icon="close" flat round dense v-close-popup class="close-btn" @click="onClose" />
+        <q-btn
+          icon="close"
+          flat
+          round
+          dense
+          class="close-btn"
+          @click="onClose"
+        />
       </q-card-section>
 
       <!-- Applicant View -->
@@ -19,10 +26,10 @@
               <img :src="applicantData.photo || '/img/default-avatar.png'" />
             </q-avatar>
 
-            <div class="text-h6 text-center q-mb-sm">{{ applicantData.name }}</div>
+            <div class="text-h6 text-center q-mb-sm">{{ applicantData.Name1 }}</div>
             <q-badge :color="statusColor" class="q-mb-md">
               {{ applicantData.status }}
-              <q-icon v-if="isSubmitted" name="lock" class="q-ml-xs" />
+              <q-icon v-if="evaluationLocked" name="lock" class="q-ml-xs" />
             </q-badge>
 
             <div class="full-width">
@@ -233,90 +240,73 @@
           :label="applicantData.status === 'Qualified' ? 'Mark Unqualified' : 'Mark Qualified'"
           :color="applicantData.status === 'Qualified' ? 'negative' : 'positive'"
           @click="toggleQualificationStatus"
-          :disable="isSubmitted"
+          :disable="evaluationLocked"
         />
         <q-btn
           label="Submit Evaluation"
           color="positive"
           @click="onSubmit"
-          :disable="isSubmitted || applicantData.status === 'Pending'"
+          :disable="evaluationLocked || applicantData.status === 'Pending'"
         />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
-<script>
-import { defineComponent, ref, computed, watch } from 'vue'
+<script setup>
+import { ref, computed, watch } from 'vue'
 
-export default defineComponent({
-  name: 'QualityStandardModal',
-  props: {
-    show: Boolean,
-    variant: {
-      type: String,
-      default: 'employee',
-      validator: (value) => ['employee', 'applicant'].includes(value)
-    },
-    applicantData: Object,
-    positionRequirements: Object,
-    isSubmitted: Boolean
+const props = defineProps({
+  show: Boolean,
+  variant: {
+    type: String,
+    default: 'employee',
+    validator: (value) => ['employee', 'applicant'].includes(value)
   },
-  emits: ['update:show', 'view-pds', 'toggle-qualification', 'submit', 'close'],
-  setup(props, { emit }) {
-    const localShow = ref(props.show)
-    const tab = ref('education')
+  applicantData: Object,
+  positionRequirements: Object,
+  isSubmitted: Boolean
+})
 
-    const statusColor = computed(() => {
-      switch (props.applicantData.status) {
-        case 'Qualified': return 'positive'
-        case 'Pending': return 'warning'
-        case 'Unqualified': return 'negative'
-        default: return 'grey'
-      }
-    })
+const emit = defineEmits(['update:show', 'view-pds', 'toggle-qualification', 'submit', 'close'])
 
-    const overallStatus = computed(() => {
-      return props.applicantData.status === 'Qualified' ? 'Meets Requirements' : 'Under Review'
-    })
+const localShow = ref(props.show)
+const tab = ref('education')
 
-    watch(() => props.show, (newVal) => {
-      localShow.value = newVal
-    })
-
-    watch(localShow, (newVal) => {
-      emit('update:show', newVal)
-    })
-
-    const onClose = () => {
-      emit('close')
-    }
-
-    const onViewPDS = () => emit('view-pds')
-    const onSubmit = () => {
-      if (!props.isSubmitted && props.applicantData.status !== 'Pending') {
-        emit('submit')
-      }
-    }
-    const toggleQualificationStatus = () => {
-      if (!props.isSubmitted) {
-        const newStatus = props.applicantData.status === 'Qualified' ? 'Unqualified' : 'Qualified'
-        emit('toggle-qualification', newStatus)
-      }
-    }
-
-    return {
-      localShow,
-      tab,
-      statusColor,
-      overallStatus,
-      onClose,
-      onViewPDS,
-      onSubmit,
-      toggleQualificationStatus
-    }
+const statusColor = computed(() => {
+  switch (props.applicantData.status) {
+    case 'Qualified': return 'positive'
+    case 'Pending': return 'warning'
+    case 'Unqualified': return 'negative'
+    default: return 'grey'
   }
 })
+
+const overallStatus = computed(() => {
+  return props.applicantData.status === 'Qualified' ? 'Meets Requirements' : 'Under Review'
+})
+
+watch(() => props.show, (newVal) => {
+  localShow.value = newVal
+})
+
+watch(localShow, (newVal) => {
+  emit('update:show', newVal)
+})
+
+const onClose = () => emit('close')
+const onViewPDS = () => emit('view-pds')
+const onSubmit = () => {
+  if (!props.isSubmitted && props.applicantData.status !== 'Pending') {
+    emit('submit')
+  }
+}
+const toggleQualificationStatus = () => {
+  if (!props.isSubmitted) {
+    const newStatus = props.applicantData.status === 'Qualified' ? 'Unqualified' : 'Qualified'
+    emit('toggle-qualification', newStatus)
+  }
+}
 </script>
 
 <style scoped lang="scss">

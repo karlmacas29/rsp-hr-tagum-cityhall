@@ -28,102 +28,18 @@
       <q-spinner-dots size="100px" color="primary" class="q-ma-md" />
     </div>
 
-    <!-- Employee List Dialog -->
-    <q-dialog v-model="employeeDialog" maximized>
-      <q-card class="q-dialog-plugin">
-        <q-bar class="bg-primary text-white">
-          <q-icon :name="selectedStatusIcon" class="q-mr-sm" />
-          <div class="text-h6">{{ selectedStatus }} Employees</div>
-          <q-space />
-          <q-btn dense flat icon="close" v-close-popup>
-            <q-tooltip>Close</q-tooltip>
-          </q-btn>
-        </q-bar>
-
-        <q-card-section class="q-pt-none">
-          <div class="row q-mb-md">
-            <q-input
-              v-model="employeeFilter"
-              dense
-              outlined
-              placeholder="Search employees..."
-              class="col"
-            >
-              <template v-slot:append>
-                <q-icon name="search" />
-              </template>
-            </q-input>
-          </div>
-
-          <q-table
-            :rows="employeeList"
-            :columns="employeeColumns"
-            row-key="id"
-            :loading="loadingEmployees"
-            :filter="employeeFilter"
-            flat
-            bordered
-            :pagination="{ rowsPerPage: 10 }"
-          >
-            <template v-slot:no-data>
-              <div class="full-width row flex-center text-grey-8 q-py-lg">
-                <q-icon name="warning" size="sm" class="q-mr-xs" />
-                No employees found
-              </div>
-            </template>
-          </q-table>
-        </q-card-section>
-
-        <q-card-actions align="right">
-          <q-btn flat label="Close" color="primary" v-close-popup />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
+    
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { use_vwActiveStore } from 'src/stores/vwActiveStore'
+import {useRouter} from 'vue-router'
 
 const vwActiveStore = use_vwActiveStore()
 const dataR = ref([])
-
-// Dialog controls
-const employeeDialog = ref(false)
-const selectedStatus = ref('')
-const selectedStatusIcon = computed(() => {
-  const stat = stats.value.find(s => s.title === selectedStatus.value)
-  return stat ? stat.icon : 'people'
-})
-const employeeList = ref([])
-const loadingEmployees = ref(false)
-const employeeFilter = ref('')
-
-const employeeColumns = [
-  {
-    name: 'name',
-    label: 'Name',
-    align: 'left',
-    field: 'name',
-    sortable: true,
-    classes: 'text-weight-bold'
-  },
-  {
-    name: 'office',
-    label: 'Office',
-    align: 'left',
-    field: 'office',
-    sortable: true
-  },
-  {
-    name: 'position',
-    label: 'Position',
-    align: 'left',
-    field: 'position',
-    sortable: true
-  }
-]
+const router = useRouter()
 
 const stats = ref([
   {
@@ -141,7 +57,7 @@ const stats = ref([
     icon: 'assignment_ind',
   },
   {
-    title: 'Co-Terminus',
+    title: 'Co-Terminous',
     valueKey: 'CO-TERMINOUS',
     caption: 'Employee',
     color: '#FFF',
@@ -194,27 +110,8 @@ const getStatValue = (valueKey) => {
 }
 
 const showEmployeeDialog = async (status) => {
-  selectedStatus.value = status
-  loadingEmployees.value = true
-  employeeDialog.value = true
-
-  try {
-    // Replace with actual API call:
-    // const response = await api.get(`/employees?status=${status.toLowerCase()}`)
-    // employeeList.value = response.data
-
-    // Mock data:
-    employeeList.value = [
-      { id: 1, name: 'John Doe', office: 'Mayor\'s Office', position: 'Staff' },
-      { id: 2, name: 'Jane Smith', office: 'HR Department', position: 'Manager' },
-      { id: 3, name: 'Robert Johnson', office: 'Finance Department', position: 'Accountant' },
-      { id: 4, name: 'Maria Garcia', office: 'Public Works', position: 'Engineer' },
-    ]
-  } catch (error) {
-    console.error('Error fetching employees:', error)
-  } finally {
-    loadingEmployees.value = false
-  }
+  const status_title = status
+  router.push(`/dashboard/status/${status_title}`)
 }
 
 onMounted(async () => {

@@ -5,6 +5,7 @@ import { toast } from 'src/boot/toast' // Import toast instance
 export const use_vwActiveStore = defineStore('vwactive', {
   state: () => ({
     vw_active: [],
+    vw_status: [],
     loading: false,
     error: null,
   }),
@@ -20,6 +21,24 @@ export const use_vwActiveStore = defineStore('vwactive', {
         return response.data.data
       } catch {
         toast.error('Failed to Load vwactive')
+      } finally {
+        this.loading = false
+      }
+    },
+    //
+    async fetchStatus(status) {
+      this.loading = true
+      const jsonEncode = {
+        status: status,
+      }
+      try {
+        const response = await api.post('/vw-Active/status', jsonEncode)
+        this.vw_status = response.data.data
+      } catch (error) {
+        this.vw_status = []
+        this.loading = false
+        console.log(error.response.data?.message)
+        toast.warning(error.response.data?.message)
       } finally {
         this.loading = false
       }

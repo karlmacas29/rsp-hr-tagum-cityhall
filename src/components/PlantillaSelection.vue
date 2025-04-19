@@ -1,6 +1,6 @@
 <template>
     <q-card class="q-pa-sm" flat style="border-right: 1px solid #e0e0e0; border-radius: 0;">
-      <q-scroll-area style="height: 90.7lvh;">
+      <q-scroll-area style="height: 100vh;">
         <!-- Header -->
         <div class="text-h4 text-bold q-mb-md">Plantilla</div>
         
@@ -31,7 +31,7 @@
         
         <!-- Organizational Structure Tree -->
         <div v-if="selectedValue && structureTree.length > 0" class="q-mt-md">
-          <div class="text-h6 q-mb-md">Organizational Structure</div>
+          <div class="text-h6 q-mb-md">Office Structure</div>
           
           <div class="">
             <div class="col-12 col-md-8">
@@ -134,12 +134,12 @@
         <!-- Loading Indicator -->
         <div v-else-if="usePlantilla.loading" class="q-pa-md flex flex-center">
           <q-spinner color="primary" size="3em" />
-          <span class="q-ml-sm">Loading organizational structure...</span>
+            <span class="q-ml-sm">Getting All City Hall Offices...</span>
         </div>
   
         <div v-else class="text-center q-pa-lg">
           <q-icon name="info" size="2rem" color="grey-7" />
-          <div class="text-subtitle1 q-mt-sm text-grey-7">Select City Office</div>
+          <div class="text-subtitle1 q-mt-sm text-grey-7">Select City Hall Office</div>
         </div>
       </q-scroll-area>
     </q-card>

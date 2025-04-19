@@ -27,6 +27,7 @@ export const usePlantillaStore = defineStore('plantilla', {
           this.plantilla = []
         }
       } catch (error) {
+        this.loading = false
         console.error('Fetch error:', error) // Debugging
         toast.error('Failed to Load Plantilla')
         this.error = error
@@ -52,6 +53,7 @@ export const usePlantillaStore = defineStore('plantilla', {
         console.error('Fetch error:', error) // Debugging
         toast.error('Failed to Load Plantilla Data')
         this.error = error
+        this.loading = false
       } finally {
         this.loading = false
       }

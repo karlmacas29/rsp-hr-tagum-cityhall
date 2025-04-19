@@ -26,114 +26,13 @@
 
     <!-- Job List View -->
     <div v-if="!showingDetails" class="q-pa-md">
-      <q-card>
-        <q-table
-          :rows="filteredJobs"
-          :columns="columns"
-          row-key="position"
-          :pagination="pagination"
-          class="my-sticky-header-table"
-          flat
-          bordered
-          :grid="$q.screen.lt.md"
-          style="width: 100%"
-        >
-          <template v-slot:header="props">
-            <q-tr :props="props">
-              <q-th
-                v-for="col in props.cols"
-                :key="col.name"
-                :props="props"
-              >
-                <div class="column">
-                  <div>{{ col.label }}</div>
-                  <q-input
-                    v-if="col.searchable !== false && col.name !== 'action'"
-                    v-model="searchFilters[col.name]"
-                    dense
-                    outlined
-                    clearable
-                    class="q-mt-xs"
-                    :placeholder="`Search ${col.label}`"
-                  />
-                </div>
-              </q-th>
-            </q-tr>
-          </template>
-
-          <template v-slot:item="props">
-            <div class="q-pa-xs col-xs-12 col-sm-6 col-md-4" :key="props.row.position">
-              <q-card flat bordered class="job-card">
-                <q-card-section>
-                  <div class="text-h6">{{ props.row.position }}</div>
-                  <div class="text-subtitle2">Posted: {{ formatDate(props.row.postingDate) }}</div>
-                </q-card-section>
-
-                <q-separator />
-
-                <q-list dense>
-                  <q-item>
-                    <q-item-section>
-                      <q-item-label caption class="text-bold">Applicants</q-item-label>
-                      <q-item-label>{{ props.row.applicants }}</q-item-label>
-                    </q-item-section>
-                  </q-item>
-
-                  <q-item>
-                    <q-item-section>
-                      <q-item-label caption>Pending</q-item-label>
-                      <q-item-label>{{ props.row.pending }}</q-item-label>
-                    </q-item-section>
-                  </q-item>
-
-                  <q-item>
-                    <q-item-section>
-                      <q-item-label caption>Qualified</q-item-label>
-                      <q-item-label>{{ props.row.qualified }}</q-item-label>
-                    </q-item-section>
-                  </q-item>
-
-                  <q-item>
-                    <q-item-section>
-                      <q-item-label caption>Unqualified</q-item-label>
-                      <q-item-label>{{ props.row.unqualified }}</q-item-label>
-                    </q-item-section>
-                  </q-item>
-                </q-list>
-
-                <q-separator />
-
-                <q-card-actions align="right">
-                  <q-btn
-                    flat
-                    round
-                    color="primary"
-                    icon="visibility"
-                    @click="viewJobDetails(props.row)"
-                  >
-                    <q-tooltip>View</q-tooltip>
-                  </q-btn>
-                </q-card-actions>
-              </q-card>
-            </div>
-          </template>
-
-          <template v-slot:body-cell-action="props">
-            <q-td :props="props">
-              <q-btn
-                round
-                dense
-                color="primary"
-                icon="visibility"
-                @click="viewJobDetails(props.row)"
-                size="md"
-              >
-                <q-tooltip>View</q-tooltip>
-              </q-btn>
-            </q-td>
-          </template>
-        </q-table>
-      </q-card>
+      <JobPostTable
+        :filtered-jobs="filteredJobs"
+        :columns="columns"
+        :pagination="pagination"
+        v-model:search-filters="searchFilters"
+        @view-job-details="viewJobDetails"
+      />
     </div>
 
     <!-- Job Details View -->
@@ -227,16 +126,18 @@
       @toggle-qualification="handleQualificationToggle"
       @submit="promptSubmitEvaluation"
       @close="closeQualificationModal"
+      @check-evaluation-status="refreshApplicantStatus"
       :is-submitted="selectedApplicant.isSubmitted"
     />
 
-    <!-- PDS Modal -->
-    <PDSModal
-      v-model="showPDSModal"
-      :applicant="selectedApplicant"
-      @close="closePDSModal"
-      @view-qs="openQualificationFromPDS"
-    />
+    <!-- PDS Modal (Nested Dialog) -->
+    <q-dialog v-model="showPDSModal" backdrop-opacity="0.7">
+      <PDSModal
+        v-model="showPDSModal"
+        :applicant="selectedApplicant"
+        @close="closePDSModal"
+      />
+    </q-dialog>
 
     <!-- Confirmation Dialog -->
     <q-dialog v-model="showConfirmationModal" persistent>
@@ -283,6 +184,7 @@ import { ref, computed, onMounted } from 'vue'
 import { date } from 'quasar'
 import QualityStandardModal from 'components/QualityStandardModal.vue'
 import PDSModal from 'components/PDSModal.vue'
+import JobPostTable from 'components/User/JobPostTable.vue'
 
 const { formatDate } = date
 
@@ -373,7 +275,7 @@ const columns = [
     label: 'Actions',
     field: 'action',
     searchable: false
-  },
+  }
 ]
 
 const jobs = ref([
@@ -387,41 +289,12 @@ const jobs = ref([
     qualified: 3,
     unqualified: 2,
     qualifications: [
-      'Bachelor’s Degree in Human Resources or related field',
+      'Bachelor\'s Degree in Human Resources or related field',
       'At least 5 years of experience in HR management',
-      'Strong leadership and communication skills',
-    ],
-  },
-  {
-    id: 2,
-    officePosition: 'Finance Department',
-    position: 'Accountant',
-    postingDate: '2025-03-15',
-    applicants: 8,
-    pending: 4,
-    qualified: 2,
-    unqualified: 2,
-    qualifications: [
-      'Bachelor’s Degree in Accounting or Finance',
-      'CPA license is preferred',
-      'Proficiency in financial software and tools',
-    ],
-  },
-  {
-    id: 3,
-    officePosition: 'IT Department',
-    position: 'Software Developer',
-    postingDate: '2025-03-20',
-    applicants: 15,
-    pending: 7,
-    qualified: 5,
-    unqualified: 3,
-    qualifications: [
-      'Bachelor’s Degree in Computer Science or related field',
-      'Experience with JavaScript, Vue.js, and Quasar Framework',
-      'Strong problem-solving and debugging skills',
-    ],
-  },
+      'Strong leadership and communication skills'
+    ]
+  }
+  // ... other job entries
 ])
 
 const filteredJobs = computed(() => {
@@ -443,8 +316,6 @@ const filteredJobs = computed(() => {
         return jobValue.toLowerCase().includes(value.toLowerCase())
       } else if (typeof jobValue === 'number') {
         return jobValue.toString().includes(value)
-      } else if (jobValue instanceof Date) {
-        return formatDate(jobValue, 'MMM D, YYYY').toLowerCase().includes(value.toLowerCase())
       }
       return true
     })
@@ -460,7 +331,7 @@ const selectedJob = ref({
   pending: 0,
   qualified: 0,
   unqualified: 0,
-  qualifications: [],
+  qualifications: []
 })
 
 const viewJobDetails = (job) => {
@@ -500,7 +371,7 @@ const applicantColumns = [
     field: 'action',
     align: 'center',
     sortable: false,
-  },
+  }
 ]
 
 const applicants = ref([
@@ -510,33 +381,13 @@ const applicants = ref([
     appliedDate: '2025-04-02',
     status: 'Pending',
     isSubmitted: false,
-  },
-  {
-    id: 2,
-    name: 'Jane Smith',
-    appliedDate: '2025-04-03',
-    status: 'Pending',
-    isSubmitted: false,
-  },
-  {
-    id: 3,
-    name: 'Alice Johnson',
-    appliedDate: '2025-04-04',
-    status: 'Pending',
-    isSubmitted: false,
-  },
-  {
-    id: 4,
-    name: 'Bob Brown',
-    appliedDate: '2025-04-05',
-    status: 'Pending',
-    isSubmitted: false,
-  },
+  }
+  // ... other applicant entries
 ])
 
 const filteredApplicants = computed(() => {
   return applicants.value.filter(
-    (applicant) => applicant.appliedDate >= selectedJob.value.postingDate,
+    (applicant) => applicant.appliedDate >= selectedJob.value.postingDate
   )
 })
 
@@ -565,7 +416,7 @@ const positionRequirements = ref({
   training: 'Certification in relevant field',
   preferredTraining: 'Multiple advanced certifications',
   eligibility: 'Professional license required',
-  preferredCertification: 'Additional specialized certifications',
+  preferredCertification: 'Additional specialized certifications'
 })
 
 // Confirmation Modal
@@ -584,12 +435,30 @@ const closeQualificationModal = () => {
   showQSModal.value = false
 }
 
+const refreshApplicantStatus = () => {
+  if (selectedApplicant.value && selectedApplicant.value.id) {
+    const currentApplicant = applicants.value.find(a => a.id === selectedApplicant.value.id)
+    if (currentApplicant) {
+      selectedApplicant.value = {
+        ...selectedApplicant.value,
+        status: currentApplicant.status,
+        isSubmitted: currentApplicant.isSubmitted
+      }
+    }
+  }
+}
+
 const handleQualificationToggle = (newStatus) => {
   if (selectedApplicant.value.isSubmitted) {
     console.warn('Cannot change status after submission')
     return
   }
   selectedApplicant.value.status = newStatus
+
+  const applicantIndex = applicants.value.findIndex(a => a.id === selectedApplicant.value.id)
+  if (applicantIndex !== -1) {
+    applicants.value[applicantIndex].status = newStatus
+  }
 }
 
 const promptSubmitEvaluation = () => {
@@ -608,6 +477,7 @@ const submitEvaluation = () => {
       status: selectedApplicant.value.status,
       isSubmitted: true
     }
+    selectedApplicant.value.isSubmitted = true
   }
 
   const jobIndex = jobs.value.findIndex(j => j.id === selectedJob.value.id)
@@ -636,20 +506,12 @@ const viewApplicantPDS = () => {
     if (fullApplicantData) {
       selectedApplicant.value = { ...fullApplicantData, position: selectedJob.value.position }
     }
-    showQSModal.value = false
-    setTimeout(() => {
-      showPDSModal.value = true
-    }, 100)
+    showPDSModal.value = true
   }
 }
+
 const closePDSModal = () => {
   showPDSModal.value = false
-}
-const openQualificationFromPDS = () => {
-  showPDSModal.value = false
-  setTimeout(() => {
-    showQSModal.value = true
-  }, 100)
 }
 
 const getStatusColor = (status) => {
@@ -668,83 +530,13 @@ onMounted(() => {
 
   dateRange.value = {
     from: formatDate(lastMonth, 'YYYY/MM/DD'),
-    to: formatDate(today, 'YYYY/MM/DD'),
+    to: formatDate(today, 'YYYY/MM/DD')
   }
   updateFormattedDate()
 })
 </script>
 
 <style scoped lang="scss">
-.my-sticky-header-table {
-  .q-table__top {
-    padding: 12px 20px;
-  }
-
-  thead tr:first-child th {
-    background-color: #FFF;
-    position: sticky;
-    top: 0;
-    z-index: 1;
-    font-size: 16px;
-    padding: 16px;
-
-    .column {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .q-field {
-      &__control {
-        height: 32px;
-        min-height: 32px;
-      }
-
-      &__native, &__prefix, &__suffix {
-        padding: 0;
-      }
-
-      &__marginal {
-        height: 32px;
-      }
-    }
-  }
-
-  tbody td {
-    padding: 14px 16px;
-    font-size: 15px;
-  }
-
-  .q-table__grid-item {
-    margin-bottom: 12px;
-  }
-
-  .q-card {
-    font-size: 16px;
-    transition:
-      transform 0.2s ease-in-out,
-      box-shadow 0.2s ease-in-out;
-
-    &:hover {
-      transform: scale(1.03);
-      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
-    }
-  }
-
-  .q-table__bottom {
-    border-top: 1px solid #ddd;
-    padding: 8px 16px;
-
-    .q-table__control {
-      min-height: 40px;
-    }
-
-    .q-table__separator {
-      margin: 0 8px;
-    }
-  }
-}
-
 h5 {
   margin-bottom: 0;
 }

@@ -112,33 +112,14 @@
       </div>
 
       <q-card-actions align="right" class="q-pa-md">
-        <q-btn flat label="View QS" color="primary" @click="openQSModal" />
-        <q-btn flat label="Close" color="negative" @click="closeModal" />
-        <q-btn flat label="Print" color="primary" @click="printPDS" />
+        <q-btn flat label="Close" color="primary" @click="closeModal" />
       </q-card-actions>
     </q-card>
   </q-dialog>
-
-  <!-- Quality Standards Modal -->
-  <QualityStandardModal
-    v-if="showQSModal"
-    :show="showQSModal"
-    variant="applicant"
-    :applicant-data="qsApplicantData"
-    :position-requirements="positionRequirements"
-    @update:show="showQSModal = $event"
-    @close="showQSModal = false"
-    @view-pds="handleViewPDS"
-  />
 </template>
 
 <script>
-import QualityStandardModal from './QualityStandardModal.vue';
-
 export default {
-  components: {
-    QualityStandardModal
-  },
   props: {
     modelValue: Boolean,
     applicant: {
@@ -170,7 +151,6 @@ export default {
   data() {
     return {
       localShowModal: this.modelValue,
-      showQSModal: false,
       currentTab: 'personal',
       tabs: [
         { name: 'personal', label: 'Personal Information' },
@@ -185,28 +165,7 @@ export default {
         { name: 'membership', label: 'Membership Association' },
         { name: 'other', label: 'Other Information' },
         { name: 'references', label: 'References' }
-      ],
-      positionRequirements: {
-        education: "Bachelor's Degree",
-        preferredEducation: "Master's Degree preferred",
-        experience: "2 years relevant experience",
-        preferredExperience: "3+ years preferred",
-        training: "8 hours relevant training",
-        preferredTraining: "16+ hours preferred",
-        eligibility: "CS Professional/2nd Level",
-        preferredCertification: "Additional certifications"
-      },
-      qsApplicantData: {
-        name: '',
-        photo: '',
-        position: '',
-        status: 'Pending',
-        applicationDate: new Date().toISOString().split('T')[0],
-        education: [],
-        experience: [],
-        training: [],
-        eligibility: []
-      }
+      ]
     };
   },
   watch: {
@@ -215,39 +174,12 @@ export default {
     },
     modelValue(val) {
       this.localShowModal = val;
-    },
-    applicant: {
-      immediate: true,
-      deep: true,
-      handler(newVal) {
-        this.qsApplicantData = {
-          name: newVal.name,
-          photo: newVal.photo,
-          position: newVal.position || 'Applied Position',
-          status: newVal.status || 'Pending',
-          applicationDate: newVal.applicationDate || new Date().toISOString().split('T')[0],
-          education: newVal.education || [],
-          experience: newVal.experience || [],
-          training: newVal.training || [],
-          eligibility: newVal.eligibility || []
-        };
-      }
     }
   },
   methods: {
-    openQSModal() {
-      this.showQSModal = true;
-    },
-    handleViewPDS() {
-      this.showQSModal = false;
-      this.localShowModal = true;
-    },
     closeModal() {
       this.$emit('update:modelValue', false);
       this.$emit('close');
-    },
-    printPDS() {
-      window.print();
     }
   }
 };

@@ -281,7 +281,9 @@ const emit = defineEmits(['update:show', 'view-pds', 'toggle-qualification', 'su
 
 const localShow = ref(props.show)
 const tab = ref('education')
+
 const evaluationLocked = computed(() => props.isSubmitted)
+
 
 const statusColor = computed(() => {
   switch (props.applicantData.status) {
@@ -293,7 +295,11 @@ const statusColor = computed(() => {
 })
 
 const overallStatus = computed(() => {
-  return props.applicantData.status === 'Qualified' ? 'Meets Requirements' : 'Under Review'
+  switch (props.applicantData.status) {
+    case 'Qualified': return 'Meets Requirements'
+    case 'Unqualified': return 'Does not meet the requirements'
+    default: return 'Under Review'
+  }
 })
 
 watch(() => props.show, (newVal) => {

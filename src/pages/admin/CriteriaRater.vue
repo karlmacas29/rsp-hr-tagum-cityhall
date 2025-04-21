@@ -1,304 +1,374 @@
 <template>
   <div class="q-pa-md">
-    <div class="row justify-between items-center q-mb-md">
-      <div class="text-h6 text-weight-bold">Rating Form for Qualification Standards</div>
-      <q-btn color="green" label="Update Rating" @click="confirmUpdate" />
+    <!-- Header with improved styling -->
+    <div class="row justify-between items-center q-mb-lg">
+      <div class="text-h5 text-weight-medium text-primary">Rating Criteria Setup</div>
+      <q-btn
+        color="primary"
+        label="Save Criteria"
+        icon="save"
+        :loading="loading"
+        @click="confirmSave"
+        v-if="showRatingTable"
+        rounded
+      />
     </div>
 
-    <div class="row q-mb-md">
-      <div class="col-12 col-sm-6">
-        <div class="row">
-          <div class="col-4 q-py-sm">Office:</div>
-          <div class="col-8">
-            <q-input outlined dense v-model="formData.office" />
+    <!-- Form section with card styling -->
+    <q-card flat bordered class="q-pa-md q-mb-lg">
+      <q-card-section>
+        <div class="row q-col-gutter-md">
+          <!-- Office selector with improved layout -->
+          <div class="col-12 col-md-6">
+            <div class="text-subtitle2 q-mb-xs">Office</div>
+            <q-select
+              outlined
+              v-model="formData.office"
+              :options="filteredOfficeOptions"
+              use-input
+              hide-selected
+              fill-input
+              input-debounce="0"
+              @filter="filterOffices"
+              @update:model-value="resetPosition"
+              placeholder="Select or search for an office"
+              class="q-mb-sm"
+            >
+              <template v-slot:prepend>
+                <q-icon name="business" color="primary" />
+              </template>
+              <template v-slot:no-option>
+                <q-item>
+                  <q-item-section class="text-grey">
+                    No results
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
+          </div>
+
+          <!-- Position selector with improved layout -->
+          <div class="col-12 col-md-6">
+            <div class="text-subtitle2 q-mb-xs">Position</div>
+            <q-select
+              outlined
+              v-model="formData.position"
+              :options="filteredPositionOptions"
+              use-input
+              hide-selected
+              fill-input
+              input-debounce="0"
+              @filter="filterPositions"
+              :disable="!formData.office"
+              @update:model-value="loadPositionDetails"
+              placeholder="Select a position"
+              class="q-mb-sm"
+            >
+              <template v-slot:prepend>
+                <q-icon name="work" color="primary" />
+              </template>
+              <template v-slot:no-option>
+                <q-item>
+                  <q-item-section class="text-grey">
+                    No results
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
+          </div>
+
+          <!-- Read-only fields with improved styling -->
+          <div class="col-12 col-md-6">
+            <div class="text-subtitle2 q-mb-xs">Salary Grade</div>
+            <q-input
+              outlined
+              v-model="formData.salaryGrade"
+              readonly
+              disable
+              placeholder="Will be populated after position selection"
+            >
+              <template v-slot:prepend>
+                <q-icon name="payments" color="grey" />
+              </template>
+            </q-input>
+          </div>
+
+          <div class="col-12 col-md-6">
+            <div class="text-subtitle2 q-mb-xs">Plantilla Item No.</div>
+            <q-input
+              outlined
+              v-model="formData.plantillaItemNo"
+              readonly
+              disable
+              placeholder="Will be populated after position selection"
+            >
+              <template v-slot:prepend>
+                <q-icon name="tag" color="grey" />
+              </template>
+            </q-input>
           </div>
         </div>
-      </div>
-      <div class="col-12 col-sm-6">
-        <div class="row">
-          <div class="col-5 q-py-sm">Salary Grade:</div>
-          <div class="col-7">
-            <q-input outlined dense v-model="formData.salaryGrade" />
-          </div>
-        </div>
-      </div>
+      </q-card-section>
+    </q-card>
+
+    <!-- Message when criteria editor is hidden -->
+    <div v-if="!showRatingTable" class="text-center q-pa-xl bg-blue-1 rounded-borders">
+      <q-icon name="tune" size="3rem" color="primary" class="q-mb-md" />
+      <p class="text-subtitle1">Please select both an Office and Position to configure rating criteria.</p>
+      <p class="text-caption text-grey-8">This will load the appropriate criteria template for your selected position.</p>
     </div>
 
-    <div class="row q-mb-lg">
-      <div class="col-12 col-sm-6">
-        <div class="row">
-          <div class="col-4 q-py-sm">Position:</div>
-          <div class="col-8">
-            <q-input outlined dense v-model="formData.position" />
-          </div>
-        </div>
-      </div>
-      <div class="col-12 col-sm-6">
-        <div class="row">
-          <div class="col-5 q-py-sm">Plantilla Item No.:</div>
-          <div class="col-7">
-            <q-input outlined dense v-model="formData.plantillaItemNo" />
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- Criteria Editor - Only shown when office and position are selected -->
+    <template v-if="showRatingTable">
+      <div class="text-h6 q-my-md text-primary">Define Rating Criteria</div>
 
-    <div class="q-table-container">
-      <table class="q-table q-table--bordered full-width">
-        <thead>
-          <tr>
-            <th class="text-left" style="width: 12%">Name of Applicant</th>
-            <th class="text-left" style="width: 12%">Education<br />(20%)</th>
-            <th class="text-left" style="width: 12%">Experience<br />(20%)</th>
-            <th class="text-left" style="width: 12%">Training<br />(15%)</th>
-            <th class="text-left" style="width: 12%">Performance<br />(15%)</th>
-            <th class="text-center" style="width: 10%">TOTAL QS<br />(75%)</th>
-            <th class="text-center" style="width: 10%">BEI<br />(30%)</th>
-            <th class="text-center" style="width: 10%">GRAND TOTAL<br />(100%)</th>
-            <th class="text-center" style="width: 10%">Ranking</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr class="bg-grey-2">
-            <td class="text-left criteria-cell">
-              <div class="text-weight-bold"></div>
-            </td>
-            <td class="text-left criteria-cell">
+      <div class="row q-col-gutter-md">
+        <!-- Education criteria card -->
+        <div class="col-12 col-md-6">
+          <q-card flat bordered class="criteria-card">
+            <q-card-section class="bg-blue-1">
+              <div class="text-subtitle1 text-weight-medium">Education (20%)</div>
+            </q-card-section>
+            <q-card-section>
               <q-input
                 v-model="criteria.education.title1"
+                label="Minimum Qualification"
                 dense
-                flat
-                borderless
-                class="no-padding"
+                outlined
+                class="q-mb-sm"
               />
               <q-input
                 v-model="criteria.education.title2"
+                label="Title"
                 dense
-                flat
-                borderless
-                class="no-padding text-weight-bold"
+                outlined
+                class="q-mb-sm"
               />
               <q-input
                 v-model="criteria.education.description"
+                label="Description"
                 dense
-                flat
-                borderless
-                class="no-padding"
+                outlined
                 type="textarea"
                 autogrow
+                rows="3"
               />
-            </td>
-            <td class="text-left criteria-cell">
+            </q-card-section>
+          </q-card>
+        </div>
+
+        <!-- Experience criteria card -->
+        <div class="col-12 col-md-6">
+          <q-card flat bordered class="criteria-card">
+            <q-card-section class="bg-blue-1">
+              <div class="text-subtitle1 text-weight-medium">Experience (20%)</div>
+            </q-card-section>
+            <q-card-section>
               <q-input
                 v-model="criteria.experience.title1"
+                label="Minimum Qualification"
                 dense
-                flat
-                borderless
-                class="no-padding"
+                outlined
+                class="q-mb-sm"
               />
               <q-input
                 v-model="criteria.experience.title2"
+                label="Title"
                 dense
-                flat
-                borderless
-                class="no-padding text-weight-bold"
+                outlined
+                class="q-mb-sm"
               />
               <q-input
                 v-model="criteria.experience.description1"
+                label="Description (With Experience)"
                 dense
-                flat
-                borderless
-                class="no-padding"
+                outlined
                 type="textarea"
                 autogrow
+                rows="2"
+                class="q-mb-sm"
               />
               <q-input
                 v-model="criteria.experience.description2"
+                label="Description (Without Experience)"
                 dense
-                flat
-                borderless
-                class="no-padding"
+                outlined
               />
-            </td>
-            <td class="text-left criteria-cell">
+            </q-card-section>
+          </q-card>
+        </div>
+
+        <!-- Training criteria card -->
+        <div class="col-12 col-md-6">
+          <q-card flat bordered class="criteria-card">
+            <q-card-section class="bg-blue-1">
+              <div class="text-subtitle1 text-weight-medium">Training (15%)</div>
+            </q-card-section>
+            <q-card-section>
               <q-input
                 v-model="criteria.training.title1"
+                label="Minimum Qualification"
                 dense
-                flat
-                borderless
-                class="no-padding"
+                outlined
+                class="q-mb-sm"
               />
               <q-input
                 v-model="criteria.training.title2"
+                label="Title"
                 dense
-                flat
-                borderless
-                class="no-padding text-weight-bold"
+                outlined
+                class="q-mb-sm"
               />
               <q-input
                 v-model="criteria.training.description"
+                label="Description"
                 dense
-                flat
-                borderless
-                class="no-padding"
+                outlined
                 type="textarea"
                 autogrow
+                rows="3"
               />
-            </td>
-            <td class="text-left criteria-cell">
+            </q-card-section>
+          </q-card>
+        </div>
+
+        <!-- Performance criteria card -->
+        <div class="col-12 col-md-6">
+          <q-card flat bordered class="criteria-card">
+            <q-card-section class="bg-blue-1">
+              <div class="text-subtitle1 text-weight-medium">Performance (15%)</div>
+            </q-card-section>
+            <q-card-section>
               <q-input
                 v-model="criteria.performance.title"
+                label="Title"
                 dense
-                flat
-                borderless
-                class="no-padding"
+                outlined
+                class="q-mb-sm"
               />
               <q-input
                 v-model="criteria.performance.rating1"
+                label="Outstanding Rating"
                 dense
-                flat
-                borderless
-                class="no-padding"
+                outlined
+                class="q-mb-sm"
               />
               <q-input
                 v-model="criteria.performance.rating2"
+                label="Very Satisfactory Rating"
                 dense
-                flat
-                borderless
-                class="no-padding"
+                outlined
+                class="q-mb-sm"
               />
               <q-input
                 v-model="criteria.performance.rating3"
+                label="Below VS Rating"
                 dense
-                flat
-                borderless
-                class="no-padding"
+                outlined
               />
-            </td>
-            <td class="text-center criteria-cell"></td>
-            <td class="text-center criteria-cell"></td>
-            <td class="text-center criteria-cell"></td>
-            <td class="text-center criteria-cell"></td>
-          </tr>
-          <tr>
-            <td>1.</td>
-            <td>
-              <q-input
-                filled
-                dense
-                v-model="applicant1.education"
-                type="number"
-                @update:model-value="calculateTotals(applicant1)"
-              />
-            </td>
-            <td>
-              <q-input
-                filled
-                dense
-                v-model="applicant1.experience"
-                type="number"
-                @update:model-value="calculateTotals(applicant1)"
-              />
-            </td>
-            <td>
-              <q-input filled dense v-model="applicant1.training" type="text" readonly disable />
-            </td>
-            <td>
-              <q-input
-                filled
-                dense
-                v-model="applicant1.performance"
-                type="number"
-                @update:model-value="calculateTotals(applicant1)"
-              />
-            </td>
-            <td class="text-center">
-              <q-input filled dense v-model="applicant1.totalQS" type="text" readonly disable />
-            </td>
-            <td>
-              <q-input
-                filled
-                dense
-                v-model="applicant1.bei"
-                type="number"
-                @update:model-value="calculateTotals(applicant1)"
-              />
-            </td>
-            <td class="text-center">
-              <q-input filled dense v-model="applicant1.grandTotal" type="text" readonly disable />
-            </td>
-            <td class="text-center">
-              <q-input filled dense v-model="applicant1.ranking" type="text" readonly disable />
-            </td>
-          </tr>
-          <tr>
-            <td>2.</td>
-            <td>
-              <q-input
-                filled
-                dense
-                v-model="applicant2.education"
-                type="number"
-                @update:model-value="calculateTotals(applicant2)"
-              />
-            </td>
-            <td>
-              <q-input
-                filled
-                dense
-                v-model="applicant2.experience"
-                type="number"
-                @update:model-value="calculateTotals(applicant2)"
-              />
-            </td>
-            <td>
-              <q-input filled dense v-model="applicant2.training" type="text" readonly disable />
-            </td>
-            <td>
-              <q-input
-                filled
-                dense
-                v-model="applicant2.performance"
-                type="number"
-                @update:model-value="calculateTotals(applicant2)"
-              />
-            </td>
-            <td class="text-center">
-              <q-input filled dense v-model="applicant2.totalQS" type="text" readonly disable />
-            </td>
-            <td>
-              <q-input
-                filled
-                dense
-                v-model="applicant2.bei"
-                type="number"
-                @update:model-value="calculateTotals(applicant2)"
-              />
-            </td>
-            <td class="text-center">
-              <q-input filled dense v-model="applicant2.grandTotal" type="text" readonly disable />
-            </td>
-            <td class="text-center">
-              <q-input filled dense v-model="applicant2.ranking" type="text" readonly disable />
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+            </q-card-section>
+          </q-card>
+        </div>
+      </div>
 
+      <!-- Preview section - Keeping this intact as requested -->
+      <div class="q-mt-xl">
+        <div class="row items-center q-mb-md">
+          <div class="text-h6">Rater Preview</div>
+          <q-badge color="green" class="q-ml-sm">Preview Only</q-badge>
+        </div>
+
+        <q-card flat bordered>
+          <q-card-section>
+            <p class="text-caption text-italic q-mb-md">This is how the form will appear to raters.</p>
+
+            <table class="q-table q-table--bordered full-width">
+              <thead>
+                <tr>
+                  <th class="text-left" style="width: 12%">Name of Applicant</th>
+                  <th class="text-left" style="width: 12%">Education<br />(20%)</th>
+                  <th class="text-left" style="width: 12%">Experience<br />(20%)</th>
+                  <th class="text-left" style="width: 12%">Training<br />(15%)</th>
+                  <th class="text-left" style="width: 12%">Performance<br />(15%)</th>
+                  <th class="text-center" style="width: 10%">TOTAL QS<br />(75%)</th>
+                  <th class="text-center" style="width: 10%">BEI<br />(30%)</th>
+                  <th class="text-center" style="width: 10%">GRAND TOTAL<br />(100%)</th>
+                  <th class="text-center" style="width: 10%">Ranking</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="bg-grey-2">
+                  <td class="text-left criteria-cell">
+                    <div class="text-weight-bold">Criteria</div>
+                  </td>
+                  <td class="text-left criteria-cell">
+                    <div>{{ criteria.education.title1 }}</div>
+                    <div class="text-weight-bold">{{ criteria.education.title2 }}</div>
+                    <div>{{ criteria.education.description }}</div>
+                  </td>
+                  <td class="text-left criteria-cell">
+                    <div>{{ criteria.experience.title1 }}</div>
+                    <div class="text-weight-bold">{{ criteria.experience.title2 }}</div>
+                    <div>{{ criteria.experience.description1 }}</div>
+                    <div>{{ criteria.experience.description2 }}</div>
+                  </td>
+                  <td class="text-left criteria-cell">
+                    <div>{{ criteria.training.title1 }}</div>
+                    <div class="text-weight-bold">{{ criteria.training.title2 }}</div>
+                    <div>{{ criteria.training.description }}</div>
+                  </td>
+                  <td class="text-left criteria-cell">
+                    <div>{{ criteria.performance.title }}</div>
+                    <div>{{ criteria.performance.rating1 }}</div>
+                    <div>{{ criteria.performance.rating2 }}</div>
+                    <div>{{ criteria.performance.rating3 }}</div>
+                  </td>
+                  <td class="text-center criteria-cell"></td>
+                  <td class="text-center criteria-cell"></td>
+                  <td class="text-center criteria-cell"></td>
+                  <td class="text-center criteria-cell"></td>
+                </tr>
+                <tr>
+                  <td>Applicant Name</td>
+                  <td class="preview-cell">20.0</td>
+                  <td class="preview-cell">20.0</td>
+                  <td class="preview-cell">15.0</td>
+                  <td class="preview-cell">15.0</td>
+                  <td class="preview-cell">70.0</td>
+                  <td class="preview-cell">25.0</td>
+                  <td class="preview-cell">95.0</td>
+                  <td class="preview-cell">1</td>
+                </tr>
+              </tbody>
+            </table>
+          </q-card-section>
+        </q-card>
+      </div>
+    </template>
+
+    <!-- Confirmation dialog with improved styling -->
     <q-dialog v-model="confirmDialog" persistent>
-      <q-card style="min-width: 350px">
-        <q-card-section class="row items-center">
-          <q-avatar icon="warning" color="warning" text-color="white" />
-          <span class="q-ml-sm">Are you sure you want to update the rating criteria?</span>
+      <q-card style="min-width: 350px" class="confirm-dialog">
+        <q-card-section class="bg-primary text-white">
+          <div class="text-h6">Confirm Save</div>
+        </q-card-section>
+
+        <q-card-section class="row items-center q-py-md">
+          <q-avatar icon="save" color="primary" text-color="white" class="q-mr-md" />
+          <span>Save criteria for {{ formData.position }} in {{ formData.office }}?</span>
         </q-card-section>
 
         <q-card-actions align="right">
-          <q-btn flat label="Cancel" color="primary" v-close-popup />
-          <q-btn flat label="Update" color="primary" @click="updateRating" v-close-popup />
+          <q-btn flat label="Cancel" color="dark" v-close-popup />
+          <q-btn label="Save" color="positive" @click="saveCriteria" v-close-popup />
         </q-card-actions>
       </q-card>
     </q-dialog>
+
+    <!-- Loading overlay -->
+    <q-inner-loading :showing="loading">
+      <q-spinner-gears size="50px" color="primary" />
+    </q-inner-loading>
   </div>
 </template>
 
@@ -309,10 +379,12 @@ export default {
 
   data() {
     return {
+      loading: false,
+      showRatingTable: false,
       confirmDialog: false,
       formData: {
-        office: '',
-        position: '',
+        office: null,
+        position: null,
         salaryGrade: '',
         plantillaItemNo: '',
       },
@@ -343,64 +415,140 @@ export default {
           rating3: 'Below VS rating → 10%',
         },
       },
-      applicant1: {
-        education: '',
-        experience: '',
-        training: '',
-        performance: '',
-        bei: '',
-        totalQS: '',
-        grandTotal: '',
-        ranking: '',
-      },
-      applicant2: {
-        education: '',
-        experience: '',
-        training: '',
-        performance: '',
-        bei: '',
-        totalQS: '',
-        grandTotal: '',
-        ranking: '',
-      },
+      officeOptions: [
+        'Human Resource Office',
+        'Finance Department',
+        'Legal Department',
+        'Information Technology Department',
+        'Operations Department',
+        'Administrative Services',
+      ],
+      positionOptions: [
+        'Administrative Officer',
+        'Budget Officer',
+        'Accountant',
+        'Planning Officer',
+        'Human Resource Officer',
+        'IT Officer',
+        'Engineer',
+        'Project Development Officer',
+        'Public Information Officer'
+      ],
+      filteredOfficeOptions: [],
+      filteredPositionOptions: []
     }
   },
   methods: {
-    confirmUpdate() {
+    confirmSave() {
       this.confirmDialog = true
     },
-    updateRating() {
-      this.calculateAllTotals()
-      // this.$q.notify({
-      //   color: 'positive',
-      //   message: 'Rating criteria updated successfully',
-      //   icon: 'check_circle',
-      // })
-      toast.success('Rating criteria updated successfully')
-    },
-    calculateAllTotals() {
-      this.calculateTotals(this.applicant1)
-      this.calculateTotals(this.applicant2)
-    },
-    calculateTotals(applicant) {
-      const education = parseFloat(applicant.education) || 0
-      const experience = parseFloat(applicant.experience) || 0
-      const training = parseFloat(applicant.training) || 0
-      const performance = parseFloat(applicant.performance) || 0
-      const bei = parseFloat(applicant.bei) || 0
+    saveCriteria() {
+      // This would save the criteria to your database
+      this.loading = true
 
-      applicant.totalQS = (education + experience + training + performance).toFixed(1)
-      applicant.grandTotal = (parseFloat(applicant.totalQS) + bei).toFixed(1)
+      // Simulate API call
+      setTimeout(() => {
+        this.loading = false
+        toast.success(`Criteria for ${this.formData.position} in ${this.formData.office} saved successfully`)
+      }, 1000)
     },
+    filterOffices(val, update) {
+      update(() => {
+        if (val === '') {
+          this.filteredOfficeOptions = this.officeOptions
+        } else {
+          const needle = val.toLowerCase()
+          this.filteredOfficeOptions = this.officeOptions.filter(
+            v => v.toLowerCase().indexOf(needle) > -1
+          )
+        }
+      })
+    },
+    filterPositions(val, update) {
+      update(() => {
+        if (val === '') {
+          this.filteredPositionOptions = this.positionOptions
+        } else {
+          const needle = val.toLowerCase()
+          this.filteredPositionOptions = this.positionOptions.filter(
+            v => v.toLowerCase().indexOf(needle) > -1
+          )
+        }
+      })
+    },
+    resetPosition() {
+      this.formData.position = null
+      this.formData.salaryGrade = ''
+      this.formData.plantillaItemNo = ''
+      this.showRatingTable = false // Hide criteria when office changes
+    },
+    loadPositionDetails() {
+      if (!this.formData.position) return
+
+      this.loading = true
+
+      // Simulate API call to fetch position details
+      setTimeout(() => {
+        // In a real app, this data would come from your backend
+        if (this.formData.position === 'Administrative Officer') {
+          this.formData.salaryGrade = 'SG-24'
+          this.formData.plantillaItemNo = 'ADMIN-2024-001'
+        } else if (this.formData.position === 'Budget Officer') {
+          this.formData.salaryGrade = 'SG-22'
+          this.formData.plantillaItemNo = 'BUDG-2024-003'
+        } else if (this.formData.position === 'Accountant') {
+          this.formData.salaryGrade = 'SG-19'
+          this.formData.plantillaItemNo = 'ACCT-2024-002'
+        } else {
+          this.formData.salaryGrade = 'SG-18'
+          this.formData.plantillaItemNo = `${this.formData.position.substr(0, 4).toUpperCase()}-2024-005`
+        }
+
+        this.loadCriteriaForPosition()
+        this.loading = false
+      }, 800)
+    },
+    loadCriteriaForPosition() {
+      // This would load existing criteria from your database
+      this.loading = true
+
+      // Simulate API call
+      setTimeout(() => {
+        // In a real app, you would fetch this data from your backend
+        // For now, we're just setting some example criteria based on position
+        if (this.formData.position === 'Administrative Officer') {
+          this.criteria.education.title1 = "Bachelor's Degree"
+          this.criteria.experience.title1 = "5 years of relevant experience"
+        } else if (this.formData.position === 'Budget Officer') {
+          this.criteria.education.title1 = "Bachelor's Degree in Accounting or Finance"
+          this.criteria.experience.title1 = "3 years of relevant experience"
+        }
+
+        this.showRatingTable = true
+        this.loading = false
+      }, 500)
+    }
   },
+  created() {
+    // Initialize filtered options with all options
+    this.filteredOfficeOptions = [...this.officeOptions]
+    this.filteredPositionOptions = [...this.positionOptions]
+  }
 }
 </script>
 
 <style scoped>
+/* Basic table styling - keeping the rater preview styling */
 .criteria-cell {
   padding: 8px;
   font-size: 12px;
   vertical-align: top;
+}
+
+.preview-cell {
+  background-color: #f5f5f5;
+  color: #777;
+  text-align: center;
 }
 
 .q-table {
@@ -418,25 +566,33 @@ export default {
   background-color: #f2f2f2;
 }
 
-.no-padding {
-  padding: 0;
+/* Modern UI improvements */
+.criteria-card {
+  height: 100%;
+  transition: all 0.3s ease;
 }
 
-.no-padding :deep(.q-field__control) {
-  padding: 0;
-  min-height: unset;
+.criteria-card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.no-padding :deep(.q-field__marginal) {
-  display: none;
+.confirm-dialog {
+  border-radius: 8px;
 }
 
 .q-field--disabled {
-  background-color: #f5f5f5;
+  opacity: 0.8;
 }
 
 .q-field--disabled .q-field__control {
   background-color: #f5f5f5;
   color: #666;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+  .criteria-card {
+    margin-bottom: 16px;
+  }
 }
 </style>

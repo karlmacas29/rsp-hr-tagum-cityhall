@@ -28,7 +28,7 @@
       <q-spinner-dots size="100px" color="primary" class="q-ma-md" />
     </div>
 
-    
+
   </div>
 </template>
 
@@ -86,7 +86,7 @@ const stats = ref([
   },
   {
     title: 'Job Order',
-    valueKey: 'JOB ORDER',
+    valueKey: 'CONTRACTUAL',
     caption: 'Employee',
     color: '#FFF',
     icon: 'description',
@@ -110,9 +110,20 @@ const getStatValue = (valueKey) => {
 }
 
 const showEmployeeDialog = async (status) => {
-  const status_title = status
-  router.push(`/dashboard/status/${status_title}`)
-}
+  const statusMapping = {
+    Elective: 'ELECTIVE',
+    Appointed: 'APPOINTED',
+    'Co-Terminous': 'CO-TERMINOUS',
+    Permanent: 'REGULAR',
+    Temporary: 'TEMPORARY',
+    Casual: 'CASUAL',
+    'Job Order': 'CONTRACTUAL',
+    Honorarium: 'HONORARIUM',
+  };
+
+  const status_title = statusMapping[status] || status;
+  router.push(`/dashboard/status/${status_title}`);
+};
 
 onMounted(async () => {
   try {

@@ -1,28 +1,29 @@
 <template>
   <div>
-    <div v-if="!vwActiveStore.loading" class="row justify-evenly q-gutter-y-md">
+    <div v-if="!vwActiveStore.loading" class="row q-gutter-y-md">
       <q-card
         v-for="(stat, index) in stats"
         :key="index"
-        class="stat-card text-dark cursor-pointer"
+        class="stat-card text-dark cursor-pointer q-pr-md"
         :style="{
           backgroundColor: stat.color,
-          width: '175px',
+          width: '120px',
           borderTop: '8px solid #00b034',
           borderRadius: '12px',
+          margin: '9px',
         }"
         @click="showEmployeeDialog(stat.title)"
       >
-        <q-card-section class="q-pa-lg row justify-between items-center">
+        <q-card-section class="q-pa-sm row items-center">
           <div>
             <div class="text-subtitle1 text-bold">{{ stat.title }}</div>
             <div class="text-h4">{{ getStatValue(stat.valueKey) }}</div>
             <div class="text-caption">{{ stat.caption }}</div>
           </div>
-          <div><q-icon :name="stat.icon" size="30px" /></div>
+          <!-- <div><q-icon :name="stat.icon" size="30px" /></div> -->
         </q-card-section>
       </q-card>
-    </div>
+  </div>
     <div v-else class="row justify-center items-center q-mx-auto">
       <q-spinner-dots size="100px" color="primary" class="q-ma-md" />
     </div>
@@ -97,7 +98,7 @@ const stats = ref([
     color: '#FFF',
     icon: 'monetization_on',
   },
-  
+
 ])
 
 const getStatValue = (valueKey) => {

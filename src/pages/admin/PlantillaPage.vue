@@ -301,15 +301,22 @@
 
     <!-- Quality Standard Modal (now a separate component) -->
     <QualityStandardModal 
-      v-model:show="showFilledPositionModal" 
-      :employee-name="selectedPosition?.employee"
+      v-model:show="showFilledPositionModal"
+      variant="employee"
       :applicant-data="selectedApplicant"
       :position-requirements="positionRequirements"
-      :current-position="currentPosition" 
-      :higher-education="higherEducation" 
-      @print="printPosition(selectedPosition)"
-      @update="handleUpdatePosition" 
+      @view-pds="viewApplicantPDS"
+      @close="closeQualificationModal"
     />
+
+    <!-- PDS Modal (Nested Dialog) -->
+    
+      <PDSModal
+        v-model="showPDSModal"
+        :applicant="selectedApplicant"
+        @close="closePDSModal"
+      />
+    
   </q-page>
 </template>
 
@@ -323,11 +330,22 @@ const usePlantilla = usePlantillaStore();
 
 const showModal = ref(false)
 const showVacantPositionModal = ref(false)
+
+const closeQualificationModal = () => {
+  showFilledPositionModal.value = false
+}
 const showFilledPositionModal = ref(false)
+
 const selectedFile = ref(null)
 const currentRow = ref(null)
 const selectedPosition = ref(null)
 const filter = ref('')
+
+const closePDSModal = () => {
+  showPDSModal.value = false
+}
+const showPDSModal = ref(false)
+
 
 // Add filter object to store search values for each column
 const filters = ref({
@@ -339,6 +357,35 @@ const filters = ref({
   fd: 'All',
   Status: ''
 })
+
+// eslint-disable-next-line no-unused-vars
+const applicants = ref([
+  {
+    id: 1,
+    name: 'John Doe',
+    appliedDate: '2025-04-02',
+    status: 'Pending',
+    isSubmitted: false,
+  }
+])
+
+// eslint-disable-next-line no-unused-vars
+const selectedJob = ref({
+  id: null,
+  officePosition: '',
+  position: '',
+  postingDate: '',
+  applicants: 0,
+  pending: 0,
+  qualified: 0,
+  unqualified: 0,
+  qualifications: []
+})
+
+const viewApplicantPDS = () => {
+    
+  showPDSModal.value = true
+}
 
 const positionRequirements = ref({
   education: "Bachelor's Degree in related field",
@@ -531,10 +578,6 @@ const submitJobPost = () => {
   showVacantPositionModal.value = false
 }
 
-const handleUpdatePosition = () => {
-  console.log('Update position logic here')
-  // Add your update logic here
-}
 
 const handleFundedToggle = async (row) => {
   try {

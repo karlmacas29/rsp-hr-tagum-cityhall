@@ -158,76 +158,73 @@
   </q-dialog>
 </template>
 
-<script>
-export default {
-  props: {
-    modelValue: Boolean,
-    applicant: {
-      type: Object,
-      default: () => ({
-        name: '',
-        photo: '',
-        position: '',
-        status: 'Pending',
-        personalInfo: {
-          dateOfBirth: '',
-          placeOfBirth: '',
-          sex: '',
-          civilStatus: '',
-          genderPreference: '',
-          height: '',
-          weight: '',
-          bloodType: '',
-          telephone: '',
-          mobile: ''
-        },
-        education: [],
-        experience: [],
-        training: [],
-        eligibility: []
-      })
-    }
-  },
-  data() {
-    return {
-      localShowModal: this.modelValue,
-      currentTab: 'personal',
-      tabs: [
-        { name: 'personal', label: 'Personal Information' },
-        { name: 'family', label: 'Family Background' },
-        { name: 'education', label: 'Educational Background' },
-        { name: 'civilService', label: 'Civil Service Eligibility' },
-        { name: 'work', label: 'Work Experience' },
-        { name: 'voluntary', label: 'Voluntary Work' },
-        { name: 'training', label: 'L&D Interventions' },
-        { name: 'skills', label: 'Special Skills & Hobbies' },
-        { name: 'nonAcademic', label: 'Non-Academic' },
-        { name: 'membership', label: 'Membership Association' },
-        { name: 'other', label: 'Other Information' },
-        { name: 'references', label: 'References' }
-      ]
-    };
-  },
-  watch: {
-    localShowModal(val) {
-      this.$emit('update:modelValue', val);
-    },
-    modelValue(val) {
-      this.localShowModal = val;
-    }
-  },
-  methods: {
-    closeModal() {
-      this.$emit('update:modelValue', false);
-      this.$emit('close');
-    },
-    isTabCompleted(tabName) {
-      // This is a placeholder method - implement your logic to determine if a tab is completed
-      // For now, let's just mark the first 4 tabs as completed for demonstration
-      const completedTabs = ['personal', 'family', 'education', 'civilService'];
-      return completedTabs.includes(tabName);
-    }
+<script setup>
+import { ref, watch } from 'vue';
+
+const props = defineProps({
+  modelValue: Boolean,
+  applicant: {
+    type: Object,
+    default: () => ({
+      name: '',
+      photo: '',
+      position: '',
+      status: 'Pending',
+      personalInfo: {
+        dateOfBirth: '',
+        placeOfBirth: '',
+        sex: '',
+        civilStatus: '',
+        genderPreference: '',
+        height: '',
+        weight: '',
+        bloodType: '',
+        telephone: '',
+        mobile: ''
+      },
+      education: [],
+      experience: [],
+      training: [],
+      eligibility: []
+    })
   }
+});
+
+const emit = defineEmits(['update:modelValue', 'close']);
+
+const localShowModal = ref(props.modelValue);
+const currentTab = ref('personal');
+const tabs = ref([
+  { name: 'personal', label: 'Personal Information' },
+  { name: 'family', label: 'Family Background' },
+  { name: 'education', label: 'Educational Background' },
+  { name: 'civilService', label: 'Civil Service Eligibility' },
+  { name: 'work', label: 'Work Experience' },
+  { name: 'voluntary', label: 'Voluntary Work' },
+  { name: 'training', label: 'L&D Interventions' },
+  { name: 'skills', label: 'Special Skills & Hobbies' },
+  { name: 'nonAcademic', label: 'Non-Academic' },
+  { name: 'membership', label: 'Membership Association' },
+  { name: 'other', label: 'Other Information' },
+  { name: 'references', label: 'References' }
+]);
+
+watch(() => localShowModal.value, (val) => {
+  emit('update:modelValue', val);
+});
+
+watch(() => props.modelValue, (val) => {
+  localShowModal.value = val;
+});
+
+const closeModal = () => {
+  emit('update:modelValue', false);
+  emit('close');
+};
+
+const isTabCompleted = (tabName) => {
+  const completedTabs = ['personal', 'family', 'education', 'civilService'];
+  return completedTabs.includes(tabName);
 };
 </script>
 

@@ -123,11 +123,11 @@
       :applicant-data="selectedApplicant"
       :position-requirements="positionRequirements"
       @view-pds="viewApplicantPDS"
-      @toggle-qualification="handleQualificationToggle"
-      @submit="promptSubmitEvaluation"
-      @close="closeQualificationModal"
-      @check-evaluation-status="refreshApplicantStatus"
-      :is-submitted="selectedApplicant.isSubmitted"
+        @toggle-qualification="handleQualificationToggle"
+        @submit="promptSubmitEvaluation"
+        @close="closeQualificationModal"
+        @check-evaluation-status="refreshApplicantStatus"
+        :is-submitted="selectedApplicant.isSubmitted"
     />
 
     <!-- PDS Modal (Nested Dialog) -->
@@ -382,7 +382,6 @@ const applicants = ref([
     status: 'Pending',
     isSubmitted: false,
   }
-  // ... other applicant entries
 ])
 
 const filteredApplicants = computed(() => {
@@ -500,6 +499,7 @@ const submitEvaluation = () => {
 
 // PDS Modal functions
 const showPDSModal = ref(false)
+
 const viewApplicantPDS = () => {
   if (selectedApplicant.value && selectedApplicant.value.id) {
     const fullApplicantData = applicants.value.find(a => a.id === selectedApplicant.value.id)

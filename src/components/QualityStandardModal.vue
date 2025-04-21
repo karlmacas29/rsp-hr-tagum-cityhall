@@ -29,7 +29,7 @@
                     style="width: 100px; height: 100px; border-radius: 10px;"
                     alt="Applicant Photo"
                   />
-              <div class="text-h6 text-center q-mb-sm">{{ applicantData.Name1 }}</div>
+              <div class="text-h6 text-center q-mb-sm">{{ applicantData?.Name1 || 'John Doe'}}</div>
               <q-badge :color="statusColor" class="q-mb-md">
                 {{ applicantData.status }}
                 <q-icon v-if="evaluationLocked" name="lock" class="q-ml-xs" />

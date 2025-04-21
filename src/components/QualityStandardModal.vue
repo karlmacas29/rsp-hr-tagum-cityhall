@@ -236,18 +236,19 @@
           @click="onViewPDS"
           class="q-mr-sm"
         />
-        <q-btn
-          :label="applicantData.status === 'Qualified' ? 'Mark Unqualified' : 'Mark Qualified'"
-          :color="applicantData.status === 'Qualified' ? 'negative' : 'positive'"
-          @click="toggleQualificationStatus"
-          :disable="evaluationLocked"
-        />
-        <q-btn
-          label="Submit Evaluation"
-          color="positive"
-          @click="onSubmit"
-          :disable="evaluationLocked || applicantData.status === 'Pending'"
-        />
+        <template v-if="!evaluationLocked">
+          <q-btn
+            :label="applicantData.status === 'Qualified' ? 'Mark Unqualified' : 'Mark Qualified'"
+            :color="applicantData.status === 'Qualified' ? 'negative' : 'positive'"
+            @click="toggleQualificationStatus"
+          />
+          <q-btn
+            label="Submit Evaluation"
+            color="positive"
+            @click="onSubmit"
+            :disable="applicantData.status === 'Pending'"
+          />
+        </template>
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -273,6 +274,8 @@ const emit = defineEmits(['update:show', 'view-pds', 'toggle-qualification', 'su
 const localShow = ref(props.show)
 const tab = ref('education')
 
+const evaluationLocked = computed(() => props.isSubmitted)
+
 const statusColor = computed(() => {
   switch (props.applicantData.status) {
     case 'Qualified': return 'positive'
@@ -283,7 +286,11 @@ const statusColor = computed(() => {
 })
 
 const overallStatus = computed(() => {
-  return props.applicantData.status === 'Qualified' ? 'Meets Requirements' : 'Under Review'
+  switch (props.applicantData.status) {
+    case 'Qualified': return 'Meets Requirements'
+    case 'Unqualified': return 'Does not meet the requirements'
+    default: return 'Under Review'
+  }
 })
 
 watch(() => props.show, (newVal) => {

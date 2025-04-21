@@ -88,7 +88,19 @@ import { use_vwActiveStore } from 'stores/vwActiveStore';
 const route = useRoute()
 const router = useRouter()
 const useStatus = use_vwActiveStore()
-const statusName = route.params.name == 'Permanent'? 'Regular': route.params.name
+
+const statusMapping = {
+  Permanent: 'Regular',
+  Elective: 'Elective',
+  Appointed: 'Appointed',
+  'Co-Terminous': 'Co-Terminous',
+  Temporary: 'Temporary',
+  Casual: 'Casual',
+  'Job Order': 'Contractual',
+  Honorarium: 'Honorarium',
+};
+
+const statusName = statusMapping[route.params.name] || route.params.name;
 
 const columns = [
     {
@@ -118,7 +130,7 @@ const columns = [
 ]
 
 const rows = ref([
-    
+
 ])
 
 const pagination = ref({
@@ -142,12 +154,12 @@ const filteredRows = computed(() => {
     const nameTerm = nameSearch.value.toLowerCase()
     const officeTerm = officeSearch.value.toLowerCase()
     const positionTerm = positionSearch.value.toLowerCase()
-    
+
     return rows.value.filter(row => {
         const nameMatch = !nameTerm || row.Name1.toLowerCase().includes(nameTerm)
         const officeMatch = !officeTerm || row.Office.toLowerCase().includes(officeTerm)
         const positionMatch = !positionTerm || row.Designation.toLowerCase().includes(positionTerm)
-        
+
         return nameMatch && officeMatch && positionMatch
     })
 })

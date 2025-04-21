@@ -30,15 +30,15 @@ export const use_vwActiveStore = defineStore('vwactive', {
       this.loading = true
       const jsonEncode = {
         status: status,
-      }
+      };
       try {
         const response = await api.post('/vw-Active/status', jsonEncode)
         this.vw_status = response.data.data
       } catch (error) {
-        this.vw_status = []
-        this.loading = false
-        console.log(error.response.data?.message)
-        toast.warning(error.response.data?.message)
+        this.vw_status = [];
+        this.loading = false;
+        console.log(error.response.data?.message);
+        toast.warning(error.response.data?.message);
       } finally {
         this.loading = false
       }

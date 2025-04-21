@@ -233,31 +233,29 @@
       </q-card-section>
 
       <!-- Footer Actions -->
-      <q-card-section class="footer-actions bg-grey-2 q-py-md">
-        <div class="row justify-end">
+      <!-- Footer Actions -->
+      <q-card-actions align="right" class="q-px-md q-py-md">
+        <q-btn
+          label="View PDS"
+          color="primary"
+          outline
+          @click="onViewPDS"
+          class="q-mr-sm"
+        />
+        <template v-if="!evaluationLocked">
           <q-btn
-            label="VIEW PDS"
-            color="primary"
-            outline
-            @click="onViewPDS"
-            class="q-mx-sm"
-          />
-          <q-btn
-            :label="applicantData.status === 'Qualified' ? 'MARK UNQUALIFIED' : 'MARK QUALIFIED'"
+            :label="applicantData.status === 'Qualified' ? 'Mark Unqualified' : 'Mark Qualified'"
             :color="applicantData.status === 'Qualified' ? 'negative' : 'positive'"
             @click="toggleQualificationStatus"
-            :disable="evaluationLocked"
-            class="q-mx-sm"
           />
           <q-btn
-            label="SUBMIT EVALUATION"
+            label="Submit Evaluation"
             color="positive"
             @click="onSubmit"
-            :disable="evaluationLocked || applicantData.status === 'Pending'"
-            class="q-mx-sm"
+            :disable="applicantData.status === 'Pending'"
           />
-        </div>
-      </q-card-section>
+        </template>
+      </q-card-actions>
     </q-card>
   </q-dialog>
 </template>

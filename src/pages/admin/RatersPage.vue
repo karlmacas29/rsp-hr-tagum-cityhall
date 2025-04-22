@@ -18,80 +18,56 @@
       </q-card-section>
       <q-separator />
 
-      <q-card-section >
+      <q-card-section>
+        <!-- Single powerful search bar -->
+        <div class="q-mb-md">
+          <q-input
+            outlined
+            v-model="globalSearch"
+            placeholder="Search all raters..."
+            clearable
+            class="q-mb-md"
+          >
+            <template v-slot:prepend>
+              <q-icon name="search" />
+            </template>
+            <template v-slot:append>
+              <q-icon
+                v-if="globalSearch !== ''"
+                name="clear"
+                class="cursor-pointer"
+                @click="globalSearch = ''"
+              />
+            </template>
+          </q-input>
+        </div>
+
         <q-table
           flat
           bordered
           :rows="filteredRaters"
           :columns="columns"
           row-key="id"
-          :loading="useRater.loading"
+          :loading="isSubmitting"
         >
-          <!-- Header slots for searchable columns -->
-          <template v-slot:header="props">
-            <q-tr :props="props">
-              <q-th
-                v-for="col in props.cols"
-                :key="col.name"
-                :props="props"
-              >
-                <div v-if="col.name !== 'actions' && col.search">
-                  <div>{{ col.label }}</div>
-                  <q-input
-                    dense
-                    outlined
-                    v-model="filters[col.field]"
-                    :placeholder="`Search ${col.label}`"
-                    class="q-mt-xs"
-                    style="min-width: 100px"
-                  >
-                    <template v-slot:append>
-                      <q-icon
-                        v-if="filters[col.field]"
-                        name="clear"
-                        class="cursor-pointer"
-                        @click.stop="filters[col.field] = ''"
-                      />
-                    </template>
-                  </q-input>
-                </div>
-                <div v-else>
-                  {{ col.label }}
-                </div>
-              </q-th>
-            </q-tr>
-          </template>
-
-          <!-- Body cell templates -->
-          <template v-slot:body-cell-pending="props">
-            <q-td :props="props">
-              {{ props.row.pending || 0 }}
-            </q-td>
-          </template>
-
-          <template v-slot:body-cell-completed="props">
-            <q-td :props="props">
-              {{ props.row.completed || 0 }}
-            </q-td>
-          </template>
-
-            <!-- Custom cell for displaying position as badges -->
-            <template v-slot:body-cell-Position="props">
+          <!-- Position column with badges -->
+          <template v-slot:body-cell-Position="props">
             <q-td :props="props">
               <div class="row q-gutter-xs">
-              <q-badge
-                v-for="(pos, index) in props.row.position"
-                :key="index"
-                color="primary"
-                text-color="white"
-                class="q-pa-xs"
-              >
-                {{ pos }}
-              </q-badge>
+                <q-badge
+                  v-for="(pos, index) in props.row.Position.split(', ')"
+                  :key="index"
+                  color="primary"
+                  text-color="white"
+                  class="q-pa-xs"
+                >
+                  {{ pos }}
+                </q-badge>
               </div>
             </q-td>
-            </template>
+          </template>
 
+          <!-- Actions column -->
           <template v-slot:body-cell-actions="props">
             <q-td :props="props">
               <q-btn flat round dense icon="visibility" @click="viewRater(props.row)">
@@ -102,17 +78,11 @@
               </q-btn>
             </q-td>
           </template>
-          <template v-slot:loading>
-              <q-inner-loading showing color="primary">
-                <q-linear-progress indeterminate color="primary" class="q-mt-sm" />
-              </q-inner-loading>
-            </template>
         </q-table>
       </q-card-section>
-
     </q-card>
 
-    <!-- Add Rater Modal -->
+    <!-- Add Rater Modal (unchanged from your previous version) -->
     <q-dialog v-model="showModal" persistent transition-show="scale" transition-hide="scale">
       <q-card style="width: 500px; max-width: 90vw;">
         <q-card-section class="row items-center justify-between">
@@ -144,13 +114,13 @@
 
           <q-separator class="q-mt-md q-mb-md" />
 
-          <!-- 2. Select Positions (Dropdown with checkboxes) -->
+          <!-- 2. Select Positions -->
           <div class="q-mb-md">
             <div class="text-subtitle2 text-weight-medium">Select Positions to Rate</div>
             <q-select
               v-model="selectedPositions"
               multiple
-              :options="positions"
+              :options="positionsWithAllOption"
               option-value="id"
               option-label="name"
               label="Select one or more positions"
@@ -160,6 +130,7 @@
               emit-value
               map-options
               :disable="!selectedBatch"
+              @update:model-value="handlePositionSelection"
             >
               <template v-slot:option="scope">
                 <q-item v-bind="scope.itemProps">
@@ -167,7 +138,7 @@
                     <q-item-label>{{ scope.opt.name }}</q-item-label>
                   </q-item-section>
                   <q-item-section side>
-                    <q-checkbox :model-value="scope.selected" />
+                    <q-checkbox :model-value="isPositionSelected(scope.opt.id)" />
                   </q-item-section>
                 </q-item>
               </template>
@@ -210,7 +181,7 @@
               emit-value
               map-options
               :disable="!selectedOffice"
-              @filter="filterRaters"
+              @filter="filterAvailableRaters"
             >
               <template v-slot:prepend>
                 <q-icon name="search" />
@@ -234,49 +205,18 @@
 </template>
 
 <script setup>
-import { useRaterStore } from 'stores/raterStore'
-import { onMounted, ref, computed } from 'vue'
+import { ref, computed } from 'vue'
 
-const filters = ref({
-  ID: '',
-  Rater: '',
-  batchDate: '',
-  Position: '',
-  Office: ''
-})
+// Search
+const globalSearch = ref('')
 
-const filteredRaters = ref([]) //data
-
-const useRater = useRaterStore() //userRater
-
-const showModal = ref(false)
-const showError = ref(false)
-const isSubmitting = ref(false)
-
-const selectedBatch = ref(null)
-const selectedPositions = ref([])
-const selectedOffice = ref(null)
-const selectedRater = ref(null)
-
-const batches = ref([
-  { id: 1, display: 'Software Engineer Hiring (Posted: 2024-03-15)', date: '2024-03-15' },
-  { id: 2, display: 'Marketing Team Expansion (Posted: 2024-02-28)', date: '2024-02-28' },
-  { id: 3, display: 'Customer Support Hiring (Posted: 2024-01-20)', date: '2024-01-20' },
-])
-
-const offices = ref([
-  { id: 1, name: 'Main Office' },
-  { id: 2, name: 'Regional Office - North' },
-  { id: 3, name: 'Regional Office - South' },
-])
-
-const positions = ref([])
+// Data
 const raters = ref([
   {
     id: 1,
     Rater: 'John Doe',
     batchDate: '2024-03-15',
-    Position: 'Frontend Developer',
+    Position: 'Frontend Developer, Backend Developer',
     Office: 'Main Office',
     pending: 3,
     completed: 2
@@ -301,6 +241,47 @@ const raters = ref([
   }
 ])
 
+// Filtered raters based on global search
+const filteredRaters = computed(() => {
+  if (!globalSearch.value) return raters.value
+
+  const searchTerm = globalSearch.value.toLowerCase()
+  return raters.value.filter(rater => {
+    return (
+      rater.id.toString().includes(searchTerm) ||
+      rater.Rater.toLowerCase().includes(searchTerm) ||
+      rater.batchDate.toLowerCase().includes(searchTerm) ||
+      rater.Position.toLowerCase().includes(searchTerm) ||
+      rater.Office.toLowerCase().includes(searchTerm)
+    )
+  })
+})
+
+// Modal state
+const showModal = ref(false)
+const showError = ref(false)
+const isSubmitting = ref(false)
+
+// Form selections
+const selectedBatch = ref(null)
+const selectedPositions = ref([])
+const selectedOffice = ref(null)
+const selectedRater = ref(null)
+
+// Options data
+const batches = ref([
+  { id: 1, display: 'Software Engineer Hiring (Posted: 2024-03-15)', date: '2024-03-15' },
+  { id: 2, display: 'Marketing Team Expansion (Posted: 2024-02-28)', date: '2024-02-28' },
+  { id: 3, display: 'Customer Support Hiring (Posted: 2024-01-20)', date: '2024-01-20' },
+])
+
+const offices = ref([
+  { id: 1, name: 'Main Office' },
+  { id: 2, name: 'Regional Office - North' },
+  { id: 3, name: 'Regional Office - South' },
+])
+
+const positions = ref([])
 const availableRaters = ref([
   { id: 1, name: 'John Doe', officeId: 1 },
   { id: 2, name: 'Jane Smith', officeId: 1 },
@@ -311,51 +292,40 @@ const availableRaters = ref([
 
 const filteredAvailableRaters = computed(() => {
   if (!selectedOffice.value) return availableRaters.value
-  return availableRaters.value.filter(rater =>
-    rater.officeId === selectedOffice.value
-  )
+  return availableRaters.value.filter(rater => rater.officeId === selectedOffice.value)
 })
 
+// Columns definition (simplified without per-column search)
 const columns = [
   {
     name: 'ID',
     label: 'ID',
     field: 'id',
-    align: 'left',
-
-    search: true
+    align: 'left'
   },
   {
     name: 'Rater',
     label: 'Rater Name',
-    field: 'raters',
-    align: 'left',
-
-    search: true
+    field: 'Rater',
+    align: 'left'
   },
   {
     name: 'batchDate',
     label: 'Assigned Batch',
-    field: 'assign_batch',
-    align: 'left',
-
-    search: true
+    field: 'batchDate',
+    align: 'left'
   },
   {
     name: 'Position',
     label: 'Position to Rate',
-    field: 'position',
-    align: 'left',
-
-    search: true
+    field: 'Position',
+    align: 'left'
   },
   {
     name: 'Office',
     label: 'Office',
-    field: 'office',
-    align: 'left',
-  
-    search: true
+    field: 'Office',
+    align: 'left'
   },
   {
     name: 'pending',
@@ -394,6 +364,45 @@ const batchPositions = {
   ],
 }
 
+const positionsWithAllOption = computed(() => {
+  if (!positions.value.length) return []
+  const allOption = { id: 'all', name: 'All Positions' }
+  return [allOption, ...positions.value]
+})
+
+const isPositionSelected = (id) => {
+  if (id === 'all') {
+    return selectedPositions.value.includes('all') ||
+           selectedPositions.value.length === positions.value.length
+  }
+  return selectedPositions.value.includes(id) ||
+         selectedPositions.value.includes('all')
+}
+
+const handlePositionSelection = (selected) => {
+  if (selected.includes('all') && !selectedPositions.value.includes('all')) {
+    selectedPositions.value = ['all', ...positions.value.map(p => p.id)]
+    return
+  }
+
+  if (!selected.includes('all') && selectedPositions.value.includes('all')) {
+    selectedPositions.value = []
+    return
+  }
+
+  if (selectedPositions.value.includes('all') && selected.length < selectedPositions.value.length) {
+    selectedPositions.value = selected.filter(id => id !== 'all')
+    return
+  }
+
+  if (!selected.includes('all') && selected.length === positions.value.length) {
+    selectedPositions.value = ['all', ...positions.value.map(p => p.id)]
+    return
+  }
+
+  selectedPositions.value = selected
+}
+
 const fetchPositions = (batchId) => {
   positions.value = batchPositions[batchId] || []
   selectedPositions.value = []
@@ -410,7 +419,7 @@ const closeModal = () => {
   showError.value = false
 }
 
-const filterRaters = (val, update) => {
+const filterAvailableRaters = (val, update) => {
   if (val === '') {
     update(() => {
       availableRaters.value = [
@@ -432,14 +441,18 @@ const filterRaters = (val, update) => {
       { id: 3, name: 'Alice Johnson', officeId: 2 },
       { id: 4, name: 'Bob Williams', officeId: 3 },
       { id: 5, name: 'Charlie Brown', officeId: 3 },
-    ].filter(rater =>
-      rater.name.toLowerCase().includes(searchTerm)
-    )
+    ].filter(rater => rater.name.toLowerCase().includes(searchTerm))
   })
 }
 
 const addRater = () => {
-  if (!selectedBatch.value || selectedPositions.value.length === 0 || !selectedRater.value || !selectedOffice.value) {
+  let positionsToAdd = [...selectedPositions.value]
+
+  if (positionsToAdd.includes('all')) {
+    positionsToAdd = positions.value.map(p => p.id)
+  }
+
+  if (!selectedBatch.value || positionsToAdd.length === 0 || !selectedRater.value || !selectedOffice.value) {
     showError.value = true
     return
   }
@@ -451,40 +464,34 @@ const addRater = () => {
   const officeInfo = offices.value.find(o => o.id === selectedOffice.value) || {}
   const raterInfo = availableRaters.value.find(r => r.id === selectedRater.value) || {}
 
-  selectedPositions.value.forEach(positionId => {
-    const positionName = positions.value.find(p => p.id === positionId)?.name || ''
+  // Combine all selected positions into a single string
+  const positionNames = positionsToAdd
+    .map(positionId => positions.value.find(p => p.id === positionId)?.name || '')
+    .filter(name => name)
+    .join(', ')
 
-    const newRater = {
-      id: raters.value.length + 1,
-      Rater: raterInfo.name,
-      batchDate: batchInfo.date,
-      Position: positionName,
-      Office: officeInfo.name,
-      pending: Math.floor(Math.random() * 5),
-      completed: Math.floor(Math.random() * 5)
-    }
+  const newRater = {
+    id: raters.value.length + 1,
+    Rater: raterInfo.name,
+    batchDate: batchInfo.date,
+    Position: positionNames,
+    Office: officeInfo.name,
+    pending: Math.floor(Math.random() * 5),
+    completed: Math.floor(Math.random() * 5)
+  }
 
-    raters.value.push(newRater)
-  })
-
+  raters.value.push(newRater)
   closeModal()
   isSubmitting.value = false
 }
 
 const viewRater = (rater) => {
   console.log('Viewing rater:', rater)
-  // Implement your view logic here
 }
 
 const editRater = (rater) => {
   console.log('Editing rater:', rater)
-  // Implement your edit logic here
 }
-
-onMounted(async () => {
-  await useRater.fetchRatersBatch()
-  filteredRaters.value = useRater.ratersBatch
-})
 </script>
 
 <style scoped>

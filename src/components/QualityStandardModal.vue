@@ -29,7 +29,7 @@
                     style="width: 100px; height: 100px; border-radius: 10px;"
                     alt="Applicant Photo"
                   />
-              <div class="text-h6 text-center q-mb-sm">{{ applicantData.Name1 }}</div>
+              <div class="text-h6 text-center q-mb-sm">{{ applicantData?.Name1 || 'John Doe'}}</div>
               <q-badge :color="statusColor" class="q-mb-md">
                 {{ applicantData.status }}
                 <q-icon v-if="evaluationLocked" name="lock" class="q-ml-xs" />
@@ -231,7 +231,7 @@
           </q-card>
         </div>
       </q-card-section>
-      
+
       <!-- Footer Actions -->
       <q-card-section class="footer-actions bg-grey-2 q-py-md">
         <div class="row justify-end">
@@ -283,7 +283,6 @@ const localShow = ref(props.show)
 const tab = ref('education')
 
 const evaluationLocked = computed(() => props.isSubmitted)
-
 
 const statusColor = computed(() => {
   switch (props.applicantData.status) {

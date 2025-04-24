@@ -18,11 +18,11 @@
         </q-card-section>
         <q-separator />
         <q-card-section>
-          <q-table 
-            flat 
-            bordered 
-            :rows="filteredPositions" 
-            :columns="columns" 
+          <q-table
+            flat
+            bordered
+            :rows="filteredPositions"
+            :columns="columns"
             row-key="id"
             :filter="filter"
             :q-pagination="pagination"
@@ -35,13 +35,13 @@
               <q-tr :props="props">
                 <q-th v-for="col in props.cols" :key="col.name" :props="props" :style="col.name === 'position' ? 'width: 200px; white-space: normal;' : ''">
                 {{ col.label }}
-                <q-input 
-                  v-if="col.name !== 'action' && col.name !== 'fd'" 
-                  dense 
-                  outlined 
-                  class="q-mt-sm" 
-                  v-model="filters[col.name]" 
-                  placeholder="Search" 
+                <q-input
+                  v-if="col.name !== 'action' && col.name !== 'fd'"
+                  dense
+                  outlined
+                  class="q-mt-sm"
+                  v-model="filters[col.name]"
+                  placeholder="Search"
                 />
                 <q-select
                   v-if="col.name === 'fd'"
@@ -92,7 +92,7 @@
             <!-- for switch -->
             <template v-slot:body-cell-fd="props">
               <q-td :props="props">
-                <q-toggle 
+                <q-toggle
                   v-model="props.row.Funded"
                   color="green"
                   true-value="1"
@@ -112,7 +112,7 @@
                                    props.row.Status == 'REGULAR' ? 'bg-green' :
                                    props.row.Status == 'TEMPORARY' ? 'bg-yellow text-black' :
                                    props.row.Status == 'CASUAL' ? 'bg-grey-4' :
-                                   props.row.Status == 'JOB ORDER' ? 'bg-light-blue' :
+                                   props.row.Status == 'CONTRACTUAL' ? 'bg-light-blue' :
                                    props.row.Status == 'HONORARIUM' ? 'bg-black' : 'bg-grey'">
                     {{ props.row.Status }}
                   </q-badge>
@@ -121,28 +121,28 @@
 
             <template v-slot:body-cell-action="props">
               <q-td :props="props">
-                <q-btn 
-                v-if="props.row.Funded" 
-                flat 
-                dense 
-                round 
+                <q-btn
+                v-if="props.row.Funded"
+                flat
+                dense
+                round
                 color="blue"
 
                 :icon="props.row.Funded == '1' ? 'visibility' : 'post_add'"
-                @click="viewPosition(props.row)" 
+                @click="viewPosition(props.row)"
                 >
                 <q-tooltip>
                   {{ props.row.Funded == '1'? 'View PDS' : 'Create Job Post'}}
                 </q-tooltip>
                 </q-btn>
-                <q-btn 
-                  v-if="props.row.Name1 != null " 
-                  flat 
-                  dense 
-                  round 
-                  color="green" 
+                <q-btn
+                  v-if="props.row.Name1 != null "
+                  flat
+                  dense
+                  round
+                  color="green"
                   icon="print"
-                  @click="printPosition(props.row)" 
+                  @click="printPosition(props.row)"
                 >
               <q-tooltip>
                 Print
@@ -189,7 +189,7 @@
       </div>
       </div>
     </div>
-    
+
     <!-- Upload File Modal -->
     <q-dialog v-model="showModal">
       <q-card>
@@ -301,15 +301,22 @@
 
     <!-- Quality Standard Modal (now a separate component) -->
     <QualityStandardModal 
-      v-model:show="showFilledPositionModal" 
-      :employee-name="selectedPosition?.employee"
+      v-model:show="showFilledPositionModal"
+      variant="employee"
       :applicant-data="selectedApplicant"
       :position-requirements="positionRequirements"
-      :current-position="currentPosition" 
-      :higher-education="higherEducation" 
-      @print="printPosition(selectedPosition)"
-      @update="handleUpdatePosition" 
+      @view-pds="viewApplicantPDS"
+      @close="closeQualificationModal"
     />
+
+    <!-- PDS Modal (Nested Dialog) -->
+    
+      <PDSModal
+        v-model="showPDSModal"
+        :applicant="selectedApplicant"
+        @close="closePDSModal"
+      />
+    
   </q-page>
 </template>
 
@@ -323,11 +330,22 @@ const usePlantilla = usePlantillaStore();
 
 const showModal = ref(false)
 const showVacantPositionModal = ref(false)
+
+const closeQualificationModal = () => {
+  showFilledPositionModal.value = false
+}
 const showFilledPositionModal = ref(false)
+
 const selectedFile = ref(null)
 const currentRow = ref(null)
 const selectedPosition = ref(null)
 const filter = ref('')
+
+const closePDSModal = () => {
+  showPDSModal.value = false
+}
+const showPDSModal = ref(false)
+
 
 // Add filter object to store search values for each column
 const filters = ref({
@@ -339,6 +357,35 @@ const filters = ref({
   fd: 'All',
   Status: ''
 })
+
+// eslint-disable-next-line no-unused-vars
+const applicants = ref([
+  {
+    id: 1,
+    name: 'John Doe',
+    appliedDate: '2025-04-02',
+    status: 'Pending',
+    isSubmitted: false,
+  }
+])
+
+// eslint-disable-next-line no-unused-vars
+const selectedJob = ref({
+  id: null,
+  officePosition: '',
+  position: '',
+  postingDate: '',
+  applicants: 0,
+  pending: 0,
+  qualified: 0,
+  unqualified: 0,
+  qualifications: []
+})
+
+const viewApplicantPDS = () => {
+    
+  showPDSModal.value = true
+}
 
 const positionRequirements = ref({
   education: "Bachelor's Degree in related field",
@@ -410,36 +457,36 @@ const filteredPositions = computed(() => {
   if (!currentStructure.value) {
     return [];
   }
-  
+
   // Filter by organizational structure
   let filtered = positions.value.filter(row => {
     // Match by office
-    if (currentStructure.value.office && 
+    if (currentStructure.value.office &&
         (!row.office || row.office !== currentStructure.value.office)) {
       return false;
     }
-    
+
     // Match by division if specified
-    if (currentStructure.value.division && 
+    if (currentStructure.value.division &&
         (!row.division || row.division !== currentStructure.value.division)) {
       return false;
     }
-    
+
     // Match by section if specified
-    if (currentStructure.value.section && 
+    if (currentStructure.value.section &&
         (!row.section || row.section !== currentStructure.value.section)) {
       return false;
     }
-    
+
     // Match by unit if specified
-    if (currentStructure.value.unit && 
+    if (currentStructure.value.unit &&
         (!row.unit || row.unit !== currentStructure.value.unit)) {
       return false;
     }
-    
+
     return true;
   });
-  
+
   // Then apply the search filters
   return filtered.filter(row => {
     for (const key in filters.value) {
@@ -471,21 +518,21 @@ const handleStructureSelection = (selectedData) => {
 // Get a descriptive title for the current structure selection
 const getStructureTitle = () => {
   if (!currentStructure.value) return '';
-  
+
   let title = currentStructure.value.office || '';
-  
+
   // if (currentStructure.value.division) {
   //   title += ` > ${currentStructure.value.division}`;
   // }
-  
+
   // if (currentStructure.value.section) {
   //   title += ` > ${currentStructure.value.section}`;
   // }
-  
+
   // if (currentStructure.value.unit) {
   //   title += ` > ${currentStructure.value.unit}`;
   // }
-  
+
   return title;
 }
 
@@ -531,10 +578,6 @@ const submitJobPost = () => {
   showVacantPositionModal.value = false
 }
 
-const handleUpdatePosition = () => {
-  console.log('Update position logic here')
-  // Add your update logic here
-}
 
 const handleFundedToggle = async (row) => {
   try {

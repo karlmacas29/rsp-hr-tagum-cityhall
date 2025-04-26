@@ -232,7 +232,7 @@
         </div>
       </q-card-section>
 
-      <!-- Footer Actions -->
+      <!-- Footer Actions - Updated to conditionally show buttons -->
       <q-card-section class="footer-actions bg-grey-2 q-py-md">
         <div class="row justify-end">
           <q-btn
@@ -242,20 +242,22 @@
             @click="onViewPDS"
             class="q-mx-sm"
           />
-          <q-btn
-            :label="applicantData.status === 'Qualified' ? 'MARK UNQUALIFIED' : 'MARK QUALIFIED'"
-            :color="applicantData.status === 'Qualified' ? 'negative' : 'positive'"
-            @click="toggleQualificationStatus"
-            :disable="evaluationLocked"
-            class="q-mx-sm"
-          />
-          <q-btn
-            label="SUBMIT EVALUATION"
-            color="positive"
-            @click="onSubmit"
-            :disable="evaluationLocked || applicantData.status === 'Pending'"
-            class="q-mx-sm"
-          />
+          <!-- Only show these buttons if evaluation is not locked -->
+          <template v-if="!evaluationLocked">
+            <q-btn
+              :label="applicantData.status === 'Qualified' ? 'MARK UNQUALIFIED' : 'MARK QUALIFIED'"
+              :color="applicantData.status === 'Qualified' ? 'negative' : 'positive'"
+              @click="toggleQualificationStatus"
+              class="q-mx-sm"
+            />
+            <q-btn
+              label="SUBMIT EVALUATION"
+              color="positive"
+              @click="onSubmit"
+              :disable="applicantData.status === 'Pending'"
+              class="q-mx-sm"
+            />
+          </template>
         </div>
       </q-card-section>
     </q-card>

@@ -120,10 +120,10 @@
     <QualityStandardModal
       v-model="showQSModal"
       variant="applicant"
-      :applicant-data="selectedApplicant"
+      :applicant-data="applicantWithPendingStatus"
       :position-requirements="positionRequirements"
       @view-pds="viewApplicantPDS"
-      @toggle-qualification="handleQualificationToggle"
+      @toggle-qualification="handleTemporaryQualificationToggle"
       @submit="promptSubmitEvaluation"
       @close="closeQualificationModal"
       @check-evaluation-status="refreshApplicantStatus"
@@ -162,8 +162,8 @@
             <div class="row q-col-gutter-sm">
               <div class="col-4 text-weight-medium">Status:</div>
               <div class="col-8">
-                <q-badge :color="getStatusColor(selectedApplicant.status)" class="q-px-sm q-py-xs">
-                  {{ selectedApplicant.status }}
+                <q-badge :color="getStatusColor(pendingStatus)" class="q-px-sm q-py-xs">
+                  {{ pendingStatus }}
                 </q-badge>
               </div>
             </div>
@@ -196,6 +196,9 @@ const pagination = ref({
   page: 1,
   rowsPerPage: 10
 })
+
+// Track the pending status separately from the actual status
+const pendingStatus = ref('Pending')
 
 // Date Range Filter
 const dateRange = ref({ from: '', to: '' })
@@ -408,6 +411,15 @@ const selectedApplicant = ref({
   personalInfo: {}
 })
 
+// Create a computed property that merges the selected applicant with the pending status
+// This will be passed to the QualityStandardModal
+const applicantWithPendingStatus = computed(() => {
+  return {
+    ...selectedApplicant.value,
+    status: pendingStatus.value
+  }
+})
+
 const positionRequirements = ref({
   education: "Bachelor's Degree in related field",
   preferredEducation: "Master's Degree preferred",
@@ -428,10 +440,14 @@ const openQualificationModal = (applicant) => {
     position: selectedJob.value.position,
     applicationDate: formatDate(applicant.appliedDate, 'MMM D, YYYY')
   }
+  // Reset pending status to current status when opening modal
+  pendingStatus.value = applicant.status
   showQSModal.value = true
 }
 
 const closeQualificationModal = () => {
+  // Reset pending status when closing without submitting
+  pendingStatus.value = selectedApplicant.value.status
   showQSModal.value = false
 }
 
@@ -444,25 +460,24 @@ const refreshApplicantStatus = () => {
         status: currentApplicant.status,
         isSubmitted: currentApplicant.isSubmitted
       }
+      // Reset pending status to match current status
+      pendingStatus.value = currentApplicant.status
     }
   }
 }
 
-const handleQualificationToggle = (newStatus) => {
+// This now only updates the pending status, not the actual applicant status
+const handleTemporaryQualificationToggle = (newStatus) => {
   if (selectedApplicant.value.isSubmitted) {
     console.warn('Cannot change status after submission')
     return
   }
-  selectedApplicant.value.status = newStatus
-
-  const applicantIndex = applicants.value.findIndex(a => a.id === selectedApplicant.value.id)
-  if (applicantIndex !== -1) {
-    applicants.value[applicantIndex].status = newStatus
-  }
+  // Only update the pending status, not the actual status
+  pendingStatus.value = newStatus
 }
 
 const promptSubmitEvaluation = () => {
-  if (selectedApplicant.value.status === 'Pending') {
+  if (pendingStatus.value === 'Pending') {
     console.warn('Please select Qualified or Unqualified before submitting')
     return
   }
@@ -472,18 +487,20 @@ const promptSubmitEvaluation = () => {
 const submitEvaluation = () => {
   const applicantIndex = applicants.value.findIndex(a => a.id === selectedApplicant.value.id)
   if (applicantIndex !== -1) {
+    // Now actually update the applicant's status from the pending status
     applicants.value[applicantIndex] = {
       ...applicants.value[applicantIndex],
-      status: selectedApplicant.value.status,
+      status: pendingStatus.value,
       isSubmitted: true
     }
+    selectedApplicant.value.status = pendingStatus.value
     selectedApplicant.value.isSubmitted = true
   }
 
   const jobIndex = jobs.value.findIndex(j => j.id === selectedJob.value.id)
   if (jobIndex !== -1) {
     const job = jobs.value[jobIndex]
-    const status = selectedApplicant.value.status
+    const status = pendingStatus.value
 
     if (status === 'Qualified') {
       job.qualified++

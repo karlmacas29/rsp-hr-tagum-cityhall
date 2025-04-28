@@ -307,7 +307,7 @@
 
 <script>
 import { toast } from 'src/boot/toast'
-import RaterPreview from 'components/User/RaterPreview.vue'
+import RaterPreview from 'components/RaterPreview.vue'
 import { rankApplicants } from 'src/assets/Utils/RatingCalculations.js'
 
 export default {

@@ -1,15 +1,5 @@
 <template>
   <q-page class="q-pa-md">
-    <!-- Header -->
-    <!-- <div class="column items-start justify-center q-mb-md">
-      <h5 class="text-h4 q-ma-none"><b>Raters</b></h5>
-      <div class="q-pa-md q-gutter-sm">
-        <q-breadcrumbs class="q-ma-none">
-          <q-breadcrumbs-el class="text-bold" label="Raters" />
-        </q-breadcrumbs>
-      </div>
-    </div> -->
-
     <!-- Card -->
     <q-card>
       <q-card-section class="row justify-between items-center">
@@ -82,8 +72,8 @@
       </q-card-section>
     </q-card>
 
-    <!-- Add Rater Modal (unchanged from your previous version) -->
-    <q-dialog v-model="showModal" persistent transition-show="scale" transition-hide="scale">
+    <!-- Add Rater Modal -->
+    <q-dialog v-model="showModal" persistent>
       <q-card style="width: 500px; max-width: 90vw;">
         <q-card-section class="row items-center justify-between">
           <div class="text-h6"><b>Add Rater</b></div>
@@ -138,7 +128,10 @@
                     <q-item-label>{{ scope.opt.name }}</q-item-label>
                   </q-item-section>
                   <q-item-section side>
-                    <q-checkbox :model-value="isPositionSelected(scope.opt.id)" />
+                    <q-checkbox
+                      :model-value="isPositionSelected(scope.opt.id)"
+                      @update:model-value="(val) => togglePosition(scope.opt.id, val)"
+                    />
                   </q-item-section>
                 </q-item>
               </template>
@@ -290,62 +283,18 @@ const availableRaters = ref([
   { id: 5, name: 'Charlie Brown', officeId: 3 },
 ])
 
-const filteredAvailableRaters = computed(() => {
-  if (!selectedOffice.value) return availableRaters.value
-  return availableRaters.value.filter(rater => rater.officeId === selectedOffice.value)
-})
+const filteredAvailableRaters = ref([])
 
-// Columns definition (simplified without per-column search)
+// Columns definition
 const columns = [
-  {
-    name: 'ID',
-    label: 'ID',
-    field: 'id',
-    align: 'left'
-  },
-  {
-    name: 'Rater',
-    label: 'Rater Name',
-    field: 'Rater',
-    align: 'left'
-  },
-  {
-    name: 'batchDate',
-    label: 'Assigned Batch',
-    field: 'batchDate',
-    align: 'left'
-  },
-  {
-    name: 'Position',
-    label: 'Position to Rate',
-    field: 'Position',
-    align: 'left'
-  },
-  {
-    name: 'Office',
-    label: 'Office',
-    field: 'Office',
-    align: 'left'
-  },
-  {
-    name: 'pending',
-    label: 'Pending',
-    field: 'pending',
-    align: 'center',
-    sortable: false
-  },
-  {
-    name: 'completed',
-    label: 'Completed',
-    field: 'completed',
-    align: 'center',
-    sortable: false
-  },
-  {
-    name: 'actions',
-    label: 'Actions',
-    align: 'center'
-  }
+  { name: 'ID', label: 'ID', field: 'id', align: 'left' },
+  { name: 'Rater', label: 'Rater Name', field: 'Rater', align: 'left' },
+  { name: 'batchDate', label: 'Assigned Batch', field: 'batchDate', align: 'left' },
+  { name: 'Position', label: 'Position to Rate', field: 'Position', align: 'left' },
+  { name: 'Office', label: 'Office', field: 'Office', align: 'left' },
+  { name: 'pending', label: 'Pending', field: 'pending', align: 'center', sortable: false },
+  { name: 'completed', label: 'Completed', field: 'completed', align: 'center', sortable: false },
+  { name: 'actions', label: 'Actions', align: 'center' }
 ]
 
 const batchPositions = {
@@ -364,6 +313,13 @@ const batchPositions = {
   ],
 }
 
+const fetchPositions = (batchId) => {
+  positions.value = batchPositions[batchId] || []
+  selectedPositions.value = []
+  selectedOffice.value = null
+  selectedRater.value = null
+}
+
 const positionsWithAllOption = computed(() => {
   if (!positions.value.length) return []
   const allOption = { id: 'all', name: 'All Positions' }
@@ -372,117 +328,91 @@ const positionsWithAllOption = computed(() => {
 
 const isPositionSelected = (id) => {
   if (id === 'all') {
-    return selectedPositions.value.includes('all') ||
-           selectedPositions.value.length === positions.value.length
+    // Check if all positions are selected (excluding the 'all' option)
+    return positions.value.length > 0 &&
+           positions.value.every(p => selectedPositions.value.includes(p.id))
   }
-  return selectedPositions.value.includes(id) ||
-         selectedPositions.value.includes('all')
+  return selectedPositions.value.includes(id)
 }
 
-const handlePositionSelection = (selected) => {
-  if (selected.includes('all') && !selectedPositions.value.includes('all')) {
-    selectedPositions.value = ['all', ...positions.value.map(p => p.id)]
-    return
-  }
+const togglePosition = (id, checked) => {
+  if (id === 'all') {
+    // Toggle all positions
+    if (checked) {
+      // Select all positions plus the 'all' option
+      selectedPositions.value = ['all', ...positions.value.map(p => p.id)]
+    } else {
+      // Deselect all positions
+      selectedPositions.value = []
+    }
+  } else {
+    // Handle regular position toggle
+    let newSelection = [...selectedPositions.value]
+    const allIndex = newSelection.indexOf('all')
 
-  if (!selected.includes('all') && selectedPositions.value.includes('all')) {
-    selectedPositions.value = []
-    return
-  }
+    if (checked) {
+      // Add the position if not already selected
+      if (!newSelection.includes(id)) {
+        newSelection.push(id)
+      }
 
-  if (selectedPositions.value.includes('all') && selected.length < selectedPositions.value.length) {
-    selectedPositions.value = selected.filter(id => id !== 'all')
-    return
-  }
+      // Check if all positions are now selected
+      const allSelected = positions.value.every(p => newSelection.includes(p.id))
+      if (allSelected && allIndex === -1) {
+        newSelection.push('all')
+      }
+    } else {
+      // Remove the position
+      newSelection = newSelection.filter(item => item !== id)
 
-  if (!selected.includes('all') && selected.length === positions.value.length) {
-    selectedPositions.value = ['all', ...positions.value.map(p => p.id)]
-    return
-  }
+      // Remove 'all' option if it was selected
+      if (allIndex !== -1) {
+        newSelection.splice(allIndex, 1)
+      }
+    }
 
-  selectedPositions.value = selected
+    selectedPositions.value = newSelection
+  }
 }
 
-const fetchPositions = (batchId) => {
-  positions.value = batchPositions[batchId] || []
-  selectedPositions.value = []
-  selectedOffice.value = null
-  selectedRater.value = null
+const handlePositionSelection = (newSelection) => {
+  // This handles the case when selections are made via the dropdown rather than checkboxes
+  const allOptionId = 'all'
+  const regularIds = positions.value.map(p => p.id)
+
+  if (newSelection.includes(allOptionId)) {
+    // If "All" is selected, select all positions (plus "all" id)
+    selectedPositions.value = [allOptionId, ...regularIds]
+  } else {
+    // Otherwise, only select the regular selections
+    selectedPositions.value = newSelection.filter(id => id !== allOptionId)
+
+    // Check if all positions are selected (without the 'all' option)
+    const allSelected = regularIds.length > 0 &&
+                       regularIds.every(id => newSelection.includes(id))
+
+    if (allSelected) {
+      selectedPositions.value = [allOptionId, ...regularIds]
+    }
+  }
+}
+
+const filterAvailableRaters = (val, update) => {
+  update(() => {
+    const needle = val.toLowerCase()
+    filteredAvailableRaters.value = availableRaters.value.filter(rater => {
+      return rater.name.toLowerCase().includes(needle) && rater.officeId === selectedOffice.value
+    })
+  })
 }
 
 const closeModal = () => {
   showModal.value = false
+  showError.value = false
   selectedBatch.value = null
   selectedPositions.value = []
   selectedOffice.value = null
   selectedRater.value = null
-  showError.value = false
-}
-
-const filterAvailableRaters = (val, update) => {
-  if (val === '') {
-    update(() => {
-      availableRaters.value = [
-        { id: 1, name: 'John Doe', officeId: 1 },
-        { id: 2, name: 'Jane Smith', officeId: 1 },
-        { id: 3, name: 'Alice Johnson', officeId: 2 },
-        { id: 4, name: 'Bob Williams', officeId: 3 },
-        { id: 5, name: 'Charlie Brown', officeId: 3 },
-      ]
-    })
-    return
-  }
-
-  update(() => {
-    const searchTerm = val.toLowerCase()
-    availableRaters.value = [
-      { id: 1, name: 'John Doe', officeId: 1 },
-      { id: 2, name: 'Jane Smith', officeId: 1 },
-      { id: 3, name: 'Alice Johnson', officeId: 2 },
-      { id: 4, name: 'Bob Williams', officeId: 3 },
-      { id: 5, name: 'Charlie Brown', officeId: 3 },
-    ].filter(rater => rater.name.toLowerCase().includes(searchTerm))
-  })
-}
-
-const addRater = () => {
-  let positionsToAdd = [...selectedPositions.value]
-
-  if (positionsToAdd.includes('all')) {
-    positionsToAdd = positions.value.map(p => p.id)
-  }
-
-  if (!selectedBatch.value || positionsToAdd.length === 0 || !selectedRater.value || !selectedOffice.value) {
-    showError.value = true
-    return
-  }
-
-  showError.value = false
-  isSubmitting.value = true
-
-  const batchInfo = batches.value.find(b => b.id === selectedBatch.value) || {}
-  const officeInfo = offices.value.find(o => o.id === selectedOffice.value) || {}
-  const raterInfo = availableRaters.value.find(r => r.id === selectedRater.value) || {}
-
-  // Combine all selected positions into a single string
-  const positionNames = positionsToAdd
-    .map(positionId => positions.value.find(p => p.id === positionId)?.name || '')
-    .filter(name => name)
-    .join(', ')
-
-  const newRater = {
-    id: raters.value.length + 1,
-    Rater: raterInfo.name,
-    batchDate: batchInfo.date,
-    Position: positionNames,
-    Office: officeInfo.name,
-    pending: Math.floor(Math.random() * 5),
-    completed: Math.floor(Math.random() * 5)
-  }
-
-  raters.value.push(newRater)
-  closeModal()
-  isSubmitting.value = false
 }
 
 const viewRater = (rater) => {
@@ -491,6 +421,35 @@ const viewRater = (rater) => {
 
 const editRater = (rater) => {
   console.log('Editing rater:', rater)
+}
+
+const addRater = () => {
+  if (!selectedBatch.value || selectedPositions.value.length === 0 || !selectedOffice.value || !selectedRater.value) {
+    showError.value = true
+    return
+  }
+  showError.value = false
+  isSubmitting.value = true
+
+  setTimeout(() => {
+    const selectedPositionNames = positions.value
+      .filter(pos => selectedPositions.value.includes(pos.id))
+      .map(pos => pos.name)
+      .join(', ')
+
+    raters.value.push({
+      id: raters.value.length + 1,
+      Rater: availableRaters.value.find(r => r.id === selectedRater.value)?.name || '',
+      batchDate: batches.value.find(b => b.id === selectedBatch.value)?.date || '',
+      Position: selectedPositionNames,
+      Office: offices.value.find(o => o.id === selectedOffice.value)?.name || '',
+      pending: 0,
+      completed: 0
+    })
+
+    closeModal()
+    isSubmitting.value = false
+  }, 1000)
 }
 </script>
 

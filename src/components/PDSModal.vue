@@ -3,7 +3,7 @@
   <q-dialog v-model="localShowModal" persistent class="pds-dialog">
     <q-card class="pds-container">
       <q-card-section class="row justify-between text-black q-mb-sm">
-        <div class="text-h4 text-bold items-center flex">Personal Data Sheet (PDS)</div>
+        <div class="text-h4 text-bold items-center flex">Personal Data Sheet (PDS) <q-badge>Preview</q-badge> </div>
         <q-btn
           icon="close"
           flat
@@ -47,99 +47,41 @@
             <q-scroll-area style="height: 100%;">
               <!-- Personal Information -->
               <div v-if="currentTab === 'personal'" class="q-pa-md">
-                <div class="row">
-                  <div class="col-3 flex justify-center items-center">
-                    <q-img
-                      :src="applicant?.photo || 'https://placehold.co/140'"
-                      class="bg-grey-4"
-                      style="width: 140px; height: 140px; border-radius: 10px;"
-                      alt="Applicant Photo"
-                    />
-                  </div>
-                  <div class="col">
-                    <div class="form-title-container">
-                      <div class="text-h5 text-bold">Employee's Name</div>
-                    </div>
-                    
-                    <div class="row q-col-gutter-md q-mb-lg">
-                      <div class="col-3">
-                        <div class="field-label">First Name</div>
-                        <div class="field-value">King</div>
-                      </div>
-                      <div class="col-3">
-                        <div class="field-label">Last Name</div>
-                        <div class="field-value">Fatpel</div>
-                      </div>
-                      <div class="col-3">
-                        <div class="field-label">Middle Name</div>
-                        <div class="field-value">Boss</div>
-                      </div>
-                      <div class="col-3">
-                        <div class="field-label">Name Extension</div>
-                        <div class="field-value">N/A</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div class="form-title-container">
-                  <div class="text-h5 text-bold">Additional Information</div>
-                </div>
-                
-                <div class="row q-col-gutter-md">
-                  <div class="col-6">
-                    <div class="row q-col-gutter-md">
-                      <div class="col-12">
-                        <div class="field-label">Date of Birth:</div>
-                        <div class="field-value">January 01, 2003</div>
-                      </div>
-                      <div class="col-12">
-                        <div class="field-label">Place of Birth:</div>
-                        <div class="field-value">Tagum City</div>
-                      </div>
-                      <div class="col-12">
-                        <div class="field-label">Sex:</div>
-                        <div class="field-value">Male</div>
-                      </div>
-                      <div class="col-12">
-                        <div class="field-label">Civil Status:</div>
-                        <div class="field-value">Single</div>
-                      </div>
-                      <div class="col-12">
-                        <div class="field-label">Gender Preference:</div>
-                        <div class="field-value">Man</div>
-                      </div>
-                      <div class="col-12">
-                        <div class="field-label">Height:</div>
-                        <div class="field-value">6'0"</div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div class="col-6">
-                    <div class="row q-col-gutter-md">
-                      <div class="col-12">
-                        <div class="field-label">Weight:</div>
-                        <div class="field-value">60kg</div>
-                      </div>
-                      <div class="col-12">
-                        <div class="field-label">Blood Type:</div>
-                        <div class="field-value">O</div>
-                      </div>
-                      <div class="col-12">
-                        <div class="field-label">Telephone Number:</div>
-                        <div class="field-value">(074)4936904</div>
-                      </div>
-                      <div class="col-12">
-                        <div class="field-label">Cellphone Number:</div>
-                        <div class="field-value">09876543098</div>
-                      </div>
-                      <!-- Note that duplicate fields were removed from the right side -->
-                    </div>
-                  </div>
-                </div>
+                <Personal_Information></Personal_Information>
               </div>
-
+              <div v-else-if="currentTab === 'family'" class="q-pa-md">
+                <Family_Background></Family_Background>
+              </div>
+              <div v-else-if="currentTab === 'education'" class="q-pa-md">
+                <Educational_Background></Educational_Background>
+              </div>
+              <div v-else-if="currentTab === 'civilService'" class="q-pa-md">
+                <Civil_Service_Eligibility></Civil_Service_Eligibility>
+              </div>
+              <div v-else-if="currentTab === 'work'" class="q-pa-md">
+                <Work_Experience></Work_Experience>
+              </div>
+              <div v-else-if="currentTab === 'voluntary'" class="q-pa-md">
+                <Voluntary_Work></Voluntary_Work>
+              </div>
+              <div v-else-if="currentTab === 'training'" class="q-pa-md">
+                <Training_Interventions></Training_Interventions>
+              </div>
+              <div v-else-if="currentTab === 'skills'" class="q-pa-md">
+                <Special_Skills_Hobbies></Special_Skills_Hobbies>
+              </div>
+              <div v-else-if="currentTab === 'nonAcademic'" class="q-pa-md">
+                <Non_Academic></Non_Academic>
+              </div>
+              <div v-else-if="currentTab === 'membership'" class="q-pa-md">
+                <Membership_Association></Membership_Association>
+              </div>
+              <div v-else-if="currentTab === 'other'" class="q-pa-md">
+                <Other_Information></Other_Information>
+              </div>
+              <div v-else-if="currentTab === 'references'" class="q-pa-md">
+                <References></References>
+              </div>
               <!-- Placeholder for other tabs -->
               <div v-else class="q-pa-md">
                 <div class="text-h6 q-mb-md">{{ tabs.find(t => t.name === currentTab)?.label }}</div>
@@ -160,6 +102,18 @@
 
 <script setup>
 import { ref, watch } from 'vue';
+import Personal_Information from './PDSpage/Personal_Information.vue';
+import Family_Background from './PDSpage/Family_Background.vue';
+import Educational_Background from './PDSpage/Educational_Background.vue';
+import Civil_Service_Eligibility from './PDSpage/Civil_Service_Eligibility.vue';
+import Work_Experience from './PDSpage/Work_Experience.vue';
+import Voluntary_Work from './PDSpage/Voluntary_Work.vue';
+import Training_Interventions from './PDSpage/L_D_Interventions.vue';
+import Special_Skills_Hobbies from './PDSpage/Special_Skills_Hobbies.vue';
+import Non_Academic from './PDSpage/Non_Academic.vue';
+import Membership_Association from './PDSpage/Membership_Association.vue';
+import Other_Information from './PDSpage/Other_Information.vue';
+import References from './PDSpage/References_User.vue';
 
 const props = defineProps({
   modelValue: Boolean,
@@ -223,7 +177,7 @@ const closeModal = () => {
 };
 
 const isTabCompleted = (tabName) => {
-  const completedTabs = ['personal', 'family', 'education', 'civilService'];
+  const completedTabs = ['personal', 'family', 'education', 'civilService', 'work', 'voluntary', 'training', 'skills', 'nonAcademic', 'membership', 'other', 'references'];
   return completedTabs.includes(tabName);
 };
 </script>

@@ -5,7 +5,7 @@
       <div class="text-h5 text-weight-medium text-primary">Rating Criteria Setup</div>
       <q-btn
         color="primary"
-        label="Save Criteria"
+        label="Save Ratings"
         icon="save"
         :loading="loading"
         @click="confirmSave"
@@ -271,79 +271,12 @@
         </div>
       </div>
 
-      <!-- Preview section - Keeping this intact as requested -->
-      <div class="q-mt-xl">
-        <div class="row items-center q-mb-md">
-          <div class="text-h6">Rater Preview</div>
-          <q-badge color="green" class="q-ml-sm">Preview Only</q-badge>
-        </div>
-
-        <q-card flat bordered>
-          <q-card-section>
-            <p class="text-caption text-italic q-mb-md">This is how the form will appear to raters.</p>
-
-            <table class="q-table q-table--bordered full-width">
-              <thead>
-                <tr>
-                  <th class="text-left" style="width: 12%">Name of Applicant</th>
-                  <th class="text-left" style="width: 12%">Education<br />(20%)</th>
-                  <th class="text-left" style="width: 12%">Experience<br />(20%)</th>
-                  <th class="text-left" style="width: 12%">Training<br />(15%)</th>
-                  <th class="text-left" style="width: 12%">Performance<br />(15%)</th>
-                  <th class="text-center" style="width: 10%">TOTAL QS<br />(75%)</th>
-                  <th class="text-center" style="width: 10%">BEI<br />(30%)</th>
-                  <th class="text-center" style="width: 10%">GRAND TOTAL<br />(100%)</th>
-                  <th class="text-center" style="width: 10%">Ranking</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr class="bg-grey-2">
-                  <td class="text-left criteria-cell">
-                    <div class="text-weight-bold">Criteria</div>
-                  </td>
-                  <td class="text-left criteria-cell">
-                    <div>{{ criteria.education.title1 }}</div>
-                    <div class="text-weight-bold">{{ criteria.education.title2 }}</div>
-                    <div>{{ criteria.education.description }}</div>
-                  </td>
-                  <td class="text-left criteria-cell">
-                    <div>{{ criteria.experience.title1 }}</div>
-                    <div class="text-weight-bold">{{ criteria.experience.title2 }}</div>
-                    <div>{{ criteria.experience.description1 }}</div>
-                    <div>{{ criteria.experience.description2 }}</div>
-                  </td>
-                  <td class="text-left criteria-cell">
-                    <div>{{ criteria.training.title1 }}</div>
-                    <div class="text-weight-bold">{{ criteria.training.title2 }}</div>
-                    <div>{{ criteria.training.description }}</div>
-                  </td>
-                  <td class="text-left criteria-cell">
-                    <div>{{ criteria.performance.title }}</div>
-                    <div>{{ criteria.performance.rating1 }}</div>
-                    <div>{{ criteria.performance.rating2 }}</div>
-                    <div>{{ criteria.performance.rating3 }}</div>
-                  </td>
-                  <td class="text-center criteria-cell"></td>
-                  <td class="text-center criteria-cell"></td>
-                  <td class="text-center criteria-cell"></td>
-                  <td class="text-center criteria-cell"></td>
-                </tr>
-                <tr>
-                  <td>Applicant Name</td>
-                  <td class="preview-cell">20.0</td>
-                  <td class="preview-cell">20.0</td>
-                  <td class="preview-cell">15.0</td>
-                  <td class="preview-cell">15.0</td>
-                  <td class="preview-cell">70.0</td>
-                  <td class="preview-cell">25.0</td>
-                  <td class="preview-cell">95.0</td>
-                  <td class="preview-cell">1</td>
-                </tr>
-              </tbody>
-            </table>
-          </q-card-section>
-        </q-card>
-      </div>
+      <!-- Rater Preview Component -->
+      <RaterPreview
+        :criteria="criteria"
+        :applicants="applicants"
+        @update-rating="handleRatingUpdate"
+      />
     </template>
 
     <!-- Confirmation dialog with improved styling -->
@@ -355,12 +288,12 @@
 
         <q-card-section class="row items-center q-py-md">
           <q-avatar icon="save" color="primary" text-color="white" class="q-mr-md" />
-          <span>Save criteria for {{ formData.position }} in {{ formData.office }}?</span>
+          <span>Save all ratings for {{ formData.position }} in {{ formData.office }}?</span>
         </q-card-section>
 
         <q-card-actions align="right">
           <q-btn flat label="Cancel" color="dark" v-close-popup />
-          <q-btn label="Save" color="positive" @click="saveCriteria" v-close-popup />
+          <q-btn label="Save" color="positive" @click="saveRatings" v-close-popup />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -373,10 +306,15 @@
 </template>
 
 <script>
-import { toast } from 'src/boot/toast' // Import toast instance
+import { toast } from 'src/boot/toast'
+import RaterPreview from 'components/RaterPreview.vue'
+import { rankApplicants } from 'src/assets/Utils/RatingCalculations.js'
+
 export default {
   name: 'CriteriaRater',
-
+  components: {
+    RaterPreview
+  },
   data() {
     return {
       loading: false,
@@ -392,29 +330,35 @@ export default {
         education: {
           title1: 'High School Graduate',
           title2: 'RELEVANT EDUCATION',
-          description:
-            "Completion of Bachelor's Degree and/or Master/ Doctorate/ Professional Ed or Position → 20%",
+          description: "Completion of Bachelor's Degree and/or Master/ Doctorate/ Professional Ed or Position → 20%",
+          weight: 0.20
         },
         experience: {
           title1: 'None required',
           title2: 'RELEVANT EXPERIENCE',
-          description1:
-            'With Experience with higher Salary Grade/level with Office Order of Designation from the Local Chief → 20%',
+          description1: 'With Experience with higher Salary Grade/level with Office Order of Designation from the Local Chief → 20%',
           description2: 'Without Experience → 10%',
+          weight: 0.20
         },
         training: {
           title1: 'None required',
           title2: 'RELEVANT TRAINING',
-          description:
-            'With the Minimum hours of related Training to the position or at least 4 hours if required of the position → 15%',
+          description: 'With the Minimum hours of related Training to the position or at least 4 hours if required of the position → 15%',
+          weight: 0.15
         },
         performance: {
           title: 'IPCR Rating/OPV Rating',
           rating1: 'Outstanding → 15%',
           rating2: 'Very Satisfactory → 13%',
           rating3: 'Below VS rating → 10%',
+          weight: 0.15
         },
       },
+      applicants: [
+        { id: 1, name: 'Applicant 1', education: 0, experience: 0, training: 0, performance: 0, bei: 0 },
+        { id: 2, name: 'Applicant 2', education: 0, experience: 0, training: 0, performance: 0, bei: 0 },
+        { id: 3, name: 'Applicant 3', education: 0, experience: 0, training: 0, performance: 0, bei: 0 }
+      ],
       officeOptions: [
         'Human Resource Office',
         'Finance Department',
@@ -438,19 +382,42 @@ export default {
       filteredPositionOptions: []
     }
   },
+  computed: {
+    rankedApplicants() {
+      return rankApplicants(this.applicants, this.criteria)
+    }
+  },
   methods: {
     confirmSave() {
       this.confirmDialog = true
     },
-    saveCriteria() {
-      // This would save the criteria to your database
+    async saveRatings() {
       this.loading = true
+      try {
+        // In a real app, you would call your API here:
+        // await api.saveRatings({
+        //   position: this.formData.position,
+        //   office: this.formData.office,
+        //   applicants: this.rankedApplicants,
+        //   criteria: this.criteria
+        // })
 
-      // Simulate API call
-      setTimeout(() => {
+        // Simulate API call
+        await new Promise(resolve => setTimeout(resolve, 1000))
+
+        toast.success(`Ratings for ${this.formData.position} saved successfully`)
+      } catch (error) {
+        toast.error('Failed to save ratings. Please try again.')
+        console.error('Save error:', error)
+      } finally {
         this.loading = false
-        toast.success(`Criteria for ${this.formData.position} in ${this.formData.office} saved successfully`)
-      }, 1000)
+      }
+    },
+    handleRatingUpdate({ applicantId, field, value }) {
+      const applicant = this.applicants.find(a => a.id === applicantId)
+      if (applicant) {
+        applicant[field] = Number(value)
+      }
     },
     filterOffices(val, update) {
       update(() => {
@@ -480,7 +447,7 @@ export default {
       this.formData.position = null
       this.formData.salaryGrade = ''
       this.formData.plantillaItemNo = ''
-      this.showRatingTable = false // Hide criteria when office changes
+      this.showRatingTable = false
     },
     loadPositionDetails() {
       if (!this.formData.position) return
@@ -489,7 +456,6 @@ export default {
 
       // Simulate API call to fetch position details
       setTimeout(() => {
-        // In a real app, this data would come from your backend
         if (this.formData.position === 'Administrative Officer') {
           this.formData.salaryGrade = 'SG-24'
           this.formData.plantillaItemNo = 'ADMIN-2024-001'
@@ -509,13 +475,10 @@ export default {
       }, 800)
     },
     loadCriteriaForPosition() {
-      // This would load existing criteria from your database
       this.loading = true
 
       // Simulate API call
       setTimeout(() => {
-        // In a real app, you would fetch this data from your backend
-        // For now, we're just setting some example criteria based on position
         if (this.formData.position === 'Administrative Officer') {
           this.criteria.education.title1 = "Bachelor's Degree"
           this.criteria.experience.title1 = "5 years of relevant experience"
@@ -524,13 +487,15 @@ export default {
           this.criteria.experience.title1 = "3 years of relevant experience"
         }
 
+        // In a real app, you would load actual applicants here
+        // this.applicants = await api.getApplicants(this.formData.position)
+
         this.showRatingTable = true
         this.loading = false
       }, 500)
     }
   },
   created() {
-    // Initialize filtered options with all options
     this.filteredOfficeOptions = [...this.officeOptions]
     this.filteredPositionOptions = [...this.positionOptions]
   }
@@ -538,35 +503,6 @@ export default {
 </script>
 
 <style scoped>
-/* Basic table styling - keeping the rater preview styling */
-.criteria-cell {
-  padding: 8px;
-  font-size: 12px;
-  vertical-align: top;
-}
-
-.preview-cell {
-  background-color: #f5f5f5;
-  color: #777;
-  text-align: center;
-}
-
-.q-table {
-  border-collapse: collapse;
-  width: 100%;
-}
-
-.q-table th,
-.q-table td {
-  border: 1px solid #ddd;
-  padding: 8px;
-}
-
-.q-table th {
-  background-color: #f2f2f2;
-}
-
-/* Modern UI improvements */
 .criteria-card {
   height: 100%;
   transition: all 0.3s ease;
@@ -589,7 +525,6 @@ export default {
   color: #666;
 }
 
-/* Responsive improvements */
 @media (max-width: 768px) {
   .criteria-card {
     margin-bottom: 16px;

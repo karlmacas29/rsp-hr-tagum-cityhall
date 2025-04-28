@@ -3,7 +3,7 @@ import axios from 'axios'
 
 const api = axios.create({
   // baseURL: 'http://rsp-backend.test/api', // Ensure this matches your backend URL
-  // baseURL: 'http://127.0.0.1:8000/api', // Ensure this matches your backend URL+
+  //baseURL: 'http://127.0.0.1:8000/api', // Ensure this matches your backend URL+
   baseURL: 'http://192.168.8.214/api', // Ensure this matches your backend URL
 })
 

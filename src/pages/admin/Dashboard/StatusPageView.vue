@@ -96,7 +96,7 @@ const statusMapping = {
   'Co-Terminous': 'Co-Terminous',
   Temporary: 'Temporary',
   Casual: 'Casual',
-  'Job Order': 'Contractual',
+  'Job Order': 'Job Order',
   Honorarium: 'Honorarium',
 };
 

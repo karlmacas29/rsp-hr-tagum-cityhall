@@ -309,6 +309,8 @@
 import { toast } from 'src/boot/toast'
 import RaterPreview from 'components/RaterPreview.vue'
 import { rankApplicants } from 'src/assets/Utils/RatingCalculations.js'
+import { useRaterStore } from 'src/stores/raterStore' // Import the store
+import { storeToRefs } from 'pinia' // Import storeToRefs for better reactivity
 
 export default {
   name: 'CriteriaRater',
@@ -387,6 +389,17 @@ export default {
       return rankApplicants(this.applicants, this.criteria)
     }
   },
+  setup() {
+    // Using the rater store with composition API
+    const raterStore = useRaterStore()
+    const { raters, loading: storeLoading } = storeToRefs(raterStore)
+
+    return {
+      raterStore,
+      raters,
+      storeLoading
+    }
+  },
   methods: {
     confirmSave() {
       this.confirmDialog = true
@@ -394,16 +407,13 @@ export default {
     async saveRatings() {
       this.loading = true
       try {
-        // In a real app, you would call your API here:
-        // await api.saveRatings({
-        //   position: this.formData.position,
-        //   office: this.formData.office,
-        //   applicants: this.rankedApplicants,
-        //   criteria: this.criteria
-        // })
-
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        // Now using the store to save ratings
+        await this.raterStore.saveRating({
+          position: this.formData.position,
+          office: this.formData.office,
+          applicants: this.rankedApplicants,
+          criteria: this.criteria
+        })
 
         toast.success(`Ratings for ${this.formData.position} saved successfully`)
       } catch (error) {
@@ -449,55 +459,87 @@ export default {
       this.formData.plantillaItemNo = ''
       this.showRatingTable = false
     },
-    loadPositionDetails() {
+    async loadPositionDetails() {
       if (!this.formData.position) return
 
       this.loading = true
 
-      // Simulate API call to fetch position details
-      setTimeout(() => {
-        if (this.formData.position === 'Administrative Officer') {
-          this.formData.salaryGrade = 'SG-24'
-          this.formData.plantillaItemNo = 'ADMIN-2024-001'
-        } else if (this.formData.position === 'Budget Officer') {
-          this.formData.salaryGrade = 'SG-22'
-          this.formData.plantillaItemNo = 'BUDG-2024-003'
-        } else if (this.formData.position === 'Accountant') {
-          this.formData.salaryGrade = 'SG-19'
-          this.formData.plantillaItemNo = 'ACCT-2024-002'
-        } else {
-          this.formData.salaryGrade = 'SG-18'
-          this.formData.plantillaItemNo = `${this.formData.position.substr(0, 4).toUpperCase()}-2024-005`
-        }
+      try {
+        // First try to get position details from the store/API
+        await this.fetchPositionDetailsFromAPI()
+      } catch (error) {
+        console.error('Failed to fetch position details:', error)
 
-        this.loadCriteriaForPosition()
+        // Fallback to mock data if API fails
+        this.loadMockPositionDetails()
+      } finally {
         this.loading = false
-      }, 800)
-    },
-    loadCriteriaForPosition() {
-      this.loading = true
-
-      // Simulate API call
-      setTimeout(() => {
-        if (this.formData.position === 'Administrative Officer') {
-          this.criteria.education.title1 = "Bachelor's Degree"
-          this.criteria.experience.title1 = "5 years of relevant experience"
-        } else if (this.formData.position === 'Budget Officer') {
-          this.criteria.education.title1 = "Bachelor's Degree in Accounting or Finance"
-          this.criteria.experience.title1 = "3 years of relevant experience"
-        }
-
-        // In a real app, you would load actual applicants here
-        // this.applicants = await api.getApplicants(this.formData.position)
-
         this.showRatingTable = true
-        this.loading = false
-      }, 500)
+      }
+    },
+    async fetchPositionDetailsFromAPI() {
+      // Here we would use the store to fetch position details
+      // For now, we'll use a timeout to simulate an API call
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          // Mock successful API response
+          this.loadMockPositionDetails()
+          resolve()
+        }, 800)
+      })
+    },
+    loadMockPositionDetails() {
+      if (this.formData.position === 'Administrative Officer') {
+        this.formData.salaryGrade = 'SG-24'
+        this.formData.plantillaItemNo = 'ADMIN-2024-001'
+        this.criteria.education.title1 = "Bachelor's Degree"
+        this.criteria.experience.title1 = "5 years of relevant experience"
+      } else if (this.formData.position === 'Budget Officer') {
+        this.formData.salaryGrade = 'SG-22'
+        this.formData.plantillaItemNo = 'BUDG-2024-003'
+        this.criteria.education.title1 = "Bachelor's Degree in Accounting or Finance"
+        this.criteria.experience.title1 = "3 years of relevant experience"
+      } else if (this.formData.position === 'Accountant') {
+        this.formData.salaryGrade = 'SG-19'
+        this.formData.plantillaItemNo = 'ACCT-2024-002'
+        this.criteria.education.title1 = "Bachelor's Degree in Accounting"
+        this.criteria.experience.title1 = "2 years of accounting experience"
+      } else {
+        this.formData.salaryGrade = 'SG-18'
+        this.formData.plantillaItemNo = `${this.formData.position.substr(0, 4).toUpperCase()}-2024-005`
+        this.criteria.education.title1 = "Bachelor's Degree"
+        this.criteria.experience.title1 = "1 year of relevant experience"
+      }
+    },
+    async loadApplicants() {
+      // In a real app, we would fetch applicants from the API via the store
+      try {
+        await this.raterStore.fetchRaters()
+        if (this.raters && this.raters.length > 0) {
+          // Map API data to our applicant structure
+          this.applicants = this.raters.map(rater => ({
+            id: rater.id,
+            name: rater.name,
+            education: 0,
+            experience: 0,
+            training: 0,
+            performance: 0,
+            bei: 0
+          }))
+        }
+      } catch (error) {
+        console.error('Failed to load applicants:', error)
+        // Keep default applicants
+      }
     }
   },
   created() {
     this.filteredOfficeOptions = [...this.officeOptions]
     this.filteredPositionOptions = [...this.positionOptions]
+
+    // Fetch data from API when component is created
+    this.raterStore.fetchRaters()
+    this.raterStore.fetchRatersBatch()
   }
 }
 </script>

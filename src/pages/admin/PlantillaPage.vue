@@ -434,6 +434,7 @@
 
   const selectedApplicant = ref({
     id: null,
+    controlno: '',
     name: '',
     photo: '',
     position: '',
@@ -599,7 +600,8 @@
   const viewPosition = (row) => {
     selectedPosition.value = row;
     if (row.Name1) {
-      selectedApplicant.value.name = row.Name1;
+      selectedApplicant.value.controlno = row.ControlNo;
+      selectedApplicant.value.name = row.Name4;
       selectedApplicant.value.position = row.position;
       selectedApplicant.value.status = row.Status;
       higherEducation.value = 'Bachelor of Science in Management';

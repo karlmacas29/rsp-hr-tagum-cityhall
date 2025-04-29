@@ -64,7 +64,7 @@
               <div class="full-width">
                 <div class="text-center q-mb-sm">
                   <div class="text-caption text-grey-7">Applied Position</div>
-                  <div class="text-body1 text-weight-medium">
+                  <div class="text-body2 text-bold">
                     {{ applicantData?.position || 'Office of the ...' }}
                   </div>
                 </div>
@@ -264,27 +264,41 @@
 
       <!-- Footer Actions - Updated to conditionally show buttons -->
       <q-card-section class="footer-actions bg-grey-2 q-py-md">
-        <div class="row justify-end">
-          <q-btn label="VIEW PDS" color="primary" outline @click="onViewPDS" class="q-mx-sm" />
-          <!-- Only show these buttons if evaluation is not locked -->
-          <div v-if="!props.isPlantilla">
-            <template v-if="!evaluationLocked">
-              <q-btn
-                :label="
-                  applicantData.status === 'Qualified' ? 'MARK UNQUALIFIED' : 'MARK QUALIFIED'
-                "
-                :color="applicantData.status === 'Qualified' ? 'negative' : 'positive'"
-                @click="toggleQualificationStatus"
-                class="q-mx-sm"
-              />
-              <q-btn
-                label="SUBMIT EVALUATION"
-                color="positive"
-                @click="onSubmit"
-                :disable="applicantData.status === 'Pending'"
-                class="q-mx-sm"
-              />
-            </template>
+        <div class="row justify-between">
+          <div class="row items-center">
+            <q-btn
+              flat
+              dense
+              :icon="showControlNo ? 'visibility_off' : 'visibility'"
+              @click="showControlNo = !showControlNo"
+              class="q-mr-sm"
+            />
+            <q-badge v-if="showControlNo" color="grey">
+              Control No. {{ applicantData?.controlno || '0' }}
+            </q-badge>
+          </div>
+          <div class="row justify-end">
+            <q-btn label="VIEW PDS" color="primary" outline @click="onViewPDS" class="q-mx-sm" />
+            <!-- Only show these buttons if evaluation is not locked -->
+            <div v-if="!props.isPlantilla">
+              <template v-if="!evaluationLocked">
+                <q-btn
+                  :label="
+                    applicantData.status === 'Qualified' ? 'MARK UNQUALIFIED' : 'MARK QUALIFIED'
+                  "
+                  :color="applicantData.status === 'Qualified' ? 'negative' : 'positive'"
+                  @click="toggleQualificationStatus"
+                  class="q-mx-sm"
+                />
+                <q-btn
+                  label="SUBMIT EVALUATION"
+                  color="positive"
+                  @click="onSubmit"
+                  :disable="applicantData.status === 'Pending'"
+                  class="q-mx-sm"
+                />
+              </template>
+            </div>
           </div>
         </div>
       </q-card-section>
@@ -294,6 +308,8 @@
 
 <script setup>
   import { ref, computed, watch } from 'vue';
+
+  const showControlNo = ref(false);
 
   const props = defineProps({
     show: Boolean,

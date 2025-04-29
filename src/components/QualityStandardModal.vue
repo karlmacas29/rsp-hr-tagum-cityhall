@@ -5,7 +5,7 @@
       style="
         width: 1050px;
         max-width: 95vw;
-        height: 85vh;
+        height: 90vh;
         max-height: 95vh;
         display: flex;
         flex-direction: column;
@@ -32,23 +32,50 @@
                 style="width: 100px; height: 100px; border-radius: 10px"
                 alt="Applicant Photo"
               />
-              <div class="text-h6 text-center q-mb-sm">{{ applicantData?.name || 'John Doe' }}</div>
-              <q-badge :color="statusColor" class="q-mb-md">
-                {{ applicantData.status }}
+              <div class="text-body text-bold text-center q-mb-sm">
+                {{ applicantData?.name || 'John Doe' }}
+              </div>
+              <q-badge
+                class="q-pa-xs"
+                :class="
+                  applicantData.status == 'ELECTIVE'
+                    ? 'bg-blue'
+                    : applicantData.status == 'APPOINTED'
+                      ? 'bg-purple'
+                      : applicantData.status == 'CO-TERMINOUS'
+                        ? 'bg-brown'
+                        : applicantData.status == 'REGULAR'
+                          ? 'bg-green'
+                          : applicantData.status == 'TEMPORARY'
+                            ? 'bg-yellow text-black'
+                            : applicantData.status == 'CASUAL'
+                              ? 'bg-grey-4'
+                              : applicantData.status == 'CONTRACTUAL'
+                                ? 'bg-light-blue'
+                                : applicantData.status == 'HONORARIUM'
+                                  ? 'bg-black'
+                                  : 'bg-grey'
+                "
+              >
+                {{ applicantData?.status || 'PENDING' }}
                 <q-icon v-if="evaluationLocked" name="lock" class="q-ml-xs" />
               </q-badge>
 
               <div class="full-width">
                 <div class="text-center q-mb-sm">
                   <div class="text-caption text-grey-7">Applied Position</div>
-                  <div class="text-weight-medium">{{ applicantData.position }}</div>
+                  <div class="text-body1 text-weight-medium">
+                    {{ applicantData?.position || 'Office of the ...' }}
+                  </div>
                 </div>
 
                 <q-separator class="q-my-md" />
 
                 <div class="text-center q-mb-sm">
                   <div class="text-caption text-grey-7">Application Date</div>
-                  <div class="text-weight-medium">{{ applicantData.applicationDate }}</div>
+                  <div class="text-weight-medium">
+                    {{ applicantData?.applicationDate || 'January 01, 2000' }}
+                  </div>
                 </div>
 
                 <q-separator class="q-my-md" />
@@ -240,21 +267,25 @@
         <div class="row justify-end">
           <q-btn label="VIEW PDS" color="primary" outline @click="onViewPDS" class="q-mx-sm" />
           <!-- Only show these buttons if evaluation is not locked -->
-          <template v-if="!evaluationLocked">
-            <q-btn
-              :label="applicantData.status === 'Qualified' ? 'MARK UNQUALIFIED' : 'MARK QUALIFIED'"
-              :color="applicantData.status === 'Qualified' ? 'negative' : 'positive'"
-              @click="toggleQualificationStatus"
-              class="q-mx-sm"
-            />
-            <q-btn
-              label="SUBMIT EVALUATION"
-              color="positive"
-              @click="onSubmit"
-              :disable="applicantData.status === 'Pending'"
-              class="q-mx-sm"
-            />
-          </template>
+          <div v-if="!props.isPlantilla">
+            <template v-if="!evaluationLocked">
+              <q-btn
+                :label="
+                  applicantData.status === 'Qualified' ? 'MARK UNQUALIFIED' : 'MARK QUALIFIED'
+                "
+                :color="applicantData.status === 'Qualified' ? 'negative' : 'positive'"
+                @click="toggleQualificationStatus"
+                class="q-mx-sm"
+              />
+              <q-btn
+                label="SUBMIT EVALUATION"
+                color="positive"
+                @click="onSubmit"
+                :disable="applicantData.status === 'Pending'"
+                class="q-mx-sm"
+              />
+            </template>
+          </div>
         </div>
       </q-card-section>
     </q-card>
@@ -266,6 +297,10 @@
 
   const props = defineProps({
     show: Boolean,
+    isPlantilla: {
+      type: Boolean,
+      default: false,
+    },
     variant: {
       type: String,
       default: 'employee',

@@ -347,6 +347,7 @@
       :position-requirements="positionRequirements"
       @view-pds="viewApplicantPDS"
       @close="closeQualificationModal"
+      :isPlantilla="true"
     />
     <q-dialog v-model="showPDSModal" backdrop-opacity="0.7">
       <PDSModal v-model="showPDSModal" :applicant="selectedApplicant" @close="closePDSModal" />
@@ -462,7 +463,7 @@
   const experience = ref(null);
   const training = ref(null);
   const eligibility = ref(null);
-  const currentPosition = ref('');
+  // const currentPosition = ref('');
   const higherEducation = ref('');
 
   const positions = ref([]);
@@ -594,12 +595,13 @@
     showModal.value = false;
     selectedFile.value = null;
   };
-
+  // view qs
   const viewPosition = (row) => {
     selectedPosition.value = row;
     if (row.Name1) {
       selectedApplicant.value.name = row.Name1;
-      currentPosition.value = row.position;
+      selectedApplicant.value.position = row.position;
+      selectedApplicant.value.status = row.Status;
       higherEducation.value = 'Bachelor of Science in Management';
       showFilledPositionModal.value = true;
     } else {

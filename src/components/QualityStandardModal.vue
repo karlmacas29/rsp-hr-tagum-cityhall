@@ -1,35 +1,38 @@
 <template>
   <q-dialog v-model="localShow" persistent @show="onModalShow">
-    <q-card class="qualification-modal" style="width: 1050px; max-width: 95vw; height: 85vh; max-height: 95vh; display: flex; flex-direction: column;">
+    <q-card
+      class="qualification-modal"
+      style="
+        width: 1050px;
+        max-width: 95vw;
+        height: 85vh;
+        max-height: 95vh;
+        display: flex;
+        flex-direction: column;
+      "
+    >
       <!-- Header Section -->
       <q-card-section class="row justify-between header text-black q-pa-md">
         <div>
           <div class="text-h5 text-bold">Qualification Standard</div>
           <div class="text-subtitle1">Application Information</div>
         </div>
-        <q-btn
-          icon="close"
-          flat
-          round
-          dense
-          class="close-btn"
-          @click="onClose"
-        />
+        <q-btn icon="close" flat round dense class="close-btn" @click="onClose" />
       </q-card-section>
 
       <!-- Applicant View - Main Content Area -->
-      <q-card-section class="main-content-section" style="flex: 1; overflow: hidden;">
+      <q-card-section class="main-content-section" style="flex: 1; overflow: hidden">
         <div class="row no-wrap full-height">
           <!-- Left Card (Applicant Info) -->
           <q-card class="col-3 q-mr-md">
             <q-card-section class="column items-center q-pa-md">
-                <q-img
-                    :src="applicant?.photo || 'https://placehold.co/100'"
-                    class="bg-grey-4"
-                    style="width: 100px; height: 100px; border-radius: 10px;"
-                    alt="Applicant Photo"
-                  />
-              <div class="text-h6 text-center q-mb-sm">{{ applicantData?.Name1 || 'John Doe'}}</div>
+              <q-img
+                src="https://placehold.co/100"
+                class="bg-grey-4"
+                style="width: 100px; height: 100px; border-radius: 10px"
+                alt="Applicant Photo"
+              />
+              <div class="text-h6 text-center q-mb-sm">{{ applicantData?.name || 'John Doe' }}</div>
               <q-badge :color="statusColor" class="q-mb-md">
                 {{ applicantData.status }}
                 <q-icon v-if="evaluationLocked" name="lock" class="q-ml-xs" />
@@ -61,7 +64,7 @@
           </q-card>
 
           <!-- Right Card (Tabs) -->
-          <q-card class="col" style="display: flex; flex-direction: column;">
+          <q-card class="col" style="display: flex; flex-direction: column">
             <q-tabs
               v-model="tab"
               dense
@@ -69,7 +72,7 @@
               active-color="primary"
               indicator-color="primary"
               align="left"
-              style="min-height: 40px;"
+              style="min-height: 40px"
             >
               <q-tab name="education" label="EDUCATION" class="text-weight-medium" />
               <q-tab name="experience" label="EXPERIENCE" class="text-weight-medium" />
@@ -79,7 +82,7 @@
 
             <q-separator />
 
-            <q-tab-panels v-model="tab" class="q-pa-none" style="flex: 1; overflow: auto;">
+            <q-tab-panels v-model="tab" class="q-pa-none" style="flex: 1; overflow: auto">
               <!-- Education Panel -->
               <q-tab-panel name="education" class="q-pa-md">
                 <div class="text-h6 q-mb-md">Applicant Education</div>
@@ -92,7 +95,7 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="(edu, index) in applicantData.education" :key="'edu-'+index">
+                    <tr v-for="(edu, index) in applicantData.education" :key="'edu-' + index">
                       <td>{{ edu.degree }}</td>
                       <td>{{ edu.institution }}</td>
                       <td>{{ edu.year }}</td>
@@ -129,7 +132,7 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="(exp, index) in applicantData.experience" :key="'exp-'+index">
+                    <tr v-for="(exp, index) in applicantData.experience" :key="'exp-' + index">
                       <td>{{ exp.position }}</td>
                       <td>{{ exp.organization }}</td>
                       <td>{{ exp.years }}</td>
@@ -166,7 +169,7 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="(train, index) in applicantData.training" :key="'train-'+index">
+                    <tr v-for="(train, index) in applicantData.training" :key="'train-' + index">
                       <td>{{ train.program }}</td>
                       <td>{{ train.provider }}</td>
                       <td>{{ train.hours }}</td>
@@ -203,7 +206,7 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="(elig, index) in applicantData.eligibility" :key="'elig-'+index">
+                    <tr v-for="(elig, index) in applicantData.eligibility" :key="'elig-' + index">
                       <td>{{ elig.certification }}</td>
                       <td>{{ elig.authority }}</td>
                       <td>{{ elig.year }}</td>
@@ -235,13 +238,7 @@
       <!-- Footer Actions - Updated to conditionally show buttons -->
       <q-card-section class="footer-actions bg-grey-2 q-py-md">
         <div class="row justify-end">
-          <q-btn
-            label="VIEW PDS"
-            color="primary"
-            outline
-            @click="onViewPDS"
-            class="q-mx-sm"
-          />
+          <q-btn label="VIEW PDS" color="primary" outline @click="onViewPDS" class="q-mx-sm" />
           <!-- Only show these buttons if evaluation is not locked -->
           <template v-if="!evaluationLocked">
             <q-btn
@@ -265,137 +262,147 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+  import { ref, computed, watch } from 'vue';
 
-const props = defineProps({
-  show: Boolean,
-  variant: {
-    type: String,
-    default: 'employee',
-    validator: (value) => ['employee', 'applicant'].includes(value)
-  },
-  applicantData: Object,
-  positionRequirements: Object,
-  isSubmitted: Boolean
-})
+  const props = defineProps({
+    show: Boolean,
+    variant: {
+      type: String,
+      default: 'employee',
+      validator: (value) => ['employee', 'applicant'].includes(value),
+    },
+    applicantData: Object,
+    positionRequirements: Object,
+    isSubmitted: Boolean,
+  });
 
-const emit = defineEmits(['update:show', 'view-pds', 'toggle-qualification', 'submit', 'close'])
+  const emit = defineEmits(['update:show', 'view-pds', 'toggle-qualification', 'submit', 'close']);
 
-const localShow = ref(props.show)
-const tab = ref('education')
+  const localShow = ref(props.show);
+  const tab = ref('education');
 
-const evaluationLocked = computed(() => props.isSubmitted)
+  const evaluationLocked = computed(() => props.isSubmitted);
 
-const statusColor = computed(() => {
-  switch (props.applicantData.status) {
-    case 'Qualified': return 'positive'
-    case 'Pending': return 'warning'
-    case 'Unqualified': return 'negative'
-    default: return 'grey'
-  }
-})
+  const statusColor = computed(() => {
+    switch (props.applicantData.status) {
+      case 'Qualified':
+        return 'positive';
+      case 'Pending':
+        return 'warning';
+      case 'Unqualified':
+        return 'negative';
+      default:
+        return 'grey';
+    }
+  });
 
-const overallStatus = computed(() => {
-  switch (props.applicantData.status) {
-    case 'Qualified': return 'Meets Requirements'
-    case 'Unqualified': return 'Does not meet the requirements'
-    default: return 'Under Review'
-  }
-})
+  const overallStatus = computed(() => {
+    switch (props.applicantData.status) {
+      case 'Qualified':
+        return 'Meets Requirements';
+      case 'Unqualified':
+        return 'Does not meet the requirements';
+      default:
+        return 'Under Review';
+    }
+  });
 
-watch(() => props.show, (newVal) => {
-  localShow.value = newVal
-})
+  watch(
+    () => props.show,
+    (newVal) => {
+      localShow.value = newVal;
+    },
+  );
 
-watch(localShow, (newVal) => {
-  emit('update:show', newVal)
-})
+  watch(localShow, (newVal) => {
+    emit('update:show', newVal);
+  });
 
-const onModalShow = () => {
-  // Reset to education tab when modal opens
-  tab.value = 'education'
-}
+  const onModalShow = () => {
+    // Reset to education tab when modal opens
+    tab.value = 'education';
+  };
 
-const onClose = () => emit('close')
-const onViewPDS = () => emit('view-pds')
-const onSubmit = () => {
-  if (!props.isSubmitted && props.applicantData.status !== 'Pending') {
-    emit('submit')
-  }
-}
-const toggleQualificationStatus = () => {
-  if (!props.isSubmitted) {
-    const newStatus = props.applicantData.status === 'Qualified' ? 'Unqualified' : 'Qualified'
-    emit('toggle-qualification', newStatus)
-  }
-}
+  const onClose = () => emit('close');
+  const onViewPDS = () => emit('view-pds');
+  const onSubmit = () => {
+    if (!props.isSubmitted && props.applicantData.status !== 'Pending') {
+      emit('submit');
+    }
+  };
+  const toggleQualificationStatus = () => {
+    if (!props.isSubmitted) {
+      const newStatus = props.applicantData.status === 'Qualified' ? 'Unqualified' : 'Qualified';
+      emit('toggle-qualification', newStatus);
+    }
+  };
 </script>
 
 <style scoped lang="scss">
-.qualification-modal {
-  border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-}
+  .qualification-modal {
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+  }
 
-.header {
-  background-color: #f5f5f5;
-  flex: 0 0 auto;
-}
+  .header {
+    background-color: #f5f5f5;
+    flex: 0 0 auto;
+  }
 
-.main-content-section {
-  flex: 1;
-  overflow: hidden;
-  padding: 16px;
-}
+  .main-content-section {
+    flex: 1;
+    overflow: hidden;
+    padding: 16px;
+  }
 
-.footer-actions {
-  flex: 0 0 auto;
-}
+  .footer-actions {
+    flex: 0 0 auto;
+  }
 
-.full-height {
-  height: 100%;
-}
+  .full-height {
+    height: 100%;
+  }
 
-.close-btn {
-  margin: 0;
-}
+  .close-btn {
+    margin: 0;
+  }
 
-.text-center {
-  text-align: center;
-}
+  .text-center {
+    text-align: center;
+  }
 
-.full-width {
-  width: 100%;
-}
+  .full-width {
+    width: 100%;
+  }
 
-.text-positive {
-  color: var(--q-positive);
-}
+  .text-positive {
+    color: var(--q-positive);
+  }
 
-.qualification-table {
-  width: 100%;
-}
+  .qualification-table {
+    width: 100%;
+  }
 
-.qualification-table th {
-  font-weight: bold;
-  background-color: #fafafa;
-  padding: 12px 16px;
-}
+  .qualification-table th {
+    font-weight: bold;
+    background-color: #fafafa;
+    padding: 12px 16px;
+  }
 
-.qualification-table td {
-  padding: 12px 16px;
-}
+  .qualification-table td {
+    padding: 12px 16px;
+  }
 
-.q-tab {
-  letter-spacing: 0.5px;
-}
+  .q-tab {
+    letter-spacing: 0.5px;
+  }
 
-.q-markup-table {
-  width: 100%;
-}
+  .q-markup-table {
+    width: 100%;
+  }
 
-.q-markup-table thead tr {
-  background-color: #f5f5f5;
-}
+  .q-markup-table thead tr {
+    background-color: #f5f5f5;
+  }
 </style>

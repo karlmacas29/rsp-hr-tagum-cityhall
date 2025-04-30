@@ -1,4 +1,5 @@
 const routes = [
+  // Admin Routes
   {
     path: '/',
     name: 'Admin Login',
@@ -59,6 +60,7 @@ const routes = [
       },
     ],
   },
+  // User Routes
   {
     path: '/home',
     name: 'Userpage',
@@ -81,16 +83,34 @@ const routes = [
       },
     ],
   },
+  // Rater Routes
   {
-    path: '/user-rater',
+    path: '/rater-acc',
     name: 'Rater Login',
-    meta: { guest: true },
     component: () => import('pages/rater/LoginRaterPage.vue'),
   },
+  {
+    path: '/uRater',
+    name: 'Rater Dashboard',
+    component: () => import('layouts/RatersLayout.vue'),
+    children: [
+      {
+        path: '/uRater',
+        name: 'Raters Homepage',
+        component: () => import('pages/rater/RatersHomepage.vue'),
+      },
+      {
+        path: '/uCriteria',
+        name: 'Raters Criteria',
+        component: () => import('pages/rater/RatersCriteria.vue'),
+      },
+    ],
+  },
+  //error routes
   {
     path: '/:catchAll(.*)*',
     component: () => import('layouts/ErrorPage.vue'),
   },
-]
+];
 
-export default routes
+export default routes;

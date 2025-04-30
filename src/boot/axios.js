@@ -1,29 +1,29 @@
-import { boot } from 'quasar/wrappers'
-import axios from 'axios'
+import { boot } from 'quasar/wrappers';
+import axios from 'axios';
 
 const api = axios.create({
-  // baseURL: 'http://rsp-backend.test/api', // Ensure this matches your backend URL
+  baseURL: 'http://rsp-backend.test/api', // Ensure this matches your backend URL
   //baseURL: 'http://127.0.0.1:8000/api', // Ensure this matches your backend URL+
-  baseURL: 'http://192.168.8.214/api', // Ensure this matches your backend URL
-})
+  //baseURL: 'http://192.168.8.214/api', // Ensure this matches your backend URL
+});
 
 // Add a request interceptor to include the token in the Authorization header
 api.interceptors.request.use((config) => {
   const token = document.cookie
     .split('; ')
     .find((row) => row.startsWith('auth_token='))
-    ?.split('=')[1]
+    ?.split('=')[1];
 
   if (token) {
-    config.headers.Authorization = `Bearer ${token}` // Include the token in the Authorization header
+    config.headers.Authorization = `Bearer ${token}`; // Include the token in the Authorization header
   }
 
-  return config
-})
+  return config;
+});
 
 export default boot(({ app }) => {
-  app.config.globalProperties.$axios = axios
-  app.config.globalProperties.$api = api
-})
+  app.config.globalProperties.$axios = axios;
+  app.config.globalProperties.$api = api;
+});
 
-export { api }
+export { api };

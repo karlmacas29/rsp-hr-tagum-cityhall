@@ -49,23 +49,31 @@ export const useRaterStore = defineStore('raters', {
           throw new Error('API client not initialized');
         }
 
-        const response = await api.post('/ratings', ratingData);
+        if (!ratingData.criteria) {
+          throw new Error('Criteria data is missing');
+        }
 
-        if (response.data && response.data.success) {
-          // Update the rater's criteria in both arrays
+        const dataToSend = JSON.parse(JSON.stringify(ratingData));
+        const response = await api.post('/ratings', dataToSend);
+
+        if (response.data) {
+          if (response.data.error) {
+            throw new Error(response.data.error);
+          }
+
           this.updateRaterCriteria(ratingData.raterId, ratingData.criteria);
-
-          // Store the saved criteria separately
-          this.savedCriteria = ratingData.criteria;
+          this.savedCriteria = JSON.parse(JSON.stringify(ratingData.criteria));
 
           toast.success('Rating saved successfully');
           return response.data;
-        } else {
-          throw new Error(response.data?.message || 'Failed to save rating');
         }
+        throw new Error('Invalid response from server');
       } catch (error) {
         this.error = error.message || 'Failed to save rating';
-        console.error('Save rating error:', error);
+        console.error('Save rating error:', {
+          error: error.response?.data || error.message,
+          requestData: ratingData
+        });
         toast.error(this.error);
         throw error;
       } finally {
@@ -74,16 +82,63 @@ export const useRaterStore = defineStore('raters', {
     },
 
     updateRaterCriteria(raterId, newCriteria) {
-      // Update in main raters array
       const raterIndex = this.raters.findIndex((r) => r.id === raterId);
       if (raterIndex !== -1) {
-        this.raters[raterIndex].criteria = newCriteria;
+        this.raters[raterIndex].criteria = JSON.parse(JSON.stringify(newCriteria));
       }
 
-      // Update in ratersBatch array
       const batchIndex = this.ratersBatch.findIndex((r) => r.id === raterId);
       if (batchIndex !== -1) {
-        this.ratersBatch[batchIndex].criteria = newCriteria;
+        this.ratersBatch[batchIndex].criteria = JSON.parse(JSON.stringify(newCriteria));
+      }
+    },
+
+    async savePositionCriteria(positionData) {
+      this.loading = true;
+      this.error = null;
+      try {
+        if (!api) {
+          throw new Error('API client not initialized');
+        }
+
+        if (!positionData.position || !positionData.office || !positionData.criteria) {
+          throw new Error('Position, office, and criteria are required');
+        }
+
+        const payload = {
+          position: positionData.position,
+          office: positionData.office,
+          criteria: positionData.criteria,
+          ...(positionData.salaryGrade && { salaryGrade: positionData.salaryGrade }),
+          ...(positionData.plantillaItemNo && { plantillaItemNo: positionData.plantillaItemNo })
+        };
+
+        const response = await api.post('/criteria', payload);
+
+        if (response.data) {
+          if (response.data.error) {
+            throw new Error(response.data.error);
+          }
+
+          this.savedCriteria = {
+            ...payload,
+            id: response.data.id || Date.now()
+          };
+
+          toast.success('Criteria saved successfully');
+          return response.data;
+        }
+        throw new Error('Invalid response from server');
+      } catch (error) {
+        this.error = error.message || 'Failed to save criteria';
+        console.error('Save criteria error:', {
+          error: error.response?.data || error.message,
+          requestData: positionData
+        });
+        toast.error(this.error);
+        throw error;
+      } finally {
+        this.loading = false;
       }
     },
 
@@ -94,7 +149,15 @@ export const useRaterStore = defineStore('raters', {
         const response = await api.get('/ratings/criteria', {
           params: { position, office },
         });
-        return response.data;
+
+        if (response.data &&
+            response.data.education &&
+            response.data.experience &&
+            response.data.training &&
+            response.data.performance) {
+          return response.data;
+        }
+        return null;
       } catch (error) {
         this.error = error.message || 'Failed to load criteria';
         console.error('Error fetching criteria:', error);
@@ -103,5 +166,13 @@ export const useRaterStore = defineStore('raters', {
         this.loading = false;
       }
     },
+  },
+
+  getters: {
+    hasRaters: (state) => state.raters.length > 0,
+    hasBatchRaters: (state) => state.ratersBatch.length > 0,
+    isLoading: (state) => state.loading,
+    lastError: (state) => state.error,
+    getSavedCriteria: (state) => state.savedCriteria,
   },
 });

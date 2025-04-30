@@ -39,9 +39,7 @@
               </template>
               <template v-slot:no-option>
                 <q-item>
-                  <q-item-section class="text-grey">
-                    No results
-                  </q-item-section>
+                  <q-item-section class="text-grey">No results</q-item-section>
                 </q-item>
               </template>
             </q-select>
@@ -69,9 +67,7 @@
               </template>
               <template v-slot:no-option>
                 <q-item>
-                  <q-item-section class="text-grey">
-                    No results
-                  </q-item-section>
+                  <q-item-section class="text-grey">No results</q-item-section>
                 </q-item>
               </template>
             </q-select>
@@ -114,8 +110,12 @@
     <!-- Message when criteria editor is hidden -->
     <div v-if="!showRatingTable" class="text-center q-pa-xl bg-blue-1 rounded-borders">
       <q-icon name="tune" size="3rem" color="primary" class="q-mb-md" />
-      <p class="text-subtitle1">Please select both an Office and Position to configure rating criteria.</p>
-      <p class="text-caption text-grey-8">This will load the appropriate criteria template for your selected position.</p>
+      <p class="text-subtitle1">
+        Please select both an Office and Position to configure rating criteria.
+      </p>
+      <p class="text-caption text-grey-8">
+        This will load the appropriate criteria template for your selected position.
+      </p>
     </div>
 
     <!-- Criteria Editor - Only shown when office and position are selected -->
@@ -131,21 +131,21 @@
             </q-card-section>
             <q-card-section>
               <q-input
-                v-model="criteria.education.title1"
+                v-model="editableCriteria.education.title1"
                 label="Minimum Qualification"
                 dense
                 outlined
                 class="q-mb-sm"
               />
               <q-input
-                v-model="criteria.education.title2"
+                v-model="editableCriteria.education.title2"
                 label="Title"
                 dense
                 outlined
                 class="q-mb-sm"
               />
               <q-input
-                v-model="criteria.education.description"
+                v-model="editableCriteria.education.description"
                 label="Description"
                 dense
                 outlined
@@ -165,21 +165,21 @@
             </q-card-section>
             <q-card-section>
               <q-input
-                v-model="criteria.experience.title1"
+                v-model="editableCriteria.experience.title1"
                 label="Minimum Qualification"
                 dense
                 outlined
                 class="q-mb-sm"
               />
               <q-input
-                v-model="criteria.experience.title2"
+                v-model="editableCriteria.experience.title2"
                 label="Title"
                 dense
                 outlined
                 class="q-mb-sm"
               />
               <q-input
-                v-model="criteria.experience.description1"
+                v-model="editableCriteria.experience.description1"
                 label="Description (With Experience)"
                 dense
                 outlined
@@ -189,7 +189,7 @@
                 class="q-mb-sm"
               />
               <q-input
-                v-model="criteria.experience.description2"
+                v-model="editableCriteria.experience.description2"
                 label="Description (Without Experience)"
                 dense
                 outlined
@@ -206,21 +206,21 @@
             </q-card-section>
             <q-card-section>
               <q-input
-                v-model="criteria.training.title1"
+                v-model="editableCriteria.training.title1"
                 label="Minimum Qualification"
                 dense
                 outlined
                 class="q-mb-sm"
               />
               <q-input
-                v-model="criteria.training.title2"
+                v-model="editableCriteria.training.title2"
                 label="Title"
                 dense
                 outlined
                 class="q-mb-sm"
               />
               <q-input
-                v-model="criteria.training.description"
+                v-model="editableCriteria.training.description"
                 label="Description"
                 dense
                 outlined
@@ -240,28 +240,28 @@
             </q-card-section>
             <q-card-section>
               <q-input
-                v-model="criteria.performance.title"
+                v-model="editableCriteria.performance.title"
                 label="Title"
                 dense
                 outlined
                 class="q-mb-sm"
               />
               <q-input
-                v-model="criteria.performance.rating1"
+                v-model="editableCriteria.performance.rating1"
                 label="Outstanding Rating"
                 dense
                 outlined
                 class="q-mb-sm"
               />
               <q-input
-                v-model="criteria.performance.rating2"
+                v-model="editableCriteria.performance.rating2"
                 label="Very Satisfactory Rating"
                 dense
                 outlined
                 class="q-mb-sm"
               />
               <q-input
-                v-model="criteria.performance.rating3"
+                v-model="editableCriteria.performance.rating3"
                 label="Below VS Rating"
                 dense
                 outlined
@@ -271,9 +271,9 @@
         </div>
       </div>
 
-      <!-- Rater Preview Component -->
+      <!-- Rater Preview Component - Only show the current criteria, not editable -->
       <RaterPreview
-        :criteria="criteria"
+        :criteria="displayCriteria"
         :applicants="applicants"
         @update-rating="handleRatingUpdate"
       />
@@ -306,270 +306,353 @@
 </template>
 
 <script>
-import { toast } from 'src/boot/toast'
-import RaterPreview from 'components/RaterPreview.vue'
-import { rankApplicants } from 'src/assets/Utils/RatingCalculations.js'
-import { useRaterStore } from 'src/stores/raterStore' // Import the store
-import { storeToRefs } from 'pinia' // Import storeToRefs for better reactivity
+  import { toast } from 'src/boot/toast';
+  import RaterPreview from 'components/RaterPreview.vue';
+  import { rankApplicants } from 'src/assets/Utils/RatingCalculations.js';
+  import { useRaterStore } from 'src/stores/raterStore';
+  import { storeToRefs } from 'pinia';
+  import { api } from 'src/boot/axios'; // Import API directly for fallback
 
-export default {
-  name: 'CriteriaRater',
-  components: {
-    RaterPreview
-  },
-  data() {
-    return {
-      loading: false,
-      showRatingTable: false,
-      confirmDialog: false,
-      formData: {
-        office: null,
-        position: null,
-        salaryGrade: '',
-        plantillaItemNo: '',
-      },
-      criteria: {
-        education: {
-          title1: 'High School Graduate',
-          title2: 'RELEVANT EDUCATION',
-          description: "Completion of Bachelor's Degree and/or Master/ Doctorate/ Professional Ed or Position → 20%",
-          weight: 0.20
+  export default {
+    name: 'CriteriaRater',
+    components: {
+      RaterPreview,
+    },
+    data() {
+      return {
+        loading: false,
+        showRatingTable: false,
+        confirmDialog: false,
+        formData: {
+          office: null,
+          position: null,
+          salaryGrade: '',
+          plantillaItemNo: '',
         },
-        experience: {
-          title1: 'None required',
-          title2: 'RELEVANT EXPERIENCE',
-          description1: 'With Experience with higher Salary Grade/level with Office Order of Designation from the Local Chief → 20%',
-          description2: 'Without Experience → 10%',
-          weight: 0.20
+        // Base criteria template
+        baseCriteria: {
+          education: {
+            title1: 'High School Graduate',
+            title2: 'RELEVANT EDUCATION',
+            description:
+              "Completion of Bachelor's Degree and/or Master/ Doctorate/ Professional Ed or Position → 20%",
+            weight: 0.2,
+          },
+          experience: {
+            title1: 'None required',
+            title2: 'RELEVANT EXPERIENCE',
+            description1:
+              'With Experience with higher Salary Grade/level with Office Order of Designation from the Local Chief → 20%',
+            description2: 'Without Experience → 10%',
+            weight: 0.2,
+          },
+          training: {
+            title1: 'None required',
+            title2: 'RELEVANT TRAINING',
+            description:
+              'With the Minimum hours of related Training to the position or at least 4 hours if required of the position → 15%',
+            weight: 0.15,
+          },
+          performance: {
+            title: 'IPCR Rating/OPV Rating',
+            rating1: 'Outstanding → 15%',
+            rating2: 'Very Satisfactory → 13%',
+            rating3: 'Below VS rating → 10%',
+            weight: 0.15,
+          },
         },
-        training: {
-          title1: 'None required',
-          title2: 'RELEVANT TRAINING',
-          description: 'With the Minimum hours of related Training to the position or at least 4 hours if required of the position → 15%',
-          weight: 0.15
-        },
-        performance: {
-          title: 'IPCR Rating/OPV Rating',
-          rating1: 'Outstanding → 15%',
-          rating2: 'Very Satisfactory → 13%',
-          rating3: 'Below VS rating → 10%',
-          weight: 0.15
-        },
-      },
-      applicants: [
-        { id: 1, name: 'Applicant 1', education: 0, experience: 0, training: 0, performance: 0, bei: 0 },
-        { id: 2, name: 'Applicant 2', education: 0, experience: 0, training: 0, performance: 0, bei: 0 },
-        { id: 3, name: 'Applicant 3', education: 0, experience: 0, training: 0, performance: 0, bei: 0 }
-      ],
-      officeOptions: [
-        'Human Resource Office',
-        'Finance Department',
-        'Legal Department',
-        'Information Technology Department',
-        'Operations Department',
-        'Administrative Services',
-      ],
-      positionOptions: [
-        'Administrative Officer',
-        'Budget Officer',
-        'Accountant',
-        'Planning Officer',
-        'Human Resource Officer',
-        'IT Officer',
-        'Engineer',
-        'Project Development Officer',
-        'Public Information Officer'
-      ],
-      filteredOfficeOptions: [],
-      filteredPositionOptions: []
-    }
-  },
-  computed: {
-    rankedApplicants() {
-      return rankApplicants(this.applicants, this.criteria)
-    }
-  },
-  setup() {
-    // Using the rater store with composition API
-    const raterStore = useRaterStore()
-    const { raters, loading: storeLoading } = storeToRefs(raterStore)
-
-    return {
-      raterStore,
-      raters,
-      storeLoading
-    }
-  },
-  methods: {
-    confirmSave() {
-      this.confirmDialog = true
-    },
-    async saveRatings() {
-      this.loading = true
-      try {
-        // Now using the store to save ratings
-        await this.raterStore.saveRating({
-          position: this.formData.position,
-          office: this.formData.office,
-          applicants: this.rankedApplicants,
-          criteria: this.criteria
-        })
-
-        toast.success(`Ratings for ${this.formData.position} saved successfully`)
-      } catch (error) {
-        toast.error('Failed to save ratings. Please try again.')
-        console.error('Save error:', error)
-      } finally {
-        this.loading = false
-      }
-    },
-    handleRatingUpdate({ applicantId, field, value }) {
-      const applicant = this.applicants.find(a => a.id === applicantId)
-      if (applicant) {
-        applicant[field] = Number(value)
-      }
-    },
-    filterOffices(val, update) {
-      update(() => {
-        if (val === '') {
-          this.filteredOfficeOptions = this.officeOptions
-        } else {
-          const needle = val.toLowerCase()
-          this.filteredOfficeOptions = this.officeOptions.filter(
-            v => v.toLowerCase().indexOf(needle) > -1
-          )
-        }
-      })
-    },
-    filterPositions(val, update) {
-      update(() => {
-        if (val === '') {
-          this.filteredPositionOptions = this.positionOptions
-        } else {
-          const needle = val.toLowerCase()
-          this.filteredPositionOptions = this.positionOptions.filter(
-            v => v.toLowerCase().indexOf(needle) > -1
-          )
-        }
-      })
-    },
-    resetPosition() {
-      this.formData.position = null
-      this.formData.salaryGrade = ''
-      this.formData.plantillaItemNo = ''
-      this.showRatingTable = false
-    },
-    async loadPositionDetails() {
-      if (!this.formData.position) return
-
-      this.loading = true
-
-      try {
-        // First try to get position details from the store/API
-        await this.fetchPositionDetailsFromAPI()
-      } catch (error) {
-        console.error('Failed to fetch position details:', error)
-
-        // Fallback to mock data if API fails
-        this.loadMockPositionDetails()
-      } finally {
-        this.loading = false
-        this.showRatingTable = true
-      }
-    },
-    async fetchPositionDetailsFromAPI() {
-      // Here we would use the store to fetch position details
-      // For now, we'll use a timeout to simulate an API call
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          // Mock successful API response
-          this.loadMockPositionDetails()
-          resolve()
-        }, 800)
-      })
-    },
-    loadMockPositionDetails() {
-      if (this.formData.position === 'Administrative Officer') {
-        this.formData.salaryGrade = 'SG-24'
-        this.formData.plantillaItemNo = 'ADMIN-2024-001'
-        this.criteria.education.title1 = "Bachelor's Degree"
-        this.criteria.experience.title1 = "5 years of relevant experience"
-      } else if (this.formData.position === 'Budget Officer') {
-        this.formData.salaryGrade = 'SG-22'
-        this.formData.plantillaItemNo = 'BUDG-2024-003'
-        this.criteria.education.title1 = "Bachelor's Degree in Accounting or Finance"
-        this.criteria.experience.title1 = "3 years of relevant experience"
-      } else if (this.formData.position === 'Accountant') {
-        this.formData.salaryGrade = 'SG-19'
-        this.formData.plantillaItemNo = 'ACCT-2024-002'
-        this.criteria.education.title1 = "Bachelor's Degree in Accounting"
-        this.criteria.experience.title1 = "2 years of accounting experience"
-      } else {
-        this.formData.salaryGrade = 'SG-18'
-        this.formData.plantillaItemNo = `${this.formData.position.substr(0, 4).toUpperCase()}-2024-005`
-        this.criteria.education.title1 = "Bachelor's Degree"
-        this.criteria.experience.title1 = "1 year of relevant experience"
-      }
-    },
-    async loadApplicants() {
-      // In a real app, we would fetch applicants from the API via the store
-      try {
-        await this.raterStore.fetchRaters()
-        if (this.raters && this.raters.length > 0) {
-          // Map API data to our applicant structure
-          this.applicants = this.raters.map(rater => ({
-            id: rater.id,
-            name: rater.name,
+        // Editable copy of criteria
+        editableCriteria: null,
+        // Display criteria (what's shown in the preview)
+        displayCriteria: null,
+        applicants: [
+          {
+            id: 1,
+            name: 'Applicant 1',
             education: 0,
             experience: 0,
             training: 0,
             performance: 0,
-            bei: 0
-          }))
-        }
-      } catch (error) {
-        console.error('Failed to load applicants:', error)
-        // Keep default applicants
-      }
-    }
-  },
-  created() {
-    this.filteredOfficeOptions = [...this.officeOptions]
-    this.filteredPositionOptions = [...this.positionOptions]
+            bei: 0,
+          },
+          {
+            id: 2,
+            name: 'Applicant 2',
+            education: 0,
+            experience: 0,
+            training: 0,
+            performance: 0,
+            bei: 0,
+          },
+          {
+            id: 3,
+            name: 'Applicant 3',
+            education: 0,
+            experience: 0,
+            training: 0,
+            performance: 0,
+            bei: 0,
+          },
+        ],
+        officeOptions: [
+          'Human Resource Office',
+          'Finance Department',
+          'Legal Department',
+          'Information Technology Department',
+          'Operations Department',
+          'Administrative Services',
+        ],
+        positionOptions: [
+          'Administrative Officer',
+          'Budget Officer',
+          'Accountant',
+          'Planning Officer',
+          'Human Resource Officer',
+          'IT Officer',
+          'Engineer',
+          'Project Development Officer',
+          'Public Information Officer',
+        ],
+        filteredOfficeOptions: [],
+        filteredPositionOptions: [],
+      };
+    },
+    computed: {
+      rankedApplicants() {
+        return rankApplicants(this.applicants, this.displayCriteria);
+      },
+    },
+    created() {
+      // Initialize criteria objects by creating deep copies
+      this.editableCriteria = JSON.parse(JSON.stringify(this.baseCriteria));
+      this.displayCriteria = JSON.parse(JSON.stringify(this.baseCriteria));
 
-    // Fetch data from API when component is created
-    this.raterStore.fetchRaters()
-    this.raterStore.fetchRatersBatch()
-  }
-}
+      this.filteredOfficeOptions = [...this.officeOptions];
+      this.filteredPositionOptions = [...this.positionOptions];
+
+      // Fetch data from API when component is created
+      this.fetchInitialData();
+    },
+    setup() {
+      // Using the rater store with composition API
+      const raterStore = useRaterStore();
+      const { raters, loading: storeLoading } = storeToRefs(raterStore);
+
+      return {
+        raterStore,
+        raters,
+        storeLoading,
+      };
+    },
+    methods: {
+      async fetchInitialData() {
+        try {
+          await this.raterStore.fetchRaters();
+          await this.raterStore.fetchRatersBatch();
+        } catch (error) {
+          console.error('Error fetching initial data:', error);
+        }
+      },
+      confirmSave() {
+        this.confirmDialog = true;
+      },
+      async saveRatings() {
+        this.loading = true;
+        try {
+          // Use a try-catch around API access to add fallback mechanism
+          try {
+            // First attempt: Use the store method
+            const result = await this.raterStore.saveRating({
+              position: this.formData.position,
+              office: this.formData.office,
+              applicants: this.rankedApplicants,
+              criteria: this.editableCriteria,
+            });
+
+            // On success, update the displayed criteria
+            this.displayCriteria = JSON.parse(JSON.stringify(this.editableCriteria));
+            toast.success(`Ratings for ${this.formData.position} saved successfully`);
+            return result;
+          } catch (storeError) {
+            console.error('Store save method failed:', storeError);
+
+            // Second attempt: Try direct API call as fallback
+            const response = await api.post('/ratings', {
+              position: this.formData.position,
+              office: this.formData.office,
+              applicants: this.rankedApplicants,
+              criteria: this.editableCriteria,
+            });
+
+            // On success, update the displayed criteria
+            this.displayCriteria = JSON.parse(JSON.stringify(this.editableCriteria));
+            toast.success(`Ratings for ${this.formData.position} saved successfully`);
+            return response.data;
+          }
+        } catch (error) {
+          // If both methods fail, show error but don't update display criteria
+          console.error('Save error:', error);
+          toast.error('Failed to save ratings. Please try again.');
+
+          // Important: Reset editable criteria to match current display
+          this.editableCriteria = JSON.parse(JSON.stringify(this.displayCriteria));
+        } finally {
+          this.loading = false;
+        }
+      },
+      handleRatingUpdate({ applicantId, field, value }) {
+        const applicant = this.applicants.find((a) => a.id === applicantId);
+        if (applicant) {
+          applicant[field] = Number(value);
+        }
+      },
+      filterOffices(val, update) {
+        update(() => {
+          if (val === '') {
+            this.filteredOfficeOptions = this.officeOptions;
+          } else {
+            const needle = val.toLowerCase();
+            this.filteredOfficeOptions = this.officeOptions.filter(
+              (v) => v.toLowerCase().indexOf(needle) > -1,
+            );
+          }
+        });
+      },
+      filterPositions(val, update) {
+        update(() => {
+          if (val === '') {
+            this.filteredPositionOptions = this.positionOptions;
+          } else {
+            const needle = val.toLowerCase();
+            this.filteredPositionOptions = this.positionOptions.filter(
+              (v) => v.toLowerCase().indexOf(needle) > -1,
+            );
+          }
+        });
+      },
+      resetPosition() {
+        this.formData.position = null;
+        this.formData.salaryGrade = '';
+        this.formData.plantillaItemNo = '';
+        this.showRatingTable = false;
+
+        // Reset criteria when position is reset
+        this.editableCriteria = JSON.parse(JSON.stringify(this.baseCriteria));
+        this.displayCriteria = JSON.parse(JSON.stringify(this.baseCriteria));
+      },
+      async loadPositionDetails() {
+        if (!this.formData.position) return;
+
+        this.loading = true;
+
+        try {
+          // First try to get existing criteria for this position/office combo
+          const existingCriteria = await this.fetchExistingCriteria();
+
+          if (existingCriteria) {
+            // If criteria exists, use it
+            this.editableCriteria = JSON.parse(JSON.stringify(existingCriteria));
+            this.displayCriteria = JSON.parse(JSON.stringify(existingCriteria));
+          } else {
+            // Fall back to position-specific mock data
+            this.loadMockPositionDetails();
+          }
+        } catch (error) {
+          console.error('Failed to fetch position details:', error);
+          // Fallback to mock data if API fails
+          this.loadMockPositionDetails();
+        } finally {
+          this.loading = false;
+          this.showRatingTable = true;
+        }
+      },
+      async fetchExistingCriteria() {
+        try {
+          // Try to get existing criteria using the store method
+          return await this.raterStore.getCriteria(this.formData.position, this.formData.office);
+        } catch (error) {
+          console.error('Error fetching existing criteria:', error);
+          return null;
+        }
+      },
+      loadMockPositionDetails() {
+        // Update position details based on selection
+        if (this.formData.position === 'Administrative Officer') {
+          this.formData.salaryGrade = 'SG-24';
+          this.formData.plantillaItemNo = 'ADMIN-2024-001';
+          this.editableCriteria.education.title1 = "Bachelor's Degree";
+          this.editableCriteria.experience.title1 = '5 years of relevant experience';
+        } else if (this.formData.position === 'Budget Officer') {
+          this.formData.salaryGrade = 'SG-22';
+          this.formData.plantillaItemNo = 'BUDG-2024-003';
+          this.editableCriteria.education.title1 = "Bachelor's Degree in Accounting or Finance";
+          this.editableCriteria.experience.title1 = '3 years of relevant experience';
+        } else if (this.formData.position === 'Accountant') {
+          this.formData.salaryGrade = 'SG-19';
+          this.formData.plantillaItemNo = 'ACCT-2024-002';
+          this.editableCriteria.education.title1 = "Bachelor's Degree in Accounting";
+          this.editableCriteria.experience.title1 = '2 years of accounting experience';
+        } else {
+          this.formData.salaryGrade = 'SG-18';
+          this.formData.plantillaItemNo = `${this.formData.position.substr(0, 4).toUpperCase()}-2024-005`;
+          this.editableCriteria.education.title1 = "Bachelor's Degree";
+          this.editableCriteria.experience.title1 = '1 year of relevant experience';
+        }
+
+        // Also update the display criteria
+        this.displayCriteria = JSON.parse(JSON.stringify(this.editableCriteria));
+      },
+      async loadApplicants() {
+        // In a real app, we would fetch applicants from the API via the store
+        try {
+          await this.raterStore.fetchRaters();
+          if (this.raters && this.raters.length > 0) {
+            // Map API data to our applicant structure
+            this.applicants = this.raters.map((rater) => ({
+              id: rater.id,
+              name: rater.name,
+              education: 0,
+              experience: 0,
+              training: 0,
+              performance: 0,
+              bei: 0,
+            }));
+          }
+        } catch (error) {
+          console.error('Failed to load applicants:', error);
+          // Keep default applicants
+        }
+      },
+    },
+  };
 </script>
 
 <style scoped>
-.criteria-card {
-  height: 100%;
-  transition: all 0.3s ease;
-}
-
-.criteria-card:hover {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.confirm-dialog {
-  border-radius: 8px;
-}
-
-.q-field--disabled {
-  opacity: 0.8;
-}
-
-.q-field--disabled .q-field__control {
-  background-color: #f5f5f5;
-  color: #666;
-}
-
-@media (max-width: 768px) {
   .criteria-card {
-    margin-bottom: 16px;
+    height: 100%;
+    transition: all 0.3s ease;
   }
-}
+
+  .criteria-card:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .confirm-dialog {
+    border-radius: 8px;
+  }
+
+  .q-field--disabled {
+    opacity: 0.8;
+  }
+
+  .q-field--disabled .q-field__control {
+    background-color: #f5f5f5;
+    color: #666;
+  }
+
+  @media (max-width: 768px) {
+    .criteria-card {
+      margin-bottom: 16px;
+    }
+  }
 </style>

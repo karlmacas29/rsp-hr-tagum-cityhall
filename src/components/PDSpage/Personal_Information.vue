@@ -12,22 +12,22 @@
       <div class="form-title-container">
         <div class="text-h5 text-bold q-px-sm flex items-center q-gutter-x-sm">
           Employee's Name
-          <q-badge>Outsider</q-badge>
+          <!-- <q-badge>Outsider</q-badge> -->
         </div>
       </div>
 
       <div class="row q-col-gutter-md q-mb-lg">
         <div class="col-3">
           <div class="field-label">First Name</div>
-          <div class="field-value">King</div>
+          <div class="field-value">{{ props.personal?.Firstname || 'None' }}</div>
         </div>
         <div class="col-3">
           <div class="field-label">Last Name</div>
-          <div class="field-value">Fatpel</div>
+          <div class="field-value">{{ props.personal?.Surname || 'None' }}</div>
         </div>
         <div class="col-3">
           <div class="field-label">Middle Name</div>
-          <div class="field-value">Boss</div>
+          <div class="field-value">{{ props.personal?.MIddlename || 'None' }}</div>
         </div>
         <div class="col-3">
           <div class="field-label">Name Extension</div>
@@ -47,29 +47,39 @@
       <div class="row q-col-gutter-md">
         <div class="col-12">
           <div class="field-label">Date of Birth:</div>
-          <div class="field-value">January 01, 2003</div>
+          <div class="field-value">
+            {{
+              props.personal?.BirthDate
+                ? new Date(props.personal.BirthDate).toLocaleDateString('en-US', {
+                    month: 'long',
+                    day: '2-digit',
+                    year: 'numeric',
+                  })
+                : 'None'
+            }}
+          </div>
         </div>
         <div class="col-12 row justify-between q-gutter-x-sm">
           <div class="col-5">
             <div class="field-label">Gender Preference:</div>
-            <div class="field-value">Man</div>
+            <div class="field-value">{{ props.personal?.gender || 'None' }}</div>
           </div>
           <div class="col-5">
             <div class="field-label">Sex:</div>
-            <div class="field-value">Male</div>
+            <div class="field-value">{{ props.personal?.Sex || 'None' }}</div>
           </div>
         </div>
         <div class="col-12">
           <div class="field-label">Blood Type:</div>
-          <div class="field-value">O</div>
+          <div class="field-value">{{ props.personal?.BloodType || 'None' }}</div>
         </div>
         <div class="col-12">
           <div class="field-label">Cellphone Number:</div>
-          <div class="field-value">09876543098</div>
+          <div class="field-value">{{ props.personal?.CellphoneNo || 'None' }}</div>
         </div>
         <div class="col-12">
           <div class="field-label">Email:</div>
-          <div class="field-value">example@email.com</div>
+          <div class="field-value">{{ props.personal?.EmailAdd || 'None' }}</div>
         </div>
       </div>
     </div>
@@ -78,25 +88,25 @@
       <div class="row q-col-gutter-md">
         <div class="col-12">
           <div class="field-label">Place of Birth:</div>
-          <div class="field-value">Tagum City</div>
+          <div class="field-value">{{ props.personal?.BirthPlace || 'None' }}</div>
         </div>
         <div class="col-12 row justify-between q-gutter-x-sm">
           <div class="col-5">
             <div class="field-label">Height:</div>
-            <div class="field-value">6'0"</div>
+            <div class="field-value">{{ props.personal?.Heights || 'None' }}</div>
           </div>
           <div class="col-5">
             <div class="field-label">Weight:</div>
-            <div class="field-value">60kg</div>
+            <div class="field-value">{{ props.personal?.Weights || 'None' }}</div>
           </div>
         </div>
         <div class="col-12">
           <div class="field-label">Civil Status:</div>
-          <div class="field-value">Single</div>
+          <div class="field-value">{{ props.personal?.CivilStatus || 'None' }}</div>
         </div>
         <div class="col-12">
           <div class="field-label">Telephone Number:</div>
-          <div class="field-value">(074)4936904</div>
+          <div class="field-value">{{ props.personal?.TelNo || 'None' }}</div>
         </div>
         <!-- Note that duplicate fields were removed from the right side -->
       </div>
@@ -114,15 +124,15 @@
       <div class="row q-col-gutter-md">
         <div class="col-12">
           <div class="field-label">GSIS ID No.:</div>
-          <div class="field-value">1234567890</div>
+          <div class="field-value">{{ props.personal?.GSISNo || 'None' }}</div>
         </div>
         <div class="col-12">
           <div class="field-label">PHILHEALTH ID No.:</div>
-          <div class="field-value">1234567890</div>
+          <div class="field-value">{{ props.personal?.PHEALTHNo || 'None' }}</div>
         </div>
         <div class="col-12">
           <div class="field-label">TIN No.:</div>
-          <div class="field-value">1234567890</div>
+          <div class="field-value">{{ props.personal?.TINNo || 'None' }}</div>
         </div>
       </div>
     </div>
@@ -131,15 +141,15 @@
       <div class="row q-col-gutter-md">
         <div class="col-12">
           <div class="field-label">PAGIBIG ID No.:</div>
-          <div class="field-value">1234567890</div>
+          <div class="field-value">{{ props.personal?.PAGIBIGNo || 'None' }}</div>
         </div>
         <div class="col-12">
           <div class="field-label">SSS No.:</div>
-          <div class="field-value">1234567890</div>
+          <div class="field-value">{{ props.personal?.SSSNo || 'None' }}</div>
         </div>
         <div class="col-12">
           <div class="field-label">Agency Employee No.:</div>
-          <div class="field-value">1234567890</div>
+          <div class="field-value">{{ props.personal?.ControlNo || 'None' }}</div>
         </div>
         <!-- Note that duplicate fields were removed from the right side -->
       </div>
@@ -157,19 +167,19 @@
       <div class="row q-col-gutter-md">
         <div class="col-12">
           <div class="field-label">Region:</div>
-          <div class="field-value">Region XI</div>
+          <div class="field-value">{{ props.personal?.Rregion || 'None' }}</div>
         </div>
         <div class="col-12">
           <div class="field-label">City/Municipality:</div>
-          <div class="field-value">City of Tagum</div>
+          <div class="field-value">{{ props.personal?.Rcity || 'None' }}</div>
         </div>
         <div class="col-12">
           <div class="field-label">Subdivision/Village:</div>
-          <div class="field-value">N/A</div>
+          <div class="field-value">{{ props.personal?.Rsubdivision || 'None' }}</div>
         </div>
         <div class="col-12">
           <div class="field-label">House/Block/Lot No.:</div>
-          <div class="field-value">228</div>
+          <div class="field-value">{{ props.personal?.Rhouse || 'None' }}</div>
         </div>
       </div>
     </div>
@@ -178,19 +188,19 @@
       <div class="row q-col-gutter-md">
         <div class="col-12">
           <div class="field-label">Province:</div>
-          <div class="field-value">Davao Del Norte</div>
+          <div class="field-value">{{ props.personal?.Rprovince || 'None' }}</div>
         </div>
         <div class="col-12">
           <div class="field-label">Barangay:</div>
-          <div class="field-value">La Filipina</div>
+          <div class="field-value">{{ props.personal?.Rbarangay || 'None' }}</div>
         </div>
         <div class="col-12">
           <div class="field-label">Street/Purok:</div>
-          <div class="field-value">Purok Santol</div>
+          <div class="field-value">{{ props.personal?.Rstreet || 'None' }}</div>
         </div>
         <div class="col-12">
           <div class="field-label">Zip Code:</div>
-          <div class="field-value">8100</div>
+          <div class="field-value">{{ props.personal?.Rzip || 'None' }}</div>
         </div>
         <!-- Note that duplicate fields were removed from the right side -->
       </div>
@@ -201,7 +211,7 @@
   <div>
     <div class="text-h5 text-bold q-px-sm flex items-center q-gutter-x-sm">
       Permanent Address
-      <q-badge>Same with Residential Address</q-badge>
+      <!-- <q-badge>Same with Residential Address</q-badge> -->
     </div>
   </div>
 
@@ -211,19 +221,19 @@
       <div class="row q-col-gutter-md">
         <div class="col-12">
           <div class="field-label">Region:</div>
-          <div class="field-value">Region XI</div>
+          <div class="field-value">{{ props.personal?.Pregion || 'None' }}</div>
         </div>
         <div class="col-12">
           <div class="field-label">City/Municipality:</div>
-          <div class="field-value">City of Tagum</div>
+          <div class="field-value">{{ props.personal?.Pcity || 'None' }}</div>
         </div>
         <div class="col-12">
           <div class="field-label">Subdivision/Village:</div>
-          <div class="field-value">N/A</div>
+          <div class="field-value">{{ props.personal?.Psubdivision || 'None' }}</div>
         </div>
         <div class="col-12">
           <div class="field-label">House/Block/Lot No.:</div>
-          <div class="field-value">228</div>
+          <div class="field-value">{{ props.personal?.Phouse || 'None' }}</div>
         </div>
       </div>
     </div>
@@ -232,19 +242,19 @@
       <div class="row q-col-gutter-md">
         <div class="col-12">
           <div class="field-label">Province:</div>
-          <div class="field-value">Davao Del Norte</div>
+          <div class="field-value">{{ props.personal?.Pprovince || 'None' }}</div>
         </div>
         <div class="col-12">
           <div class="field-label">Barangay:</div>
-          <div class="field-value">La Filipina</div>
+          <div class="field-value">{{ props.personal?.Pbarangay || 'None' }}</div>
         </div>
         <div class="col-12">
           <div class="field-label">Street/Purok:</div>
-          <div class="field-value">Purok Santol</div>
+          <div class="field-value">{{ props.personal?.Pstreet || 'None' }}</div>
         </div>
         <div class="col-12">
           <div class="field-label">Zip Code:</div>
-          <div class="field-value">8100</div>
+          <div class="field-value">{{ props.personal?.Pzip || 'None' }}</div>
         </div>
         <!-- Note that duplicate fields were removed from the right side -->
       </div>
@@ -262,7 +272,7 @@
       <div class="row q-col-gutter-md">
         <div class="col-12">
           <div class="field-label">Citizenship:</div>
-          <div class="field-value">Filipino</div>
+          <div class="field-value">{{ props.personal?.Citizenship || 'None' }}</div>
         </div>
       </div>
     </div>
@@ -271,7 +281,7 @@
       <div class="row q-col-gutter-md">
         <div class="col-12">
           <div class="field-label">Religious Sector:</div>
-          <div class="field-value">Roman Catholic</div>
+          <div class="field-value">{{ props.personal?.Religion || 'None' }}</div>
         </div>
 
         <!-- Note that duplicate fields were removed from the right side -->
@@ -279,6 +289,14 @@
     </div>
   </div>
 </template>
+<script setup>
+  const props = defineProps({
+    personal: {
+      type: Object,
+      required: true,
+    },
+  });
+</script>
 <style scoped>
   .pds-dialog {
     height: 100%;

@@ -1,66 +1,53 @@
 <template>
-    <div class="q-pa-md">
-        <q-table
-            title="Voluntary Work"
-            :rows="rows"
-            :columns="columns"
-            row-key="name"
-        />
-    </div>
+  <div class="q-pa-md">
+    <q-table title="Voluntary Work" :rows="props.voluntary" :columns="columns" row-key="id" />
+  </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+  const props = defineProps({
+    voluntary: {
+      type: Object,
+    },
+  });
 
-const columns = [
+  const columns = [
     {
-        name: 'organization',
-        required: true,
-        label: 'Name and Address of Organization',
-        align: 'left',
-        field: row => row.organization,
-        format: val => `${val}`,
+      name: 'organization',
+      required: true,
+      label: 'Name and Address of Organization',
+      align: 'left',
+      field: 'OrgName',
     },
     {
-        name: 'fromDate',
-        align: 'left',
-        label: 'From',
-        field: 'fromDate',
-        format: val => new Date(val).toLocaleDateString(),
+      name: 'fromDate',
+      align: 'left',
+      label: 'From',
+      field: 'DateFrom',
+      // format: (val) => new Date(val).toLocaleDateString(),
     },
     {
-        name: 'toDate',
-        align: 'left',
-        label: 'To',
-        field: 'toDate',
-        format: val => new Date(val).toLocaleDateString(),
+      name: 'toDate',
+      align: 'left',
+      label: 'To',
+      field: 'DateTo',
+      // format: (val) => new Date(val).toLocaleDateString(),
     },
     {
-        name: 'hours',
-        align: 'left',
-        label: 'Number of Hours',
-        field: 'hours',
+      name: 'hours',
+      align: 'left',
+      label: 'Number of Hours',
+      field: 'NoHours',
     },
     {
-        name: 'position',
-        align: 'left',
-        label: 'Position',
-        field: 'position',
-    }
-]
-
-const rows = ref([
-    {
-        organization: 'Red Cross Tagum City Chapter',
-        fromDate: '2023-01-01',
-        toDate: '2023-12-31',
-        hours: 40,
-        position: 'Volunteer'
+      name: 'position',
+      align: 'left',
+      label: 'Position',
+      field: 'OrgPosition',
     },
-    // Add more rows as needed
-])
+  ];
 </script>
 
 <style scoped>
-/* Add custom styles if needed */
+  /* Add custom styles if needed */
 </style>

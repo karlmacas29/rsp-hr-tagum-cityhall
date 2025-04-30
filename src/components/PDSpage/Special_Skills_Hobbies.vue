@@ -4,7 +4,7 @@
       <div class="text-h5 text-bold">SPECIAL SKILLS AND HOBBIES</div>
     </div>
     <div v-if="skills.length > 0" class="row q-col-gutter-md">
-      <div v-for="(skill, index) in skills" :key="index" class="col-12 col-sm-6 col-md-4">
+      <div v-for="(skill, index) in props.skills" :key="skill.ID" class="col-12 col-sm-6 col-md-4">
         <q-card class="skill-card" flat bordered>
           <q-card-section>
             <div
@@ -14,12 +14,13 @@
                 overflow: hidden;
                 text-overflow: ellipsis;
                 display: -webkit-box;
-                line-clamp: 2;
+                line-clamp: 7;
                 -webkit-box-orient: vertical;
               "
             >
               <q-badge rounded>{{ index + 1 }}</q-badge>
-              {{ skill.name }}
+
+              {{ skill.Skills }}
             </div>
           </q-card-section>
         </q-card>
@@ -32,14 +33,12 @@
 </template>
 
 <script setup>
-  import { ref } from 'vue';
-
-  const skills = ref([
-    { name: 'Programming' },
-    { name: 'Web Development' },
-    { name: 'Reading' },
-    { name: 'Photography' },
-  ]);
+  const props = defineProps({
+    skills: {
+      type: Array,
+      default: () => [],
+    },
+  });
 </script>
 
 <style scoped>

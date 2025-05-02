@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="q-mb-sm">
     <div class="text-h5 text-bold">Spouse’s Information</div>
   </div>
   <!-- 1 -->
@@ -48,7 +48,7 @@
   </div>
 
   <q-separator class="q-my-md" />
-  <div>
+  <div class="q-mb-sm">
     <div class="text-h5 text-bold">Parent's Information</div>
   </div>
 
@@ -95,7 +95,7 @@
   </div>
 
   <q-separator class="q-my-md" />
-  <div>
+  <div class="q-mb-sm">
     <div class="text-h5 text-bold">Children's Information</div>
   </div>
 
@@ -113,6 +113,9 @@
         <q-td :props="props">
           {{ new Date(props.row.BirthDate).toLocaleDateString() }}
         </q-td>
+      </template>
+      <template v-slot:no-data>
+        <div class="full-width row flex-center q-pa-md text-grey">No Children Available</div>
       </template>
     </q-table>
   </div>

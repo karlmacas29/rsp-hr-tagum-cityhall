@@ -1,6 +1,10 @@
 <template>
   <div class="q-pa-md">
-    <q-table title="Work Experience" :rows="props.experience" :columns="columns" row-key="id" />
+    <q-table title="Work Experience" :rows="props.experience" :columns="columns" row-key="id">
+      <template v-slot:no-data>
+        <div class="full-width row flex-center q-pa-md text-grey">No Work Experience Available</div>
+      </template>
+    </q-table>
   </div>
 </template>
 

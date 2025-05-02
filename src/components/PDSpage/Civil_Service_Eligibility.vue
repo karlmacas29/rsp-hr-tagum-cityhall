@@ -6,7 +6,13 @@
       :columns="columns"
       row-key="id"
       :pagination="{ rowsPerPage: 10 }"
-    />
+    >
+      <template v-slot:no-data>
+        <div class="full-width row flex-center q-pa-md text-grey">
+          No Civil Service Eligibility Available
+        </div>
+      </template>
+    </q-table>
   </div>
 </template>
 
@@ -17,11 +23,47 @@
     },
   });
   const columns = [
-    { name: 'eligibility', label: 'Eligibility', field: 'CivilServe', sortable: true },
-    { name: 'rating', label: 'Rating (If Applicable)', field: 'Rates', sortable: true },
-    { name: 'examDate', label: 'Date of Examination', field: 'Dates', sortable: true },
-    { name: 'examPlace', label: 'Place of Examination', field: 'Place', sortable: true },
-    { name: 'licenseNumber', label: 'License Number', field: 'LNumber', sortable: true },
-    { name: 'validityDate', label: 'Date of Validity', field: 'LDate', sortable: true },
+    {
+      name: 'eligibility',
+      label: 'Eligibility',
+      field: 'CivilServe',
+      sortable: true,
+      align: 'left',
+    },
+    {
+      name: 'rating',
+      label: 'Rating (If Applicable)',
+      field: 'Rates',
+      sortable: true,
+      align: 'left',
+    },
+    {
+      name: 'examDate',
+      label: 'Date of Examination',
+      field: 'Dates',
+      sortable: true,
+      align: 'left',
+    },
+    {
+      name: 'examPlace',
+      label: 'Place of Examination',
+      field: 'Place',
+      sortable: true,
+      align: 'left',
+    },
+    {
+      name: 'licenseNumber',
+      label: 'License Number',
+      field: 'LNumber',
+      sortable: true,
+      align: 'left',
+    },
+    {
+      name: 'validityDate',
+      label: 'Date of Validity',
+      field: 'LDate',
+      sortable: true,
+      align: 'left',
+    },
   ];
 </script>

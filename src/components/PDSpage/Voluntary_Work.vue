@@ -1,6 +1,10 @@
 <template>
   <div class="q-pa-md">
-    <q-table title="Voluntary Work" :rows="props.voluntary" :columns="columns" row-key="id" />
+    <q-table title="Voluntary Work" :rows="props.voluntary" :columns="columns" row-key="id">
+      <template v-slot:no-data>
+        <div class="full-width row flex-center q-pa-md text-grey">No Voluntary Work Available</div>
+      </template>
+    </q-table>
   </div>
 </template>
 

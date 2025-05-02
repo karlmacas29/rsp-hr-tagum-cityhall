@@ -105,7 +105,7 @@
                       false-value="0"
                       checked-icon="check"
                       unchecked-icon="clear"
-                      @update:model-value="handleFundedToggle(props.row)"
+                      @update:model-value="handleToggle(props.row)"
                     />
                   </q-td>
                 </template>
@@ -142,16 +142,24 @@
                 <template v-slot:body-cell-action="props">
                   <q-td :props="props">
                     <q-btn
-                      v-if="props.row.Funded"
+                      v-if="props.row.Funded != '0'"
                       flat
                       dense
                       round
                       color="blue"
-                      :icon="props.row.Funded == '1' ? 'visibility' : 'post_add'"
+                      :icon="
+                        props.row.Funded == '1' && props.row.Name1 != null
+                          ? 'visibility'
+                          : 'post_add'
+                      "
                       @click="viewPosition(props.row)"
                     >
                       <q-tooltip>
-                        {{ props.row.Funded == '1' ? 'View QS' : 'Create Job Post' }}
+                        {{
+                          props.row.Funded == '1' && props.row.Name1 != null
+                            ? 'View QS'
+                            : 'Create Job Post'
+                        }}
                       </q-tooltip>
                     </q-btn>
                     <q-btn
@@ -576,17 +584,16 @@
     return title;
   };
 
-  // eslint-disable-next-line no-unused-vars
   const handleToggle = (row) => {
-    if (!row.employee && !row.funded) {
-      currentRow.value = row;
+    if (row.Funded == '1') {
+      // currentRow.value = row;
       showModal.value = true;
     }
   };
 
   const confirmUpload = () => {
     if (selectedFile.value && currentRow.value) {
-      currentRow.value.funded = true;
+      currentRow.value.Funded = '1';
       showModal.value = false;
       selectedFile.value = null;
     }
@@ -618,16 +625,6 @@
   const submitJobPost = () => {
     console.log('Job Post Submitted');
     showVacantPositionModal.value = false;
-  };
-
-  const handleFundedToggle = async (row) => {
-    try {
-      // Update the store or make API call here
-      await usePlantilla.updatePlantillaFunded(row.id, !!row.Funded);
-    } catch (error) {
-      console.error('Error updating funded status:', error);
-      row.Funded = !row.Funded; // Revert on error
-    }
   };
 
   // Clear search filters only (not structure selection)

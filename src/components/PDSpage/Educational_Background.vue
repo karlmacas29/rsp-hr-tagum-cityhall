@@ -47,7 +47,9 @@
       required: true,
       label: 'From',
       align: 'left',
-      field: (row) => row.DateAttend.split('-')[0].trim(),
+      field: (row) =>
+        row.DateAttend.includes('-') ? row.DateAttend.split('-')[0].trim() : row.DateAttend,
+      // field: 'DateAttend',
       sortable: true,
     },
     {
@@ -55,7 +57,9 @@
       required: true,
       label: 'To',
       align: 'left',
-      field: (row) => row.DateAttend.split('-')[1].trim(),
+      field: (row) =>
+        row.DateAttend.includes('-') ? row.DateAttend.split('-')[1].trim() : row.DateAttend,
+      // field: 'DateAttend',
       sortable: true,
     },
     {
@@ -71,7 +75,9 @@
       required: true,
       label: 'Year Graduated',
       align: 'left',
-      field: (row) => row.DateAttend.split('-')[1].trim(),
+      field: (row) =>
+        row.DateAttend.includes('-') ? row.DateAttend.split('-')[1].trim() : row.DateAttend,
+      // field: 'DateAttend',
       sortable: true,
     },
     {

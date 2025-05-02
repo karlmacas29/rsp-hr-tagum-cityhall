@@ -2,19 +2,30 @@
   <q-layout view="hHh Lpr fFf">
     <q-page-container>
       <q-page class="row">
-        <div class="col-6 self-center q-pa-sm" style="height: 100vh">
-          <q-img src="/img/background/tagumbg.jpg" style="height: 100%; border-radius: 10px">
+        <div class="col-6 self-center" style="height: 100vh">
+          <q-img src="/img/background/tagumbg.jpg" style="height: 100%">
             <div class="absolute-full text-subtitle2 flex flex-center">
-              <div class="column items-center justify-center">
-                <img src="/logo.png" alt="Tagum City Logo" class="logo" width="240px" />
-                <div class="text-h5 text-weight-bolder">Recruitment, Selection and Placement</div>
-                <div class="text-h6">Human Resources</div>
+              <div class="column items-start justify-start">
+                <img src="/logo.png" alt="Tagum City Logo" class="q-mb-md" width="90" height="80" />
+                <div
+                  class="text-h2 text-weight-bolder"
+                  style="text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5)"
+                >
+                  Recruitment,
+                  <br />
+                  Selection and
+                  <br />
+                  Placement
+                </div>
+                <div class="text-h6" style="text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5)">
+                  City of Human Resources
+                </div>
               </div>
             </div>
           </q-img>
         </div>
         <div class="col-6 grid self-center justify-center q-pa-sm">
-          <div class="q-mx-auto" style="width: 380px">
+          <div class="q-mx-auto" style="width: 350px">
             <div class="row justify-start items-center q-ma-none" style="width: 380px">
               <div>
                 <q-icon left size="6em" name="star" />

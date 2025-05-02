@@ -94,6 +94,10 @@
             </q-btn>
           </q-td>
         </template>
+
+        <template v-slot:no-data>
+          <div class="full-width row flex-center q-pa-md text-grey">Jobpost is Empty</div>
+        </template>
       </q-table>
     </div>
 

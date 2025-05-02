@@ -5,7 +5,7 @@
       <q-card-section class="row justify-between text-black q-mb-sm">
         <div class="text-h4 text-bold items-center flex">
           Personal Data Sheet (PDS)
-          <q-badge>Preview</q-badge>
+          <q-badge class="bg-blue">View PDS</q-badge>
         </div>
         <q-btn icon="close" flat round dense class="close-btn" @click="closeModal" />
       </q-card-section>
@@ -15,7 +15,7 @@
         <div class="row q-pa-sm q-gutter-x-sm" style="flex: 1; overflow: hidden">
           <!-- Left Side - Tabs Navigation -->
           <q-card class="col-3 bg-white q-pa-sm" style="overflow: hidden">
-            <q-scroll-area style="height: 100%">
+            <q-scroll-area style="height: 100%" class="q-pr-md">
               <q-list>
                 <q-item
                   v-for="tab in tabs"
@@ -25,6 +25,7 @@
                   @click="currentTab = tab.name"
                   active-class="active-tab"
                   class="tab-item q-py-sm"
+                  style="border-radius: 5px"
                 >
                   <q-item-section avatar>
                     <q-icon name="check_circle" color="green" v-if="isTabCompleted(tab.name)" />
@@ -41,49 +42,55 @@
           <!-- Right Side - Content Area -->
           <q-card class="col" style="overflow: hidden">
             <q-scroll-area style="height: 100%">
-              <!-- Personal Information -->
-              <div v-if="currentTab === 'personal'" class="q-pa-md">
-                <Personal_Information :personal="xPersonal" />
+              <div v-if="xPDS.loading" class="column items-center justify-center">
+                <q-spinner-dots size="40px" color="primary" />
+                <div class="q-mt-sm text-grey">Loading data...</div>
               </div>
-              <div v-else-if="currentTab === 'family'" class="q-pa-md">
-                <Family_Background :family="xPersonal" />
-              </div>
-              <div v-else-if="currentTab === 'education'" class="q-pa-md">
-                <Educational_Background :educ="xEdu" />
-              </div>
-              <div v-else-if="currentTab === 'civilService'" class="q-pa-md">
-                <Civil_Service_Eligibility :eligibility="xEligibility" />
-              </div>
-              <div v-else-if="currentTab === 'work'" class="q-pa-md">
-                <Work_Experience :experience="xExperience" />
-              </div>
-              <div v-else-if="currentTab === 'voluntary'" class="q-pa-md">
-                <Voluntary_Work :voluntary="xVoluntary" />
-              </div>
-              <div v-else-if="currentTab === 'training'" class="q-pa-md">
-                <Training_Interventions :ldData="xTraining" />
-              </div>
-              <div v-else-if="currentTab === 'skills'" class="q-pa-md">
-                <Special_Skills_Hobbies :skills="xSkills" />
-              </div>
-              <div v-else-if="currentTab === 'nonAcademic'" class="q-pa-md">
-                <Non_Academic :distinctions="xAcademic" />
-              </div>
-              <div v-else-if="currentTab === 'membership'" class="q-pa-md">
-                <Membership_Association></Membership_Association>
-              </div>
-              <div v-else-if="currentTab === 'other'" class="q-pa-md">
-                <Other_Information></Other_Information>
-              </div>
-              <div v-else-if="currentTab === 'references'" class="q-pa-md">
-                <References :references="xReferences" />
-              </div>
-              <!-- Placeholder for other tabs -->
-              <div v-else class="q-pa-md">
-                <div class="text-h6 q-mb-md">
-                  {{ tabs.find((t) => t.name === currentTab)?.label }}
+              <div v-else>
+                <!-- Personal Information -->
+                <div v-if="currentTab === 'personal'" class="q-pa-md">
+                  <Personal_Information :personal="xPersonal" />
                 </div>
-                <p>Content for {{ currentTab }} will be displayed here</p>
+                <div v-else-if="currentTab === 'family'" class="q-pa-md">
+                  <Family_Background :family="xPersonal" />
+                </div>
+                <div v-else-if="currentTab === 'education'" class="q-pa-md">
+                  <Educational_Background :educ="xEdu" />
+                </div>
+                <div v-else-if="currentTab === 'civilService'" class="q-pa-md">
+                  <Civil_Service_Eligibility :eligibility="xEligibility" />
+                </div>
+                <div v-else-if="currentTab === 'work'" class="q-pa-md">
+                  <Work_Experience :experience="xExperience" />
+                </div>
+                <div v-else-if="currentTab === 'voluntary'" class="q-pa-md">
+                  <Voluntary_Work :voluntary="xVoluntary" />
+                </div>
+                <div v-else-if="currentTab === 'training'" class="q-pa-md">
+                  <Training_Interventions :ldData="xTraining" />
+                </div>
+                <div v-else-if="currentTab === 'skills'" class="q-pa-md">
+                  <Special_Skills_Hobbies :skills="xSkills" />
+                </div>
+                <div v-else-if="currentTab === 'nonAcademic'" class="q-pa-md">
+                  <Non_Academic :distinctions="xAcademic" />
+                </div>
+                <div v-else-if="currentTab === 'membership'" class="q-pa-md">
+                  <Membership_Association></Membership_Association>
+                </div>
+                <div v-else-if="currentTab === 'other'" class="q-pa-md">
+                  <Other_Information></Other_Information>
+                </div>
+                <div v-else-if="currentTab === 'references'" class="q-pa-md">
+                  <References :references="xReferences" />
+                </div>
+                <!-- Placeholder for other tabs -->
+                <div v-else class="q-pa-md">
+                  <div class="text-h6 q-mb-md">
+                    {{ tabs.find((t) => t.name === currentTab)?.label }}
+                  </div>
+                  <p>Content for {{ currentTab }} will be displayed here</p>
+                </div>
               </div>
             </q-scroll-area>
           </q-card>
@@ -225,7 +232,7 @@
   });
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
   .pds-dialog {
     height: 100%;
   }
@@ -251,8 +258,8 @@
 
   .active-tab {
     background-color: #f0f8ff;
-    border-left: 3px solid #21ba45;
-    font-weight: 500;
+    border-left: 7px solid #21ba45;
+    font-weight: bolder;
   }
 
   .form-title-container {

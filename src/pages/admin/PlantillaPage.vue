@@ -147,6 +147,7 @@
                       dense
                       round
                       color="blue"
+                      class="bg-blue-1"
                       :icon="
                         props.row.Funded == '1' && props.row.Name1 != null
                           ? 'visibility'
@@ -168,6 +169,7 @@
                       dense
                       round
                       color="green"
+                      class="bg-green-1"
                       icon="print"
                       @click="printPosition(props.row)"
                     >
@@ -214,7 +216,7 @@
           <div v-else class="text-center q-pa-xl">
             <q-icon name="info" size="3em" color="grey-7" />
             <p class="text-h6 text-grey-8 q-mt-md">
-              Select an City Office from the sidebar to view positions
+              Select Office from the sidebar to view positions
             </p>
           </div>
         </q-scroll-area>

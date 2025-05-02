@@ -63,7 +63,12 @@
 
               <div class="full-width">
                 <div class="text-center q-mb-sm">
-                  <div class="text-caption text-grey-7">Applied Position</div>
+                  <div v-if="applicantData.status != null">
+                    <div class="text-caption text-grey-7">Position</div>
+                  </div>
+                  <div v-else>
+                    <div class="text-caption text-grey-7">Applied Position</div>
+                  </div>
                   <div class="text-body2 text-bold">
                     {{ applicantData?.position || 'Office of the ...' }}
                   </div>

@@ -11,7 +11,7 @@
         color="green-9"
         v-model="selectedValue"
         :options="getOptions()"
-        label="Select City Hall Office"
+        label="Select Office"
         use-input
         hide-selected
         fill-input
@@ -74,12 +74,12 @@
       <!-- Loading Indicator -->
       <div v-else-if="usePlantilla.loading" class="q-pa-md flex flex-center">
         <q-spinner color="primary" size="3em" />
-        <span class="q-ml-sm">Getting All City Hall Offices...</span>
+        <span class="q-ml-sm">Getting All Offices...</span>
       </div>
 
       <div v-else class="text-center q-pa-lg">
         <q-icon name="info" size="2rem" color="grey-7" />
-        <div class="text-subtitle1 q-mt-sm text-grey-7">Select City Hall Office</div>
+        <div class="text-subtitle1 q-mt-sm text-grey-7">Select Office</div>
       </div>
     </q-scroll-area>
   </q-card>

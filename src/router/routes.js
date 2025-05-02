@@ -43,6 +43,11 @@ const routes = [
         component: () => import('pages/admin/ActivityLog.vue'),
       },
       {
+        path: '/user-access',
+        name: 'Admin User Management',
+        component: () => import('pages/admin/UserManagement.vue'),
+      },
+      {
         path: '/criteria',
         name: 'Admin Raters Criteria',
         component: () => import('pages/admin/CriteriaRater.vue'),

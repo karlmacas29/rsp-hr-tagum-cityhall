@@ -38,7 +38,7 @@
   </div>
 
   <q-separator class="q-my-md" />
-  <div>
+  <div class="q-mb-sm">
     <div class="text-h5 text-bold">Additional Information</div>
   </div>
   <!-- 1 -->
@@ -93,11 +93,23 @@
         <div class="col-12 row justify-between q-gutter-x-sm">
           <div class="col-5">
             <div class="field-label">Height:</div>
-            <div class="field-value">{{ props.personal?.Heights || 'None' }}</div>
+            <div class="field-value">
+              {{
+                props.personal?.Heights
+                  ? Number(props.personal.Heights).toFixed(2)
+                  : 'None' || 'None'
+              }}
+            </div>
           </div>
           <div class="col-5">
             <div class="field-label">Weight:</div>
-            <div class="field-value">{{ props.personal?.Weights || 'None' }}</div>
+            <div class="field-value">
+              {{
+                props.personal?.Weights
+                  ? Number(props.personal.Weights).toFixed(2)
+                  : 'None' || 'None'
+              }}
+            </div>
           </div>
         </div>
         <div class="col-12">
@@ -114,7 +126,7 @@
   </div>
 
   <q-separator class="q-my-md" />
-  <div>
+  <div class="q-mb-sm">
     <div class="text-h5 text-bold">Goverment's ID</div>
   </div>
 
@@ -157,7 +169,7 @@
   </div>
 
   <q-separator class="q-my-md" />
-  <div>
+  <div class="q-mb-sm">
     <div class="text-h5 text-bold">Residential Address</div>
   </div>
 
@@ -208,7 +220,7 @@
   </div>
 
   <q-separator class="q-my-md" />
-  <div>
+  <div class="q-mb-sm">
     <div class="text-h5 text-bold q-px-sm flex items-center q-gutter-x-sm">
       Permanent Address
       <!-- <q-badge>Same with Residential Address</q-badge> -->
@@ -262,7 +274,7 @@
   </div>
 
   <q-separator class="q-my-md" />
-  <div>
+  <div class="q-mb-sm">
     <div class="text-h5 text-bold">Other Information</div>
   </div>
 

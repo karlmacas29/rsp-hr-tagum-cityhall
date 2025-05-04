@@ -1,13 +1,14 @@
 <template>
-  <q-card class="q-pa-sm" flat style="border-right: 1px solid #e0e0e0; border-radius: 0">
-    <q-scroll-area style="flex-grow: 1; height: 85vh">
+  <q-card class="q-pa-sm">
+    <q-scroll-area class="q-pa-sm" style="height: 80vh">
       <!-- Header -->
       <div class="text-h4 text-bold q-mb-md">Plantilla</div>
 
       <!-- Office Selection -->
       <q-select
-        class="q-mb-lg"
+        class="q-mb-lg q-mx-auto"
         outlined
+        dense
         color="green-9"
         v-model="selectedValue"
         :options="getOptions()"
@@ -20,7 +21,7 @@
         @filter="filterOptions"
         @update:model-value="handleSelection"
         :loading="usePlantilla.loading"
-        style="max-width: 500px"
+        style="max-width: 230px"
       >
         <template v-slot:no-option>
           <q-item dense>
@@ -36,22 +37,26 @@
         <div class="">
           <div class="col-12 col-md-8">
             <q-tree
+              dense
               :nodes="structureTree"
               node-key="id"
-              selected-color="primary"
               v-model:selected="selectedNode"
               @update:selected="handleNodeSelection"
+              class="custom-tree"
             >
               <!-- Custom node label with icon -->
               <template v-slot:default-header="prop">
-                <div class="row items-center cursor-pointer q-py-sm">
+                <div
+                  class="row items-center cursor-pointer q-pa-sm"
+                  :class="{ 'selected-node': selectedNode === prop.node.id }"
+                >
                   <q-icon
                     :name="getNodeIcon(prop.node)"
                     color="primary"
                     size="sm"
                     class="q-mr-sm"
                   />
-                  <div>{{ prop.node.label }}</div>
+                  <div class="text-body1">{{ prop.node.label }}</div>
                   <q-badge v-if="prop.node.positions" color="green" class="q-ml-sm">
                     {{ prop.node.positions }}
                     {{ prop.node.positions > 1 ? 'positions' : 'position' }}
@@ -386,3 +391,10 @@
     filteredOptions.value = getUniqueValues();
   });
 </script>
+<style scoped>
+  .custom-tree .selected-node {
+    background-color: #00b03527;
+    color: black;
+    border-radius: 4px;
+  }
+</style>

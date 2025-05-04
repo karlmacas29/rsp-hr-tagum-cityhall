@@ -42,9 +42,13 @@
           <!-- Right Side - Content Area -->
           <q-card class="col" style="overflow: hidden">
             <q-scroll-area style="height: 100%">
-              <div v-if="xPDS.loading" class="column items-center justify-center">
+              <div
+                v-if="xPDS.loading"
+                style="height: 70vh"
+                class="column items-center justify-center"
+              >
                 <q-spinner-dots size="40px" color="primary" />
-                <div class="q-mt-sm text-grey">Loading data...</div>
+                <div class="q-mt-sm text-grey">Load PDS...</div>
               </div>
               <div v-else>
                 <!-- Personal Information -->

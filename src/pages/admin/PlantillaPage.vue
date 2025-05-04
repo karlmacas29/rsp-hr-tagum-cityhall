@@ -1,227 +1,232 @@
 <template>
   <q-page>
-    <div class="row" style="overflow: hidden">
+    <div class="row justify-center items-center" style="height: 89vh">
       <!--  -->
-      <div class="col-3">
+      <div class="col-3 q-pa-sm">
         <PlantillaSelection @structure-selected="handleStructureSelection"></PlantillaSelection>
       </div>
       <!--  -->
-      <div class="col-9 q-pa-sm q-gutter-md">
-        <q-scroll-area style="flex-grow: 1; height: 85vh">
-          <q-card v-if="getStructureTitle() != ''" class="q-pa-md">
-            <div class="text-h4 text-bold">
-              {{ getStructureTitle() }}
-            </div>
-          </q-card>
-          <q-card v-if="currentStructure" flat>
-            <q-card-section class="row justify-end">
-              <q-btn color="primary" @click="clearFilters" icon="clear_all">Clear All</q-btn>
-            </q-card-section>
-            <q-separator />
-            <q-card-section>
-              <q-table
-                flat
-                bordered
-                :rows="filteredPositions"
-                :columns="columns"
-                row-key="id"
-                :filter="filter"
-                :q-pagination="pagination"
-                v-model:pagination="pagination"
-                :rows-per-page-options="[]"
-                :loading="usePlantilla.loading"
-              >
-                <!-- Header with search boxes -->
-                <template v-slot:header="props">
-                  <q-tr :props="props">
-                    <q-th
-                      v-for="col in props.cols"
-                      :key="col.name"
-                      :props="props"
-                      :style="col.name === 'position' ? 'width: 200px; white-space: normal;' : ''"
-                    >
-                      {{ col.label }}
-                      <q-input
-                        v-if="col.name !== 'action' && col.name !== 'fd'"
-                        dense
-                        outlined
-                        class="q-mt-sm"
-                        v-model="filters[col.name]"
-                        placeholder="Search"
+      <div class="col-9 q-gutter-md">
+        <q-card>
+          <q-scroll-area class="q-pa-sm" style="height: 82vh">
+            <q-card flat v-if="getStructureTitle() != ''" class="q-pa-md">
+              <div class="text-h4 text-bold">
+                {{ getStructureTitle() }}
+              </div>
+            </q-card>
+            <q-card flat v-if="currentStructure">
+              <q-card-section class="row justify-end">
+                <q-btn color="primary" @click="clearFilters" icon="clear_all">Clear All</q-btn>
+              </q-card-section>
+              <q-separator />
+              <q-card-section>
+                <q-table
+                  flat
+                  bordered
+                  :rows="filteredPositions"
+                  :columns="columns"
+                  row-key="id"
+                  :filter="filter"
+                  :q-pagination="pagination"
+                  v-model:pagination="pagination"
+                  :rows-per-page-options="[]"
+                  :loading="usePlantilla.loading"
+                >
+                  <!-- Header with search boxes -->
+                  <template v-slot:header="props">
+                    <q-tr :props="props">
+                      <q-th
+                        v-for="col in props.cols"
+                        :key="col.name"
+                        :props="props"
+                        :style="col.name === 'position' ? 'width: 200px; white-space: normal;' : ''"
+                      >
+                        {{ col.label }}
+                        <q-input
+                          v-if="col.name !== 'action' && col.name !== 'fd'"
+                          dense
+                          outlined
+                          class="q-mt-sm"
+                          v-model="filters[col.name]"
+                          placeholder="Search"
+                        />
+                        <q-select
+                          v-if="col.name === 'fd'"
+                          dense
+                          outlined
+                          class="q-mt-sm"
+                          v-model="filters[col.name]"
+                          :options="['All', 'Yes', 'No']"
+                          placeholder="Filter"
+                        />
+                      </q-th>
+                    </q-tr>
+                  </template>
+                  <!-- Add body cell template for PageNo -->
+                  <template v-slot:body-cell-PageNo="props">
+                    <q-td :props="props" style="width: 80px; white-space: normal">
+                      {{ props.value }}
+                    </q-td>
+                  </template>
+
+                  <!-- Add body cell template for ItemNo -->
+                  <template v-slot:body-cell-ItemNo="props">
+                    <q-td :props="props" style="width: 70px; white-space: normal">
+                      {{ props.value }}
+                    </q-td>
+                  </template>
+
+                  <!-- Add body cell template for Salary Grade -->
+                  <template v-slot:body-cell-SG="props">
+                    <q-td :props="props" style="width: 80px; white-space: normal">
+                      {{ props.value }}
+                    </q-td>
+                  </template>
+
+                  <!-- Add body cell template for position -->
+                  <template v-slot:body-cell-position="props">
+                    <q-td :props="props" style="width: 230px; white-space: normal">
+                      {{ props.value }}
+                    </q-td>
+                  </template>
+
+                  <!-- Add body cell template for position -->
+                  <template v-slot:body-cell-Name1="props">
+                    <q-td :props="props" style="width: 230px; white-space: normal">
+                      {{ props.value }}
+                    </q-td>
+                  </template>
+                  <!-- for switch -->
+                  <template v-slot:body-cell-fd="props">
+                    <q-td :props="props">
+                      <q-toggle
+                        v-model="props.row.Funded"
+                        color="green"
+                        true-value="1"
+                        false-value="0"
+                        checked-icon="check"
+                        unchecked-icon="clear"
+                        @update:model-value="handleToggle(props.row)"
                       />
-                      <q-select
-                        v-if="col.name === 'fd'"
+                    </q-td>
+                  </template>
+                  <!-- Add body cell template for position -->
+                  <template v-slot:body-cell-Status="props">
+                    <q-td :props="props" style="width: 70px; white-space: normal">
+                      <q-badge
+                        class="q-pa-xs"
+                        :class="
+                          props.row.Status == 'ELECTIVE'
+                            ? 'bg-blue'
+                            : props.row.Status == 'APPOINTED'
+                              ? 'bg-purple'
+                              : props.row.Status == 'CO-TERMINOUS'
+                                ? 'bg-brown'
+                                : props.row.Status == 'REGULAR'
+                                  ? 'bg-green'
+                                  : props.row.Status == 'TEMPORARY'
+                                    ? 'bg-yellow text-black'
+                                    : props.row.Status == 'CASUAL'
+                                      ? 'bg-grey-4'
+                                      : props.row.Status == 'CONTRACTUAL'
+                                        ? 'bg-light-blue'
+                                        : props.row.Status == 'HONORARIUM'
+                                          ? 'bg-black'
+                                          : 'bg-grey'
+                        "
+                      >
+                        {{ props.row.Status }}
+                      </q-badge>
+                    </q-td>
+                  </template>
+
+                  <template v-slot:body-cell-action="props">
+                    <q-td :props="props">
+                      <q-btn
+                        v-if="props.row.Funded != '0'"
+                        flat
                         dense
-                        outlined
-                        class="q-mt-sm"
-                        v-model="filters[col.name]"
-                        :options="['All', 'Yes', 'No']"
-                        placeholder="Filter"
-                      />
-                    </q-th>
-                  </q-tr>
-                </template>
-                <!-- Add body cell template for PageNo -->
-                <template v-slot:body-cell-PageNo="props">
-                  <q-td :props="props" style="width: 80px; white-space: normal">
-                    {{ props.value }}
-                  </q-td>
-                </template>
-
-                <!-- Add body cell template for ItemNo -->
-                <template v-slot:body-cell-ItemNo="props">
-                  <q-td :props="props" style="width: 70px; white-space: normal">
-                    {{ props.value }}
-                  </q-td>
-                </template>
-
-                <!-- Add body cell template for Salary Grade -->
-                <template v-slot:body-cell-SG="props">
-                  <q-td :props="props" style="width: 80px; white-space: normal">
-                    {{ props.value }}
-                  </q-td>
-                </template>
-
-                <!-- Add body cell template for position -->
-                <template v-slot:body-cell-position="props">
-                  <q-td :props="props" style="width: 230px; white-space: normal">
-                    {{ props.value }}
-                  </q-td>
-                </template>
-
-                <!-- Add body cell template for position -->
-                <template v-slot:body-cell-Name1="props">
-                  <q-td :props="props" style="width: 230px; white-space: normal">
-                    {{ props.value }}
-                  </q-td>
-                </template>
-                <!-- for switch -->
-                <template v-slot:body-cell-fd="props">
-                  <q-td :props="props">
-                    <q-toggle
-                      v-model="props.row.Funded"
-                      color="green"
-                      true-value="1"
-                      false-value="0"
-                      checked-icon="check"
-                      unchecked-icon="clear"
-                      @update:model-value="handleToggle(props.row)"
-                    />
-                  </q-td>
-                </template>
-                <!-- Add body cell template for position -->
-                <template v-slot:body-cell-Status="props">
-                  <q-td :props="props" style="width: 70px; white-space: normal">
-                    <q-badge
-                      class="q-pa-xs"
-                      :class="
-                        props.row.Status == 'ELECTIVE'
-                          ? 'bg-blue'
-                          : props.row.Status == 'APPOINTED'
-                            ? 'bg-purple'
-                            : props.row.Status == 'CO-TERMINOUS'
-                              ? 'bg-brown'
-                              : props.row.Status == 'REGULAR'
-                                ? 'bg-green'
-                                : props.row.Status == 'TEMPORARY'
-                                  ? 'bg-yellow text-black'
-                                  : props.row.Status == 'CASUAL'
-                                    ? 'bg-grey-4'
-                                    : props.row.Status == 'CONTRACTUAL'
-                                      ? 'bg-light-blue'
-                                      : props.row.Status == 'HONORARIUM'
-                                        ? 'bg-black'
-                                        : 'bg-grey'
-                      "
-                    >
-                      {{ props.row.Status }}
-                    </q-badge>
-                  </q-td>
-                </template>
-
-                <template v-slot:body-cell-action="props">
-                  <q-td :props="props">
-                    <q-btn
-                      v-if="props.row.Funded != '0'"
-                      flat
-                      dense
-                      round
-                      color="blue"
-                      class="bg-blue-1"
-                      :icon="
-                        props.row.Funded == '1' && props.row.Name1 != null
-                          ? 'visibility'
-                          : 'post_add'
-                      "
-                      @click="viewPosition(props.row)"
-                    >
-                      <q-tooltip>
-                        {{
+                        round
+                        color="blue"
+                        class="bg-blue-1"
+                        :icon="
                           props.row.Funded == '1' && props.row.Name1 != null
-                            ? 'View QS'
-                            : 'Create Job Post'
-                        }}
-                      </q-tooltip>
-                    </q-btn>
-                    <q-btn
-                      v-if="props.row.Name1 != null"
-                      flat
-                      dense
-                      round
-                      color="green"
-                      class="bg-green-1"
-                      icon="print"
-                      @click="printPosition(props.row)"
-                    >
-                      <q-tooltip>Print</q-tooltip>
-                    </q-btn>
-                  </q-td>
-                </template>
-                <!-- button next page -->
-                <template v-slot:bottom>
-                  <div class="q-pa-sm row justify-end items-center" style="width: 100%">
-                    <q-btn
-                      flat
-                      round
-                      dense
-                      icon="chevron_left"
-                      :disable="pagination.page === 1"
-                      @click="pagination.page--"
-                    />
-                    <span class="q-mx-sm">
-                      Page {{ pagination.page }} /
-                      {{ Math.ceil(filteredPositions.length / pagination.rowsPerPage) || 1 }}
-                    </span>
-                    <q-btn
-                      flat
-                      round
-                      dense
-                      icon="chevron_right"
-                      :disable="
-                        pagination.page * pagination.rowsPerPage >= filteredPositions.length
-                      "
-                      @click="pagination.page++"
-                    />
-                  </div>
-                </template>
+                            ? 'visibility'
+                            : 'post_add'
+                        "
+                        @click="viewPosition(props.row)"
+                      >
+                        <q-tooltip>
+                          {{
+                            props.row.Funded == '1' && props.row.Name1 != null
+                              ? 'View QS'
+                              : 'Create Job Post'
+                          }}
+                        </q-tooltip>
+                      </q-btn>
+                      <q-btn
+                        v-if="props.row.Name1 != null"
+                        flat
+                        dense
+                        round
+                        color="green"
+                        class="bg-green-1"
+                        icon="print"
+                        @click="printPosition(props.row)"
+                      >
+                        <q-tooltip>Print</q-tooltip>
+                      </q-btn>
+                    </q-td>
+                  </template>
+                  <!-- button next page -->
+                  <template v-slot:bottom>
+                    <div class="q-pa-sm row justify-end items-center" style="width: 100%">
+                      <q-btn
+                        flat
+                        round
+                        dense
+                        icon="chevron_left"
+                        :disable="pagination.page === 1"
+                        @click="pagination.page--"
+                      />
+                      <span class="q-mx-sm">
+                        Page {{ pagination.page }} /
+                        {{ Math.ceil(filteredPositions.length / pagination.rowsPerPage) || 1 }}
+                      </span>
+                      <q-btn
+                        flat
+                        round
+                        dense
+                        icon="chevron_right"
+                        :disable="
+                          pagination.page * pagination.rowsPerPage >= filteredPositions.length
+                        "
+                        @click="pagination.page++"
+                      />
+                    </div>
+                  </template>
 
-                <template v-slot:loading>
-                  <q-inner-loading showing color="primary">
-                    <q-linear-progress indeterminate color="primary" class="q-mt-sm" />
-                  </q-inner-loading>
-                </template>
-              </q-table>
-            </q-card-section>
-          </q-card>
-          <div v-else class="text-center q-pa-xl">
-            <q-icon name="info" size="3em" color="grey-7" />
-            <p class="text-h6 text-grey-8 q-mt-md">
-              Select Office from the sidebar to view positions
-            </p>
-          </div>
-        </q-scroll-area>
+                  <template v-slot:loading>
+                    <q-inner-loading showing color="primary">
+                      <q-linear-progress indeterminate color="primary" class="q-mt-sm" />
+                    </q-inner-loading>
+                  </template>
+                </q-table>
+              </q-card-section>
+            </q-card>
+
+            <div v-else class="text-center q-pa-xl">
+              <q-icon name="info" size="3em" color="grey-7" />
+              <p class="text-h6 text-grey-8 q-mt-md">
+                Select Office from the sidebar to view positions
+              </p>
+            </div>
+          </q-scroll-area>
+        </q-card>
       </div>
     </div>
+
+    <!-- separate for modal -->
 
     <!-- Upload File Modal -->
     <q-dialog v-model="showModal">

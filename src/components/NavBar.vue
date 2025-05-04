@@ -7,16 +7,16 @@
       </div>
 
       <div class="row items-center">
-        <q-btn round flat dense icon="notifications" class="q-mr-md" />
+        <!-- <q-btn round flat dense icon="notifications" class="q-mr-md" /> -->
         <q-btn-dropdown flat :ripple="false">
           <template v-slot:label>
             <div>
               <div v-if="authStore.user" class="text-bold text-body1" style="font-size: 13px">
-                <q-avatar size="45px" color="black" text-color="white">
+                <q-avatar size="40px" color="black" text-color="white">
                   {{ authStore.user?.name?.charAt(0).toUpperCase() }}
                 </q-avatar>
               </div>
-              <div v-else class="text-bold text-body1" style="width: 45px">
+              <div v-else class="text-bold text-body1" style="width: 40px">
                 <q-skeleton type="circle" />
               </div>
             </div>

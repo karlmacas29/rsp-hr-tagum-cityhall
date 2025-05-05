@@ -97,20 +97,23 @@
 
           <!-- Right Card (Tabs) -->
           <q-card class="col" style="display: flex; flex-direction: column">
-            <q-tabs
-              v-model="tab"
-              dense
-              class="text-grey-8"
-              active-color="primary"
-              indicator-color="primary"
-              align="left"
-              style="min-height: 40px"
-            >
-              <q-tab name="education" label="EDUCATION" class="text-weight-medium" />
-              <q-tab name="experience" label="EXPERIENCE" class="text-weight-medium" />
-              <q-tab name="training" label="TRAINING" class="text-weight-medium" />
-              <q-tab name="eligibility" label="ELIGIBILITY" class="text-weight-medium" />
-            </q-tabs>
+            <div class="row justify-between items-center q-px-md" style="min-height: 40px">
+              <q-tabs
+                v-model="tab"
+                dense
+                class="text-grey-8"
+                active-color="primary"
+                indicator-color="primary"
+                align="left"
+                style="min-height: 40px"
+              >
+                <q-tab name="education" label="EDUCATION" class="text-weight-medium" />
+                <q-tab name="experience" label="EXPERIENCE" class="text-weight-medium" />
+                <q-tab name="training" label="TRAINING" class="text-weight-medium" />
+                <q-tab name="eligibility" label="ELIGIBILITY" class="text-weight-medium" />
+              </q-tabs>
+              <q-btn label="VIEW PDS" color="primary" outline @click="onViewPDS" />
+            </div>
 
             <q-separator />
 
@@ -267,9 +270,9 @@
         </div>
       </q-card-section>
 
-      <!-- Footer Actions - Updated to conditionally show buttons -->
+      <!-- Footer Actions - Updated with Radio Buttons and without VIEW PDS -->
       <q-card-section class="footer-actions bg-grey-2 q-py-md">
-        <div class="row justify-between">
+        <div class="row justify-between items-center">
           <div class="row items-center">
             <q-btn
               flat
@@ -282,28 +285,43 @@
               Control No. {{ applicantData?.controlno || '0' }}
             </q-badge>
           </div>
-          <div class="row justify-end">
-            <q-btn label="VIEW PDS" color="primary" outline @click="onViewPDS" class="q-mx-sm" />
-            <!-- Only show these buttons if evaluation is not locked -->
-            <div v-if="!props.isPlantilla">
-              <template v-if="!evaluationLocked">
-                <q-btn
-                  :label="
-                    applicantData.status === 'Qualified' ? 'MARK UNQUALIFIED' : 'MARK QUALIFIED'
-                  "
-                  :color="applicantData.status === 'Qualified' ? 'negative' : 'positive'"
-                  @click="toggleQualificationStatus"
-                  class="q-mx-sm"
-                />
-                <q-btn
-                  label="SUBMIT EVALUATION"
-                  color="positive"
-                  @click="onSubmit"
-                  :disable="applicantData.status === 'Pending'"
-                  class="q-mx-sm"
-                />
-              </template>
+
+          <div v-if="!props.isPlantilla && !evaluationLocked" class="column items-center">
+            <!-- Improved radio buttons with better styling -->
+            <div class="text-caption text-grey-7 q-mb-xs">Evaluation Status</div>
+            <div class="row justify-center q-gutter-md">
+              <q-radio
+                v-model="qualificationStatus"
+                val="Qualified"
+                label="Qualified"
+                color="positive"
+                :disable="evaluationLocked"
+                class="radio-button"
+              >
+                <q-tooltip>Candidate meets all requirements</q-tooltip>
+              </q-radio>
+              <q-radio
+                v-model="qualificationStatus"
+                val="Unqualified"
+                label="Unqualified"
+                color="negative"
+                :disable="evaluationLocked"
+                class="radio-button"
+              >
+                <q-tooltip>Candidate doesn't meet requirements</q-tooltip>
+              </q-radio>
             </div>
+          </div>
+
+          <div class="row justify-end">
+            <q-btn
+              v-if="!props.isPlantilla && !evaluationLocked"
+              label="SUBMIT EVALUATION"
+              color="positive"
+              @click="onSubmit"
+              :disable="qualificationStatus === 'Pending'"
+              class="q-mx-sm"
+            />
           </div>
         </div>
       </q-card-section>
@@ -336,6 +354,27 @@
 
   const localShow = ref(props.show);
   const tab = ref('education');
+
+  // Use a separate ref for the qualification status to track the radio selection
+  const qualificationStatus = ref(props.applicantData?.status || 'Pending');
+
+  // Watch for changes in the qualification status
+  watch(qualificationStatus, (newStatus) => {
+    if (newStatus !== props.applicantData?.status) {
+      emit('toggle-qualification', newStatus);
+    }
+  });
+
+  // Watch for changes in the applicantData to keep qualificationStatus in sync
+  watch(
+    () => props.applicantData?.status,
+    (newStatus) => {
+      if (newStatus) {
+        qualificationStatus.value = newStatus;
+      }
+    },
+    { immediate: true },
+  );
 
   const evaluationLocked = computed(() => props.isSubmitted);
 
@@ -382,14 +421,8 @@
   const onClose = () => emit('close');
   const onViewPDS = () => emit('view-pds');
   const onSubmit = () => {
-    if (!props.isSubmitted && props.applicantData.status !== 'Pending') {
+    if (!props.isSubmitted && qualificationStatus.value !== 'Pending') {
       emit('submit');
-    }
-  };
-  const toggleQualificationStatus = () => {
-    if (!props.isSubmitted) {
-      const newStatus = props.applicantData.status === 'Qualified' ? 'Unqualified' : 'Qualified';
-      emit('toggle-qualification', newStatus);
     }
   };
 </script>
@@ -460,5 +493,35 @@
 
   .q-markup-table thead tr {
     background-color: #f5f5f5;
+    .radio-button {
+      padding: 8px 12px;
+      border-radius: 4px;
+      transition: all 0.3s ease;
+
+      &:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+      }
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border-radius: 4px;
+        border: 1px solid transparent;
+        transition: all 0.3s ease;
+      }
+
+      &.q-radio--active::before {
+        border-color: currentColor;
+      }
+    }
+
+    .q-radio__label {
+      margin-left: 8px;
+      font-weight: 500;
+    }
   }
 </style>

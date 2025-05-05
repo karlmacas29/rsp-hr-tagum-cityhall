@@ -84,6 +84,7 @@
                 <q-tooltip>View</q-tooltip>
               </q-btn>
               <q-btn
+                v-if="props.row.completed < 1"
                 flat
                 round
                 dense
@@ -95,6 +96,7 @@
                 <q-tooltip>Edit</q-tooltip>
               </q-btn>
               <q-btn
+                v-if="props.row.completed < 1"
                 flat
                 round
                 dense
@@ -335,41 +337,42 @@
       </q-card>
     </q-dialog>
 
-    <!-- View Rater Dialog -->
-    <q-dialog v-model="showViewDialog" persistent maximized>
-      <q-card>
-        <q-card-section class="row items-center justify-between bg-primary text-white">
-          <div class="text-h6">
-            <b>Applicants for {{ currentViewRater.Rater }}</b>
-            <div class="text-subtitle2">
-              Rating for: {{ currentViewRater.Position }} ({{ currentViewRater.batchDate }})
-            </div>
-          </div>
-          <q-btn icon="close" flat round dense @click="showViewDialog = false" />
+    <!-- View Rater Dialog - Clean Version -->
+    <q-dialog v-model="showViewDialog" persistent>
+      <q-card style="width: 800px; max-width: 95vw">
+        <q-card-section class="row items-center bg-grey-2 q-pb-none">
+          <div class="text-h6">Applicant Ratings</div>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup />
         </q-card-section>
 
-        <q-card-section>
-          <div class="row q-mb-md">
-            <div class="col-12 col-md-6">
+        <q-card-section class="q-pt-none">
+          <div class="row q-mb-sm items-center">
+            <div class="col">
+              <div class="text-subtitle1">
+                <strong>Rater:</strong>
+                {{ currentViewRater.Rater }}
+              </div>
+              <div class="text-subtitle2">
+                <strong>Position:</strong>
+                {{ currentViewRater.Position }} |
+                <strong>Batch:</strong>
+                {{ currentViewRater.batchDate }}
+              </div>
+            </div>
+            <div class="col-auto">
               <q-input
                 outlined
                 v-model="applicantSearch"
                 placeholder="Search applicants..."
+                dense
                 clearable
-                class="q-mb-md"
+                style="width: 250px"
               >
                 <template v-slot:prepend>
                   <q-icon name="search" />
                 </template>
               </q-input>
-            </div>
-            <div class="col-12 col-md-6 flex justify-end items-center">
-              <q-chip color="green-1" text-color="green-10" icon="done">
-                Done: {{ applicants.filter((a) => a.status === 'done').length }}
-              </q-chip>
-              <q-chip color="orange-1" text-color="orange-10" icon="schedule" class="q-ml-sm">
-                Pending: {{ applicants.filter((a) => a.status === 'pending').length }}
-              </q-chip>
             </div>
           </div>
 
@@ -380,38 +383,51 @@
             :columns="applicantColumns"
             row-key="id"
             :loading="isLoadingApplicants"
+            :pagination="{ rowsPerPage: 10 }"
+            class="sticky-header-table"
           >
-            <!-- Status column with colored badges -->
             <template v-slot:body-cell-status="props">
               <q-td :props="props">
-                <q-badge
+                <q-chip
+                  dense
                   :color="props.row.status === 'done' ? 'green-1' : 'orange-1'"
                   :text-color="props.row.status === 'done' ? 'green-10' : 'orange-10'"
-                  class="q-pa-sm"
+                  :icon="props.row.status === 'done' ? 'done' : 'schedule'"
+                  size="sm"
                 >
-                  <q-icon
-                    :name="props.row.status === 'done' ? 'done' : 'schedule'"
-                    size="xs"
-                    class="q-mr-xs"
-                  />
-                  {{ props.row.status === 'done' ? 'Done' : 'Pending' }}
-                </q-badge>
+                  {{ props.row.status === 'done' ? 'Completed' : 'Pending' }}
+                </q-chip>
               </q-td>
             </template>
 
-            <!-- Position column -->
-            <template v-slot:body-cell-position="props">
+            <template v-slot:body-cell-rating="props">
               <q-td :props="props">
-                <q-badge color="primary" text-color="white" class="q-pa-xs">
-                  {{ props.row.position }}
-                </q-badge>
+                <div v-if="props.row.status === 'done'" class="text-bold" style="color: #2e7d32">
+                  {{ props.row.rating }}
+                  <q-icon name="star" color="yellow-8" size="xs" class="q-ml-xs" />
+                </div>
+                <div v-else class="text-grey-6">-</div>
               </q-td>
             </template>
           </q-table>
+
+          <div class="row justify-between items-center q-mt-sm">
+            <div class="text-caption text-grey-7">
+              Showing {{ filteredApplicants.length }} records
+            </div>
+            <div>
+              <q-chip color="green-1" text-color="green-10" icon="done" dense>
+                Completed: {{ applicants.filter((a) => a.status === 'done').length }}
+              </q-chip>
+              <q-chip color="orange-1" text-color="orange-10" icon="schedule" dense class="q-ml-sm">
+                Pending: {{ applicants.filter((a) => a.status === 'pending').length }}
+              </q-chip>
+            </div>
+          </div>
         </q-card-section>
 
-        <q-card-actions align="right" class="bg-grey-2">
-          <q-btn flat label="Close" color="primary" @click="showViewDialog = false" />
+        <q-card-actions align="right" class="bg-grey-1">
+          <q-btn flat label="Close" color="grey-7" v-close-popup />
         </q-card-actions>
       </q-card>
     </q-dialog>

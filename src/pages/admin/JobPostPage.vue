@@ -1,6 +1,5 @@
 <template>
   <q-page class="q-pa-md">
-    <!-- Enhanced Header with larger font -->
     <div class="column items-start justify-center q-mb-md">
       <h5 class="text-h4 q-ma-none"><b>Job Posts</b></h5>
       <div class="q-pa-sm q-gutter-sm">
@@ -8,17 +7,13 @@
           <template v-slot:separator>
             <q-icon size="1.2em" name="arrow_forward" />
           </template>
-          <q-breadcrumbs-el label="Job Posts" icon="post_add" />
-          <!-- <q-breadcrumbs-el label="Job Posts" icon="home" /> -->
         </q-breadcrumbs>
       </div>
     </div>
 
     <!-- Job List View -->
     <div v-if="!showingDetails" class="q-pa-md">
-      <!-- Header with search bar aligned to the right -->
       <div class="row justify-between items-center q-mb-md">
-        <!-- Date Picker aligned with table -->
         <q-input
           outlined
           dense
@@ -47,7 +42,6 @@
           </template>
         </q-input>
 
-        <!-- Search Bar moved to upper right -->
         <q-input
           v-model="globalSearch"
           outlined

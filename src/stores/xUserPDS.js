@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import { api } from 'src/boot/axios';
+import { toast } from 'src/boot/toast'; // Import toast instance
 
 export const usexPDS = defineStore('xPDS', {
   state: () => ({
@@ -33,7 +34,7 @@ export const usexPDS = defineStore('xPDS', {
         this.error = null;
       } catch (err) {
         this.error = err.message;
-        console.error('Error fetching xPDS:', err);
+        toast.error('Error Fetching PDS');
       } finally {
         this.loading = false;
       }

@@ -16,7 +16,12 @@
     <q-card>
       <q-card-section class="row justify-between items-center">
         <div class="text-h5 text-bold">Raters List</div>
-        <q-btn color="primary" label="Add Rater" @click="showAddModal" icon="add" />
+        <template v-if="authStore.user.permissions.isRaterM === '1'">
+          <q-btn color="primary" label="Add Rater" @click="showAddModal" icon="add" />
+        </template>
+        <template v-else>
+          <q-badge color="grey-6">View Only</q-badge>
+        </template>
       </q-card-section>
       <q-separator />
 
@@ -420,6 +425,9 @@
 
 <script setup>
   import { ref, computed } from 'vue';
+  import { useAuthStore } from 'stores/authStore';
+
+  const authStore = useAuthStore();
 
   // Search
   const globalSearch = ref('');

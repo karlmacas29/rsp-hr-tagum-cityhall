@@ -11,7 +11,7 @@
             <div class="row q-col-gutter-md">
               <div class="col-12 col-md-6">
                 <q-input
-                  filled
+                  outlined
                   v-model="form.name"
                   label="Full Name"
                   :rules="[(val) => !!val || 'Name is required']"
@@ -20,7 +20,7 @@
 
               <div class="col-12 col-md-6">
                 <q-input
-                  filled
+                  outlined
                   v-model="form.username"
                   label="Username"
                   :rules="[(val) => !!val || 'Username is required']"
@@ -30,7 +30,7 @@
               </div>
 
               <div class="col-12 col-md-6">
-                <q-input filled v-model="form.position" label="Position" readonly disable />
+                <q-input outlined v-model="form.position" label="Position" readonly disable />
               </div>
 
               <div class="col-12">
@@ -40,7 +40,7 @@
 
               <div class="col-12 col-md-6">
                 <q-input
-                  filled
+                  outlined
                   v-model="form.new_password"
                   label="New Password"
                   type="password"
@@ -52,7 +52,7 @@
 
               <div class="col-12 col-md-6">
                 <q-input
-                  filled
+                  outlined
                   v-model="form.confirm_password"
                   label="Confirm New Password"
                   type="password"
@@ -73,7 +73,7 @@
 
               <div class="col-12 col-md-6">
                 <q-input
-                  filled
+                  outlined
                   v-model="form.current_password"
                   label="Current Password"
                   type="password"
@@ -84,7 +84,6 @@
 
             <div class="row q-mt-lg">
               <q-space />
-              <q-btn label="Cancel" flat color="negative" class="q-mr-sm" @click="resetForm" />
               <q-btn
                 label="Save Changes"
                 type="submit"
@@ -243,23 +242,12 @@
       };
 
       // Reset the form to original values
-      const resetForm = () => {
-        if (authStore.user) {
-          form.value.name = authStore.user.name || '';
-          form.value.username = authStore.user.username || '';
-          form.value.position = authStore.user.position || '';
-        }
-        form.value.new_password = '';
-        form.value.confirm_password = '';
-        form.value.current_password = '';
-      };
 
       return {
         authStore,
         form,
         accountForm,
         saveChanges,
-        resetForm,
         getRoleName,
       };
     },

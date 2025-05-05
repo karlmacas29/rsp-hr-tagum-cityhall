@@ -18,7 +18,7 @@
       <!-- User List -->
       <div>
         <!-- Add User Button -->
-        <div class="q-mb-md">
+        <div class="q-mb-md row justify-end items-center">
           <q-btn color="primary" label="Add New User" icon="person_add" @click="openAddDialog()" />
         </div>
 
@@ -51,7 +51,7 @@
           <!-- Permissions column -->
           <template v-slot:body-cell-permissions="props">
             <q-td :props="props">
-              <div class="row q-gutter-x-xs">
+              <div class="row q-gutter-xs">
                 <q-badge v-if="props.row.rsp_control.isFunded == '1'" color="primary">
                   <q-icon name="paid" size="xs" />
                   <q-tooltip>Funding Access</q-tooltip>
@@ -72,6 +72,42 @@
                   <q-tooltip>Criteria Access</q-tooltip>
                 </q-badge>
               </div>
+            </q-td>
+          </template>
+
+          <!-- Add body cell template for position -->
+          <template v-slot:body-cell-created_at="props">
+            <q-td :props="props" style="width: 230px; white-space: normal">
+              <q-badge class="bg-teal" outline>
+                {{
+                  new Date(props.value).toLocaleString('en-US', {
+                    month: 'long',
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true,
+                  })
+                }}
+              </q-badge>
+            </q-td>
+          </template>
+
+          <!-- Add body cell template for position -->
+          <template v-slot:body-cell-updated_at="props">
+            <q-td :props="props" style="width: 230px; white-space: normal">
+              <q-badge class="bg-teal" outline>
+                {{
+                  new Date(props.value).toLocaleString('en-US', {
+                    month: 'long',
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true,
+                  })
+                }}
+              </q-badge>
             </q-td>
           </template>
 
@@ -108,14 +144,14 @@
 
     <!-- Add/Edit User Dialog -->
     <q-dialog v-model="dialog" persistent>
-      <q-card style="min-width: 800px">
+      <q-card style="min-width: 900px">
         <q-card-section :class="isEditing ? 'bg-blue text-white' : 'bg-green text-white'">
           <div class="text-h5 text-bold">{{ isEditing ? 'Edit User' : 'Add New User' }}</div>
         </q-card-section>
 
         <q-card-section>
           <q-form @submit="submitForm">
-            <div class="row q-col-gutter-md">
+            <div class="row q-col-gutter-sm">
               <!-- Left Column - User Information -->
               <div class="col-12 col-md-6">
                 <div class="text-subtitle1 q-mb-sm">User Information</div>
@@ -127,7 +163,7 @@
                   :error="!!authStore.errors?.name"
                   :error-message="authStore.errors?.name?.[0]"
                   outlined
-                  class="q-mb-md"
+                  class="q-mb-sm"
                 />
 
                 <!-- Username -->
@@ -137,7 +173,7 @@
                   :error="!!authStore.errors?.username"
                   :error-message="authStore.errors?.username?.[0]"
                   outlined
-                  class="q-mb-md"
+                  class="q-mb-sm"
                 />
 
                 <!-- Position -->
@@ -147,7 +183,7 @@
                   :error="!!authStore.errors?.position"
                   :error-message="authStore.errors?.position?.[0]"
                   outlined
-                  class="q-mb-md"
+                  class="q-mb-sm"
                 />
 
                 <!-- Password -->
@@ -161,7 +197,7 @@
                   :error="!!authStore.errors?.password"
                   :error-message="authStore.errors?.password?.[0]"
                   outlined
-                  class="q-mb-md"
+                  class="q-mb-sm"
                 />
 
                 <!-- Active Status -->
@@ -170,7 +206,7 @@
                   label="Active"
                   :error="!!authStore.errors?.active"
                   :error-message="authStore.errors?.active?.[0]"
-                  class="q-mb-md"
+                  class="q-mb-sm"
                 />
               </div>
 
@@ -183,7 +219,7 @@
                       true-value="1"
                       false-value="0"
                       v-model="form.permissions.isFunded"
-                      label="Allow Funding Access"
+                      label="Allow Plantilla Funding Access"
                       :error="!!authStore.errors?.['permissions.isFunded']"
                       :error-message="authStore.errors?.['permissions.isFunded']?.[0]"
                       icon="paid"
@@ -193,7 +229,7 @@
                       true-value="1"
                       false-value="0"
                       v-model="form.permissions.isUserM"
-                      label="Allow User Management"
+                      label="Allow User Management Access"
                       :error="!!authStore.errors?.['permissions.isUserM']"
                       :error-message="authStore.errors?.['permissions.isUserM']?.[0]"
                       icon="manage_accounts"
@@ -203,7 +239,7 @@
                       true-value="1"
                       false-value="0"
                       v-model="form.permissions.isRaterM"
-                      label="Allow Rater Management"
+                      label="Allow Rater Management Access"
                       :error="!!authStore.errors?.['permissions.isRaterM']"
                       :error-message="authStore.errors?.['permissions.isRaterM']?.[0]"
                       icon="rate_review"
@@ -224,7 +260,7 @@
             </div>
 
             <!-- Form Buttons - Full Width -->
-            <div class="row justify-end q-mt-lg">
+            <div class="row justify-end">
               <q-btn label="Cancel" color="negative" flat v-close-popup />
               <q-btn
                 :label="isEditing ? 'Update' : 'Create'"
@@ -304,6 +340,13 @@
           align: 'left',
           label: 'Created At',
           field: 'created_at',
+          sortable: true,
+        },
+        {
+          name: 'updated_at',
+          align: 'left',
+          label: 'Updated At',
+          field: 'updated_at',
           sortable: true,
         },
         { name: 'actions', align: 'center', label: 'Actions', field: 'actions', sortable: false },
@@ -396,12 +439,14 @@
           if (result) {
             dialog.value = false;
           }
+          await authStore.getAllUsers();
         } else {
           // Create new user
           const result = await authStore.registerUser(userData);
           if (result) {
             dialog.value = false;
           }
+          await authStore.getAllUsers();
         }
       };
 

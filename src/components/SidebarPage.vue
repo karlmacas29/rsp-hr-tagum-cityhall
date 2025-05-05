@@ -13,7 +13,7 @@
         dense
         class="q-mx-xs q-my-xs"
         style="border-radius: 17px; padding: 8px 11px"
-        v-for="(item, index) in menuItems"
+        v-for="(item, index) in filteredMenuItems"
         :key="index"
         clickable
         v-ripple
@@ -59,20 +59,33 @@
 </template>
 
 <script setup>
-  import { onMounted, ref } from 'vue';
+  import { onMounted, ref, computed } from 'vue';
   import { useRoute } from 'vue-router';
+  import { useAuthStore } from 'stores/authStore';
+  const authStore = useAuthStore();
 
   const route = useRoute();
   const drawer = ref(true);
   const expanded = ref(false);
 
-  const menuItems = ref([
-    { label: 'Dashboard', route: '/dashboard', icon: 'dashboard' },
-    { label: 'Plantilla', route: '/plantilla', icon: 'domain' },
-    { label: 'Job Posts', route: '/job-post', icon: 'post_add' },
-    { label: 'User Management', route: '/user-access', icon: 'manage_accounts' },
-    { label: 'Activity Log', route: '/activity-log', icon: 'history' },
-  ]);
+  const filteredMenuItems = computed(() => {
+    return [
+      { label: 'Dashboard', route: '/dashboard', icon: 'dashboard' },
+      { label: 'Plantilla', route: '/plantilla', icon: 'domain' },
+      { label: 'Job Posts', route: '/job-post', icon: 'post_add' },
+      ...(authStore.user.permissions.isUserM !== '0'
+        ? [{ label: 'User Management', route: '/user-access', icon: 'manage_accounts' }]
+        : []),
+      { label: 'Activity Log', route: '/activity-log', icon: 'history' },
+    ];
+  });
+  // const menuItems = ref([
+  //   { label: 'Dashboard', route: '/dashboard', icon: 'dashboard' },
+  //   { label: 'Plantilla', route: '/plantilla', icon: 'domain' },
+  //   { label: 'Job Posts', route: '/job-post', icon: 'post_add' },
+  //   { label: 'User Management', route: '/user-access', icon: 'manage_accounts' },
+  //   { label: 'Activity Log', route: '/activity-log', icon: 'history' },
+  // ]);
 
   const ratersManage = ref([
     { label: 'Raters', route: '/raters', icon: 'groups' },

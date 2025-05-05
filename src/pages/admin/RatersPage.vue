@@ -15,12 +15,14 @@
     <!-- Card -->
     <q-card>
       <q-card-section class="row justify-between items-center">
-        <div class="text-h5 text-bold">Raters List</div>
+        <div class="text-h5 text-bold">
+          Raters List
+          <template v-if="authStore.user.permissions.isRaterM === '0'">
+            <q-badge>View Only</q-badge>
+          </template>
+        </div>
         <template v-if="authStore.user.permissions.isRaterM === '1'">
           <q-btn color="primary" label="Add Rater" @click="showAddModal" icon="add" />
-        </template>
-        <template v-else>
-          <q-badge color="grey-6">View Only</q-badge>
         </template>
       </q-card-section>
       <q-separator />
@@ -88,28 +90,31 @@
               >
                 <q-tooltip>View</q-tooltip>
               </q-btn>
-              <q-btn
-                flat
-                round
-                dense
-                icon="edit"
-                @click="editRater(props.row)"
-                class="q-ml-sm bg-teal-1"
-                color="positive"
-              >
-                <q-tooltip>Edit</q-tooltip>
-              </q-btn>
-              <q-btn
-                flat
-                round
-                dense
-                icon="delete"
-                @click="confirmDeleteRater(props.row)"
-                class="q-ml-sm bg-red-1"
-                color="negative"
-              >
-                <q-tooltip>Delete</q-tooltip>
-              </q-btn>
+
+              <template v-if="authStore.user.permissions.isRaterM === '1'">
+                <q-btn
+                  flat
+                  round
+                  dense
+                  icon="edit"
+                  @click="editRater(props.row)"
+                  class="q-ml-sm bg-teal-1"
+                  color="positive"
+                >
+                  <q-tooltip>Edit</q-tooltip>
+                </q-btn>
+                <q-btn
+                  flat
+                  round
+                  dense
+                  icon="delete"
+                  @click="confirmDeleteRater(props.row)"
+                  class="q-ml-sm bg-red-1"
+                  color="negative"
+                >
+                  <q-tooltip>Delete</q-tooltip>
+                </q-btn>
+              </template>
             </q-td>
           </template>
         </q-table>

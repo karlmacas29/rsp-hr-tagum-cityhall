@@ -115,7 +115,14 @@
           <template v-slot:body-cell-actions="props">
             <q-td :props="props">
               <q-btn-group flat>
-                <q-btn flat round color="primary" icon="edit" @click="openEditDialog(props.row.id)">
+                <q-btn
+                  v-if="props.row.id !== authStore.user.id"
+                  flat
+                  round
+                  color="primary"
+                  icon="edit"
+                  @click="openEditDialog(props.row.id)"
+                >
                   <q-tooltip>Edit User</q-tooltip>
                 </q-btn>
 
@@ -130,6 +137,8 @@
                   <q-tooltip>Delete User</q-tooltip>
                 </q-btn>
               </q-btn-group>
+
+              <q-badge v-if="props.row.id == authStore.user.id">You</q-badge>
             </q-td>
           </template>
           <!-- Loading -->

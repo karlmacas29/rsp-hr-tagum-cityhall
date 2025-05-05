@@ -103,7 +103,9 @@
     <q-dialog v-model="showModal" persistent>
       <q-card style="width: 500px; max-width: 90vw">
         <q-card-section class="row items-center justify-between">
-          <div class="text-h6"><b>{{ isEditMode ? 'Edit Rater' : 'Add Rater' }}</b></div>
+          <div class="text-h6">
+            <b>{{ isEditMode ? 'Edit Rater' : 'Add Rater' }}</b>
+          </div>
           <q-btn icon="close" flat round dense @click="closeModal" />
         </q-card-section>
 
@@ -292,9 +294,14 @@
             color="primary"
             @click="isEditMode ? updateRater() : addRater()"
             :loading="isSubmitting"
-            :disable="isEditMode
-              ? (!selectedBatch || selectedPositions.length === 0)
-              : (!selectedRater || !selectedBatch || !selectedOffice || selectedPositions.length === 0)"
+            :disable="
+              isEditMode
+                ? !selectedBatch || selectedPositions.length === 0
+                : !selectedRater ||
+                  !selectedBatch ||
+                  !selectedOffice ||
+                  selectedPositions.length === 0
+            "
           />
         </q-card-actions>
       </q-card>
@@ -346,10 +353,10 @@
             </div>
             <div class="col-12 col-md-6 flex justify-end items-center">
               <q-chip color="green-1" text-color="green-10" icon="done">
-                Done: {{ applicants.filter(a => a.status === 'done').length }}
+                Done: {{ applicants.filter((a) => a.status === 'done').length }}
               </q-chip>
               <q-chip color="orange-1" text-color="orange-10" icon="schedule" class="q-ml-sm">
-                Pending: {{ applicants.filter(a => a.status === 'pending').length }}
+                Pending: {{ applicants.filter((a) => a.status === 'pending').length }}
               </q-chip>
             </div>
           </div>
@@ -400,452 +407,451 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+  import { ref, computed } from 'vue';
 
-// Search
-const globalSearch = ref('');
-const applicantSearch = ref('');
+  // Search
+  const globalSearch = ref('');
+  const applicantSearch = ref('');
 
-// Data
-const raters = ref([
-  {
-    id: 1,
-    Rater: 'John Smith',
-    batchDate: '2024-03-15',
-    Position: 'Frontend Developer, Backend Developer',
-    Office: 'Main Office',
-    pending: 3,
-    completed: 2,
-  },
-  {
-    id: 2,
-    Rater: 'Emily Johnson',
-    batchDate: '2024-02-28',
-    Position: 'Social Media Manager',
-    Office: 'Main Office',
-    pending: 1,
-    completed: 4,
-  },
-  {
-    id: 3,
-    Rater: 'Michael Williams',
-    batchDate: '2024-01-20',
-    Position: 'Customer Support Representative',
-    Office: 'Regional Office - North',
-    pending: 0,
-    completed: 5,
-  },
-]);
+  // Data
+  const raters = ref([
+    {
+      id: 1,
+      Rater: 'John Smith',
+      batchDate: '2024-03-15',
+      Position: 'Frontend Developer, Backend Developer',
+      Office: 'Main Office',
+      pending: 3,
+      completed: 2,
+    },
+    {
+      id: 2,
+      Rater: 'Emily Johnson',
+      batchDate: '2024-02-28',
+      Position: 'Social Media Manager',
+      Office: 'Main Office',
+      pending: 1,
+      completed: 4,
+    },
+    {
+      id: 3,
+      Rater: 'Michael Williams',
+      batchDate: '2024-01-20',
+      Position: 'Customer Support Representative',
+      Office: 'Regional Office - North',
+      pending: 0,
+      completed: 5,
+    },
+  ]);
 
-// Applicants data
-const applicants = ref([
-  { id: 1, name: 'Alice Johnson', position: 'Frontend Developer', status: 'done', rating: '4.5' },
-  { id: 2, name: 'Bob Smith', position: 'Frontend Developer', status: 'pending', rating: '' },
-  { id: 3, name: 'Charlie Brown', position: 'Backend Developer', status: 'done', rating: '3.8' },
-  { id: 4, name: 'Diana Prince', position: 'Backend Developer', status: 'pending', rating: '' },
-  { id: 5, name: 'Ethan Hunt', position: 'Backend Developer', status: 'pending', rating: '' },
-]);
+  // Applicants data
+  const applicants = ref([
+    { id: 1, name: 'Alice Johnson', position: 'Frontend Developer', status: 'done', rating: '4.5' },
+    { id: 2, name: 'Bob Smith', position: 'Frontend Developer', status: 'pending', rating: '' },
+    { id: 3, name: 'Charlie Brown', position: 'Backend Developer', status: 'done', rating: '3.8' },
+    { id: 4, name: 'Diana Prince', position: 'Backend Developer', status: 'pending', rating: '' },
+    { id: 5, name: 'Ethan Hunt', position: 'Backend Developer', status: 'pending', rating: '' },
+  ]);
 
-const isLoadingApplicants = ref(false);
+  const isLoadingApplicants = ref(false);
 
-// Modal state
-const showModal = ref(false);
-const showError = ref(false);
-const isSubmitting = ref(false);
-const isEditMode = ref(false);
-const currentRaterId = ref(null);
-const currentRaterName = ref('');
-const currentRaterOffice = ref('');
-const currentOfficeId = ref(null);
-const currentOfficeRaters = ref([]);
+  // Modal state
+  const showModal = ref(false);
+  const showError = ref(false);
+  const isSubmitting = ref(false);
+  const isEditMode = ref(false);
+  const currentRaterId = ref(null);
+  const currentRaterName = ref('');
+  const currentRaterOffice = ref('');
+  const currentOfficeId = ref(null);
+  const currentOfficeRaters = ref([]);
 
-// View dialog state
-const showViewDialog = ref(false);
-const currentViewRater = ref({
-  Rater: '',
-  Position: '',
-  batchDate: ''
-});
-
-// Delete dialog state
-const showDeleteDialog = ref(false);
-const raterToDelete = ref(null);
-
-// Form selections
-const selectedBatch = ref(null);
-const selectedPositions = ref([]);
-const selectedRater = ref(null);
-const selectedOffice = ref(null);
-
-// Options data
-const batches = ref([
-  { id: 1, display: 'Software Engineer Hiring (Posted: 2024-03-15)', date: '2024-03-15' },
-  { id: 2, display: 'Marketing Team Expansion (Posted: 2024-02-28)', date: '2024-02-28' },
-  { id: 3, display: 'Customer Support Hiring (Posted: 2024-01-20)', date: '2024-01-20' },
-]);
-
-const offices = ref([
-  { id: 1, name: 'Main Office' },
-  { id: 2, name: 'Regional Office - North' },
-  { id: 3, name: 'Regional Office - South' },
-]);
-
-const positions = ref([]);
-const availableRaters = ref([
-  { id: 1, name: 'John Smith', officeId: 1 },
-  { id: 2, name: 'Emily Johnson', officeId: 1 },
-  { id: 3, name: 'Michael Williams', officeId: 2 },
-  { id: 4, name: 'Sarah Brown', officeId: 2 },
-  { id: 5, name: 'David Jones', officeId: 3 },
-]);
-
-const filteredRatersByOffice = ref([]);
-
-// Columns definition
-const columns = [
-  { name: 'ID', label: 'ID', field: 'id', align: 'left' },
-  { name: 'Rater', label: 'Rater Name', field: 'Rater', align: 'left' },
-  { name: 'batchDate', label: 'Assigned Batch', field: 'batchDate', align: 'left' },
-  { name: 'Position', label: 'Position to Rate', field: 'Position', align: 'left' },
-  { name: 'Office', label: 'Office', field: 'Office', align: 'left' },
-  { name: 'pending', label: 'Pending', field: 'pending', align: 'center', sortable: false },
-  { name: 'completed', label: 'Completed', field: 'completed', align: 'center', sortable: false },
-  { name: 'actions', label: 'Actions', align: 'center' },
-];
-
-// Applicant columns
-const applicantColumns = [
-  { name: 'id', label: 'ID', field: 'id', align: 'left' },
-  { name: 'name', label: 'Applicant Name', field: 'name', align: 'left' },
-  { name: 'position', label: 'Position', field: 'position', align: 'left' },
-  { name: 'status', label: 'Status', field: 'status', align: 'center' },
-  { name: 'rating', label: 'Rating', field: 'rating', align: 'center' },
-];
-
-const batchPositions = {
-  1: [
-    { id: 101, name: 'Frontend Developer' },
-    { id: 102, name: 'Backend Developer' },
-    { id: 103, name: 'Full Stack Developer' },
-  ],
-  2: [
-    { id: 201, name: 'Social Media Manager' },
-    { id: 202, name: 'SEO Specialist' },
-  ],
-  3: [
-    { id: 301, name: 'Customer Support Representative' },
-    { id: 302, name: 'Technical Support' },
-  ],
-};
-
-// Computed properties
-const filteredRaters = computed(() => {
-  if (!globalSearch.value) return raters.value;
-
-  const searchTerm = globalSearch.value.toLowerCase();
-  return raters.value.filter((rater) => {
-    return (
-      rater.id.toString().includes(searchTerm) ||
-      rater.Rater.toLowerCase().includes(searchTerm) ||
-      rater.batchDate.toLowerCase().includes(searchTerm) ||
-      rater.Position.toLowerCase().includes(searchTerm) ||
-      rater.Office.toLowerCase().includes(searchTerm)
-    );
+  // View dialog state
+  const showViewDialog = ref(false);
+  const currentViewRater = ref({
+    Rater: '',
+    Position: '',
+    batchDate: '',
   });
-});
 
-const filteredApplicants = computed(() => {
-  if (!applicantSearch.value) return applicants.value;
+  // Delete dialog state
+  const showDeleteDialog = ref(false);
+  const raterToDelete = ref(null);
 
-  const searchTerm = applicantSearch.value.toLowerCase();
-  return applicants.value.filter((applicant) => {
-    return (
-      applicant.id.toString().includes(searchTerm) ||
-      applicant.name.toLowerCase().includes(searchTerm) ||
-      applicant.position.toLowerCase().includes(searchTerm) ||
-      applicant.status.toLowerCase().includes(searchTerm)
-    );
+  // Form selections
+  const selectedBatch = ref(null);
+  const selectedPositions = ref([]);
+  const selectedRater = ref(null);
+  const selectedOffice = ref(null);
+
+  // Options data
+  const batches = ref([
+    { id: 1, display: 'Software Engineer Hiring (Posted: 2024-03-15)', date: '2024-03-15' },
+    { id: 2, display: 'Marketing Team Expansion (Posted: 2024-02-28)', date: '2024-02-28' },
+    { id: 3, display: 'Customer Support Hiring (Posted: 2024-01-20)', date: '2024-01-20' },
+  ]);
+
+  const offices = ref([
+    { id: 1, name: 'Main Office' },
+    { id: 2, name: 'Regional Office - North' },
+    { id: 3, name: 'Regional Office - South' },
+  ]);
+
+  const positions = ref([]);
+  const availableRaters = ref([
+    { id: 1, name: 'John Smith', officeId: 1 },
+    { id: 2, name: 'Emily Johnson', officeId: 1 },
+    { id: 3, name: 'Michael Williams', officeId: 2 },
+    { id: 4, name: 'Sarah Brown', officeId: 2 },
+    { id: 5, name: 'David Jones', officeId: 3 },
+  ]);
+
+  const filteredRatersByOffice = ref([]);
+
+  // Columns definition
+  const columns = [
+    { name: 'ID', label: 'ID', field: 'id', align: 'left' },
+    { name: 'Rater', label: 'Rater Name', field: 'Rater', align: 'left' },
+    { name: 'batchDate', label: 'Assigned Batch', field: 'batchDate', align: 'left' },
+    { name: 'Position', label: 'Position to Rate', field: 'Position', align: 'left' },
+    { name: 'Office', label: 'Office', field: 'Office', align: 'left' },
+    { name: 'pending', label: 'Pending', field: 'pending', align: 'center', sortable: false },
+    { name: 'completed', label: 'Completed', field: 'completed', align: 'center', sortable: false },
+    { name: 'actions', label: 'Actions', align: 'center' },
+  ];
+
+  // Applicant columns
+  const applicantColumns = [
+    { name: 'id', label: 'ID', field: 'id', align: 'left' },
+    { name: 'name', label: 'Applicant Name', field: 'name', align: 'left' },
+    { name: 'position', label: 'Position', field: 'position', align: 'left' },
+    { name: 'status', label: 'Status', field: 'status', align: 'center' },
+    { name: 'rating', label: 'Rating', field: 'rating', align: 'center' },
+  ];
+
+  const batchPositions = {
+    1: [
+      { id: 101, name: 'Frontend Developer' },
+      { id: 102, name: 'Backend Developer' },
+      { id: 103, name: 'Full Stack Developer' },
+    ],
+    2: [
+      { id: 201, name: 'Social Media Manager' },
+      { id: 202, name: 'SEO Specialist' },
+    ],
+    3: [
+      { id: 301, name: 'Customer Support Representative' },
+      { id: 302, name: 'Technical Support' },
+    ],
+  };
+
+  // Computed properties
+  const filteredRaters = computed(() => {
+    if (!globalSearch.value) return raters.value;
+
+    const searchTerm = globalSearch.value.toLowerCase();
+    return raters.value.filter((rater) => {
+      return (
+        rater.id.toString().includes(searchTerm) ||
+        rater.Rater.toLowerCase().includes(searchTerm) ||
+        rater.batchDate.toLowerCase().includes(searchTerm) ||
+        rater.Position.toLowerCase().includes(searchTerm) ||
+        rater.Office.toLowerCase().includes(searchTerm)
+      );
+    });
   });
-});
 
-const positionsWithAllOption = computed(() => {
-  if (!positions.value.length) return [];
-  const allOption = { id: 'all', name: 'All Positions' };
-  return [allOption, ...positions.value];
-});
+  const filteredApplicants = computed(() => {
+    if (!applicantSearch.value) return applicants.value;
 
-// Methods
-const showAddModal = () => {
-  isEditMode.value = false;
-  showModal.value = true;
-  resetForm();
-};
+    const searchTerm = applicantSearch.value.toLowerCase();
+    return applicants.value.filter((applicant) => {
+      return (
+        applicant.id.toString().includes(searchTerm) ||
+        applicant.name.toLowerCase().includes(searchTerm) ||
+        applicant.position.toLowerCase().includes(searchTerm) ||
+        applicant.status.toLowerCase().includes(searchTerm)
+      );
+    });
+  });
 
-const fetchPositions = (batchId) => {
-  positions.value = batchPositions[batchId] || [];
-  selectedPositions.value = [];
-  if (!isEditMode.value) {
-    selectedRater.value = null;
-    selectedOffice.value = null;
-    filteredRatersByOffice.value = [];
-  }
-};
+  const positionsWithAllOption = computed(() => {
+    if (!positions.value.length) return [];
+    const allOption = { id: 'all', name: 'All Positions' };
+    return [allOption, ...positions.value];
+  });
 
-const isPositionSelected = (id) => {
-  if (id === 'all') {
-    return (
-      positions.value.length > 0 &&
-      positions.value.every((p) => selectedPositions.value.includes(p.id))
-    );
-  }
-  return selectedPositions.value.includes(id);
-};
+  // Methods
+  const showAddModal = () => {
+    isEditMode.value = false;
+    showModal.value = true;
+    resetForm();
+  };
 
-const togglePosition = (id, checked) => {
-  if (id === 'all') {
-    if (checked) {
-      selectedPositions.value = ['all', ...positions.value.map((p) => p.id)];
-    } else {
-      selectedPositions.value = [];
-    }
-  } else {
-    let newSelection = [...selectedPositions.value];
-    const allIndex = newSelection.indexOf('all');
-
-    if (checked) {
-      if (!newSelection.includes(id)) {
-        newSelection.push(id);
-      }
-
-      const allSelected = positions.value.every((p) => newSelection.includes(p.id));
-      if (allSelected && allIndex === -1) {
-        newSelection.push('all');
-      }
-    } else {
-      newSelection = newSelection.filter((item) => item !== id);
-
-      if (allIndex !== -1) {
-        newSelection.splice(allIndex, 1);
-      }
-    }
-
-    selectedPositions.value = newSelection;
-  }
-};
-
-const handlePositionSelection = (newSelection) => {
-  const allOptionId = 'all';
-  const regularIds = positions.value.map((p) => p.id);
-
-  if (newSelection.includes(allOptionId)) {
-    selectedPositions.value = [allOptionId, ...regularIds];
-  } else {
-    selectedPositions.value = newSelection.filter((id) => id !== allOptionId);
-
-    const allSelected =
-      regularIds.length > 0 && regularIds.every((id) => newSelection.includes(id));
-
-    if (allSelected) {
-      selectedPositions.value = [allOptionId, ...regularIds];
-    }
-  }
-};
-
-const handleOfficeChange = (officeId) => {
-  selectedRater.value = null;
-  // Immediately populate the raters for this office
-  filteredRatersByOffice.value = availableRaters.value.filter(rater =>
-    rater.officeId === officeId
-  );
-};
-
-const filterRatersByOffice = (val, update) => {
-  if (typeof update !== 'function') {
-    return;
-  }
-
-  update(() => {
-    if (!selectedOffice.value) {
+  const fetchPositions = (batchId) => {
+    positions.value = batchPositions[batchId] || [];
+    selectedPositions.value = [];
+    if (!isEditMode.value) {
+      selectedRater.value = null;
+      selectedOffice.value = null;
       filteredRatersByOffice.value = [];
+    }
+  };
+
+  const isPositionSelected = (id) => {
+    if (id === 'all') {
+      return (
+        positions.value.length > 0 &&
+        positions.value.every((p) => selectedPositions.value.includes(p.id))
+      );
+    }
+    return selectedPositions.value.includes(id);
+  };
+
+  const togglePosition = (id, checked) => {
+    if (id === 'all') {
+      if (checked) {
+        selectedPositions.value = ['all', ...positions.value.map((p) => p.id)];
+      } else {
+        selectedPositions.value = [];
+      }
+    } else {
+      let newSelection = [...selectedPositions.value];
+      const allIndex = newSelection.indexOf('all');
+
+      if (checked) {
+        if (!newSelection.includes(id)) {
+          newSelection.push(id);
+        }
+
+        const allSelected = positions.value.every((p) => newSelection.includes(p.id));
+        if (allSelected && allIndex === -1) {
+          newSelection.push('all');
+        }
+      } else {
+        newSelection = newSelection.filter((item) => item !== id);
+
+        if (allIndex !== -1) {
+          newSelection.splice(allIndex, 1);
+        }
+      }
+
+      selectedPositions.value = newSelection;
+    }
+  };
+
+  const handlePositionSelection = (newSelection) => {
+    const allOptionId = 'all';
+    const regularIds = positions.value.map((p) => p.id);
+
+    if (newSelection.includes(allOptionId)) {
+      selectedPositions.value = [allOptionId, ...regularIds];
+    } else {
+      selectedPositions.value = newSelection.filter((id) => id !== allOptionId);
+
+      const allSelected =
+        regularIds.length > 0 && regularIds.every((id) => newSelection.includes(id));
+
+      if (allSelected) {
+        selectedPositions.value = [allOptionId, ...regularIds];
+      }
+    }
+  };
+
+  const handleOfficeChange = (officeId) => {
+    selectedRater.value = null;
+    // Immediately populate the raters for this office
+    filteredRatersByOffice.value = availableRaters.value.filter(
+      (rater) => rater.officeId === officeId,
+    );
+  };
+
+  const filterRatersByOffice = (val, update) => {
+    if (typeof update !== 'function') {
       return;
     }
 
-    if (val === '') {
-      filteredRatersByOffice.value = availableRaters.value.filter(
-        rater => rater.officeId === selectedOffice.value
-      );
-    } else {
-      const needle = val.toLowerCase();
-      filteredRatersByOffice.value = availableRaters.value.filter(rater =>
-        rater.officeId === selectedOffice.value &&
-        rater.name.toLowerCase().includes(needle)
-      );
-    }
-  });
-};
+    update(() => {
+      if (!selectedOffice.value) {
+        filteredRatersByOffice.value = [];
+        return;
+      }
 
-const resetForm = () => {
-  selectedBatch.value = null;
-  selectedPositions.value = [];
-  selectedRater.value = null;
-  selectedOffice.value = null;
-  filteredRatersByOffice.value = [];
-  currentRaterId.value = null;
-  currentRaterName.value = '';
-  currentRaterOffice.value = '';
-  currentOfficeId.value = null;
-  currentOfficeRaters.value = [];
-  showError.value = false;
-};
-
-const closeModal = () => {
-  showModal.value = false;
-  resetForm();
-  isEditMode.value = false;
-};
-
-const viewRater = (rater) => {
-  currentViewRater.value = {
-    Rater: rater.Rater,
-    Position: rater.Position,
-    batchDate: rater.batchDate
+      if (val === '') {
+        filteredRatersByOffice.value = availableRaters.value.filter(
+          (rater) => rater.officeId === selectedOffice.value,
+        );
+      } else {
+        const needle = val.toLowerCase();
+        filteredRatersByOffice.value = availableRaters.value.filter(
+          (rater) =>
+            rater.officeId === selectedOffice.value && rater.name.toLowerCase().includes(needle),
+        );
+      }
+    });
   };
 
-  // In a real app, you would fetch applicants for this rater from an API
-  isLoadingApplicants.value = true;
-  setTimeout(() => {
-    isLoadingApplicants.value = false;
-    showViewDialog.value = true;
-  }, 500);
-};
+  const resetForm = () => {
+    selectedBatch.value = null;
+    selectedPositions.value = [];
+    selectedRater.value = null;
+    selectedOffice.value = null;
+    filteredRatersByOffice.value = [];
+    currentRaterId.value = null;
+    currentRaterName.value = '';
+    currentRaterOffice.value = '';
+    currentOfficeId.value = null;
+    currentOfficeRaters.value = [];
+    showError.value = false;
+  };
 
-const editRater = (rater) => {
-  isEditMode.value = true;
-  currentRaterName.value = rater.Rater;
-  currentRaterOffice.value = rater.Office;
+  const closeModal = () => {
+    showModal.value = false;
+    resetForm();
+    isEditMode.value = false;
+  };
 
-  const office = offices.value.find(o => o.name === rater.Office);
-  currentOfficeId.value = office?.id || null;
+  const viewRater = (rater) => {
+    currentViewRater.value = {
+      Rater: rater.Rater,
+      Position: rater.Position,
+      batchDate: rater.batchDate,
+    };
 
-  const raterData = availableRaters.value.find(r => r.name === rater.Rater);
-  currentRaterId.value = raterData?.id || null;
+    // In a real app, you would fetch applicants for this rater from an API
+    isLoadingApplicants.value = true;
+    setTimeout(() => {
+      isLoadingApplicants.value = false;
+      showViewDialog.value = true;
+    }, 500);
+  };
 
-  currentOfficeRaters.value = availableRaters.value.filter(r => r.officeId === currentOfficeId.value);
+  const editRater = (rater) => {
+    isEditMode.value = true;
+    currentRaterName.value = rater.Rater;
+    currentRaterOffice.value = rater.Office;
 
-  const batch = batches.value.find(b => b.date === rater.batchDate);
-  selectedBatch.value = batch?.id || null;
+    const office = offices.value.find((o) => o.name === rater.Office);
+    currentOfficeId.value = office?.id || null;
 
-  if (selectedBatch.value) {
-    fetchPositions(selectedBatch.value);
+    const raterData = availableRaters.value.find((r) => r.name === rater.Rater);
+    currentRaterId.value = raterData?.id || null;
 
-    const positionNames = rater.Position.split(', ');
-    selectedPositions.value = positions.value
-      .filter(pos => positionNames.includes(pos.name))
-      .map(pos => pos.id);
-  }
+    currentOfficeRaters.value = availableRaters.value.filter(
+      (r) => r.officeId === currentOfficeId.value,
+    );
 
-  showModal.value = true;
-};
+    const batch = batches.value.find((b) => b.date === rater.batchDate);
+    selectedBatch.value = batch?.id || null;
 
-const updateRater = () => {
-  if (
-    !selectedBatch.value ||
-    selectedPositions.value.length === 0
-  ) {
-    showError.value = true;
-    return;
-  }
+    if (selectedBatch.value) {
+      fetchPositions(selectedBatch.value);
 
-  showError.value = false;
-  isSubmitting.value = true;
-
-  setTimeout(() => {
-    const selectedPositionNames = positions.value
-      .filter(pos => selectedPositions.value.includes(pos.id))
-      .map(pos => pos.name)
-      .join(', ');
-
-    const index = raters.value.findIndex(r => r.Rater === currentRaterName.value);
-    if (index !== -1) {
-      raters.value[index] = {
-        ...raters.value[index],
-        batchDate: batches.value.find(b => b.id === selectedBatch.value)?.date || '',
-        Position: selectedPositionNames,
-      };
+      const positionNames = rater.Position.split(', ');
+      selectedPositions.value = positions.value
+        .filter((pos) => positionNames.includes(pos.name))
+        .map((pos) => pos.id);
     }
 
-    closeModal();
-    isSubmitting.value = false;
-  }, 1000);
-};
+    showModal.value = true;
+  };
 
-const addRater = () => {
-  if (
-    !selectedBatch.value ||
-    selectedPositions.value.length === 0 ||
-    !selectedOffice.value ||
-    !selectedRater.value
-  ) {
-    showError.value = true;
-    return;
-  }
-  showError.value = false;
-  isSubmitting.value = true;
+  const updateRater = () => {
+    if (!selectedBatch.value || selectedPositions.value.length === 0) {
+      showError.value = true;
+      return;
+    }
 
-  setTimeout(() => {
-    const selectedPositionNames = positions.value
-      .filter(pos => selectedPositions.value.includes(pos.id))
-      .map(pos => pos.name)
-      .join(', ');
+    showError.value = false;
+    isSubmitting.value = true;
 
-    const raterData = availableRaters.value.find(r => r.id === selectedRater.value);
-    const officeData = offices.value.find(o => o.id === selectedOffice.value);
+    setTimeout(() => {
+      const selectedPositionNames = positions.value
+        .filter((pos) => selectedPositions.value.includes(pos.id))
+        .map((pos) => pos.name)
+        .join(', ');
 
-    raters.value.push({
-      id: raters.value.length + 1,
-      Rater: raterData?.name || '',
-      batchDate: batches.value.find(b => b.id === selectedBatch.value)?.date || '',
-      Position: selectedPositionNames,
-      Office: officeData?.name || '',
-      pending: 0,
-      completed: 0,
-    });
+      const index = raters.value.findIndex((r) => r.Rater === currentRaterName.value);
+      if (index !== -1) {
+        raters.value[index] = {
+          ...raters.value[index],
+          batchDate: batches.value.find((b) => b.id === selectedBatch.value)?.date || '',
+          Position: selectedPositionNames,
+        };
+      }
 
-    closeModal();
-    isSubmitting.value = false;
-  }, 1000);
-};
+      closeModal();
+      isSubmitting.value = false;
+    }, 1000);
+  };
 
-const confirmDeleteRater = (rater) => {
-  raterToDelete.value = rater.id;
-  showDeleteDialog.value = true;
-};
+  const addRater = () => {
+    if (
+      !selectedBatch.value ||
+      selectedPositions.value.length === 0 ||
+      !selectedOffice.value ||
+      !selectedRater.value
+    ) {
+      showError.value = true;
+      return;
+    }
+    showError.value = false;
+    isSubmitting.value = true;
 
-const deleteRater = () => {
-  raters.value = raters.value.filter((r) => r.id !== raterToDelete.value);
-  showDeleteDialog.value = false;
-  raterToDelete.value = null;
-};
+    setTimeout(() => {
+      const selectedPositionNames = positions.value
+        .filter((pos) => selectedPositions.value.includes(pos.id))
+        .map((pos) => pos.name)
+        .join(', ');
+
+      const raterData = availableRaters.value.find((r) => r.id === selectedRater.value);
+      const officeData = offices.value.find((o) => o.id === selectedOffice.value);
+
+      raters.value.push({
+        id: raters.value.length + 1,
+        Rater: raterData?.name || '',
+        batchDate: batches.value.find((b) => b.id === selectedBatch.value)?.date || '',
+        Position: selectedPositionNames,
+        Office: officeData?.name || '',
+        pending: 0,
+        completed: 0,
+      });
+
+      closeModal();
+      isSubmitting.value = false;
+    }, 1000);
+  };
+
+  const confirmDeleteRater = (rater) => {
+    raterToDelete.value = rater.id;
+    showDeleteDialog.value = true;
+  };
+
+  const deleteRater = () => {
+    raters.value = raters.value.filter((r) => r.id !== raterToDelete.value);
+    showDeleteDialog.value = false;
+    raterToDelete.value = null;
+  };
 </script>
 
 <style scoped>
-.q-table {
-  width: 100%;
-}
+  .q-table {
+    width: 100%;
+  }
 
-.status-badge {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-weight: 500;
-}
+  .status-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+  }
 
-.status-done {
-  background-color: #e8f5e9;
-  color: #2e7d32;
-}
+  .status-done {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+  }
 
-.status-pending {
-  background-color: #fff3e0;
-  color: #e65100;
-}
+  .status-pending {
+    background-color: #fff3e0;
+    color: #e65100;
+  }
 </style>

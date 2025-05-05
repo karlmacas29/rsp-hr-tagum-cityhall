@@ -1,8 +1,17 @@
 <template>
   <q-page class="q-pa-md">
     <!-- Enhanced Header with larger font -->
-    <div class="column items-start q-mb-lg">
-      <h1 class="text-h3 q-ma-none text-weight-bold">Job Posts</h1>
+    <div class="column items-start justify-center q-mb-md">
+      <h5 class="text-h4 q-ma-none"><b>Job Posts</b></h5>
+      <div class="q-pa-sm q-gutter-sm">
+        <q-breadcrumbs class="q-ma-none" active-color="green">
+          <template v-slot:separator>
+            <q-icon size="1.2em" name="arrow_forward" />
+          </template>
+          <q-breadcrumbs-el label="Job Posts" icon="post_add" />
+          <!-- <q-breadcrumbs-el label="Job Posts" icon="home" /> -->
+        </q-breadcrumbs>
+      </div>
     </div>
 
     <!-- Job List View -->
@@ -59,8 +68,6 @@
         :columns="columns"
         row-key="id"
         :pagination="pagination"
-        flat
-        bordered
         class="job-posts-table"
       >
         <template v-slot:body-cell-applicants="props">

@@ -2,7 +2,7 @@
   <q-drawer show-if-above v-model="drawer" side="left" :width="230" bordered>
     <!-- Logo Section -->
     <div class="logo-container">
-      <img src="/logo.png" alt="Tagum City Logo" class="logo" style="width: 130px" />
+      <q-img src="/logo.png" width="130px" />
     </div>
 
     <!-- Header Section -->

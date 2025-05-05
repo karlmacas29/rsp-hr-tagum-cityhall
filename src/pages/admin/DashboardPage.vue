@@ -2,8 +2,21 @@
   <q-page class="q-pa-md">
     <div class="column no-gap">
       <!-- Welcome Message -->
-      <div class="bg-primary text-white rounded-borders q-pa-lg column justify-center items-start">
-        <div v-if="authStore.user != null" class="column justify-center q-pa-md q-gutter-xs">
+      <q-img
+        src="tagum-city-hall.webp"
+        class="rounded-borders q-pa-lg column justify-center items-start"
+        style="height: 100px; opacity: 1.5"
+      >
+        <div
+          v-if="authStore.user != null"
+          class="column justify-center"
+          style="
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+          "
+        >
           <div class="text-h4 text-weight-bolder q-ma-none">
             Welcome to RSP, {{ authStore.user.name }}!
           </div>
@@ -15,7 +28,7 @@
           <h4 class="text-h4 text-weight-bolder q-my-none"><q-skeleton type="text" /></h4>
           <p class="text-body2"><q-skeleton type="text" /></p>
         </div>
-      </div>
+      </q-img>
 
       <!-- STATISTICS HEADER -->
       <div class="row justify-start items-start q-my-md">
@@ -34,72 +47,45 @@
       </div>
 
       <!-- STATISTICS CARDS -->
-      <StatusOverview />
+      <StatusOverview class="q-mx-auto" />
 
+      <!-- Jobpost HEADER -->
+      <div class="row justify-start items-start q-my-md">
+        <div class="q-pa-sm">
+          <q-icon name="work_history" size="50px" />
+        </div>
+        <div class="column">
+          <h4 class="text-weight-bold q-ma-none">Jobs Overview</h4>
+          <h5 class="q-my-sm row justify-start">
+            Total Active Job Posts:
+            <div class="text-bold text-primary q-mx-md">5</div>
+          </h5>
+        </div>
+      </div>
       <!-- MAIN CONTENT -->
-      <div class="row q-mt-md justify-between">
-        <div class="table-container">
-          <div class="row justify-between q-mb-sm items-center">
-            <h5 class="text-h5 text-weight-bold q-ma-none">Jobpost Overview</h5>
-            <q-select
-              v-model="selectedDateFilter"
-              :options="dateFilters"
-              dense
-              outlined
-              class="date-filter"
-              @update:model-value="applyDateFilter"
-            />
-          </div>
-
+      <div class="row justify-between">
+        <q-card class="q-mx-auto" style="width: 70vw">
           <q-table
             class="applicants-table"
-            flat
-            bordered
-            :rows="filteredApplicants"
+            :rows="applicants"
             :columns="columns"
             row-key="job"
-            separator="cell"
             :pagination="{ rowsPerPage: 5 }"
           />
-        </div>
-
-        <div class="job-card-container q-px-xl">
-          <q-card
-            class="text-dark stat-card"
-            style="
-              background-color: #fff;
-              width: 100%;
-              border-top: 8px solid #00b034;
-              border-radius: 12px;
-            "
-          >
-            <q-card-section class="q-pa-lg row justify-between items-center">
-              <div>
-                <div class="text-subtitle1 text-bold">Active Job Post</div>
-                <div class="text-h4">{{ activeJobPost }}</div>
-                <div class="text-caption">Post</div>
-              </div>
-            </q-card-section>
-          </q-card>
-        </div>
+        </q-card>
       </div>
     </div>
   </q-page>
 </template>
 
 <script setup>
-  import { ref, onMounted } from 'vue';
+  import { onMounted } from 'vue';
   import { useAuthStore } from 'src/stores/authStore';
   import StatusOverview from 'src/components/Dashboard/StatusOverview.vue';
   import { use_vwActiveStore } from 'src/stores/vwActiveStore';
 
   const vwActiveStore = use_vwActiveStore();
   const authStore = useAuthStore();
-  const activeJobPost = ref(0);
-  const selectedDateFilter = ref('Weekly');
-  const filteredApplicants = ref([]);
-
-  const dateFilters = ['Weekly', 'Monthly', 'Yearly'];
 
   const applicants = [
     {
@@ -150,46 +136,26 @@
   ];
 
   const columns = [
-    { name: 'job', label: 'Job Applied', align: 'left', field: 'job' },
-    { name: 'applicants', label: 'No. of Applicants', align: 'center', field: 'applicants' },
-    { name: 'pending', label: 'Pending', align: 'center', field: 'pending' },
-    { name: 'qualified', label: 'Qualified', align: 'center', field: 'qualified' },
-    { name: 'unqualified', label: 'Unqualified', align: 'center', field: 'unqualified' },
+    { name: 'job', label: 'Job Applied', align: 'left', field: 'job', sortable: true },
+    {
+      name: 'applicants',
+      label: 'No. of Applicants',
+      align: 'center',
+      field: 'applicants',
+      sortable: true,
+    },
+    { name: 'pending', label: 'Pending', align: 'center', field: 'pending', sortable: true },
+    { name: 'qualified', label: 'Qualified', align: 'center', field: 'qualified', sortable: true },
+    {
+      name: 'unqualified',
+      label: 'Unqualified',
+      align: 'center',
+      field: 'unqualified',
+      sortable: true,
+    },
   ];
 
-  const countActiveJobs = () => {
-    activeJobPost.value = filteredApplicants.value.filter((job) => job.active).length;
-  };
-
-  const applyDateFilter = () => {
-    const today = new Date();
-    const startOfWeek = new Date(
-      today.getFullYear(),
-      today.getMonth(),
-      today.getDate() - today.getDay(),
-    );
-    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    const startOfYear = new Date(today.getFullYear(), 0, 1);
-
-    filteredApplicants.value = applicants.filter((applicant) => {
-      const applicantDate = new Date(applicant.date);
-      switch (selectedDateFilter.value) {
-        case 'Weekly':
-          return applicantDate >= startOfWeek;
-        case 'Monthly':
-          return applicantDate >= startOfMonth;
-        case 'Yearly':
-          return applicantDate >= startOfYear;
-        default:
-          return true;
-      }
-    });
-
-    countActiveJobs();
-  };
-
   onMounted(async () => {
-    applyDateFilter();
     await vwActiveStore.fetchCountAll();
   });
 </script>
@@ -215,7 +181,6 @@
     flex: 1;
     min-width: 75%;
     padding: 5px 16px;
-    background-color: #f9f9f9;
     border-radius: 8px;
   }
 

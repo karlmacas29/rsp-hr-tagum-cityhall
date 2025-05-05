@@ -1,7 +1,19 @@
 <template>
   <div class="q-pa-md">
+    <div class="column items-start justify-center q-mb-md">
+      <h5 class="text-h4 q-ma-none"><b>Rater Management</b></h5>
+      <div class="q-pa-md q-gutter-sm">
+        <q-breadcrumbs class="q-ma-none">
+          <template v-slot:separator>
+            <q-icon size="1.2em" name="arrow_forward" />
+          </template>
+          <q-breadcrumbs-el icon="assignment_ind" label="Rater Management" />
+          <q-breadcrumbs-el icon="rule" label="Criteria" />
+        </q-breadcrumbs>
+      </div>
+    </div>
     <div class="row justify-between items-center q-mb-lg">
-      <div class="text-h5 text-weight-medium text-primary">Rating Criteria Setup</div>
+      <div class="text-h4 text-weight-bold q-ma-none">Edit Criteria</div>
       <q-btn
         color="primary"
         label="Save Ratings"
@@ -292,367 +304,360 @@
 </template>
 
 <script>
-import { toast } from 'src/boot/toast';
-import RaterPreview from 'components/RaterPreview.vue';
-import { rankApplicants } from 'src/assets/Utils/RatingCalculations.js';
-import { useRaterStore } from 'src/stores/raterStore';
-import { storeToRefs } from 'pinia';
-import { api } from 'src/boot/axios';
+  import { toast } from 'src/boot/toast';
+  import RaterPreview from 'components/RaterPreview.vue';
+  import { rankApplicants } from 'src/assets/Utils/RatingCalculations.js';
+  import { useRaterStore } from 'src/stores/raterStore';
+  import { storeToRefs } from 'pinia';
+  import { api } from 'src/boot/axios';
 
-export default {
-  name: 'CriteriaRater',
-  components: {
-    RaterPreview,
-  },
-  data() {
-    return {
-      loading: false,
-      showRatingTable: false,
-      confirmDialog: false,
-      formData: {
-        office: null,
-        position: null,
-        salaryGrade: '',
-        plantillaItemNo: '',
+  export default {
+    name: 'CriteriaRater',
+    components: {
+      RaterPreview,
+    },
+    data() {
+      return {
+        loading: false,
+        showRatingTable: false,
+        confirmDialog: false,
+        formData: {
+          office: null,
+          position: null,
+          salaryGrade: '',
+          plantillaItemNo: '',
+        },
+        baseCriteria: {
+          education: {
+            title1: 'High School Graduate',
+            title2: 'RELEVANT EDUCATION',
+            description:
+              "Completion of Bachelor's Degree and/or Master/ Doctorate/ Professional Ed or Position → 20%",
+            weight: 0.2,
+          },
+          experience: {
+            title1: 'None required',
+            title2: 'RELEVANT EXPERIENCE',
+            description1:
+              'With Experience with higher Salary Grade/level with Office Order of Designation from the Local Chief → 20%',
+            description2: 'Without Experience → 10%',
+            weight: 0.2,
+          },
+          training: {
+            title1: 'None required',
+            title2: 'RELEVANT TRAINING',
+            description:
+              'With the Minimum hours of related Training to the position or at least 4 hours if required of the position → 15%',
+            weight: 0.15,
+          },
+          performance: {
+            title: 'IPCR Rating/OPV Rating',
+            rating1: 'Outstanding → 15%',
+            rating2: 'Very Satisfactory → 13%',
+            rating3: 'Below VS rating → 10%',
+            weight: 0.15,
+          },
+        },
+        editableCriteria: null,
+        displayCriteria: null,
+        applicants: [
+          {
+            id: 1,
+            name: 'Applicant 1',
+            education: 0,
+            experience: 0,
+            training: 0,
+            performance: 0,
+            bei: 0,
+          },
+          {
+            id: 2,
+            name: 'Applicant 2',
+            education: 0,
+            experience: 0,
+            training: 0,
+            performance: 0,
+            bei: 0,
+          },
+          {
+            id: 3,
+            name: 'Applicant 3',
+            education: 0,
+            experience: 0,
+            training: 0,
+            performance: 0,
+            bei: 0,
+          },
+        ],
+        officeOptions: [
+          'Human Resource Office',
+          'Finance Department',
+          'Legal Department',
+          'Information Technology Department',
+          'Operations Department',
+          'Administrative Services',
+        ],
+        positionOptions: [
+          'Administrative Officer',
+          'Budget Officer',
+          'Accountant',
+          'Planning Officer',
+          'Human Resource Officer',
+          'IT Officer',
+          'Engineer',
+          'Project Development Officer',
+          'Public Information Officer',
+        ],
+        filteredOfficeOptions: [],
+        filteredPositionOptions: [],
+        savingAttempts: 0,
+      };
+    },
+    computed: {
+      rankedApplicants() {
+        return rankApplicants(this.applicants, this.displayCriteria);
       },
-      baseCriteria: {
-        education: {
-          title1: 'High School Graduate',
-          title2: 'RELEVANT EDUCATION',
-          description: "Completion of Bachelor's Degree and/or Master/ Doctorate/ Professional Ed or Position → 20%",
-          weight: 0.2,
-        },
-        experience: {
-          title1: 'None required',
-          title2: 'RELEVANT EXPERIENCE',
-          description1: 'With Experience with higher Salary Grade/level with Office Order of Designation from the Local Chief → 20%',
-          description2: 'Without Experience → 10%',
-          weight: 0.2,
-        },
-        training: {
-          title1: 'None required',
-          title2: 'RELEVANT TRAINING',
-          description: 'With the Minimum hours of related Training to the position or at least 4 hours if required of the position → 15%',
-          weight: 0.15,
-        },
-        performance: {
-          title: 'IPCR Rating/OPV Rating',
-          rating1: 'Outstanding → 15%',
-          rating2: 'Very Satisfactory → 13%',
-          rating3: 'Below VS rating → 10%',
-          weight: 0.15,
-        },
+      canSave() {
+        return this.formData.office && this.formData.position && this.editableCriteria;
       },
-      editableCriteria: null,
-      displayCriteria: null,
-      applicants: [
-        {
-          id: 1,
-          name: 'Applicant 1',
-          education: 0,
-          experience: 0,
-          training: 0,
-          performance: 0,
-          bei: 0,
-        },
-        {
-          id: 2,
-          name: 'Applicant 2',
-          education: 0,
-          experience: 0,
-          training: 0,
-          performance: 0,
-          bei: 0,
-        },
-        {
-          id: 3,
-          name: 'Applicant 3',
-          education: 0,
-          experience: 0,
-          training: 0,
-          performance: 0,
-          bei: 0,
-        },
-      ],
-      officeOptions: [
-        'Human Resource Office',
-        'Finance Department',
-        'Legal Department',
-        'Information Technology Department',
-        'Operations Department',
-        'Administrative Services',
-      ],
-      positionOptions: [
-        'Administrative Officer',
-        'Budget Officer',
-        'Accountant',
-        'Planning Officer',
-        'Human Resource Officer',
-        'IT Officer',
-        'Engineer',
-        'Project Development Officer',
-        'Public Information Officer',
-      ],
-      filteredOfficeOptions: [],
-      filteredPositionOptions: [],
-      savingAttempts: 0,
-    };
-  },
-  computed: {
-    rankedApplicants() {
-      return rankApplicants(this.applicants, this.displayCriteria);
     },
-    canSave() {
-      return this.formData.office && this.formData.position && this.editableCriteria;
-    }
-  },
-  created() {
-    this.editableCriteria = JSON.parse(JSON.stringify(this.baseCriteria));
-    this.displayCriteria = JSON.parse(JSON.stringify(this.baseCriteria));
-    this.filteredOfficeOptions = [...this.officeOptions];
-    this.filteredPositionOptions = [...this.positionOptions];
-    this.fetchInitialData();
-  },
-  setup() {
-    const raterStore = useRaterStore();
-    const { raters, loading: storeLoading, error: storeError } = storeToRefs(raterStore);
-
-    return {
-      raterStore,
-      raters,
-      storeLoading,
-      storeError,
-    };
-  },
-  methods: {
-    async fetchInitialData() {
-      try {
-        await this.raterStore.fetchRaters();
-        await this.raterStore.fetchRatersBatch();
-        await this.loadApplicants();
-      } catch (error) {
-        console.error('Error fetching initial data:', error);
-        toast.error('Failed to load initial data. Please refresh the page.');
-      }
-    },
-    confirmSave() {
-      if (!this.canSave) {
-        toast.warning('Please complete all required fields before saving.');
-        return;
-      }
-      this.confirmDialog = true;
-    },
-    async saveRatings() {
-      if (!this.canSave) {
-        toast.warning('Please complete all required fields before saving.');
-        return;
-      }
-
-      this.loading = true;
-      this.savingAttempts++;
-
-      try {
-        const payload = {
-          position: this.formData.position,
-          office: this.formData.office,
-          plantillaItemNo: this.formData.plantillaItemNo,
-          salaryGrade: this.formData.salaryGrade,
-          criteria: JSON.parse(JSON.stringify(this.editableCriteria))
-        };
-
-        const result = await this.raterStore.savePositionCriteria(payload);
-
-        if (result) {
-          this.displayCriteria = JSON.parse(JSON.stringify(this.editableCriteria));
-          toast.success(`Criteria for ${this.formData.position} saved successfully`);
-          this.savingAttempts = 0;
-
-          // Save applicants separately
-          await this.saveApplicantRatings();
-
-          return result;
-        }
-        throw new Error('No result returned from save operation');
-      } catch (error) {
-        console.error('Save error:', error);
-
-        if (this.savingAttempts >= 2) {
-          return this.saveRatingsFallback();
-        }
-
-        toast.error(`Failed to save criteria: ${error.message}`);
-        this.editableCriteria = JSON.parse(JSON.stringify(this.displayCriteria));
-      } finally {
-        this.loading = false;
-      }
-    },
-
-    async saveApplicantRatings() {
-      try {
-        const payload = {
-          position: this.formData.position,
-          office: this.formData.office,
-          applicants: this.rankedApplicants
-        };
-
-        await api.post('/applicant-ratings', payload);
-      } catch (error) {
-        console.error('Failed to save applicant ratings:', error);
-      }
-    },
-
-    async saveRatingsFallback() {
-      try {
-        this.loading = true;
-
-        const payload = {
-          position: this.formData.position,
-          office: this.formData.office,
-          criteria: JSON.parse(JSON.stringify(this.editableCriteria))
-        };
-
-        const response = await api.post('/criteria', payload);
-
-        if (response.data) {
-          this.displayCriteria = JSON.parse(JSON.stringify(this.editableCriteria));
-          toast.success(`Criteria saved successfully (via fallback)`);
-          this.savingAttempts = 0;
-          return response.data;
-        }
-      } catch (error) {
-        console.error('Fallback save error:', error);
-        toast.error('All save methods failed. Please check your connection.');
-      } finally {
-        this.loading = false;
-      }
-    },
-
-    handleRatingUpdate({ applicantId, field, value }) {
-      const applicant = this.applicants.find((a) => a.id === applicantId);
-      if (applicant) {
-        applicant[field] = Number(value);
-      }
-    },
-    filterOffices(val, update) {
-      update(() => {
-        if (val === '') {
-          this.filteredOfficeOptions = this.officeOptions;
-        } else {
-          const needle = val.toLowerCase();
-          this.filteredOfficeOptions = this.officeOptions.filter(
-            (v) => v.toLowerCase().indexOf(needle) > -1,
-          );
-        }
-      });
-    },
-    filterPositions(val, update) {
-      update(() => {
-        if (val === '') {
-          this.filteredPositionOptions = this.positionOptions;
-        } else {
-          const needle = val.toLowerCase();
-          this.filteredPositionOptions = this.positionOptions.filter(
-            (v) => v.toLowerCase().indexOf(needle) > -1,
-          );
-        }
-      });
-    },
-    resetPosition() {
-      this.formData.position = null;
-      this.formData.salaryGrade = '';
-      this.formData.plantillaItemNo = '';
-      this.showRatingTable = false;
+    created() {
       this.editableCriteria = JSON.parse(JSON.stringify(this.baseCriteria));
       this.displayCriteria = JSON.parse(JSON.stringify(this.baseCriteria));
+      this.filteredOfficeOptions = [...this.officeOptions];
+      this.filteredPositionOptions = [...this.positionOptions];
+      this.fetchInitialData();
     },
-    async loadPositionDetails() {
-      if (!this.formData.position) return;
+    setup() {
+      const raterStore = useRaterStore();
+      const { raters, loading: storeLoading, error: storeError } = storeToRefs(raterStore);
 
-      this.loading = true;
+      return {
+        raterStore,
+        raters,
+        storeLoading,
+        storeError,
+      };
+    },
+    methods: {
+      async fetchInitialData() {
+        try {
+          await this.raterStore.fetchRaters();
+          await this.raterStore.fetchRatersBatch();
+          await this.loadApplicants();
+        } catch (error) {
+          console.error('Error fetching initial data:', error);
+          toast.error('Failed to load initial data. Please refresh the page.');
+        }
+      },
+      confirmSave() {
+        if (!this.canSave) {
+          toast.warning('Please complete all required fields before saving.');
+          return;
+        }
+        this.confirmDialog = true;
+      },
+      async saveRatings() {
+        if (!this.canSave) {
+          toast.warning('Please complete all required fields before saving.');
+          return;
+        }
 
-      try {
-        const existingCriteria = await this.fetchExistingCriteria();
+        this.loading = true;
+        this.savingAttempts++;
 
-        if (existingCriteria) {
-          this.editableCriteria = JSON.parse(JSON.stringify(existingCriteria));
-          this.displayCriteria = JSON.parse(JSON.stringify(existingCriteria));
-        } else {
+        try {
+          const payload = {
+            position: this.formData.position,
+            office: this.formData.office,
+            plantillaItemNo: this.formData.plantillaItemNo,
+            salaryGrade: this.formData.salaryGrade,
+            criteria: JSON.parse(JSON.stringify(this.editableCriteria)),
+          };
+
+          const result = await this.raterStore.savePositionCriteria(payload);
+
+          if (result) {
+            this.displayCriteria = JSON.parse(JSON.stringify(this.editableCriteria));
+            toast.success(`Criteria for ${this.formData.position} saved successfully`);
+            this.savingAttempts = 0;
+
+            // Save applicants separately
+            await this.saveApplicantRatings();
+
+            return result;
+          }
+          throw new Error('No result returned from save operation');
+        } catch (error) {
+          console.error('Save error:', error);
+
+          if (this.savingAttempts >= 2) {
+            return this.saveRatingsFallback();
+          }
+
+          toast.error(`Failed to save criteria: ${error.message}`);
+          this.editableCriteria = JSON.parse(JSON.stringify(this.displayCriteria));
+        } finally {
+          this.loading = false;
+        }
+      },
+
+      async saveApplicantRatings() {
+        try {
+          const payload = {
+            position: this.formData.position,
+            office: this.formData.office,
+            applicants: this.rankedApplicants,
+          };
+
+          await api.post('/applicant-ratings', payload);
+        } catch (error) {
+          console.error('Failed to save applicant ratings:', error);
+        }
+      },
+
+      async saveRatingsFallback() {
+        try {
+          this.loading = true;
+
+          const payload = {
+            position: this.formData.position,
+            office: this.formData.office,
+            criteria: JSON.parse(JSON.stringify(this.editableCriteria)),
+          };
+
+          const response = await api.post('/criteria', payload);
+
+          if (response.data) {
+            this.displayCriteria = JSON.parse(JSON.stringify(this.editableCriteria));
+            toast.success(`Criteria saved successfully (via fallback)`);
+            this.savingAttempts = 0;
+            return response.data;
+          }
+        } catch (error) {
+          console.error('Fallback save error:', error);
+          toast.error('All save methods failed. Please check your connection.');
+        } finally {
+          this.loading = false;
+        }
+      },
+
+      handleRatingUpdate({ applicantId, field, value }) {
+        const applicant = this.applicants.find((a) => a.id === applicantId);
+        if (applicant) {
+          applicant[field] = Number(value);
+        }
+      },
+      filterOffices(val, update) {
+        update(() => {
+          if (val === '') {
+            this.filteredOfficeOptions = this.officeOptions;
+          } else {
+            const needle = val.toLowerCase();
+            this.filteredOfficeOptions = this.officeOptions.filter(
+              (v) => v.toLowerCase().indexOf(needle) > -1,
+            );
+          }
+        });
+      },
+      filterPositions(val, update) {
+        update(() => {
+          if (val === '') {
+            this.filteredPositionOptions = this.positionOptions;
+          } else {
+            const needle = val.toLowerCase();
+            this.filteredPositionOptions = this.positionOptions.filter(
+              (v) => v.toLowerCase().indexOf(needle) > -1,
+            );
+          }
+        });
+      },
+      resetPosition() {
+        this.formData.position = null;
+        this.formData.salaryGrade = '';
+        this.formData.plantillaItemNo = '';
+        this.showRatingTable = false;
+        this.editableCriteria = JSON.parse(JSON.stringify(this.baseCriteria));
+        this.displayCriteria = JSON.parse(JSON.stringify(this.baseCriteria));
+      },
+      async loadPositionDetails() {
+        if (!this.formData.position) return;
+
+        this.loading = true;
+
+        try {
+          const existingCriteria = await this.fetchExistingCriteria();
+
+          if (existingCriteria) {
+            this.editableCriteria = JSON.parse(JSON.stringify(existingCriteria));
+            this.displayCriteria = JSON.parse(JSON.stringify(existingCriteria));
+          } else {
+            this.loadMockPositionDetails();
+          }
+
+          await this.loadApplicants();
+        } catch (error) {
+          console.error('Failed to fetch position details:', error);
           this.loadMockPositionDetails();
+        } finally {
+          this.loading = false;
+          this.showRatingTable = true;
         }
+      },
+      async fetchExistingCriteria() {
+        try {
+          if (!this.formData.position || !this.formData.office) {
+            return null;
+          }
 
-        await this.loadApplicants();
-      } catch (error) {
-        console.error('Failed to fetch position details:', error);
-        this.loadMockPositionDetails();
-      } finally {
-        this.loading = false;
-        this.showRatingTable = true;
-      }
-    },
-    async fetchExistingCriteria() {
-      try {
-        if (!this.formData.position || !this.formData.office) {
-          return null;
-        }
+          const criteria = await this.raterStore.getCriteria(
+            this.formData.position,
+            this.formData.office,
+          );
 
-        const criteria = await this.raterStore.getCriteria(
-          this.formData.position,
-          this.formData.office
-        );
-
-        if (criteria &&
+          if (
+            criteria &&
             criteria.education &&
             criteria.experience &&
             criteria.training &&
-            criteria.performance) {
-          return criteria;
+            criteria.performance
+          ) {
+            return criteria;
+          }
+
+          return null;
+        } catch (error) {
+          console.error('Error fetching existing criteria:', error);
+          return null;
+        }
+      },
+      loadMockPositionDetails() {
+        if (this.formData.position === 'Administrative Officer') {
+          this.formData.salaryGrade = 'SG-24';
+          this.formData.plantillaItemNo = 'ADMIN-2024-001';
+          this.editableCriteria.education.title1 = "Bachelor's Degree";
+          this.editableCriteria.experience.title1 = '5 years of relevant experience';
+        } else if (this.formData.position === 'Budget Officer') {
+          this.formData.salaryGrade = 'SG-22';
+          this.formData.plantillaItemNo = 'BUDG-2024-003';
+          this.editableCriteria.education.title1 = "Bachelor's Degree in Accounting or Finance";
+          this.editableCriteria.experience.title1 = '3 years of relevant experience';
+        } else if (this.formData.position === 'Accountant') {
+          this.formData.salaryGrade = 'SG-19';
+          this.formData.plantillaItemNo = 'ACCT-2024-002';
+          this.editableCriteria.education.title1 = "Bachelor's Degree in Accounting";
+          this.editableCriteria.experience.title1 = '2 years of accounting experience';
+        } else {
+          this.formData.salaryGrade = 'SG-18';
+          this.formData.plantillaItemNo = `${this.formData.position.substr(0, 4).toUpperCase()}-2024-005`;
+          this.editableCriteria.education.title1 = "Bachelor's Degree";
+          this.editableCriteria.experience.title1 = '1 year of relevant experience';
         }
 
-        return null;
-      } catch (error) {
-        console.error('Error fetching existing criteria:', error);
-        return null;
-      }
-    },
-    loadMockPositionDetails() {
-      if (this.formData.position === 'Administrative Officer') {
-        this.formData.salaryGrade = 'SG-24';
-        this.formData.plantillaItemNo = 'ADMIN-2024-001';
-        this.editableCriteria.education.title1 = "Bachelor's Degree";
-        this.editableCriteria.experience.title1 = '5 years of relevant experience';
-      } else if (this.formData.position === 'Budget Officer') {
-        this.formData.salaryGrade = 'SG-22';
-        this.formData.plantillaItemNo = 'BUDG-2024-003';
-        this.editableCriteria.education.title1 = "Bachelor's Degree in Accounting or Finance";
-        this.editableCriteria.experience.title1 = '3 years of relevant experience';
-      } else if (this.formData.position === 'Accountant') {
-        this.formData.salaryGrade = 'SG-19';
-        this.formData.plantillaItemNo = 'ACCT-2024-002';
-        this.editableCriteria.education.title1 = "Bachelor's Degree in Accounting";
-        this.editableCriteria.experience.title1 = '2 years of accounting experience';
-      } else {
-        this.formData.salaryGrade = 'SG-18';
-        this.formData.plantillaItemNo = `${this.formData.position.substr(0, 4).toUpperCase()}-2024-005`;
-        this.editableCriteria.education.title1 = "Bachelor's Degree";
-        this.editableCriteria.experience.title1 = '1 year of relevant experience';
-      }
-
-      this.displayCriteria = JSON.parse(JSON.stringify(this.editableCriteria));
-    },
-    async loadApplicants() {
-      try {
-        if (this.raters && this.raters.length > 0) {
-          this.applicants = this.raters.map((rater) => ({
-            id: rater.id,
-            name: rater.name || `Applicant ${rater.id}`,
-            education: rater.education || 0,
-            experience: rater.experience || 0,
-            training: rater.training || 0,
-            performance: rater.performance || 0,
-            bei: rater.bei || 0,
-          }));
-        } else {
-          await this.raterStore.fetchRaters();
+        this.displayCriteria = JSON.parse(JSON.stringify(this.editableCriteria));
+      },
+      async loadApplicants() {
+        try {
           if (this.raters && this.raters.length > 0) {
             this.applicants = this.raters.map((rater) => ({
               id: rater.id,
@@ -663,52 +668,64 @@ export default {
               performance: rater.performance || 0,
               bei: rater.bei || 0,
             }));
+          } else {
+            await this.raterStore.fetchRaters();
+            if (this.raters && this.raters.length > 0) {
+              this.applicants = this.raters.map((rater) => ({
+                id: rater.id,
+                name: rater.name || `Applicant ${rater.id}`,
+                education: rater.education || 0,
+                experience: rater.experience || 0,
+                training: rater.training || 0,
+                performance: rater.performance || 0,
+                bei: rater.bei || 0,
+              }));
+            }
           }
+        } catch (error) {
+          console.error('Failed to load applicants:', error);
         }
-      } catch (error) {
-        console.error('Failed to load applicants:', error);
-      }
+      },
     },
-  },
-  watch: {
-    storeLoading(newVal) {
-      this.loading = newVal;
+    watch: {
+      storeLoading(newVal) {
+        this.loading = newVal;
+      },
+      storeError(newVal) {
+        if (newVal) {
+          toast.error(newVal);
+        }
+      },
     },
-    storeError(newVal) {
-      if (newVal) {
-        toast.error(newVal);
-      }
-    }
-  }
-};
+  };
 </script>
 
 <style scoped>
-.criteria-card {
-  height: 100%;
-  transition: all 0.3s ease;
-}
-
-.criteria-card:hover {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.confirm-dialog {
-  border-radius: 8px;
-}
-
-.q-field--disabled {
-  opacity: 0.8;
-}
-
-.q-field--disabled .q-field__control {
-  background-color: #f5f5f5;
-  color: #666;
-}
-
-@media (max-width: 768px) {
   .criteria-card {
-    margin-bottom: 16px;
+    height: 100%;
+    transition: all 0.3s ease;
   }
-}
+
+  .criteria-card:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .confirm-dialog {
+    border-radius: 8px;
+  }
+
+  .q-field--disabled {
+    opacity: 0.8;
+  }
+
+  .q-field--disabled .q-field__control {
+    background-color: #f5f5f5;
+    color: #666;
+  }
+
+  @media (max-width: 768px) {
+    .criteria-card {
+      margin-bottom: 16px;
+    }
+  }
 </style>

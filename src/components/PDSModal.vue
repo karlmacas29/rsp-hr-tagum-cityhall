@@ -20,9 +20,9 @@
                 <q-item
                   v-for="tab in tabs"
                   :key="tab.name"
-                  clickable
+                  :clickable="!xPDS.loading"
                   :active="currentTab === tab.name"
-                  @click="currentTab = tab.name"
+                  @click="!xPDS.loading && (currentTab = tab.name)"
                   active-class="active-tab"
                   class="tab-item q-py-sm"
                   style="border-radius: 5px"

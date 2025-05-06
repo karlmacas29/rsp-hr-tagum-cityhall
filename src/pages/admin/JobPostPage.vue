@@ -165,8 +165,7 @@
             <template v-slot:body-cell-status="props">
               <q-td :props="props">
                 <q-badge :color="getStatusColor(props.row.status)" class="status-badge">
-                  {{ props.row.isSubmitted ? `${props.row.status} (Locked)` : props.row.status }}
-                  <q-icon v-if="props.row.isSubmitted" name="lock" class="q-ml-xs" size="xs" />
+                  {{ props.row.status }}
                 </q-badge>
               </q-td>
             </template>
@@ -176,7 +175,7 @@
                 <q-btn
                   flat
                   color="primary"
-                  :label="props.row.isSubmitted ? 'View Evaluation' : 'Evaluate'"
+                  :label="props.row.isSubmitted ? 'Edit Evaluation' : 'Evaluate'"
                   @click="openQualificationModal(props.row)"
                   size="md"
                 />
@@ -198,7 +197,7 @@
       @submit="promptSubmitEvaluation"
       @close="closeQualificationModal"
       @check-evaluation-status="refreshApplicantStatus"
-      :is-submitted="selectedApplicant.isSubmitted"
+      :is-submitted="false"
     />
 
     <!-- PDS Modal (Nested Dialog) -->
@@ -211,7 +210,9 @@
       <q-card style="min-width: 400px; border-radius: 8px">
         <q-card-section class="row items-center q-pb-none">
           <q-icon name="help_outline" color="primary" size="md" class="q-mr-sm" />
-          <span class="text-h5">Confirm Evaluation Submission</span>
+          <span class="text-h5">
+            Confirm Evaluation {{ selectedApplicant.isSubmitted ? 'Update' : 'Submission' }}
+          </span>
         </q-card-section>
 
         <q-separator />
@@ -219,7 +220,9 @@
         <q-card-section class="q-pt-md">
           <div class="text-body1 q-mb-md">
             You are about to
-            <span class="text-weight-bold">finalize</span>
+            <span class="text-weight-bold">
+              {{ selectedApplicant.isSubmitted ? 'update' : 'submit' }}
+            </span>
             this evaluation:
           </div>
 
@@ -242,7 +245,7 @@
         <q-card-actions align="right" class="q-pa-md">
           <q-btn flat label="Cancel" color="grey-7" v-close-popup size="md" />
           <q-btn
-            label="Confirm Submission"
+            :label="selectedApplicant.isSubmitted ? 'Confirm Update' : 'Confirm Submission'"
             color="primary"
             @click="submitEvaluation"
             v-close-popup
@@ -554,11 +557,7 @@
   };
 
   const handleTemporaryQualificationToggle = (newStatus) => {
-    if (selectedApplicant.value.isSubmitted) {
-      console.warn('Cannot change status after submission');
-      return;
-    }
-    // Only update the pending status, not the actual status
+    // Always allow switching between Qualified or Unqualified
     pendingStatus.value = newStatus;
   };
 
@@ -573,28 +572,61 @@
   const submitEvaluation = () => {
     const applicantIndex = applicants.value.findIndex((a) => a.id === selectedApplicant.value.id);
     if (applicantIndex !== -1) {
-      // Now actually update the applicant's status from the pending status
+      // If this is an update to an already submitted evaluation
+      if (selectedApplicant.value.isSubmitted) {
+        // Get previous status to update job counts
+        const previousStatus = applicants.value[applicantIndex].status;
+
+        // Update job counts if status changed
+        if (previousStatus !== pendingStatus.value) {
+          const jobIndex = jobs.value.findIndex((j) => j.id === selectedJob.value.id);
+          if (jobIndex !== -1) {
+            const job = jobs.value[jobIndex];
+
+            // Decrement previous status count
+            if (previousStatus === 'Qualified') {
+              job.qualified--;
+            } else if (previousStatus === 'Unqualified') {
+              job.unqualified--;
+            } else if (previousStatus === 'Pending') {
+              job.pending--;
+            }
+
+            // Increment new status count
+            if (pendingStatus.value === 'Qualified') {
+              job.qualified++;
+            } else if (pendingStatus.value === 'Unqualified') {
+              job.unqualified++;
+            } else if (pendingStatus.value === 'Pending') {
+              job.pending++;
+            }
+          }
+        }
+      } else {
+        // This is a new submission
+        const jobIndex = jobs.value.findIndex((j) => j.id === selectedJob.value.id);
+        if (jobIndex !== -1) {
+          const job = jobs.value[jobIndex];
+
+          if (pendingStatus.value === 'Qualified') {
+            job.qualified++;
+            job.pending--;
+          } else if (pendingStatus.value === 'Unqualified') {
+            job.unqualified++;
+            job.pending--;
+          }
+        }
+      }
+
+      // Update the applicant status and mark as submitted
       applicants.value[applicantIndex] = {
         ...applicants.value[applicantIndex],
         status: pendingStatus.value,
         isSubmitted: true,
       };
+
       selectedApplicant.value.status = pendingStatus.value;
       selectedApplicant.value.isSubmitted = true;
-    }
-
-    const jobIndex = jobs.value.findIndex((j) => j.id === selectedJob.value.id);
-    if (jobIndex !== -1) {
-      const job = jobs.value[jobIndex];
-      const status = pendingStatus.value;
-
-      if (status === 'Qualified') {
-        job.qualified++;
-        job.pending--;
-      } else if (status === 'Unqualified') {
-        job.unqualified++;
-        job.pending--;
-      }
     }
 
     showQSModal.value = false;

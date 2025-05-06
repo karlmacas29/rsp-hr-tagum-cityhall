@@ -139,20 +139,22 @@
                 </q-markup-table>
 
                 <div class="text-h6 q-mt-md q-mb-md">Position Qualification Standard</div>
-                <q-markup-table flat bordered class="qualification-table">
-                  <thead>
-                    <tr>
-                      <th class="text-left">Required Degree</th>
-                      <th class="text-left">Preferred Qualification</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>{{ positionRequirements.education }}</td>
-                      <td>{{ positionRequirements.preferredEducation }}</td>
-                    </tr>
-                  </tbody>
-                </q-markup-table>
+                <q-table :columns="educationCol" :rows="positionQS" hide-bottom>
+                  <template v-slot:body-cell-Education="props">
+                    <q-td
+                      :props="props"
+                      style="width: 300px; white-space: normal; word-wrap: break-word"
+                    >
+                      {{ props.row.Education }}
+                    </q-td>
+                  </template>
+                  <template v-slot:no-data>
+                    <div class="full-width row flex-center q-pa-md text-grey">
+                      <q-icon name="info" size="24px" class="q-mr-sm" />
+                      No qualification standards available
+                    </div>
+                  </template>
+                </q-table>
               </q-tab-panel>
 
               <!-- Experience Panel -->
@@ -176,20 +178,22 @@
                 </q-markup-table>
 
                 <div class="text-h6 q-mt-md q-mb-md">Position Qualification Standard</div>
-                <q-markup-table flat bordered class="qualification-table">
-                  <thead>
-                    <tr>
-                      <th class="text-left">Required Experience</th>
-                      <th class="text-left">Preferred Experience</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>{{ positionRequirements.experience }}</td>
-                      <td>{{ positionRequirements.preferredExperience }}</td>
-                    </tr>
-                  </tbody>
-                </q-markup-table>
+                <q-table :columns="ExperienceCol" :rows="positionQS" hide-bottom>
+                  <template v-slot:body-cell-Experience="props">
+                    <q-td
+                      :props="props"
+                      style="width: 300px; white-space: normal; word-wrap: break-word"
+                    >
+                      {{ props.row.Experience }}
+                    </q-td>
+                  </template>
+                  <template v-slot:no-data>
+                    <div class="full-width row flex-center q-pa-md text-grey">
+                      <q-icon name="info" size="24px" class="q-mr-sm" />
+                      No qualification standards available
+                    </div>
+                  </template>
+                </q-table>
               </q-tab-panel>
 
               <!-- Training Panel -->
@@ -213,20 +217,22 @@
                 </q-markup-table>
 
                 <div class="text-h6 q-mt-md q-mb-md">Position Qualification Standard</div>
-                <q-markup-table flat bordered class="qualification-table">
-                  <thead>
-                    <tr>
-                      <th class="text-left">Required Training</th>
-                      <th class="text-left">Preferred Training</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>{{ positionRequirements.training }}</td>
-                      <td>{{ positionRequirements.preferredTraining }}</td>
-                    </tr>
-                  </tbody>
-                </q-markup-table>
+                <q-table :columns="trainingCol" :rows="positionQS" hide-bottom>
+                  <template v-slot:body-cell-Training="props">
+                    <q-td
+                      :props="props"
+                      style="width: 300px; white-space: normal; word-wrap: break-word"
+                    >
+                      {{ props.row.Training }}
+                    </q-td>
+                  </template>
+                  <template v-slot:no-data>
+                    <div class="full-width row flex-center q-pa-md text-grey">
+                      <q-icon name="info" size="24px" class="q-mr-sm" />
+                      No qualification standards available
+                    </div>
+                  </template>
+                </q-table>
               </q-tab-panel>
 
               <!-- Eligibility Panel -->
@@ -250,20 +256,22 @@
                 </q-markup-table>
 
                 <div class="text-h6 q-mt-md q-mb-md">Position Qualification Standard</div>
-                <q-markup-table flat bordered class="qualification-table">
-                  <thead>
-                    <tr>
-                      <th class="text-left">Required Eligibility</th>
-                      <th class="text-left">Preferred Certification</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>{{ positionRequirements.eligibility }}</td>
-                      <td>{{ positionRequirements.preferredCertification }}</td>
-                    </tr>
-                  </tbody>
-                </q-markup-table>
+                <q-table :columns="eligibilityCol" :rows="positionQS" hide-bottom>
+                  <template v-slot:body-cell-Eligibility="props">
+                    <q-td
+                      :props="props"
+                      style="width: 300px; white-space: normal; word-wrap: break-word"
+                    >
+                      {{ props.row.Eligibility }}
+                    </q-td>
+                  </template>
+                  <template v-slot:no-data>
+                    <div class="full-width row flex-center q-pa-md text-grey">
+                      <q-icon name="info" size="24px" class="q-mr-sm" />
+                      No qualification standards available
+                    </div>
+                  </template>
+                </q-table>
               </q-tab-panel>
             </q-tab-panels>
           </q-card>
@@ -331,8 +339,26 @@
 
 <script setup>
   import { ref, computed, watch } from 'vue';
+  import { usePlantillaStore } from 'stores/plantillaStore';
 
+  const usePlantilla = usePlantillaStore();
   const showControlNo = ref(false);
+
+  const positionQS = ref([]);
+
+  const educationCol = ref([
+    { name: 'Education', label: 'Education', align: 'left', field: 'Education' },
+  ]);
+
+  const ExperienceCol = ref([
+    { name: 'Experience', label: 'Experience', align: 'left', field: 'Experience' },
+  ]);
+  const trainingCol = ref([
+    { name: 'Training', label: 'Training', align: 'left', field: 'Training' },
+  ]);
+  const eligibilityCol = ref([
+    { name: 'Eligibility', label: 'Eligibility', align: 'left', field: 'Eligibility' },
+  ]);
 
   const props = defineProps({
     show: Boolean,
@@ -413,12 +439,20 @@
     emit('update:show', newVal);
   });
 
-  const onModalShow = () => {
-    // Reset to education tab when modal opens
+  const onModalShow = async () => {
     tab.value = 'education';
+
+    // Fetch QS data when modal shows
+    if (props.applicantData?.PositionID) {
+      await usePlantilla.fetchQsData(props.applicantData.PositionID);
+      positionQS.value = usePlantilla.qsData;
+    }
   };
 
-  const onClose = () => emit('close');
+  const onClose = () => {
+    emit('close');
+    positionQS.value = [];
+  };
   const onViewPDS = () => emit('view-pds');
   const onSubmit = () => {
     if (!props.isSubmitted && qualificationStatus.value !== 'Pending') {

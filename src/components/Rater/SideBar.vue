@@ -12,13 +12,13 @@
       <q-item
         dense
         class="q-mx-xs q-my-xs"
-        style="border-radius: 8px; padding: 8px 11px"
+        style="border-radius: 17px; padding: 8px 11px"
         v-for="(item, index) in menuItems"
         :key="index"
         clickable
         v-ripple
         :to="item.route"
-        :active-class="'active-menu'"
+        :active-class="route.path === item.route ? 'active-menu' : ''"
       >
         <q-item-section avatar>
           <q-icon :name="item.icon" size="sm" />
@@ -31,15 +31,16 @@
     <!-- footer -->
 
     <div class="absolute-bottom q-pb-md row justify-center items-center">
-      <q-btn color="negative">Logout</q-btn>
+      <q-btn color="negative q-px-xl" rounded @click="router.push('/rater-acc')">Logout</q-btn>
     </div>
   </q-drawer>
 </template>
 
 <script setup>
   import { onMounted, ref } from 'vue';
-  import { useRoute } from 'vue-router';
+  import { useRoute, useRouter } from 'vue-router';
 
+  const router = useRouter();
   const route = useRoute();
   const drawer = ref(true);
   const expanded = ref(false);

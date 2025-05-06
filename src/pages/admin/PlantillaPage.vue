@@ -435,6 +435,7 @@
 
   const selectedApplicant = ref({
     id: null,
+    PositionID: '',
     controlno: '',
     name: '',
     photo: '',
@@ -601,6 +602,7 @@
     selectedPosition.value = row;
     if (row.Name1) {
       selectedApplicant.value.controlno = row.ControlNo;
+      selectedApplicant.value.PositionID = row.PositionID;
       selectedApplicant.value.name = row.Name4;
       selectedApplicant.value.position = row.position;
       selectedApplicant.value.status = row.Status;

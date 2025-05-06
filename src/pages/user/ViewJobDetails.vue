@@ -73,71 +73,100 @@
 
         <q-separator />
 
-        <!-- Application Process -->
+        <!-- Application Process - Improved Design -->
         <q-card-section class="bg-grey-1">
-          <div class="text-center text-h6 text-weight-bold q-mb-md">Application Process</div>
+          <div class="text-center text-h5 text-weight-bold q-mb-xl">Application Process</div>
 
-          <div class="row items-center q-col-gutter-md">
+          <div class="row items-center justify-center q-col-gutter-lg">
             <!-- Step 1: Download Form -->
             <div class="col-12 col-md-4">
-              <q-card flat class="text-center">
-                <q-card-section>
-                  <div class="text-h6 text-primary">Step 1</div>
-                  <q-icon name="download" size="lg" color="primary" class="q-mb-sm" />
-                  <div>Download Application Form</div>
+              <div class="process-card bg-white">
+                <div class="card-content">
+                  <div class="step-number bg-green-1 text-green">1</div>
+                  <div class="step-icon bg-green-1">
+                    <q-icon name="file_download" size="36px" color="green" />
+                  </div>
+                  <div class="step-title text-h6 text-green">Download Application Form</div>
+                  <div class="step-description q-mb-auto">
+                    Get the application template to fill with your details
+                  </div>
                   <q-btn
-                    label="Download"
-                    color="primary"
+                    label="DOWNLOAD TEMPLATE"
+                    color="green"
+                    class="action-btn full-width q-mt-md"
                     outline
-                    class="q-mt-sm full-width"
                     @click="downloadExcelForm"
                   />
-                </q-card-section>
-              </q-card>
+                </div>
+              </div>
             </div>
 
             <!-- Step 2: Upload Completed Form -->
             <div class="col-12 col-md-4">
-              <q-card flat class="text-center">
-                <q-card-section>
-                  <div class="text-h6 text-primary">Step 2</div>
-                  <q-icon name="upload" size="lg" color="primary" class="q-mb-sm" />
-                  <div>Upload Completed Form</div>
-                  <q-file
-                    v-model="uploadedFile"
-                    label="Select your file"
-                    accept=".xlsx,.xls"
-                    outlined
-                    class="q-mt-sm full-width"
-                    :rules="[
-                      (val) => !!val || 'Required',
-                      (val) => val?.name?.endsWith('.xlsx') || 'Only .xlsx files',
-                    ]"
-                  >
-                    <template v-slot:prepend>
-                      <q-icon name="attach_file" />
-                    </template>
-                  </q-file>
-                </q-card-section>
-              </q-card>
+              <div class="process-card bg-white">
+                <div class="card-content">
+                  <div class="step-number bg-blue-1 text-blue">2</div>
+                  <div class="step-icon bg-blue-1">
+                    <q-icon name="upload_file" size="36px" color="blue" />
+                  </div>
+                  <div class="step-title text-h6 text-blue">Upload Completed Form</div>
+                  <div class="step-description q-mb-auto">
+                    Upload your filled application (XLSX format only)
+                  </div>
+                  <div class="file-input full-width q-mt-md">
+                    <q-file
+                      v-model="uploadedFile"
+                      accept=".xlsx,.xls"
+                      outlined
+                      class="full-width"
+                      standout
+                      bottom-slots
+                      hide-bottom-space
+                      :rules="[
+                        (val) => !!val || 'Please select a file',
+                        (val) =>
+                          val?.name?.endsWith('.xlsx') ||
+                          val?.name?.endsWith('.xls') ||
+                          'Only Excel files allowed',
+                      ]"
+                    >
+                      <template v-slot:prepend>
+                        <q-icon name="attach_file" color="blue" />
+                      </template>
+                      <template v-slot:hint>
+                        <div class="text-grey-7 text-center text-caption q-mt-xs">
+                          Select your completed application form
+                        </div>
+                      </template>
+                    </q-file>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <!-- Step 3: Submit Application -->
             <div class="col-12 col-md-4">
-              <q-card flat class="text-center">
-                <q-card-section>
-                  <div class="text-h6 text-primary">Step 3</div>
-                  <q-icon name="send" size="lg" color="green" class="q-mb-sm" />
-                  <div>Submit Application</div>
+              <div class="process-card bg-white">
+                <div class="card-content">
+                  <div class="step-number bg-purple-1 text-purple">3</div>
+                  <div class="step-icon bg-purple-1">
+                    <q-icon name="send" size="36px" color="purple" />
+                  </div>
+                  <div class="step-title text-h6 text-purple">Submit Application</div>
+                  <div class="step-description q-mb-auto">
+                    Review your application and submit when ready
+                  </div>
                   <q-btn
-                    label="Apply Now"
-                    color="green"
-                    class="q-mt-sm full-width"
+                    label="APPLY NOW"
+                    color="purple"
+                    class="action-btn full-width q-mt-md"
                     :disable="!uploadedFile"
                     @click="submitApplication"
-                  />
-                </q-card-section>
-              </q-card>
+                  >
+                    <q-icon name="check_circle" class="q-ml-sm" />
+                  </q-btn>
+                </div>
+              </div>
             </div>
           </div>
         </q-card-section>
@@ -254,5 +283,94 @@
     .q-card {
       margin-bottom: 20px;
     }
+  }
+
+  /* Process cards styling */
+  .process-card {
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition:
+      transform 0.3s,
+      box-shadow 0.3s;
+    overflow: hidden;
+    height: 100%;
+  }
+
+  .process-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+  }
+
+  .step-number {
+    font-size: 18px;
+    font-weight: 600;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+  }
+
+  .step-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+  }
+
+  .file-input {
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    padding: 12px;
+    transition: border-color 0.3s;
+    cursor: pointer;
+  }
+
+  .file-input:hover {
+    border-color: #4caf50;
+  }
+
+  .action-btn {
+    border-radius: 8px;
+    font-weight: 600;
+    padding: 12px 24px;
+    transition: all 0.3s;
+  }
+
+  .action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .progress-connector {
+    height: 4px;
+    background: #e0e0e0;
+    position: relative;
+    top: 40px;
+    z-index: 0;
+  }
+
+  .card-content {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    height: 100%;
+  }
+
+  .step-title {
+    margin-bottom: 12px;
+    font-weight: 600;
+  }
+
+  .step-description {
+    color: #666;
+    margin-bottom: 20px;
   }
 </style>

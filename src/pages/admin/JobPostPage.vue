@@ -165,8 +165,7 @@
             <template v-slot:body-cell-status="props">
               <q-td :props="props">
                 <q-badge :color="getStatusColor(props.row.status)" class="status-badge">
-                  {{ props.row.isSubmitted ? `${props.row.status} (Locked)` : props.row.status }}
-                  <q-icon v-if="props.row.isSubmitted" name="lock" class="q-ml-xs" size="xs" />
+                  {{ props.row.isSubmitted ? `${props.row.status} ` : props.row.status }}
                 </q-badge>
               </q-td>
             </template>

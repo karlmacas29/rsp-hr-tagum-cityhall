@@ -91,7 +91,9 @@
                 <q-tooltip>View</q-tooltip>
               </q-btn>
 
-              <template v-if="authStore.user.permissions.isRaterM === '1'">
+              <template
+                v-if="authStore.user.permissions.isRaterM === '1' && props.row.completed == 0"
+              >
                 <q-btn
                   flat
                   round

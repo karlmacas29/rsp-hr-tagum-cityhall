@@ -99,15 +99,23 @@
                   <!-- for switch -->
                   <template v-slot:body-cell-fd="props">
                     <q-td :props="props">
-                      <q-toggle
-                        v-model="props.row.Funded"
-                        color="green"
-                        true-value="1"
-                        false-value="0"
-                        checked-icon="check"
-                        unchecked-icon="clear"
-                        @update:model-value="handleToggle(props.row)"
-                      />
+                      <template v-if="authStore.user.permissions.isFunded == '1'">
+                        <q-toggle
+                          v-model="props.row.Funded"
+                          color="green"
+                          true-value="1"
+                          false-value="0"
+                          checked-icon="check"
+                          unchecked-icon="clear"
+                          @update:model-value="handleToggle(props.row)"
+                          :disable="props.row.Funded === '1'"
+                        />
+                      </template>
+                      <template v-else>
+                        <q-badge :color="props.row.Funded === '1' ? 'positive' : 'negative'">
+                          {{ props.row.Funded === '1' ? 'Yes' : 'No' }}
+                        </q-badge>
+                      </template>
                     </q-td>
                   </template>
                   <!-- Add body cell template for position -->
@@ -376,7 +384,9 @@
   import PlantillaSelection from 'components/PlantillaSelection.vue';
   import { usePlantillaStore } from 'stores/plantillaStore';
   import PDSModal from 'components/PDSModal.vue';
+  import { useAuthStore } from 'stores/authStore';
 
+  const authStore = useAuthStore();
   const usePlantilla = usePlantillaStore();
 
   const showModal = ref(false);
@@ -406,30 +416,6 @@
     Name2: '',
     fd: 'All',
     Status: '',
-  });
-
-  // eslint-disable-next-line no-unused-vars
-  const applicants = ref([
-    {
-      id: 1,
-      name: 'John Doe',
-      appliedDate: '2025-04-02',
-      status: 'Pending',
-      isSubmitted: false,
-    },
-  ]);
-
-  // eslint-disable-next-line no-unused-vars
-  const selectedJob = ref({
-    id: null,
-    officePosition: '',
-    position: '',
-    postingDate: '',
-    applicants: 0,
-    pending: 0,
-    qualified: 0,
-    unqualified: 0,
-    qualifications: [],
   });
 
   const viewApplicantPDS = () => {

@@ -1,7 +1,5 @@
-import { defineStore } from '#q-app/wrappers'
-import { createPinia } from 'pinia'
-import router from '../router'
-import { markRaw } from 'vue'
+import { defineStore } from '#q-app/wrappers';
+import { createPinia } from 'pinia';
 
 /*
  * If not building with SSR mode, you can
@@ -13,12 +11,7 @@ import { markRaw } from 'vue'
  */
 
 export default defineStore((/* { ssrContext } */) => {
-  const pinia = createPinia()
+  const pinia = createPinia();
 
-  // You can add Pinia plugins here
-  // pinia.use(SomePiniaPlugin)
-  pinia.use(({ store }) => {
-    store.router = markRaw(router)
-  })
-  return pinia
-})
+  return pinia;
+});

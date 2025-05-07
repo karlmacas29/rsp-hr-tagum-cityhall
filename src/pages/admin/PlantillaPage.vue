@@ -3,7 +3,10 @@
     <div class="row justify-center items-center" style="height: 89vh">
       <!--  -->
       <div class="col-3 q-pa-sm">
-        <PlantillaSelection @structure-selected="handleStructureSelection"></PlantillaSelection>
+        <PlantillaSelection
+          :positions="positions"
+          @structure-selected="handleStructureSelection"
+        ></PlantillaSelection>
       </div>
       <!--  -->
       <div class="col-9 q-gutter-md">
@@ -213,12 +216,6 @@
                       />
                     </div>
                   </template>
-
-                  <template v-slot:loading>
-                    <q-inner-loading showing color="primary">
-                      <q-linear-progress indeterminate color="primary" class="q-mt-sm" />
-                    </q-inner-loading>
-                  </template>
                 </q-table>
               </q-card-section>
             </q-card>
@@ -256,12 +253,25 @@
 
     <!-- Vacant Position Modal -->
     <q-dialog v-model="showVacantPositionModal">
-      <q-card class="q-pa-lg" style="width: 900px; max-width: 80vw">
-        <q-card-section>
+      <q-card
+        class="q-pa-none"
+        style="
+          width: 900px;
+          max-width: 90vw;
+          max-height: 90vh;
+          display: flex;
+          flex-direction: column;
+        "
+      >
+        <!-- Sticky Header -->
+        <q-card-section
+          class="q-pa-lg"
+          style="position: sticky; top: 0; z-index: 2; background: white"
+        >
           <div class="row justify-between">
             <div>
-              <div class="text-h5 text-bold">Plantilla Job Post</div>
-              <div class="text-subtitle2 text-grey">Software Engineer</div>
+              <div class="text-h4 text-bold">Post A Job</div>
+              <div class="text-subtitle2 text-grey">{{ postJobDetails.position }}</div>
             </div>
             <div>
               <q-btn
@@ -274,84 +284,144 @@
           </div>
         </q-card-section>
 
-        <q-card-section>
-          <div class="row q-col-gutter-md">
-            <div class="col-6">
-              <q-input v-model="jobTitle" label="Job Title" outlined dense />
+        <!-- Scrollable Body -->
+        <q-scroll-area class="q-px-md" style="height: 1000px">
+          <q-card-section class="q-py-none">
+            <!--  -->
+            <div class="row q-col-gutter-md">
+              <div class="col-6">
+                <q-input v-model="postJobDetails.office" label="Office" outlined dense disable />
+              </div>
+              <div class="col-6">
+                <q-input
+                  v-model="postJobDetails.division"
+                  label="Division"
+                  outlined
+                  dense
+                  disable
+                />
+              </div>
             </div>
-            <div class="col-6">
-              <q-input v-model="jobRole" label="Job Role/Position" outlined dense />
+            <div class="row q-col-gutter-md">
+              <div class="col-6">
+                <q-input v-model="postJobDetails.section" label="Section" outlined dense disable />
+              </div>
+              <div class="col-6">
+                <q-input v-model="postJobDetails.unit" label="Unit" outlined dense disable />
+              </div>
             </div>
-          </div>
+            <div class="row justify-center q-col-gutter-md">
+              <div class="col-6">
+                <q-input
+                  v-model="postJobDetails.position"
+                  label="Position"
+                  outlined
+                  dense
+                  disable
+                />
+              </div>
+            </div>
+            <!--  -->
 
-          <div class="row q-col-gutter-md q-mt-sm">
-            <div class="col-6">
-              <q-input v-model="startingDate" label="Starting Date" outlined dense mask="date">
-                <template v-slot:append>
-                  <q-icon name="event" class="cursor-pointer">
-                    <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                      <q-date v-model="startingDate" :options="(date) => date >= endedDate">
-                        <div class="row items-center justify-end">
-                          <q-btn v-close-popup label="Close" color="primary" flat />
-                        </div>
-                      </q-date>
-                    </q-popup-proxy>
-                  </q-icon>
-                </template>
-              </q-input>
+            <div class="row q-col-gutter-md q-mt-sm">
+              <div class="col-6">
+                <q-input
+                  v-model="postJobDetails.startingDate"
+                  label="Starting Date"
+                  outlined
+                  dense
+                  mask="date"
+                >
+                  <template v-slot:append>
+                    <q-icon name="event" class="cursor-pointer">
+                      <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                        <q-date
+                          v-model="postJobDetails.startingDate"
+                          :options="(date) => date >= postJobDetails.endedDate"
+                        >
+                          <div class="row items-center justify-end">
+                            <q-btn v-close-popup label="Close" color="primary" flat />
+                          </div>
+                        </q-date>
+                      </q-popup-proxy>
+                    </q-icon>
+                  </template>
+                </q-input>
+              </div>
+              <div class="col-6">
+                <q-input
+                  v-model="postJobDetails.endedDate"
+                  label="Ended Date"
+                  outlined
+                  dense
+                  mask="date"
+                  :rules="[
+                    (date) =>
+                      date >= postJobDetails.startingDate || 'End date cannot be before start date',
+                  ]"
+                >
+                  <template v-slot:append>
+                    <q-icon name="event" class="cursor-pointer">
+                      <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                        <q-date
+                          v-model="postJobDetails.endedDate"
+                          :options="(date) => date >= postJobDetails.startingDate"
+                        >
+                          <div class="row items-center justify-end">
+                            <q-btn v-close-popup label="Close" color="primary" flat />
+                          </div>
+                        </q-date>
+                      </q-popup-proxy>
+                    </q-icon>
+                  </template>
+                </q-input>
+              </div>
             </div>
-            <div class="col-6">
-              <q-input
-                v-model="endedDate"
-                label="Ended Date"
-                outlined
-                dense
-                mask="date"
-                :rules="[(date) => date >= startingDate || 'End date cannot be before start date']"
-              >
-                <template v-slot:append>
-                  <q-icon name="event" class="cursor-pointer">
-                    <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                      <q-date v-model="endedDate" :options="(date) => date >= startingDate">
-                        <div class="row items-center justify-end">
-                          <q-btn v-close-popup label="Close" color="primary" flat />
-                        </div>
-                      </q-date>
-                    </q-popup-proxy>
-                  </q-icon>
-                </template>
-              </q-input>
-            </div>
-          </div>
-        </q-card-section>
+          </q-card-section>
 
-        <q-card-section>
-          <div class="text-subtitle1 q-mb-sm text-bold">Qualification Standard</div>
-          <q-markup-table flat bordered>
-            <thead>
-              <tr>
-                <th class="text-left">Education</th>
-                <th class="text-left">Experience</th>
-                <th class="text-left">Training</th>
-                <th class="text-left">Eligibility</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>
-                  <q-select v-model="education" :options="['Bachelor\'s Degree']" outlined dense />
-                </td>
-                <td><q-select v-model="experience" :options="['Something']" outlined dense /></td>
-                <td><q-select v-model="training" :options="['Something']" outlined dense /></td>
-                <td><q-select v-model="eligibility" :options="['Something']" outlined dense /></td>
-              </tr>
-            </tbody>
-          </q-markup-table>
-        </q-card-section>
+          <q-card-section>
+            <div class="text-subtitle1 q-mb-sm text-bold">Qualification Standard</div>
+            <q-table
+              :rows="qsDataLoad"
+              :columns="[
+                { name: 'education', label: 'Education', field: 'Education', align: 'left' },
+                { name: 'experience', label: 'Experience', field: 'Experience', align: 'left' },
+                { name: 'training', label: 'Training', field: 'Training', align: 'left' },
+                { name: 'eligibility', label: 'Eligibility', field: 'Eligibility', align: 'left' },
+              ]"
+              row-key="id"
+              :loading="usePlantilla.qsLoad"
+              hide-bottom
+            >
+              <template v-slot:body="props">
+                <q-tr :props="props">
+                  <q-td style="width: 100px; white-space: pre-line; word-break: break-word">
+                    {{ props.row.Education }}
+                  </q-td>
+                  <q-td style="width: 100px; white-space: pre-line; word-break: break-word">
+                    {{ props.row.Experience }}
+                  </q-td>
+                  <q-td style="width: 100px; white-space: pre-line; word-break: break-word">
+                    {{ props.row.Training }}
+                  </q-td>
+                  <q-td style="width: 120px; white-space: pre-line; word-break: break-word">
+                    {{ props.row.Eligibility }}
+                  </q-td>
+                </q-tr>
+              </template>
+            </q-table>
+          </q-card-section>
+        </q-scroll-area>
 
-        <q-card-actions align="right" class="q-pa-md">
+        <!-- Sticky Footer -->
+        <q-card-actions
+          align="right"
+          class="q-pa-md"
+          style="position: sticky; bottom: 0; z-index: 2; background: white"
+        >
           <q-btn
             color="primary"
+            :loading="usePlantilla.qsLoad"
             label="Create Post"
             @click="submitJobPost"
             size="md"
@@ -379,7 +449,7 @@
 </template>
 
 <script setup>
-  import { ref, onMounted, computed } from 'vue';
+  import { ref, onMounted, computed, watch } from 'vue';
   import QualityStandardModal from 'components/QualityStandardModal.vue';
   import PlantillaSelection from 'components/PlantillaSelection.vue';
   import { usePlantillaStore } from 'stores/plantillaStore';
@@ -391,6 +461,15 @@
 
   const showModal = ref(false);
   const showVacantPositionModal = ref(false);
+
+  // Watch for modal close and emit event to clear qsDataLoad
+  watch(showVacantPositionModal, (val) => {
+    if (!val) {
+      qsDataLoad.value = [];
+      // Optionally emit an event if needed, e.g.:
+      // emit('modal-closed', []);
+    }
+  });
 
   const closeQualificationModal = () => {
     showFilledPositionModal.value = false;
@@ -406,6 +485,8 @@
     showPDSModal.value = false;
   };
   const showPDSModal = ref(false);
+
+  const qsDataLoad = ref([]);
 
   // Add filter object to store search values for each column
   const filters = ref({
@@ -450,6 +531,20 @@
     personalInfo: {},
   });
 
+  const postJobDetails = ref({
+    office: '',
+    division: '',
+    section: '',
+    unit: '',
+    position: '',
+    startingDate: '',
+    endedDate: '',
+    education: '',
+    experience: '',
+    training: '',
+    eligibility: '',
+  });
+
   // Add current structure selection
   const currentStructure = ref(null);
 
@@ -458,14 +553,6 @@
     rowsPerPage: 7,
   });
 
-  const jobTitle = ref('City Office of ...');
-  const jobRole = ref('Software Engineer');
-  const startingDate = ref('2019/02/01');
-  const endedDate = ref('2001/01/01');
-  const education = ref(null);
-  const experience = ref(null);
-  const training = ref(null);
-  const eligibility = ref(null);
   // const currentPosition = ref('');
   const higherEducation = ref('');
 
@@ -490,46 +577,43 @@
 
   // Create a computed property to filter the positions based on search inputs and structure selection
   const filteredPositions = computed(() => {
-    // Return empty array if no structure is selected
     if (!currentStructure.value) {
       return [];
     }
 
-    // Filter by organizational structure
     let filtered = positions.value.filter((row) => {
-      // Match by office
-      if (
-        currentStructure.value.office &&
-        (!row.office || row.office !== currentStructure.value.office)
-      ) {
-        return false;
-      }
+      const s = currentStructure.value;
 
-      // Match by division if specified
-      if (
-        currentStructure.value.division &&
-        (!row.division || row.division !== currentStructure.value.division)
-      ) {
-        return false;
-      }
+      // Always filter by office
+      if (!row.office || row.office !== s.office) return false;
 
-      // Match by section if specified
-      if (
-        currentStructure.value.section &&
-        (!row.section || row.section !== currentStructure.value.section)
-      ) {
-        return false;
+      // Now, filter by the "deepest" selected structure
+      if (s.unit) {
+        // Must match division, section, unit exactly
+        return row.division === s.division && row.section === s.section && row.unit === s.unit;
+      } else if (s.section) {
+        // Must match division & section, unit must be empty/null
+        return (
+          row.division === s.division && row.section === s.section && (!row.unit || row.unit === '')
+        );
+      } else if (s.division) {
+        // Must match division, section & unit must be empty/null
+        return (
+          row.division === s.division &&
+          (!row.section || row.section === '') &&
+          (!row.unit || row.unit === '')
+        );
+      } else {
+        // Only office selected: division, section, unit must be empty/null
+        return (
+          (!row.division || row.division === '') &&
+          (!row.section || row.section === '') &&
+          (!row.unit || row.unit === '')
+        );
       }
-
-      // Match by unit if specified
-      if (currentStructure.value.unit && (!row.unit || row.unit !== currentStructure.value.unit)) {
-        return false;
-      }
-
-      return true;
     });
 
-    // Then apply the search filters
+    // Apply column text filters as before
     return filtered.filter((row) => {
       for (const key in filters.value) {
         if (filters.value[key]) {
@@ -598,7 +682,7 @@
     selectedFile.value = null;
   };
   // view qs
-  const viewPosition = (row) => {
+  const viewPosition = async (row) => {
     selectedPosition.value = row;
     if (row.Name1) {
       selectedApplicant.value.controlno = row.ControlNo;
@@ -610,6 +694,13 @@
       showFilledPositionModal.value = true;
     } else {
       showVacantPositionModal.value = true;
+      postJobDetails.value.office = row.office;
+      postJobDetails.value.division = row.division;
+      postJobDetails.value.section = row.section;
+      postJobDetails.value.unit = row.unit;
+      postJobDetails.value.position = row.position;
+      await usePlantilla.fetchQsData(row.PositionID);
+      qsDataLoad.value = usePlantilla.qsData;
     }
   };
 
@@ -647,8 +738,8 @@
 
   onMounted(async () => {
     // Fetch data or perform any setup when the component is mounted
-    startingDate.value = new Date().toISOString().split('T')[0].replace(/-/g, '/');
-    endedDate.value = new Date().toISOString().split('T')[0].replace(/-/g, '/');
+    postJobDetails.value.startingDate = new Date().toISOString().split('T')[0].replace(/-/g, '/');
+    postJobDetails.value.endedDate = new Date().toISOString().split('T')[0].replace(/-/g, '/');
 
     await usePlantilla.fetchPlantilla();
     positions.value = usePlantilla.plantilla.map((item) => ({

@@ -138,26 +138,7 @@
             Please fill in all required fields.
           </q-banner>
 
-          <!-- 1. Select Batch -->
-          <div class="q-mb-md">
-            <div class="text-subtitle2 text-weight-medium">Select Batch</div>
-            <q-select
-              v-model="selectedBatch"
-              :options="batches"
-              option-value="id"
-              option-label="display"
-              label="Select a batch"
-              outlined
-              dense
-              emit-value
-              map-options
-              @update:model-value="fetchPositions"
-            />
-          </div>
-
-          <q-separator class="q-mt-md q-mb-md" />
-
-          <!-- 2. Select Positions -->
+          <!-- Select Positions -->
           <div class="q-mb-md">
             <div class="text-subtitle2 text-weight-medium">Select Positions to Rate</div>
             <q-select
@@ -172,7 +153,6 @@
               use-chips
               emit-value
               map-options
-              :disable="!selectedBatch"
               @update:model-value="handlePositionSelection"
             >
               <template v-slot:option="scope">
@@ -195,7 +175,7 @@
 
           <!-- Add Mode: Select Office FIRST, then Select Rater -->
           <template v-if="!isEditMode">
-            <!-- 3. Select Office in Add Mode (NEW) -->
+            <!-- Select Office in Add Mode -->
             <div class="q-mb-md">
               <div class="text-subtitle2 text-weight-medium">Select Office</div>
               <q-select
@@ -208,7 +188,7 @@
                 dense
                 emit-value
                 map-options
-                :disable="!selectedBatch || selectedPositions.length === 0"
+                :disable="selectedPositions.length === 0"
                 @update:model-value="handleOfficeChange"
               >
                 <template v-slot:prepend>
@@ -219,7 +199,7 @@
 
             <q-separator class="q-mt-md q-mb-md" />
 
-            <!-- 4. Select Rater in Add Mode (AFTER office) -->
+            <!-- Select Rater in Add Mode (AFTER office) -->
             <div class="q-mb-md">
               <div class="text-subtitle2 text-weight-medium">Select Rater</div>
               <q-select
@@ -253,7 +233,7 @@
 
           <!-- Edit Mode: Display Rater + Office (readonly) -->
           <template v-else>
-            <!-- 3. Select Office in Edit Mode (readonly but visible) -->
+            <!-- Select Office in Edit Mode (readonly but visible) -->
             <div class="q-mb-md">
               <div class="text-subtitle2 text-weight-medium">Office</div>
               <q-select
@@ -282,7 +262,7 @@
 
             <q-separator class="q-mt-md q-mb-md" />
 
-            <!-- 4. Display Rater in Edit Mode (readonly) -->
+            <!-- Display Rater in Edit Mode (readonly) -->
             <div class="q-mb-md">
               <div class="text-subtitle2 text-weight-medium">Rater</div>
               <q-select
@@ -320,11 +300,8 @@
             :loading="isSubmitting"
             :disable="
               isEditMode
-                ? !selectedBatch || selectedPositions.length === 0
-                : !selectedRater ||
-                  !selectedBatch ||
-                  !selectedOffice ||
-                  selectedPositions.length === 0
+                ? selectedPositions.length === 0
+                : !selectedRater || !selectedOffice || selectedPositions.length === 0
             "
           />
         </q-card-actions>
@@ -365,9 +342,7 @@
               </div>
               <div class="text-subtitle2">
                 <strong>Position:</strong>
-                {{ currentViewRater.Position }} |
-                <strong>Batch:</strong>
-                {{ currentViewRater.batchDate }}
+                {{ currentViewRater.Position }}
               </div>
             </div>
             <div class="col-auto">
@@ -459,7 +434,6 @@
     {
       id: 1,
       Rater: 'John Smith',
-      batchDate: '2024-03-15',
       Position: 'Frontend Developer, Backend Developer',
       Office: 'Main Office',
       pending: 3,
@@ -468,7 +442,6 @@
     {
       id: 2,
       Rater: 'Emily Johnson',
-      batchDate: '2024-02-28',
       Position: 'Social Media Manager',
       Office: 'Main Office',
       pending: 1,
@@ -477,7 +450,6 @@
     {
       id: 3,
       Rater: 'Michael Williams',
-      batchDate: '2024-01-20',
       Position: 'Customer Support Representative',
       Office: 'Regional Office - North',
       pending: 0,
@@ -512,7 +484,6 @@
   const currentViewRater = ref({
     Rater: '',
     Position: '',
-    batchDate: '',
   });
 
   // Delete dialog state
@@ -520,25 +491,27 @@
   const raterToDelete = ref(null);
 
   // Form selections
-  const selectedBatch = ref(null);
   const selectedPositions = ref([]);
   const selectedRater = ref(null);
   const selectedOffice = ref(null);
 
   // Options data
-  const batches = ref([
-    { id: 1, display: 'Software Engineer Hiring (Posted: 2024-03-15)', date: '2024-03-15' },
-    { id: 2, display: 'Marketing Team Expansion (Posted: 2024-02-28)', date: '2024-02-28' },
-    { id: 3, display: 'Customer Support Hiring (Posted: 2024-01-20)', date: '2024-01-20' },
-  ]);
-
   const offices = ref([
     { id: 1, name: 'Main Office' },
     { id: 2, name: 'Regional Office - North' },
     { id: 3, name: 'Regional Office - South' },
   ]);
 
-  const positions = ref([]);
+  const positions = ref([
+    { id: 101, name: 'Frontend Developer' },
+    { id: 102, name: 'Backend Developer' },
+    { id: 103, name: 'Full Stack Developer' },
+    { id: 201, name: 'Social Media Manager' },
+    { id: 202, name: 'SEO Specialist' },
+    { id: 301, name: 'Customer Support Representative' },
+    { id: 302, name: 'Technical Support' },
+  ]);
+
   const availableRaters = ref([
     { id: 1, name: 'John Smith', officeId: 1 },
     { id: 2, name: 'Emily Johnson', officeId: 1 },
@@ -553,7 +526,6 @@
   const columns = [
     { name: 'ID', label: 'ID', field: 'id', align: 'left' },
     { name: 'Rater', label: 'Rater Name', field: 'Rater', align: 'left' },
-    { name: 'batchDate', label: 'Assigned Batch', field: 'batchDate', align: 'left' },
     { name: 'Position', label: 'Position to Rate', field: 'Position', align: 'left' },
     { name: 'Office', label: 'Office', field: 'Office', align: 'left' },
     { name: 'pending', label: 'Pending', field: 'pending', align: 'center', sortable: false },
@@ -570,22 +542,6 @@
     { name: 'rating', label: 'Rating', field: 'rating', align: 'center' },
   ];
 
-  const batchPositions = {
-    1: [
-      { id: 101, name: 'Frontend Developer' },
-      { id: 102, name: 'Backend Developer' },
-      { id: 103, name: 'Full Stack Developer' },
-    ],
-    2: [
-      { id: 201, name: 'Social Media Manager' },
-      { id: 202, name: 'SEO Specialist' },
-    ],
-    3: [
-      { id: 301, name: 'Customer Support Representative' },
-      { id: 302, name: 'Technical Support' },
-    ],
-  };
-
   // Computed properties
   const filteredRaters = computed(() => {
     if (!globalSearch.value) return raters.value;
@@ -595,7 +551,6 @@
       return (
         rater.id.toString().includes(searchTerm) ||
         rater.Rater.toLowerCase().includes(searchTerm) ||
-        rater.batchDate.toLowerCase().includes(searchTerm) ||
         rater.Position.toLowerCase().includes(searchTerm) ||
         rater.Office.toLowerCase().includes(searchTerm)
       );
@@ -627,16 +582,6 @@
     isEditMode.value = false;
     showModal.value = true;
     resetForm();
-  };
-
-  const fetchPositions = (batchId) => {
-    positions.value = batchPositions[batchId] || [];
-    selectedPositions.value = [];
-    if (!isEditMode.value) {
-      selectedRater.value = null;
-      selectedOffice.value = null;
-      filteredRatersByOffice.value = [];
-    }
   };
 
   const isPositionSelected = (id) => {
@@ -701,7 +646,6 @@
 
   const handleOfficeChange = (officeId) => {
     selectedRater.value = null;
-    // Immediately populate the raters for this office
     filteredRatersByOffice.value = availableRaters.value.filter(
       (rater) => rater.officeId === officeId,
     );
@@ -733,7 +677,6 @@
   };
 
   const resetForm = () => {
-    selectedBatch.value = null;
     selectedPositions.value = [];
     selectedRater.value = null;
     selectedOffice.value = null;
@@ -756,10 +699,8 @@
     currentViewRater.value = {
       Rater: rater.Rater,
       Position: rater.Position,
-      batchDate: rater.batchDate,
     };
 
-    // In a real app, you would fetch applicants for this rater from an API
     isLoadingApplicants.value = true;
     setTimeout(() => {
       isLoadingApplicants.value = false;
@@ -782,23 +723,16 @@
       (r) => r.officeId === currentOfficeId.value,
     );
 
-    const batch = batches.value.find((b) => b.date === rater.batchDate);
-    selectedBatch.value = batch?.id || null;
-
-    if (selectedBatch.value) {
-      fetchPositions(selectedBatch.value);
-
-      const positionNames = rater.Position.split(', ');
-      selectedPositions.value = positions.value
-        .filter((pos) => positionNames.includes(pos.name))
-        .map((pos) => pos.id);
-    }
+    const positionNames = rater.Position.split(', ');
+    selectedPositions.value = positions.value
+      .filter((pos) => positionNames.includes(pos.name))
+      .map((pos) => pos.id);
 
     showModal.value = true;
   };
 
   const updateRater = () => {
-    if (!selectedBatch.value || selectedPositions.value.length === 0) {
+    if (selectedPositions.value.length === 0) {
       showError.value = true;
       return;
     }
@@ -816,7 +750,6 @@
       if (index !== -1) {
         raters.value[index] = {
           ...raters.value[index],
-          batchDate: batches.value.find((b) => b.id === selectedBatch.value)?.date || '',
           Position: selectedPositionNames,
         };
       }
@@ -827,12 +760,7 @@
   };
 
   const addRater = () => {
-    if (
-      !selectedBatch.value ||
-      selectedPositions.value.length === 0 ||
-      !selectedOffice.value ||
-      !selectedRater.value
-    ) {
+    if (selectedPositions.value.length === 0 || !selectedOffice.value || !selectedRater.value) {
       showError.value = true;
       return;
     }
@@ -851,7 +779,6 @@
       raters.value.push({
         id: raters.value.length + 1,
         Rater: raterData?.name || '',
-        batchDate: batches.value.find((b) => b.id === selectedBatch.value)?.date || '',
         Position: selectedPositionNames,
         Office: officeData?.name || '',
         pending: 0,

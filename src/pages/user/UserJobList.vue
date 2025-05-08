@@ -21,7 +21,12 @@
         <q-table :rows="jobs" :columns="columns" row-key="id">
           <template #body-cell-actions="props">
             <q-td align="center">
-              <q-btn color="primary" size="sm" label="View" @click="handleJobClick(props.row.id)" />
+              <q-btn
+                color="primary"
+                size="sm"
+                label="Apply Now"
+                @click="handleJobClick(props.row.id)"
+              />
             </q-td>
           </template>
         </q-table>

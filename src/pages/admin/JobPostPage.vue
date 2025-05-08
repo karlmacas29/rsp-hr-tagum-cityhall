@@ -7,6 +7,8 @@
           <template v-slot:separator>
             <q-icon size="1.2em" name="arrow_forward" />
           </template>
+          <q-breadcrumbs-el label="Job Posts" icon="post_add" />
+          <!-- <q-breadcrumbs-el label="Job Posts" icon="home" /> -->
         </q-breadcrumbs>
       </div>
     </div>
@@ -673,7 +675,6 @@
   .text-h1,
   .text-h2,
   .text-h3,
-  .text-h4,
   .text-h5,
   .text-h6 {
     letter-spacing: -0.015em;
@@ -684,13 +685,6 @@
     font-size: 2rem;
     line-height: 2.5rem;
     margin-bottom: 1.5rem;
-  }
-
-  /* Card titles */
-  .text-h4 {
-    font-size: 1.75rem;
-    line-height: 2.25rem;
-    margin-bottom: 1rem;
   }
 
   /* Section headings */
@@ -747,10 +741,6 @@
   /* Spacing improvements */
   .q-mb-sm {
     margin-bottom: 12px;
-  }
-
-  .q-mb-md {
-    margin-bottom: 20px;
   }
 
   .q-mb-lg {

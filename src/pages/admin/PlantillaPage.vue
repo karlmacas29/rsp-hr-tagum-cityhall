@@ -165,7 +165,11 @@
                             ? 'visibility'
                             : 'post_add'
                         "
-                        @click="viewPosition(props.row)"
+                        @click="
+                          authStore.user.permissions.isFunded == '1'
+                            ? viewPosition(props.row)
+                            : null
+                        "
                       >
                         <q-tooltip>
                           {{

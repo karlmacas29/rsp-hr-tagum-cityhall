@@ -30,5 +30,5 @@ yarn-error.log*
 *.sln
 
 # local .env files
-.env.local
+.env.*
 .env

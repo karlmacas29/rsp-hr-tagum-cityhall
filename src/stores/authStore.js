@@ -117,6 +117,7 @@ export const useAuthStore = defineStore('auth', {
           this.user = res.data.data;
           this.errors = {};
           this.loading = false;
+          // console.log(res.data.data);
         } catch (error) {
           toast.error('Error: ' + error.response.data.message);
           // Clear all auth-related state and cookies
@@ -149,7 +150,6 @@ export const useAuthStore = defineStore('auth', {
     // Get all users
     async getAllUsers() {
       this.loadUser = true;
-      this.errors = {};
 
       try {
         const token = this.getToken();
@@ -223,6 +223,74 @@ export const useAuthStore = defineStore('auth', {
     },
 
     // Update user details
+    // async updateUser(id, userData) {
+    //   this.loading = true;
+    //   this.errors = {};
+
+    //   try {
+    //     const token = this.getToken();
+
+    //     if (!token) {
+    //       throw new Error('No authentication token found');
+    //     }
+
+    //     // Format permissions for the API
+    //     const formattedData = {
+    //       ...userData,
+    //       // Only include permissions if they exist
+    //       ...(userData.permissions && {
+    //         permissions: {
+    //           isFunded: userData.permissions.isFunded || false,
+    //           isUserM: userData.permissions.isUserM || false,
+    //           isRaterM: userData.permissions.isRaterM || false,
+    //           isCriteria: userData.permissions.isCriteria || false,
+    //           isDashboardStat: userData.permissions.isDashboardStat || false,
+    //         },
+    //       }),
+    //     };
+
+    //     const response = await api.put(`/users/${id}`, formattedData, {
+    //       headers: {
+    //         Authorization: `Bearer ${token}`,
+    //       },
+    //     });
+
+    //     if (response.data.status) {
+    //       // If the updated user is the current logged-in user, update the user state
+    //       if (this.user && this.user.id === response.data.data.id) {
+    //         this.user = {
+    //           ...this.user,
+    //           name: response.data.data.name,
+    //           position: response.data.data.position,
+    //           // Update permissions for currently logged-in user if applicable
+    //           rsp_control: response.data.data.rsp_control,
+    //         };
+    //       }
+
+    //       // Update the user in the users array if it exists
+    //       const index = this.users.findIndex((user) => user.id === id);
+    //       if (index !== -1) {
+    //         this.users[index] = response.data.data;
+    //       }
+
+    //       toast.success('User updated successfully');
+    //       this.loading = false;
+    //       return response.data.data;
+    //     } else {
+    //       toast.error('Failed to update user');
+    //       this.loading = false;
+    //       return null;
+    //     }
+    //   } catch (error) {
+    //     this.handleError(error, 'Failed to update user');
+    //     this.loading = false;
+    //     return null;
+    //   } finally {
+    //     const logsStore = useLogsStore();
+    //     await logsStore.logAction(`Updated User ID: ${id}`);
+    //   }
+    // },
+
     async updateUser(id, userData) {
       this.loading = true;
       this.errors = {};
@@ -234,59 +302,37 @@ export const useAuthStore = defineStore('auth', {
           throw new Error('No authentication token found');
         }
 
-        // Format permissions for the API
-        const formattedData = {
-          ...userData,
-          // Only include permissions if they exist
-          ...(userData.permissions && {
-            permissions: {
-              isFunded: userData.permissions.isFunded || false,
-              isUserM: userData.permissions.isUserM || false,
-              isRaterM: userData.permissions.isRaterM || false,
-              isCriteria: userData.permissions.isCriteria || false,
-            },
-          }),
-        };
+        console.log('AuthStore: Sending update request with data:', userData); // Debug log
 
-        const response = await api.put(`/users/${id}`, formattedData, {
+        const response = await api.put(`/users/${id}`, userData, {
           headers: {
             Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
           },
         });
 
+        // console.log('AuthStore: Received response:', response.data); // Debug log
+        toast.success('User updated successfully');
         if (response.data.status) {
-          // If the updated user is the current logged-in user, update the user state
-          if (this.user && this.user.id === response.data.data.id) {
+          // Update the user in state if it's the current user
+          if (this.user && this.user.id === id) {
             this.user = {
               ...this.user,
-              name: response.data.data.name,
-              position: response.data.data.position,
-              // Update permissions for currently logged-in user if applicable
-              rsp_control: response.data.data.rsp_control,
+              ...response.data.data,
             };
           }
 
-          // Update the user in the users array if it exists
-          const index = this.users.findIndex((user) => user.id === id);
-          if (index !== -1) {
-            this.users[index] = response.data.data;
-          }
-
-          toast.success('User updated successfully');
           this.loading = false;
           return response.data.data;
-        } else {
-          toast.error('Failed to update user');
-          this.loading = false;
-          return null;
         }
-      } catch (error) {
-        this.handleError(error, 'Failed to update user');
+
         this.loading = false;
         return null;
-      } finally {
-        const logsStore = useLogsStore();
-        await logsStore.logAction(`Updated User ID: ${id}`);
+      } catch (error) {
+        toast.error('Error Update User');
+        console.error('AuthStore: Error in updateUser:', error.response || error); // Debug log
+        this.loading = false;
+        throw error;
       }
     },
 
@@ -352,6 +398,7 @@ export const useAuthStore = defineStore('auth', {
               isUserM: userData.permissions.isUserM || false,
               isRaterM: userData.permissions.isRaterM || false,
               isCriteria: userData.permissions.isCriteria || false,
+              isDashboardStat: userData.permissions.isDashboardStat || false,
             },
           }),
         };

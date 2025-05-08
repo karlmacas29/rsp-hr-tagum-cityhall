@@ -17,11 +17,6 @@
 
       <!-- User List -->
       <div>
-        <!-- Add User Button -->
-        <div class="q-mb-md row justify-end items-center">
-          <q-btn color="primary" label="Add New User" icon="person_add" @click="openAddDialog()" />
-        </div>
-
         <q-table
           :rows="authStore.users"
           :columns="columns"
@@ -31,14 +26,24 @@
           :loading="authStore.loadUser"
         >
           <!-- Top section with search -->
-          <template v-slot:top-right>
-            <q-input dense debounce="300" v-model="filter" placeholder="Search">
+          <template v-slot:top-left>
+            <q-input outlined dense debounce="300" v-model="filter" placeholder="Search">
               <template v-slot:append>
                 <q-icon name="search" />
               </template>
             </q-input>
           </template>
+          <template v-slot:top-right>
+            <!-- Add User Button -->
 
+            <q-btn
+              rounded
+              color="primary"
+              label="Add New User"
+              icon="person_add"
+              @click="openAddDialog()"
+            />
+          </template>
           <!-- Active status -->
           <template v-slot:body-cell-active="props">
             <q-td :props="props">
@@ -70,6 +75,11 @@
                 <q-badge v-if="props.row.rsp_control.isCriteria == '1'" color="primary">
                   <q-icon name="rule" size="xs" />
                   <q-tooltip>Criteria Access</q-tooltip>
+                </q-badge>
+
+                <q-badge v-if="props.row.rsp_control.isDashboardStat == '1'" color="primary">
+                  <q-icon name="dashboard" size="xs" />
+                  <q-tooltip>Dashboard Status Access</q-tooltip>
                 </q-badge>
               </div>
             </q-td>
@@ -150,11 +160,11 @@
     <q-dialog v-model="dialog" persistent>
       <q-card style="min-width: 900px">
         <q-card-section :class="isEditing ? 'bg-blue text-white' : 'bg-green text-white'">
-          <div class="text-h5 text-bold">{{ isEditing ? 'Edit User' : 'Add New User' }}</div>
+          <div class="text-h4 text-bold">{{ isEditing ? 'Edit User' : 'Add New User' }}</div>
         </q-card-section>
 
         <q-card-section>
-          <q-form @submit="submitForm">
+          <q-form @submit="isEditing ? (confirmUpdateDialog = true) : submitForm()">
             <div class="row q-col-gutter-sm">
               <!-- Left Column - User Information -->
               <div class="col-12 col-md-6">
@@ -258,6 +268,16 @@
                       :error-message="authStore.errors?.['permissions.isCriteria']?.[0]"
                       icon="rule"
                     />
+
+                    <q-toggle
+                      true-value="1"
+                      false-value="0"
+                      v-model="form.permissions.isDashboardStat"
+                      label="Allow View Dashboard Statistics Performance"
+                      :error="!!authStore.errors?.['permissions.isDashboardStat']"
+                      :error-message="authStore.errors?.['permissions.isDashboardStat']?.[0]"
+                      icon="rule"
+                    />
                   </div>
                 </q-card>
               </div>
@@ -265,17 +285,39 @@
 
             <!-- Form Buttons - Full Width -->
             <div class="row justify-end">
-              <q-btn label="Cancel" color="negative" flat v-close-popup />
+              <q-btn rounded label="Cancel" color="negative" flat v-close-popup />
               <q-btn
+                rounded
                 :label="isEditing ? 'Update' : 'Create'"
                 type="submit"
-                color="primary"
+                :color="isEditing ? 'blue' : 'primary'"
                 :loading="authStore.loading"
                 class="q-ml-sm"
               />
             </div>
           </q-form>
         </q-card-section>
+      </q-card>
+    </q-dialog>
+
+    <!-- Update Confirmation Dialog -->
+    <q-dialog v-model="confirmUpdateDialog" persistent>
+      <q-card>
+        <q-card-section class="row items-center">
+          <q-avatar icon="info" color="primary" text-color="white" />
+          <span class="q-ml-sm">Are you sure you want to update this user?</span>
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn flat label="Cancel" color="primary" v-close-popup />
+          <q-btn
+            flat
+            label="Yes, Update"
+            color="blue"
+            @click="submitForm"
+            :loading="authStore.loading"
+            v-close-popup
+          />
+        </q-card-actions>
       </q-card>
     </q-dialog>
 
@@ -316,7 +358,7 @@
 
     setup() {
       const authStore = useAuthStore();
-
+      const confirmUpdateDialog = ref(false);
       // Table related
       const filter = ref('');
       const pagination = ref({
@@ -370,6 +412,7 @@
           isUserM: false,
           isRaterM: false,
           isCriteria: false,
+          isDashboardStat: false,
         },
       });
 
@@ -424,6 +467,7 @@
               isUserM: user.rsp_control?.isUserM || false,
               isRaterM: user.rsp_control?.isRaterM || false,
               isCriteria: user.rsp_control?.isCriteria || false,
+              isDashboardStat: user.rsp_control?.isDashboardStat || false,
             },
           };
         }
@@ -473,6 +517,7 @@
 
       return {
         authStore,
+        confirmUpdateDialog,
         filter,
         pagination,
         columns,

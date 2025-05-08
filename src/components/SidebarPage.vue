@@ -73,7 +73,7 @@
       { label: 'Dashboard', route: '/dashboard', icon: 'dashboard' },
       { label: 'Plantilla', route: '/plantilla', icon: 'domain' },
       { label: 'Job Posts', route: '/job-post', icon: 'post_add' },
-      ...(authStore.user.permissions.isUserM !== '0'
+      ...(authStore.user?.permissions?.isUserM !== '0'
         ? [{ label: 'User Management', route: '/user-access', icon: 'manage_accounts' }]
         : []),
       { label: 'Activity Log', route: '/activity-log', icon: 'history' },

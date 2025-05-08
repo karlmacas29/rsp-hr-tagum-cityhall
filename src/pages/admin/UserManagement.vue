@@ -126,7 +126,7 @@
                   <q-tooltip>Edit User</q-tooltip>
                 </q-btn>
 
-                <q-btn
+                <!-- <q-btn
                   v-if="props.row.id !== authStore.user.id"
                   flat
                   round
@@ -135,18 +135,13 @@
                   @click="confirmDelete(props.row.id, props.row.name)"
                 >
                   <q-tooltip>Delete User</q-tooltip>
-                </q-btn>
+                </q-btn> -->
               </q-btn-group>
 
               <q-badge v-if="props.row.id == authStore.user.id">You</q-badge>
             </q-td>
           </template>
           <!-- Loading -->
-          <template v-slot:loading>
-            <q-inner-loading showing color="primary">
-              <q-linear-progress indeterminate color="primary" class="q-mt-sm" />
-            </q-inner-loading>
-          </template>
         </q-table>
       </div>
     </div>

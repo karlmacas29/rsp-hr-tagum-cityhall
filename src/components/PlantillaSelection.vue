@@ -96,6 +96,148 @@
   //   import { useRouter } from 'vue-router';
   import { uid } from 'quasar';
 
+  const props = defineProps({
+    positions: {
+      // Pass the raw positions array as a prop from parent
+      type: Array,
+      required: true,
+    },
+  });
+
+  // Helper function to count positions per node, matching the table filtering logic
+  function countPositionsForNode(nodeType, nodeData, positionsList) {
+    return positionsList.filter((row) => {
+      if (!row.office || row.office !== nodeData.office) return false;
+
+      if (nodeType === 'unit') {
+        return (
+          row.division === nodeData.division &&
+          row.section === nodeData.section &&
+          row.unit === nodeData.unit
+        );
+      } else if (nodeType === 'section') {
+        return (
+          row.division === nodeData.division &&
+          row.section === nodeData.section &&
+          (!row.unit || row.unit === '')
+        );
+      } else if (nodeType === 'division') {
+        return (
+          row.division === nodeData.division &&
+          (!row.section || row.section === '') &&
+          (!row.unit || row.unit === '')
+        );
+      } else if (nodeType === 'office') {
+        return (
+          (!row.division || row.division === '') &&
+          (!row.section || row.section === '') &&
+          (!row.unit || row.unit === '')
+        );
+      }
+      return false;
+    }).length;
+  }
+
+  // In generateTreeStructure, use positions from props
+  const generateTreeStructure = (items, officeName) => {
+    if (!items.length) return [];
+
+    const positionsList = props.positions; // Get all positions
+
+    const divisions = new Map();
+
+    items.forEach((item) => {
+      if (!item.division) return;
+      if (!divisions.has(item.division)) {
+        divisions.set(item.division, {
+          sections: new Map(),
+        });
+      }
+      const division = divisions.get(item.division);
+
+      if (item.section) {
+        if (!division.sections.has(item.section)) {
+          division.sections.set(item.section, {
+            units: new Map(),
+          });
+        }
+        const section = division.sections.get(item.section);
+
+        if (item.unit) {
+          if (!section.units.has(item.unit)) {
+            section.units.set(item.unit, {});
+          }
+        }
+      }
+    });
+
+    // Office node
+    const rootNode = {
+      id: 'office-' + uid(),
+      label: officeName,
+      nodeType: 'office',
+      data: { office: officeName },
+      positions: countPositionsForNode('office', { office: officeName }, positionsList),
+      children: [],
+    };
+
+    divisions.forEach((divisionData, divisionName) => {
+      const divisionNode = {
+        id: 'division-' + uid(),
+        label: divisionName,
+        nodeType: 'division',
+        data: { office: officeName, division: divisionName },
+        positions: countPositionsForNode(
+          'division',
+          { office: officeName, division: divisionName },
+          positionsList,
+        ),
+        children: [],
+      };
+
+      divisionData.sections.forEach((sectionData, sectionName) => {
+        const sectionNode = {
+          id: 'section-' + uid(),
+          label: sectionName,
+          nodeType: 'section',
+          data: { office: officeName, division: divisionName, section: sectionName },
+          positions: countPositionsForNode(
+            'section',
+            { office: officeName, division: divisionName, section: sectionName },
+            positionsList,
+          ),
+          children: [],
+        };
+
+        sectionData.units.forEach((unitData, unitName) => {
+          const unitNode = {
+            id: 'unit-' + uid(),
+            label: unitName,
+            nodeType: 'unit',
+            data: {
+              office: officeName,
+              division: divisionName,
+              section: sectionName,
+              unit: unitName,
+            },
+            positions: countPositionsForNode(
+              'unit',
+              { office: officeName, division: divisionName, section: sectionName, unit: unitName },
+              positionsList,
+            ),
+          };
+
+          sectionNode.children.push(unitNode);
+        });
+
+        divisionNode.children.push(sectionNode);
+      });
+
+      rootNode.children.push(divisionNode);
+    });
+
+    return [rootNode];
+  };
   //   const router = useRouter();
   const usePlantilla = usePlantillaStore();
   const selectedValue = ref(null);
@@ -146,129 +288,129 @@
   });
 
   // Generate hierarchical tree structure with Office as root
-  const generateTreeStructure = (items, officeName) => {
-    if (!items.length) return [];
+  // const generateTreeStructure = (items, officeName) => {
+  //   if (!items.length) return [];
 
-    // Create a map for divisions
-    const divisions = new Map();
+  //   // Create a map for divisions
+  //   const divisions = new Map();
 
-    // Process items to organize them hierarchically
-    items.forEach((item) => {
-      // Skip if no division (ensure we have proper division data)
-      if (!item.division) return;
+  //   // Process items to organize them hierarchically
+  //   items.forEach((item) => {
+  //     // Skip if no division (ensure we have proper division data)
+  //     if (!item.division) return;
 
-      // Create division if not exists
-      if (!divisions.has(item.division)) {
-        divisions.set(item.division, {
-          sections: new Map(),
-          count: 0,
-        });
-      }
+  //     // Create division if not exists
+  //     if (!divisions.has(item.division)) {
+  //       divisions.set(item.division, {
+  //         sections: new Map(),
+  //         count: 0,
+  //       });
+  //     }
 
-      const division = divisions.get(item.division);
+  //     const division = divisions.get(item.division);
 
-      // If item has section, organize under section
-      if (item.section) {
-        if (!division.sections.has(item.section)) {
-          division.sections.set(item.section, {
-            units: new Map(),
-            count: 0,
-          });
-        }
+  //     // If item has section, organize under section
+  //     if (item.section) {
+  //       if (!division.sections.has(item.section)) {
+  //         division.sections.set(item.section, {
+  //           units: new Map(),
+  //           count: 0,
+  //         });
+  //       }
 
-        const section = division.sections.get(item.section);
+  //       const section = division.sections.get(item.section);
 
-        // If item has unit, organize under unit
-        if (item.unit) {
-          if (!section.units.has(item.unit)) {
-            section.units.set(item.unit, {
-              count: 0,
-            });
-          }
+  //       // If item has unit, organize under unit
+  //       if (item.unit) {
+  //         if (!section.units.has(item.unit)) {
+  //           section.units.set(item.unit, {
+  //             count: 0,
+  //           });
+  //         }
 
-          const unit = section.units.get(item.unit);
-          unit.count++; // Count positions at unit level
-        }
+  //         const unit = section.units.get(item.unit);
+  //         unit.count++; // Count positions at unit level
+  //       }
 
-        section.count++; // Count positions at section level
-      }
+  //       section.count++; // Count positions at section level
+  //     }
 
-      division.count++; // Count positions at division level
-    });
+  //     division.count++; // Count positions at division level
+  //   });
 
-    // Create the root office node
-    const rootNode = {
-      id: 'office-' + uid(),
-      label: officeName,
-      nodeType: 'office',
-      data: {
-        office: officeName,
-      },
-      positions: items.length,
-      children: [],
-    };
+  //   // Create the root office node
+  //   const rootNode = {
+  //     id: 'office-' + uid(),
+  //     label: officeName,
+  //     nodeType: 'office',
+  //     data: {
+  //       office: officeName,
+  //     },
+  //     positions: items.length,
+  //     children: [],
+  //   };
 
-    // Add divisions as children to the office node
-    divisions.forEach((divisionData, divisionName) => {
-      const divisionNode = {
-        id: 'division-' + uid(),
-        label: divisionName,
-        nodeType: 'division',
-        positions: divisionData.count,
-        data: {
-          office: officeName,
-          division: divisionName,
-        },
-        children: [],
-      };
+  //   // Add divisions as children to the office node
+  //   divisions.forEach((divisionData, divisionName) => {
+  //     const divisionNode = {
+  //       id: 'division-' + uid(),
+  //       label: divisionName,
+  //       nodeType: 'division',
+  //       positions: divisionData.count,
+  //       data: {
+  //         office: officeName,
+  //         division: divisionName,
+  //       },
+  //       children: [],
+  //     };
 
-      // Add sections as children to the division node
-      divisionData.sections.forEach((sectionData, sectionName) => {
-        const sectionNode = {
-          id: 'section-' + uid(),
-          label: sectionName,
-          nodeType: 'section',
-          positions: sectionData.count,
-          data: {
-            office: officeName,
-            division: divisionName,
-            section: sectionName,
-          },
-          children: [],
-        };
+  //     // Add sections as children to the division node
+  //     divisionData.sections.forEach((sectionData, sectionName) => {
+  //       const sectionNode = {
+  //         id: 'section-' + uid(),
+  //         label: sectionName,
+  //         nodeType: 'section',
+  //         positions: sectionData.count,
+  //         data: {
+  //           office: officeName,
+  //           division: divisionName,
+  //           section: sectionName,
+  //         },
+  //         children: [],
+  //       };
 
-        // Add units as children to the section node
-        sectionData.units.forEach((unitData, unitName) => {
-          const unitNode = {
-            id: 'unit-' + uid(),
-            label: unitName,
-            nodeType: 'unit',
-            positions: unitData.count,
-            data: {
-              office: officeName,
-              division: divisionName,
-              section: sectionName,
-              unit: unitName,
-            },
-          };
+  //       // Add units as children to the section node
+  //       sectionData.units.forEach((unitData, unitName) => {
+  //         const unitNode = {
+  //           id: 'unit-' + uid(),
+  //           label: unitName,
+  //           nodeType: 'unit',
+  //           positions: unitData.count,
+  //           data: {
+  //             office: officeName,
+  //             division: divisionName,
+  //             section: sectionName,
+  //             unit: unitName,
+  //           },
+  //         };
 
-          sectionNode.children.push(unitNode);
-        });
+  //         sectionNode.children.push(unitNode);
+  //       });
 
-        // Only add sections with units or with positions
-        if (sectionNode.children.length > 0 || sectionData.count > 0) {
-          divisionNode.children.push(sectionNode);
-        }
-      });
+  //       // Only add sections with units or with positions
+  //       if (sectionNode.children.length > 0 || sectionData.count > 0) {
+  //         divisionNode.children.push(sectionNode);
+  //       }
+  //     });
 
-      // Only add divisions with sections or with positions
-      if (divisionNode.children.length > 0 || divisionData.count > 0) {
-        rootNode.children.push(divisionNode);
-      }
-    });
+  //     // Only add divisions with sections or with positions
+  //     if (divisionNode.children.length > 0 || divisionData.count > 0) {
+  //       rootNode.children.push(divisionNode);
+  //     }
+  //   });
 
-    return [rootNode]; // Return as array since q-tree expects array
-  };
+  //   return [rootNode]; // Return as array since q-tree expects array
+  // };
 
   // Handle selection of an office from dropdown
   const handleSelection = () => {

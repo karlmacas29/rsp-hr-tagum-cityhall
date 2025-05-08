@@ -1,7 +1,6 @@
 import { boot } from 'quasar/wrappers';
 import axios from 'axios';
 
-console.log('API URL:', process.env.VUE_APP_API_URL); // Debug line
 const api = axios.create({
   baseURL: process.env.VUE_APP_API_URL, // Ensure this matches your backend URL
 });

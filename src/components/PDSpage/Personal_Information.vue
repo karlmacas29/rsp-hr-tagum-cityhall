@@ -2,7 +2,7 @@
   <div class="row">
     <div class="col-3 flex justify-center items-center">
       <q-img
-        src="https://placehold.co/140"
+        :src="props.personal?.Pics || '...'"
         class="bg-grey-4"
         style="width: 140px; height: 140px; border-radius: 10px"
         alt="Applicant Photo"

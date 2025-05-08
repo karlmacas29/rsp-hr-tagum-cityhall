@@ -12,15 +12,19 @@
       <div class="col-9 q-gutter-md">
         <q-card>
           <q-scroll-area class="q-pa-sm" style="height: 82vh">
-            <q-card flat v-if="getStructureTitle() != ''" class="q-pa-md">
-              <div class="text-h4 text-bold">
+            <q-card
+              flat
+              v-if="getStructureTitle() != ''"
+              class="row justify-between items-center q-pa-md"
+            >
+              <div class="text-h4 text-bold" style="width: 500px">
                 {{ getStructureTitle() }}
+              </div>
+              <div>
+                <q-btn color="primary" @click="clearFilters" icon="clear_all">Clear All</q-btn>
               </div>
             </q-card>
             <q-card flat v-if="currentStructure">
-              <q-card-section class="row justify-end">
-                <q-btn color="primary" @click="clearFilters" icon="clear_all">Clear All</q-btn>
-              </q-card-section>
               <q-separator />
               <q-card-section>
                 <q-table
@@ -36,6 +40,7 @@
                   :loading="usePlantilla.loading"
                 >
                   <!-- Header with search boxes -->
+
                   <template v-slot:header="props">
                     <q-tr :props="props">
                       <q-th
@@ -384,7 +389,7 @@
           </q-card-section>
 
           <q-card-section>
-            <div class="text-subtitle1 q-mb-sm text-bold">Qualification Standard</div>
+            <div class="text-h5 q-mb-sm text-bold">Qualification Standard</div>
             <q-table
               :rows="qsDataLoad"
               :columns="[

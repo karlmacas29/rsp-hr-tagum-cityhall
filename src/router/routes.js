@@ -63,6 +63,11 @@ const routes = [
         name: 'Dashboard Status',
         component: () => import('pages/admin/Dashboard/StatusPageView.vue'),
       },
+      {
+        path: '/job-post/view/:id',
+        name: 'JobPost View',
+        component: () => import('pages/admin/job_post/ViewJobDetails.vue'),
+      },
     ],
   },
   // User Routes

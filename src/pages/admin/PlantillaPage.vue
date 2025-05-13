@@ -280,7 +280,8 @@
           <div class="row justify-between">
             <div>
               <div class="text-h4 text-bold">Post A Job</div>
-              <div class="text-subtitle2 text-grey">{{ postJobDetails.position }}</div>
+              <div class="text-body text-grey">{{ postJobDetails.position }}</div>
+              <q-badge>{{ postJobDetails.PositionID }}</q-badge>
             </div>
             <div>
               <q-btn
@@ -431,6 +432,7 @@
           <q-btn
             color="primary"
             :loading="usePlantilla.qsLoad"
+            :disabled="jobPostStore.loading"
             label="Create Post"
             @click="submitJobPost"
             size="md"
@@ -464,6 +466,7 @@
   import { usePlantillaStore } from 'stores/plantillaStore';
   import PDSModal from 'components/PDSModal.vue';
   import { useAuthStore } from 'stores/authStore';
+  import { useJobPostStore } from 'stores/jobPostStore';
 
   const authStore = useAuthStore();
   const usePlantilla = usePlantillaStore();
@@ -548,10 +551,18 @@
     position: '',
     startingDate: '',
     endedDate: '',
-    education: '',
-    experience: '',
-    training: '',
-    eligibility: '',
+    PositionID: '',
+    PageNo: '',
+    ItemNo: '',
+    SG: '',
+  });
+
+  const qsCriteria = ref({
+    PositionID: '',
+    Education: '',
+    Eligibility: '',
+    Experience: '',
+    Training: '',
   });
 
   // Add current structure selection
@@ -563,7 +574,7 @@
   });
 
   // const currentPosition = ref('');
-  const higherEducation = ref('');
+  // const higherEducation = ref('');
 
   const positions = ref([]);
 
@@ -699,7 +710,7 @@
       selectedApplicant.value.name = row.Name4;
       selectedApplicant.value.position = row.position;
       selectedApplicant.value.status = row.Status;
-      higherEducation.value = 'Bachelor of Science in Management';
+      // higherEducation.value = 'Bachelor of Science in Management';
       showFilledPositionModal.value = true;
     } else {
       showVacantPositionModal.value = true;
@@ -708,8 +719,19 @@
       postJobDetails.value.section = row.section;
       postJobDetails.value.unit = row.unit;
       postJobDetails.value.position = row.position;
+      postJobDetails.value.PositionID = row.PositionID;
+      postJobDetails.value.PageNo = row.PageNo;
+      postJobDetails.value.ItemNo = row.ItemNo;
+      postJobDetails.value.SG = row.SG;
+      // console.log(postJobDetails.value);
       await usePlantilla.fetchQsData(row.PositionID);
       qsDataLoad.value = usePlantilla.qsData;
+      // console.log(usePlantilla.qsData[0].Education);
+      qsCriteria.value.Education = usePlantilla.qsData[0].Education;
+      qsCriteria.value.Experience = usePlantilla.qsData[0].Experience;
+      qsCriteria.value.Eligibility = usePlantilla.qsData[0].Eligibility;
+      qsCriteria.value.Training = usePlantilla.qsData[0].Training;
+      qsCriteria.value.PositionID = row.PositionID;
     }
   };
 
@@ -717,8 +739,44 @@
     console.log('Printing:', row);
   };
 
-  const submitJobPost = () => {
-    console.log('Job Post Submitted');
+  const jobPostStore = useJobPostStore();
+
+  const submitJobPost = async () => {
+    // Perform the job post submission logic here
+    const jobBatch = {
+      PositionID: parseInt(postJobDetails.value.PositionID),
+      Office: postJobDetails.value.office,
+      Office2: null,
+      Group: null,
+      Division: postJobDetails.value.division,
+      Section: postJobDetails.value.section,
+      Unit: postJobDetails.value.unit,
+      Position: postJobDetails.value.position,
+      post_date: postJobDetails.value.startingDate,
+      end_date: postJobDetails.value.endedDate,
+      PageNo: postJobDetails.value.PageNo,
+      ItemNo: postJobDetails.value.ItemNo,
+      SalaryGrade: postJobDetails.value.SG,
+      salaryMin: null,
+      salaryMax: null,
+    };
+
+    const jobCriteria = {
+      PositionID: parseInt(qsCriteria.value.PositionID),
+      EduPercent: '0',
+      EliPercent: '0',
+      TrainPercent: '0',
+      ExperiencePercent: '0',
+      Education: qsCriteria.value.Education,
+      Eligibility: qsCriteria.value.Eligibility,
+      Training: qsCriteria.value.Training,
+      Experience: qsCriteria.value.Experience,
+    };
+    await jobPostStore.insertJobPost({
+      jobBatch: jobBatch,
+      criteria: jobCriteria,
+    });
+
     showVacantPositionModal.value = false;
   };
 

@@ -69,7 +69,6 @@ export const usePlantillaStore = defineStore('plantilla', {
         const response = await api.post('/plantillaData/qs', {
           PositionID: PoitionID,
         });
-        console.log(response.data);
         // console.log(response.data) // Debugging
 
         if (Array.isArray(response.data)) {

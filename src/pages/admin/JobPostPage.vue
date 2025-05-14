@@ -21,7 +21,7 @@
           dense
           readonly
           v-model="dateRangeText"
-          placeholder="Select date range"
+          placeholder="Select Date Range"
           class="col-auto"
           style="max-width: 300px"
         >
@@ -34,11 +34,32 @@
                 <q-date
                   v-model="dateRange"
                   range
+                  landscape
                   today-btn
                   mask="YYYY-MM-DD"
                   color="primary"
-                  minimal
-                />
+                  @update:model-value="onDateRangeChange"
+                >
+                  <div class="row items-center justify-end q-gutter-x-sm">
+                    <q-btn
+                      label="Clear"
+                      class="bg-negative text-white"
+                      rounded
+                      flat
+                      size="sm"
+                      @click="dateRange = { from: '', to: '' }"
+                      v-if="dateRange.from || dateRange.to"
+                    />
+                    <q-btn
+                      label="Okay"
+                      class="bg-primary text-white"
+                      rounded
+                      flat
+                      size="sm"
+                      v-close-popup
+                    />
+                  </div>
+                </q-date>
               </q-popup-proxy>
             </q-icon>
           </template>
@@ -60,9 +81,9 @@
       </div>
 
       <q-table
-        :rows="jobs"
+        :rows="filteredJobs"
         :columns="columns"
-        row-key="id"
+        row-key="PositionID"
         :pagination="pagination"
         class="job-posts-table"
         :loading="jobPostStore.loading"
@@ -81,6 +102,17 @@
             <div style="width: 80px; white-space: normal">
               <span class="text-body1 text-weight-medium text-black">
                 {{ props.row.Position }}
+              </span>
+            </div>
+          </q-td>
+        </template>
+        <template v-slot:body-cell-post_date="props">
+          <q-td :props="props">
+            <div style="width: 80px; white-space: normal">
+              <span class="text-body1 text-weight-medium text-black">
+                <q-badge color="green">
+                  {{ formatDate(props.row.post_date, 'MMM D, YYYY') }}
+                </q-badge>
               </span>
             </div>
           </q-td>
@@ -112,8 +144,16 @@
 
         <template v-slot:body-cell-action="props">
           <q-td :props="props">
-            <q-btn flat dense color="primary" icon="visibility" @click="viewJobDetails(props.row)">
-              <q-tooltip>View Details</q-tooltip>
+            <q-btn
+              round
+              dense
+              flat
+              color="blue"
+              class="bg-blue-1"
+              icon="visibility"
+              @click="viewJobDetails(props.row)"
+            >
+              <q-tooltip>View Job Details</q-tooltip>
             </q-btn>
           </q-td>
         </template>
@@ -212,8 +252,8 @@
   // Page State
   const showingDetails = ref(false);
   const pagination = ref({
-    sortBy: 'postingDate',
-    descending: true,
+    sortBy: 'post_date', // Changed from 'postingDate' to 'post_date'
+    descending: true, // true for descending order (newest first)
     page: 1,
     rowsPerPage: 10,
   });
@@ -236,16 +276,20 @@
     return `${formatDate(dateRange.value.from, 'MMM D, YYYY')} - ${formatDate(dateRange.value.to, 'MMM D, YYYY')}`;
   });
 
-  // Only keeping the setDateRange method as it's used in onMounted
-  const setDateRange = (days) => {
-    const toDate = new Date();
-    const fromDate = new Date();
-    fromDate.setDate(toDate.getDate() - days);
+  // Modified setDateRange to show the entire current year by default
+  const setDateRange = () => {
+    const currentYear = new Date().getFullYear();
+    const fromDate = new Date(currentYear, 0, 1); // January 1st of current year
+    const toDate = new Date(currentYear, 11, 31); // December 31st of current year
 
     dateRange.value = {
       from: formatDate(fromDate, 'YYYY/MM/DD'),
       to: formatDate(toDate, 'YYYY/MM/DD'),
     };
+  };
+
+  const onDateRangeChange = (newRange) => {
+    dateRange.value = newRange;
   };
 
   // Job Posts Data
@@ -265,11 +309,11 @@
       sortable: true,
     },
     {
-      name: 'postingDate',
+      name: 'post_date',
       align: 'left',
       label: 'Posting Date',
       field: 'post_date',
-      format: (val) => formatDate(val, 'MMM D, YYYY'),
+
       sortable: true,
     },
     {
@@ -311,38 +355,41 @@
 
   const jobs = ref([]);
 
-  // const filteredJobs = computed(() => {
-  //   let filtered = jobs.value;
+  // Add this computed property to filter jobs by date range
+  const filteredJobs = computed(() => {
+    let filtered = jobs.value;
 
-  //   // Date filtering with new range object
-  //   if (dateRange.value.from && dateRange.value.to) {
-  //     filtered = filtered.filter((job) => {
-  //       const jobDate = new Date(job.postingDate);
-  //       const from = new Date(dateRange.value.from);
-  //       const to = new Date(dateRange.value.to);
-  //       return jobDate >= from && jobDate <= to;
-  //     });
-  //   }
+    // Apply date range filtering
+    if (dateRange.value.from && dateRange.value.to) {
+      filtered = filtered.filter((job) => {
+        const jobDate = new Date(job.post_date);
+        const from = new Date(dateRange.value.from);
+        const to = new Date(dateRange.value.to);
+        // Set time to end of day for "to" date to include the entire day
+        to.setHours(23, 59, 59, 999);
+        return jobDate >= from && jobDate <= to;
+      });
+    }
 
-  //   // Global search filtering
-  //   if (globalSearch.value) {
-  //     const searchTerm = globalSearch.value.toLowerCase();
-  //     filtered = filtered.filter((job) => {
-  //       return (
-  //         (job.officePosition && job.officePosition.toLowerCase().includes(searchTerm)) ||
-  //         (job.position && job.position.toLowerCase().includes(searchTerm)) ||
-  //         (job.postingDate &&
-  //           formatDate(job.postingDate, 'MMM D, YYYY').toLowerCase().includes(searchTerm)) ||
-  //         (job.applicants && job.applicants.toString().includes(searchTerm)) ||
-  //         (job.pending && job.pending.toString().includes(searchTerm)) ||
-  //         (job.qualified && job.qualified.toString().includes(searchTerm)) ||
-  //         (job.unqualified && job.unqualified.toString().includes(searchTerm))
-  //       );
-  //     });
-  //   }
+    // Apply global search filter if needed
+    if (globalSearch.value) {
+      const searchTerm = globalSearch.value.toLowerCase();
+      filtered = filtered.filter((job) => {
+        return (
+          (job.Office && job.Office.toLowerCase().includes(searchTerm)) ||
+          (job.Position && job.Position.toLowerCase().includes(searchTerm)) ||
+          (job.post_date &&
+            formatDate(job.post_date, 'MMM D, YYYY').toLowerCase().includes(searchTerm)) ||
+          (job.applicants !== undefined && job.applicants.toString().includes(searchTerm)) ||
+          (job.pending !== undefined && job.pending.toString().includes(searchTerm)) ||
+          (job.qualified !== undefined && job.qualified.toString().includes(searchTerm)) ||
+          (job.unqualified !== undefined && job.unqualified.toString().includes(searchTerm))
+        );
+      });
+    }
 
-  //   return filtered;
-  // });
+    return filtered;
+  });
 
   const selectedJob = ref({
     id: null,
@@ -595,7 +642,7 @@
     await jobPostStore.fetchJobPosts();
     jobs.value = jobPostStore.jobPosts;
     // Set the date range to the last 30 days
-    setDateRange(30);
+    setDateRange();
   });
 </script>
 

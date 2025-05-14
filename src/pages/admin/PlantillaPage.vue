@@ -157,14 +157,20 @@
                   </template>
 
                   <template v-slot:body-cell-action="props">
-                    <q-td :props="props">
+                    <q-td :props="props" class="q-gutter-x-sm">
                       <q-btn
                         v-if="props.row.Funded != '0'"
                         flat
                         dense
                         round
-                        color="blue"
-                        class="bg-blue-1"
+                        :color="
+                          props.row.Funded == '1' && props.row.Name1 != null ? 'blue' : 'green'
+                        "
+                        :class="
+                          props.row.Funded == '1' && props.row.Name1 != null
+                            ? 'bg-blue-1'
+                            : 'bg-green-1'
+                        "
                         :icon="
                           props.row.Funded == '1' && props.row.Name1 != null
                             ? 'visibility'
@@ -179,7 +185,7 @@
                         <q-tooltip>
                           {{
                             props.row.Funded == '1' && props.row.Name1 != null
-                              ? 'View QS'
+                              ? 'View Qualification Standard'
                               : 'Create Job Post'
                           }}
                         </q-tooltip>
@@ -189,12 +195,12 @@
                         flat
                         dense
                         round
-                        color="green"
-                        class="bg-green-1"
+                        color="black"
+                        class="bg-grey-4"
                         icon="print"
                         @click="printPosition(props.row)"
                       >
-                        <q-tooltip>Print</q-tooltip>
+                        <q-tooltip>Print PDS</q-tooltip>
                       </q-btn>
                     </q-td>
                   </template>

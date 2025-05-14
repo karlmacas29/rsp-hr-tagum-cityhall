@@ -74,18 +74,14 @@
                   </div>
                 </div>
 
-                <q-separator class="q-my-md" />
-
-                <div class="text-center q-mb-sm">
+                <div v-if="applicantData.applicationDate" class="text-center q-mb-sm">
                   <div class="text-caption text-grey-7">Application Date</div>
                   <div class="text-weight-medium">
                     {{ applicantData?.applicationDate || '#### ##, ####' }}
                   </div>
                 </div>
 
-                <q-separator class="q-my-md" />
-
-                <div class="text-center">
+                <div v-if="overallStatus != '#####'" class="text-center">
                   <div class="text-caption text-grey-7">Evaluation Status</div>
                   <div class="text-weight-medium" :class="`text-${statusColor}`">
                     {{ overallStatus }}

@@ -11,21 +11,38 @@
               <q-icon name="search" />
             </template>
           </q-input>
-          <q-btn @click="openFilter" color="primary" icon="filter_list" label="Filter" />
+          <q-btn rounded @click="openFilter" color="primary" icon="filter_list" label="Filter" />
         </div>
       </div>
     </div>
     <div>
       <div class="grid justify-center items-center q-py-md q-px-xl">
         <!-- Job List Table -->
-        <q-table :rows="jobs" :columns="columns" row-key="id">
+        <q-table
+          :rows="jobs"
+          :columns="columns"
+          row-key="id"
+          :loading="jobPostStore.loading"
+          :filter="search"
+          :pagination="{ rowsPerPage: 10, sortBy: 'post_date', descending: true }"
+        >
+          <template v-slot:body-cell-Office="props">
+            <q-td :props="props">
+              <div style="width: 180px; white-space: normal">
+                <span class="text-body1 text-weight-medium text-black">
+                  {{ props.row.Office }}
+                </span>
+              </div>
+            </q-td>
+          </template>
           <template #body-cell-actions="props">
             <q-td align="center">
               <q-btn
+                rounded
                 color="primary"
                 size="sm"
                 label="Apply Now"
-                @click="handleJobClick(props.row.id)"
+                @click="handleJobClick(props.row.PositionID)"
               />
             </q-td>
           </template>
@@ -64,15 +81,25 @@
 </template>
 
 <script setup>
-  import { ref, reactive } from 'vue';
+  import { ref, reactive, onMounted } from 'vue';
   import { useRouter } from 'vue-router';
+  import { useJobPostStore } from 'stores/jobPostStore';
 
   const router = useRouter();
+  const jobPostStore = useJobPostStore();
 
   // Define columns for the job table
   const columns = ref([
-    { name: 'title', label: 'Position', align: 'left', field: 'title' },
-    { name: 'company', label: 'Office', align: 'left', field: 'company' },
+    { name: 'Position', label: 'Position', align: 'left', field: 'Position' },
+    { name: 'Office', label: 'Office', align: 'left', field: 'Office' },
+    {
+      name: 'post_date',
+      label: 'Posted Date',
+      align: 'left',
+      field: 'post_date',
+      sortable: true,
+      format: (val) => new Date(val).toLocaleDateString(),
+    },
     { name: 'actions', label: 'Actions', align: 'center' },
   ]);
 
@@ -89,25 +116,18 @@
 
   const search = ref('');
   // Generate mock job data
-  const jobs = ref(
-    Array.from({ length: 10 }, (_, i) => ({
-      id: i + 1,
-      title: `Position ${i + 1}`,
-      company: `City Office of ${String.fromCharCode(65 + i)}`, // A, B, C, etc.
-      location: ['City Hall', 'Historical'][i % 2],
-      type: ['Full-time', 'Part-time', 'Contract', 'Internship'][i % 4],
-      salary: (50000 + i * 10000).toLocaleString(),
-      posted: `${i + 1} day${i > 0 ? 's' : ''} ago`,
-      description:
-        'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-    })),
-  );
+  const jobs = ref([]);
 
   const handleJobClick = (jobId) => {
     console.log('Job clicked:', jobId);
     // You would typically navigate to a job detail page here
     router.push(`/jobList/details/${jobId}`);
   };
+
+  onMounted(async () => {
+    await jobPostStore.fetchJobPosts();
+    jobs.value = jobPostStore.jobPosts;
+  });
 </script>
 
 <style scoped>

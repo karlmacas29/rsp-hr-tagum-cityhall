@@ -22,7 +22,7 @@
           </template>
         </div>
         <template v-if="authStore.user.permissions.isRaterM === '1'">
-          <q-btn color="primary" label="Add Rater" @click="showAddModal" icon="add" />
+          <q-btn rounded color="primary" label="Add Rater" @click="showAddModal" icon="add" />
         </template>
       </q-card-section>
       <q-separator />
@@ -126,9 +126,9 @@
     <!-- Add/Edit Rater Modal -->
     <q-dialog v-model="showModal" persistent>
       <q-card style="width: 500px; max-width: 90vw">
-        <q-card-section class="row items-center justify-between">
-          <div class="text-h6">
-            <b>{{ isEditMode ? 'Edit Rater' : 'Add Rater' }}</b>
+        <q-card-section class="row items-center justify-between bg-primary text-white">
+          <div class="text-h4">
+            <b>{{ isEditMode ? 'Edit Rater' : 'Add a Rater' }}</b>
           </div>
           <q-btn icon="close" flat round dense @click="closeModal" />
         </q-card-section>
@@ -140,7 +140,7 @@
 
           <!-- Select Positions -->
           <div class="q-mb-md">
-            <div class="text-subtitle2 text-weight-medium">Select Positions to Rate</div>
+            <div class="text-subtitle2 text-weight-medium">Select Job Positions to Rate</div>
             <q-select
               v-model="selectedPositions"
               multiple
@@ -292,8 +292,9 @@
         </q-card-section>
 
         <q-card-actions align="right">
-          <q-btn flat label="Cancel" color="primary" @click="closeModal" />
+          <q-btn rounded flat label="Cancel" color="primary" @click="closeModal" />
           <q-btn
+            rounded
             :label="isEditMode ? 'Update Rater' : 'Add Rater'"
             color="primary"
             @click="isEditMode ? updateRater() : addRater()"
@@ -420,9 +421,11 @@
 </template>
 
 <script setup>
-  import { ref, computed } from 'vue';
+  import { ref, computed, onMounted } from 'vue';
   import { useAuthStore } from 'stores/authStore';
+  import { useJobPostStore } from 'stores/jobPostStore';
 
+  const jobPostStore = useJobPostStore();
   const authStore = useAuthStore();
 
   // Search
@@ -438,22 +441,6 @@
       Office: 'Main Office',
       pending: 3,
       completed: 2,
-    },
-    {
-      id: 2,
-      Rater: 'Emily Johnson',
-      Position: 'Social Media Manager',
-      Office: 'Main Office',
-      pending: 1,
-      completed: 4,
-    },
-    {
-      id: 3,
-      Rater: 'Michael Williams',
-      Position: 'Customer Support Representative',
-      Office: 'Regional Office - North',
-      pending: 0,
-      completed: 5,
     },
   ]);
 
@@ -502,15 +489,7 @@
     { id: 3, name: 'Regional Office - South' },
   ]);
 
-  const positions = ref([
-    { id: 101, name: 'Frontend Developer' },
-    { id: 102, name: 'Backend Developer' },
-    { id: 103, name: 'Full Stack Developer' },
-    { id: 201, name: 'Social Media Manager' },
-    { id: 202, name: 'SEO Specialist' },
-    { id: 301, name: 'Customer Support Representative' },
-    { id: 302, name: 'Technical Support' },
-  ]);
+  const positions = ref([]);
 
   const availableRaters = ref([
     { id: 1, name: 'John Smith', officeId: 1 },
@@ -526,7 +505,7 @@
   const columns = [
     { name: 'ID', label: 'ID', field: 'id', align: 'left' },
     { name: 'Rater', label: 'Rater Name', field: 'Rater', align: 'left' },
-    { name: 'Position', label: 'Position to Rate', field: 'Position', align: 'left' },
+    { name: 'Position', label: 'Jobs Position to Rate', field: 'Position', align: 'left' },
     { name: 'Office', label: 'Office', field: 'Office', align: 'left' },
     { name: 'pending', label: 'Pending', field: 'pending', align: 'center', sortable: false },
     { name: 'completed', label: 'Completed', field: 'completed', align: 'center', sortable: false },
@@ -800,6 +779,17 @@
     showDeleteDialog.value = false;
     raterToDelete.value = null;
   };
+
+  onMounted(async () => {
+    await jobPostStore.fetchJobPosts();
+    // Convert job posts data to positions array with only Position field
+    positions.value = jobPostStore.jobPosts.map((post) => {
+      return {
+        id: post.id,
+        name: post.Position, // Extract only the Position field
+      };
+    });
+  });
 </script>
 
 <style scoped>

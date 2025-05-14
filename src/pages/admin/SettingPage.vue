@@ -330,7 +330,7 @@
 
           // Update current date/time
           currentDateTime.value = '2025-05-08 04:37:59';
-          currentUserLogin.value = 'karlmacas29';
+          currentUserLogin.value = '';
         } else {
           // If not authenticated, redirect to login
           if (!authStore.isAuthenticated) {

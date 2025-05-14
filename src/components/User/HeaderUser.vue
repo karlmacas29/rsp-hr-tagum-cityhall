@@ -18,8 +18,8 @@
             align="justify"
             narrow-indicator
           >
-            <q-tab name="Homepage" label="Home" @click="router.push({ name: 'Homepage' })" />
-            <q-tab name="Joblist" label="Job Lists" @click="router.push({ name: 'Joblist' })" />
+            <q-tab name="Homepage" label="Home" @click="navigateTo('Homepage')" />
+            <q-tab name="Joblist" label="Job Lists" @click="navigateTo('Joblist')" />
           </q-tabs>
         </div>
         <div></div>
@@ -30,11 +30,29 @@
 
 <script setup>
   import { useRoute, useRouter } from 'vue-router';
-  import { ref } from 'vue';
+  import { ref, watch, onMounted } from 'vue';
 
   const route = useRoute();
   const router = useRouter();
-  let routeTab = ref(route.name);
+  const routeTab = ref(route.name);
+
+  // Update tab when route changes
+  watch(
+    () => route.name,
+    (newRouteName) => {
+      routeTab.value = newRouteName;
+    },
+  );
+
+  // Initialize the tab on component mount
+  onMounted(() => {
+    routeTab.value = route.name;
+  });
+
+  // Navigation function
+  const navigateTo = (routeName) => {
+    router.push({ name: routeName });
+  };
 </script>
 
 <style scoped>

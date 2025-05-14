@@ -3,14 +3,25 @@
     <!-- Header with back button and title -->
     <div class="row justify-between items-center q-my-md q-mx-xl q-px-xl">
       <div class="row items-center">
-        <q-btn icon="arrow_back" flat round color="black" to="/jobList" />
+        <q-btn icon="arrow_back" round class="bg-primary text-white" to="/jobList" />
         <div class="column q-ml-sm">
-          <div class="text-h4 text-bold q-mb-none">Job details {{ jobId }}</div>
+          <div class="text-h4 text-bold q-mb-none">Job details</div>
           <div class="text-subtitle1 text-grey">Available Job Posts / Job details</div>
         </div>
       </div>
       <div class="column">
-        <div class="text-body q-mb-xs">Posted on 20 February 2025</div>
+        <q-badge class="text-h6 q-mb-xs bg-blue">
+          Posted on
+          {{
+            selectedJob?.post_date
+              ? new Date(selectedJob.post_date).toLocaleDateString('en-US', {
+                  month: 'long',
+                  day: 'numeric',
+                  year: 'numeric',
+                })
+              : ''
+          }}
+        </q-badge>
       </div>
     </div>
 
@@ -19,21 +30,38 @@
       <q-card class="col-8" flat bordered>
         <q-card-section>
           <!-- Job header with logo and info -->
-          <div class="row items-start">
-            <q-avatar color="primary" text-color="white" size="75px">C</q-avatar>
+          <div class="row items-center">
+            <q-avatar color="primary" text-color="white" size="75px">
+              {{ selectedJob?.Position ? selectedJob.Position.charAt(0) : 'N' }}
+            </q-avatar>
             <div class="column q-ml-md" style="flex-grow: 1">
-              <div class="text-green text-h5 text-weight-bold">COMPUTER PROGRAMMER II</div>
+              <div class="text-green text-h5 text-weight-bold">
+                {{ selectedJob?.Position || 'No Position' }}
+              </div>
               <div class="row items-center">
                 <q-icon name="business" size="xs" color="grey-8" />
                 <span class="q-ml-xs text-body1 text-grey-8">
-                  CITY OF INFORMATION COMMUNICATIONS & TECHNOLOGY MANAGEMENT OFFICE
+                  {{ selectedJob?.Office || 'No Office' }}
                 </span>
               </div>
               <div class="row items-center">
-                <q-icon name="school" size="xs" color="grey-8" />
-                <span class="q-ml-xs text-body1 text-grey-8">COLLEGE GRADUATE</span>
+                <q-icon name="business" size="xs" color="grey-8" />
+                <span class="q-ml-xs text-body1 text-grey-8">
+                  {{ selectedJob?.Division || 'No Division' }}
+                </span>
               </div>
-              <div class="text-body1 text-grey q-mt-xs">5 Permanent</div>
+              <div class="row items-center">
+                <q-icon name="business" size="xs" color="grey-8" />
+                <span class="q-ml-xs text-body1 text-grey-8">
+                  {{ selectedJob?.Section || 'No Section' }}
+                </span>
+              </div>
+              <div class="row items-center">
+                <q-icon name="business" size="xs" color="grey-8" />
+                <span class="q-ml-xs text-body1 text-grey-8">
+                  {{ selectedJob?.Unit || 'No Unit' }}
+                </span>
+              </div>
             </div>
           </div>
         </q-card-section>
@@ -44,7 +72,7 @@
         <q-card-section>
           <div class="text-h5 text-bold text-green">Office</div>
           <div class="text-body2 text-uppercase">
-            CITY OF INFORMATION COMMUNICATIONS & TECHNOLOGY MANAGEMENT OFFICE
+            {{ selectedJob?.Office || 'No Office' }}
           </div>
         </q-card-section>
 
@@ -55,10 +83,23 @@
           <div class="text-h5 text-bold text-green">Qualification Standards/Requirements</div>
           <div class="text-weight-bold q-mt-sm">BRIEF QUALIFICATIONS:</div>
           <div class="text-body2">
-            <ol>
-              <li>Must be graduated from 4-yr job relevance.</li>
-              <li>Preferably MALE with relevant experience.</li>
-              <li>Analytical, innovative and creative.</li>
+            <ol v-if="selectedCriteria" class="q-pl-md text-body1 q-gutter-sm">
+              <li>
+                <q-badge>Education</q-badge>
+                - {{ selectedCriteria?.Education || 'None' }}
+              </li>
+              <li>
+                <q-badge>Experience</q-badge>
+                - {{ selectedCriteria?.Experience || 'None' }}
+              </li>
+              <li>
+                <q-badge>Training</q-badge>
+                - {{ selectedCriteria?.Training || 'None' }}
+              </li>
+              <li>
+                <q-badge>Eligibility</q-badge>
+                - {{ selectedCriteria?.Eligibility || 'None' }}
+              </li>
             </ol>
           </div>
         </q-card-section>
@@ -68,7 +109,7 @@
         <!-- Position section -->
         <q-card-section>
           <div class="text-h5 text-bold text-green">Position</div>
-          <div class="text-body2">Computer Programmer II</div>
+          <div class="text-body2">{{ selectedJob?.Position || 'No Position' }}</div>
         </q-card-section>
 
         <q-separator />
@@ -225,10 +266,17 @@
 
 <script setup>
   import { useRoute } from 'vue-router';
-  import { ref } from 'vue';
+  import { onMounted, ref } from 'vue';
+  import { useJobPostStore } from 'stores/jobPostStore';
+
+  const jobPostStore = useJobPostStore();
 
   const route = useRoute();
   const jobId = route.params.id;
+
+  // Job details
+  const selectedJob = ref([]);
+  const selectedCriteria = ref([]);
 
   // Application state
   const uploadedFile = ref(null);
@@ -241,7 +289,12 @@
     const excelFileUrl = '/application-forms/programmer-application-form.xlsx';
     const a = document.createElement('a');
     a.href = excelFileUrl;
-    a.download = 'Programmer_Application_Form.xlsx';
+
+    // Create dynamic filename based on position
+    const position = selectedJob.value?.Position || 'Job';
+    const formattedPosition = position.replace(/\s+/g, '_');
+    a.download = `${formattedPosition}_Application_Form.xlsx`;
+
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -275,6 +328,16 @@
       isSubmitting.value = false;
     }
   };
+
+  onMounted(async () => {
+    // Fetch job details if needed
+    await jobPostStore.fetchJobPostById(jobId).then((job) => {
+      selectedJob.value = job;
+    });
+    await jobPostStore.fetchCriteriaById(jobId).then((criteria) => {
+      selectedCriteria.value = criteria;
+    });
+  });
 </script>
 
 <style scoped>

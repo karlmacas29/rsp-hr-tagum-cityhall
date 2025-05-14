@@ -21,7 +21,7 @@
           <h4 class="text-bold">Latest Job Posts</h4>
         </div>
         <div>
-          <q-btn color="primary" @click="router.push({ name: 'Joblist' })">See All</q-btn>
+          <q-btn rounded color="primary" @click="router.push({ name: 'Joblist' })">See All</q-btn>
         </div>
       </div>
       <!-- Job List Table -->
@@ -29,12 +29,28 @@
         :rows="jobs"
         :columns="columns"
         row-key="id"
-        :pagination="{ rowsPerPage: 3 }"
+        :loading="jobPostStore.loading"
+        :pagination="{ rowsPerPage: 3, sortBy: 'post_date', descending: true }"
         hide-bottom
       >
+        <template v-slot:body-cell-Office="props">
+          <q-td :props="props">
+            <div style="width: 180px; white-space: normal">
+              <span class="text-body1 text-weight-medium text-black">
+                {{ props.row.Office }}
+              </span>
+            </div>
+          </q-td>
+        </template>
         <template #body-cell-actions="props">
           <q-td align="center">
-            <q-btn color="primary" size="sm" label="View" @click="handleJobClick(props.row.id)" />
+            <q-btn
+              color="primary"
+              rounded
+              size="sm"
+              label="View"
+              @click="handleJobClick(props.row.PositionID)"
+            />
           </q-td>
         </template>
       </q-table>
@@ -42,37 +58,41 @@
   </q-page>
 </template>
 <script setup>
-  import { ref } from 'vue';
+  import { onMounted, ref } from 'vue';
   import { useRouter } from 'vue-router';
+  import { useJobPostStore } from 'stores/jobPostStore';
 
+  const jobPostStore = useJobPostStore();
   const router = useRouter();
 
   // Define columns for the job table
   const columns = ref([
-    { name: 'title', label: 'Position', align: 'left', field: 'title' },
-    { name: 'company', label: 'Office', align: 'left', field: 'company' },
+    { name: 'Position', label: 'Position', align: 'left', field: 'Position' },
+    { name: 'Office', label: 'Office', align: 'left', field: 'Office' },
+    {
+      name: 'post_date',
+      label: 'Posted Date',
+      align: 'left',
+      field: 'post_date',
+      sortable: true,
+      format: (val) => new Date(val).toLocaleDateString(),
+    },
     { name: 'actions', label: 'Actions', align: 'center' },
   ]);
 
   // Generate mock job data
-  const jobs = ref(
-    Array.from({ length: 3 }, (_, i) => ({
-      id: i + 1,
-      title: `Position ${i + 1}`,
-      company: `City Office of ${String.fromCharCode(65 + i)}`, // A, B, C, etc.
-      location: ['City Hall', 'Historical'][i % 2],
-      type: ['Full-time', 'Part-time', 'Contract', 'Internship'][i % 4],
-      salary: (50000 + i * 10000).toLocaleString(),
-      posted: `${i + 1} day${i > 0 ? 's' : ''} ago`,
-      description: '',
-    })),
-  );
+  const jobs = ref([]);
 
   const handleJobClick = (jobId) => {
     console.log('Job clicked:', jobId);
     // You would typically navigate to a job detail page here
     router.push(`/jobList/details/${jobId}`);
   };
+
+  onMounted(async () => {
+    await jobPostStore.fetchJobPosts();
+    jobs.value = jobPostStore.jobPosts;
+  });
 </script>
 
 <style scoped>

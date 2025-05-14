@@ -124,19 +124,20 @@
           <!-- Actions column -->
           <template v-slot:body-cell-actions="props">
             <q-td :props="props">
-              <q-btn-group flat>
-                <q-btn
-                  v-if="props.row.id !== authStore.user.id"
-                  flat
-                  round
-                  color="primary"
-                  icon="edit"
-                  @click="openEditDialog(props.row.id)"
-                >
-                  <q-tooltip>Edit User</q-tooltip>
-                </q-btn>
+              <q-btn
+                v-if="props.row.id !== authStore.user.id"
+                flat
+                round
+                dense
+                color="orange"
+                class="bg-orange-2"
+                icon="edit"
+                @click="openEditDialog(props.row.id)"
+              >
+                <q-tooltip>Edit User</q-tooltip>
+              </q-btn>
 
-                <!-- <q-btn
+              <!-- <q-btn
                   v-if="props.row.id !== authStore.user.id"
                   flat
                   round
@@ -146,9 +147,8 @@
                 >
                   <q-tooltip>Delete User</q-tooltip>
                 </q-btn> -->
-              </q-btn-group>
 
-              <q-badge v-if="props.row.id == authStore.user.id">You</q-badge>
+              <q-badge v-if="props.row.id == authStore.user.id" color="blue">You</q-badge>
             </q-td>
           </template>
           <!-- Loading -->
@@ -374,13 +374,7 @@
         { name: 'username', align: 'left', label: 'Username', field: 'username', sortable: true },
         { name: 'position', align: 'left', label: 'Position', field: 'position', sortable: true },
         { name: 'active', align: 'left', label: 'Status', field: 'active', sortable: true },
-        {
-          name: 'permissions',
-          align: 'left',
-          label: 'Permissions',
-          field: (row) => row.rsp_control,
-          sortable: false,
-        },
+
         {
           name: 'created_at',
           align: 'left',

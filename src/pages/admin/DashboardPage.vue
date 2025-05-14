@@ -58,7 +58,7 @@
           <h4 class="text-weight-bold q-ma-none">Jobs Overview</h4>
           <h5 class="q-my-sm row justify-start">
             Total Active Job Posts:
-            <div class="text-bold text-primary q-mx-md">5</div>
+            <div class="text-bold text-primary q-mx-md">{{ jobs.length }}</div>
           </h5>
         </div>
       </div>
@@ -67,9 +67,10 @@
         <q-card class="q-mx-auto" style="width: 70vw">
           <q-table
             class="applicants-table"
-            :rows="applicants"
+            :rows="jobs"
             :columns="columns"
             row-key="job"
+            :loading="useJobPost.loading"
             :pagination="{ rowsPerPage: 5 }"
           />
         </q-card>
@@ -125,64 +126,20 @@
 </template>
 
 <script setup>
-  import { onMounted } from 'vue';
+  import { onMounted, ref } from 'vue';
   import { useAuthStore } from 'src/stores/authStore';
   import StatusOverview from 'src/components/Dashboard/StatusOverview.vue';
   import { use_vwActiveStore } from 'src/stores/vwActiveStore';
+  import { useJobPostStore } from 'src/stores/jobPostStore';
 
+  const useJobPost = useJobPostStore();
   const vwActiveStore = use_vwActiveStore();
   const authStore = useAuthStore();
 
-  const applicants = [
-    {
-      job: 'Computer Programmer',
-      applicants: 10,
-      pending: 2,
-      qualified: 5,
-      unqualified: 3,
-      date: '2025-03-21',
-      active: true,
-    },
-    {
-      job: 'Data Analyst',
-      applicants: 10,
-      pending: 2,
-      qualified: 5,
-      unqualified: 3,
-      date: '2025-03-19',
-      active: true,
-    },
-    {
-      job: 'Administrative Assistant',
-      applicants: 8,
-      pending: 1,
-      qualified: 6,
-      unqualified: 1,
-      date: '2025-03-18',
-      active: true,
-    },
-    {
-      job: 'Sample Inactive Job',
-      applicants: 10,
-      pending: 2,
-      qualified: 5,
-      unqualified: 3,
-      date: '2025-03-15',
-      active: false,
-    },
-    {
-      job: 'Sample Old Job',
-      applicants: 10,
-      pending: 2,
-      qualified: 5,
-      unqualified: 3,
-      date: '2025-02-20',
-      active: false,
-    },
-  ];
+  const jobs = ref([]);
 
   const columns = [
-    { name: 'job', label: 'Job Applied', align: 'left', field: 'job', sortable: true },
+    { name: 'jobs', label: 'Position', align: 'left', field: 'Position', sortable: true },
     {
       name: 'applicants',
       label: 'No. of Applicants',
@@ -203,6 +160,9 @@
 
   onMounted(async () => {
     await vwActiveStore.fetchCountAll();
+    await useJobPost.fetchJobPosts();
+
+    jobs.value = useJobPost.jobPosts;
   });
 </script>
 

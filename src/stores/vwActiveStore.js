@@ -48,7 +48,7 @@ export const use_vwActiveStore = defineStore('vwactive', {
       this.loading = true;
       try {
         const response = await api.get('/vw-Active/count');
-        console.log(response.data);
+        // console.log(response.data);
         this.countAll = response.data.total;
       } catch (error) {
         this.countAll = 0;

@@ -45,12 +45,6 @@
               {{ props.value }}
             </q-td>
           </template>
-
-          <template v-slot:loading>
-            <q-inner-loading showing color="primary">
-              <q-linear-progress indeterminate color="primary" class="q-mt-sm" />
-            </q-inner-loading>
-          </template>
         </q-table>
       </q-card-section>
     </q-card>

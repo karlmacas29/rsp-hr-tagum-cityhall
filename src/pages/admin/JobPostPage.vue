@@ -1,6 +1,5 @@
 <template>
   <q-page class="q-pa-md">
-    <!-- Enhanced Header with larger font -->
     <div class="column items-start justify-center q-mb-md">
       <h5 class="text-h4 q-ma-none"><b>Job Posts</b></h5>
       <div class="q-pa-sm q-gutter-sm">
@@ -16,15 +15,13 @@
 
     <!-- Job List View -->
     <div v-if="!showingDetails" class="q-pa-md">
-      <!-- Header with search bar aligned to the right -->
       <div class="row justify-between items-center q-mb-md">
-        <!-- Date Picker aligned with table -->
         <q-input
           outlined
           dense
           readonly
           v-model="dateRangeText"
-          placeholder="Select date range"
+          placeholder="Select Date Range"
           class="col-auto"
           style="max-width: 300px"
         >
@@ -37,17 +34,37 @@
                 <q-date
                   v-model="dateRange"
                   range
+                  landscape
                   today-btn
                   mask="YYYY-MM-DD"
                   color="primary"
-                  minimal
-                />
+                  @update:model-value="onDateRangeChange"
+                >
+                  <div class="row items-center justify-end q-gutter-x-sm">
+                    <q-btn
+                      label="Clear"
+                      class="bg-negative text-white"
+                      rounded
+                      flat
+                      size="sm"
+                      @click="dateRange = { from: '', to: '' }"
+                      v-if="dateRange.from || dateRange.to"
+                    />
+                    <q-btn
+                      label="Okay"
+                      class="bg-primary text-white"
+                      rounded
+                      flat
+                      size="sm"
+                      v-close-popup
+                    />
+                  </div>
+                </q-date>
               </q-popup-proxy>
             </q-icon>
           </template>
         </q-input>
 
-        <!-- Search Bar moved to upper right -->
         <q-input
           v-model="globalSearch"
           outlined
@@ -66,10 +83,41 @@
       <q-table
         :rows="filteredJobs"
         :columns="columns"
-        row-key="id"
+        row-key="PositionID"
         :pagination="pagination"
         class="job-posts-table"
+        :loading="jobPostStore.loading"
       >
+        <template v-slot:body-cell-Office="props">
+          <q-td :props="props">
+            <div style="width: 180px; white-space: normal">
+              <span class="text-body1 text-weight-medium text-black">
+                {{ props.row.Office }}
+              </span>
+            </div>
+          </q-td>
+        </template>
+        <template v-slot:body-cell-position="props">
+          <q-td :props="props">
+            <div style="width: 80px; white-space: normal">
+              <span class="text-body1 text-weight-medium text-black">
+                {{ props.row.Position }}
+              </span>
+            </div>
+          </q-td>
+        </template>
+        <template v-slot:body-cell-post_date="props">
+          <q-td :props="props">
+            <div style="width: 80px; white-space: normal">
+              <span class="text-body1 text-weight-medium text-black">
+                <q-badge color="green">
+                  {{ formatDate(props.row.post_date, 'MMM D, YYYY') }}
+                </q-badge>
+              </span>
+            </div>
+          </q-td>
+        </template>
+        <!--  -->
         <template v-slot:body-cell-applicants="props">
           <q-td :props="props">
             <div class="text-center">{{ props.row.applicants }}</div>
@@ -96,8 +144,16 @@
 
         <template v-slot:body-cell-action="props">
           <q-td :props="props">
-            <q-btn flat dense color="primary" icon="visibility" @click="viewJobDetails(props.row)">
-              <q-tooltip>View Details</q-tooltip>
+            <q-btn
+              round
+              dense
+              flat
+              color="blue"
+              class="bg-blue-1"
+              icon="visibility"
+              @click="viewJobDetails(props.row)"
+            >
+              <q-tooltip>View Job Details</q-tooltip>
             </q-btn>
           </q-td>
         </template>
@@ -106,91 +162,6 @@
           <div class="full-width row flex-center q-pa-md text-grey">Jobpost is Empty</div>
         </template>
       </q-table>
-    </div>
-
-    <!-- Job Details View -->
-    <div v-if="showingDetails">
-      <q-card class="q-mb-lg" flat bordered>
-        <q-card-section>
-          <div class="row items-center">
-            <q-btn icon="arrow_back" flat round dense class="q-mr-sm" @click="goBackToList" />
-            <div class="text-h3">{{ selectedJob.position }}</div>
-          </div>
-        </q-card-section>
-
-        <q-card-section>
-          <div class="row q-col-gutter-md">
-            <div class="col-12">
-              <div class="text-h6 q-mb-sm">
-                <q-icon name="business" class="q-mr-sm" />
-                <span class="text-weight-bold">Office:</span>
-                {{ selectedJob.officePosition }}
-              </div>
-              <div class="text-h6 q-mb-sm">
-                <q-icon name="work" class="q-mr-sm" />
-                <span class="text-weight-bold">Position:</span>
-                {{ selectedJob.position }}
-              </div>
-              <div class="text-h6 q-mb-sm">
-                <q-icon name="event" class="q-mr-sm" />
-                <span class="text-weight-bold">Posting Date:</span>
-                {{ formatDate(selectedJob.postingDate) }}
-              </div>
-            </div>
-          </div>
-
-          <q-separator class="q-my-lg" />
-
-          <div class="text-h4 q-mb-md">Qualification Standard/Requirements</div>
-          <div class="q-pl-md">
-            <div class="text-h6 q-mb-sm text-weight-bold">BASIC QUALIFICATIONS:</div>
-            <ol class="q-pl-md text-body1">
-              <li v-for="(qual, index) in selectedJob.qualifications" :key="index">{{ qual }}</li>
-            </ol>
-          </div>
-        </q-card-section>
-      </q-card>
-
-      <!-- Applicants Section -->
-      <q-card flat bordered>
-        <q-card-section class="row items-center q-pb-none">
-          <div class="text-h4">Applicants for {{ selectedJob.position }}</div>
-        </q-card-section>
-
-        <q-card-section>
-          <q-table
-            :rows="filteredApplicants"
-            :columns="applicantColumns"
-            row-key="id"
-            flat
-            bordered
-            hide-pagination
-            :loading="loadingApplicants"
-            class="applicants-table"
-          >
-            <template v-slot:body-cell-status="props">
-              <q-td :props="props">
-                <q-badge :color="getStatusColor(props.row.status)" class="status-badge">
-                  {{ props.row.isSubmitted ? `${props.row.status} (Locked)` : props.row.status }}
-                  <q-icon v-if="props.row.isSubmitted" name="lock" class="q-ml-xs" size="xs" />
-                </q-badge>
-              </q-td>
-            </template>
-
-            <template v-slot:body-cell-action="props">
-              <q-td :props="props">
-                <q-btn
-                  flat
-                  color="primary"
-                  :label="props.row.isSubmitted ? 'View Evaluation' : 'Evaluate'"
-                  @click="openQualificationModal(props.row)"
-                  size="md"
-                />
-              </q-td>
-            </template>
-          </q-table>
-        </q-card-section>
-      </q-card>
     </div>
 
     <!-- Quality Standard Modal -->
@@ -204,7 +175,7 @@
       @submit="promptSubmitEvaluation"
       @close="closeQualificationModal"
       @check-evaluation-status="refreshApplicantStatus"
-      :is-submitted="selectedApplicant.isSubmitted"
+      :is-submitted="false"
     />
 
     <!-- PDS Modal (Nested Dialog) -->
@@ -217,7 +188,9 @@
       <q-card style="min-width: 400px; border-radius: 8px">
         <q-card-section class="row items-center q-pb-none">
           <q-icon name="help_outline" color="primary" size="md" class="q-mr-sm" />
-          <span class="text-h5">Confirm Evaluation Submission</span>
+          <span class="text-h5">
+            Confirm Evaluation {{ selectedApplicant.isSubmitted ? 'Update' : 'Submission' }}
+          </span>
         </q-card-section>
 
         <q-separator />
@@ -225,7 +198,9 @@
         <q-card-section class="q-pt-md">
           <div class="text-body1 q-mb-md">
             You are about to
-            <span class="text-weight-bold">finalize</span>
+            <span class="text-weight-bold">
+              {{ selectedApplicant.isSubmitted ? 'update' : 'submit' }}
+            </span>
             this evaluation:
           </div>
 
@@ -248,7 +223,7 @@
         <q-card-actions align="right" class="q-pa-md">
           <q-btn flat label="Cancel" color="grey-7" v-close-popup size="md" />
           <q-btn
-            label="Confirm Submission"
+            :label="selectedApplicant.isSubmitted ? 'Confirm Update' : 'Confirm Submission'"
             color="primary"
             @click="submitEvaluation"
             v-close-popup
@@ -265,14 +240,20 @@
   import { date } from 'quasar';
   import QualityStandardModal from 'components/QualityStandardModal.vue';
   import PDSModal from 'components/PDSModal.vue';
+  import { useJobPostStore } from 'stores/jobPostStore';
+  import { useRouter, useRoute } from 'vue-router';
+
+  const router = useRouter();
+  // eslint-disable-next-line no-unused-vars
+  const route = useRoute();
+  const jobPostStore = useJobPostStore();
 
   const { formatDate } = date;
-
   // Page State
   const showingDetails = ref(false);
   const pagination = ref({
-    sortBy: 'postingDate',
-    descending: true,
+    sortBy: 'post_date', // Changed from 'postingDate' to 'post_date'
+    descending: true, // true for descending order (newest first)
     page: 1,
     rowsPerPage: 10,
   });
@@ -295,11 +276,11 @@
     return `${formatDate(dateRange.value.from, 'MMM D, YYYY')} - ${formatDate(dateRange.value.to, 'MMM D, YYYY')}`;
   });
 
-  // Only keeping the setDateRange method as it's used in onMounted
-  const setDateRange = (days) => {
-    const toDate = new Date();
-    const fromDate = new Date();
-    fromDate.setDate(toDate.getDate() - days);
+  // Modified setDateRange to show the entire current year by default
+  const setDateRange = () => {
+    const currentYear = new Date().getFullYear();
+    const fromDate = new Date(currentYear, 0, 1); // January 1st of current year
+    const toDate = new Date(currentYear, 11, 31); // December 31st of current year
 
     dateRange.value = {
       from: formatDate(fromDate, 'YYYY/MM/DD'),
@@ -307,29 +288,32 @@
     };
   };
 
+  const onDateRangeChange = (newRange) => {
+    dateRange.value = newRange;
+  };
+
   // Job Posts Data
   const columns = [
     {
-      name: 'officePosition',
-      required: true,
+      name: 'Office',
       label: 'Office',
       align: 'left',
-      field: (row) => row.officePosition,
+      field: 'Office',
       sortable: true,
     },
     {
       name: 'position',
       label: 'Position',
       align: 'left',
-      field: 'position',
+      field: 'Position',
       sortable: true,
     },
     {
-      name: 'postingDate',
+      name: 'post_date',
       align: 'left',
       label: 'Posting Date',
-      field: 'postingDate',
-      format: (val) => formatDate(val, 'MMM D, YYYY'),
+      field: 'post_date',
+
       sortable: true,
     },
     {
@@ -369,50 +353,37 @@
     },
   ];
 
-  const jobs = ref([
-    {
-      id: 1,
-      officePosition: 'Human Resources',
-      position: 'HR Manager',
-      postingDate: '2025-04-01',
-      applicants: 10,
-      pending: 5,
-      qualified: 3,
-      unqualified: 2,
-      qualifications: [
-        "Bachelor's Degree in Human Resources or related field",
-        'At least 5 years of experience in HR management',
-        'Strong leadership and communication skills',
-      ],
-    },
-  ]);
+  const jobs = ref([]);
 
+  // Add this computed property to filter jobs by date range
   const filteredJobs = computed(() => {
     let filtered = jobs.value;
 
-    // Date filtering with new range object
+    // Apply date range filtering
     if (dateRange.value.from && dateRange.value.to) {
       filtered = filtered.filter((job) => {
-        const jobDate = new Date(job.postingDate);
+        const jobDate = new Date(job.post_date);
         const from = new Date(dateRange.value.from);
         const to = new Date(dateRange.value.to);
+        // Set time to end of day for "to" date to include the entire day
+        to.setHours(23, 59, 59, 999);
         return jobDate >= from && jobDate <= to;
       });
     }
 
-    // Global search filtering
+    // Apply global search filter if needed
     if (globalSearch.value) {
       const searchTerm = globalSearch.value.toLowerCase();
       filtered = filtered.filter((job) => {
         return (
-          (job.officePosition && job.officePosition.toLowerCase().includes(searchTerm)) ||
-          (job.position && job.position.toLowerCase().includes(searchTerm)) ||
-          (job.postingDate &&
-            formatDate(job.postingDate, 'MMM D, YYYY').toLowerCase().includes(searchTerm)) ||
-          (job.applicants && job.applicants.toString().includes(searchTerm)) ||
-          (job.pending && job.pending.toString().includes(searchTerm)) ||
-          (job.qualified && job.qualified.toString().includes(searchTerm)) ||
-          (job.unqualified && job.unqualified.toString().includes(searchTerm))
+          (job.Office && job.Office.toLowerCase().includes(searchTerm)) ||
+          (job.Position && job.Position.toLowerCase().includes(searchTerm)) ||
+          (job.post_date &&
+            formatDate(job.post_date, 'MMM D, YYYY').toLowerCase().includes(searchTerm)) ||
+          (job.applicants !== undefined && job.applicants.toString().includes(searchTerm)) ||
+          (job.pending !== undefined && job.pending.toString().includes(searchTerm)) ||
+          (job.qualified !== undefined && job.qualified.toString().includes(searchTerm)) ||
+          (job.unqualified !== undefined && job.unqualified.toString().includes(searchTerm))
         );
       });
     }
@@ -433,44 +404,45 @@
   });
 
   const viewJobDetails = (job) => {
-    selectedJob.value = { ...job };
-    showingDetails.value = true;
-    applicants.value = applicants.value.map((applicant) => ({
-      ...applicant,
-      status: 'Pending',
-      isSubmitted: false,
-    }));
+    router.push({ name: 'JobPost View', params: { id: job.PositionID } });
+    // selectedJob.value = { ...job };
+    // showingDetails.value = true;
+    // applicants.value = applicants.value.map((applicant) => ({
+    //   ...applicant,
+    //   status: 'Pending',
+    //   isSubmitted: false,
+    // }));
   };
 
-  const goBackToList = () => {
-    showingDetails.value = false;
-  };
+  // const goBackToList = () => {
+  //   showingDetails.value = false;
+  // };
 
   // Applicants View
-  const loadingApplicants = ref(false);
-  const applicantColumns = [
-    { name: 'name', label: 'Name', field: 'name', align: 'left', sortable: true },
-    {
-      name: 'appliedDate',
-      label: 'Applied Date',
-      field: 'appliedDate',
-      align: 'left',
-      format: (val) => formatDate(val, 'MMM D, YYYY'),
-    },
-    {
-      name: 'status',
-      label: 'Status',
-      field: 'status',
-      align: 'center',
-    },
-    {
-      name: 'action',
-      label: 'Action',
-      field: 'action',
-      align: 'center',
-      sortable: false,
-    },
-  ];
+  // const loadingApplicants = ref(false);
+  // const applicantColumns = [
+  //   { name: 'name', label: 'Name', field: 'name', align: 'left', sortable: true },
+  //   {
+  //     name: 'appliedDate',
+  //     label: 'Applied Date',
+  //     field: 'appliedDate',
+  //     align: 'left',
+  //     format: (val) => formatDate(val, 'MMM D, YYYY'),
+  //   },
+  //   {
+  //     name: 'status',
+  //     label: 'Status',
+  //     field: 'status',
+  //     align: 'center',
+  //   },
+  //   {
+  //     name: 'action',
+  //     label: 'Action',
+  //     field: 'action',
+  //     align: 'center',
+  //     sortable: false,
+  //   },
+  // ];
 
   const applicants = ref([
     {
@@ -482,11 +454,11 @@
     },
   ]);
 
-  const filteredApplicants = computed(() => {
-    return applicants.value.filter(
-      (applicant) => applicant.appliedDate >= selectedJob.value.postingDate,
-    );
-  });
+  // const filteredApplicants = computed(() => {
+  //   return applicants.value.filter(
+  //     (applicant) => applicant.appliedDate >= selectedJob.value.postingDate,
+  //   );
+  // });
 
   // Qualification Standard Modal
   const showQSModal = ref(false);
@@ -527,16 +499,16 @@
   // Confirmation Modal
   const showConfirmationModal = ref(false);
 
-  const openQualificationModal = (applicant) => {
-    selectedApplicant.value = {
-      ...applicant,
-      position: selectedJob.value.position,
-      applicationDate: formatDate(applicant.appliedDate, 'MMM D, YYYY'),
-    };
-    // Reset pending status to current status when opening modal
-    pendingStatus.value = applicant.status;
-    showQSModal.value = true;
-  };
+  // const openQualificationModal = (applicant) => {
+  //   selectedApplicant.value = {
+  //     ...applicant,
+  //     position: selectedJob.value.position,
+  //     applicationDate: formatDate(applicant.appliedDate, 'MMM D, YYYY'),
+  //   };
+  //   // Reset pending status to current status when opening modal
+  //   pendingStatus.value = applicant.status;
+  //   showQSModal.value = true;
+  // };
 
   const closeQualificationModal = () => {
     // Reset pending status when closing without submitting
@@ -560,11 +532,7 @@
   };
 
   const handleTemporaryQualificationToggle = (newStatus) => {
-    if (selectedApplicant.value.isSubmitted) {
-      console.warn('Cannot change status after submission');
-      return;
-    }
-    // Only update the pending status, not the actual status
+    // Always allow switching between Qualified or Unqualified
     pendingStatus.value = newStatus;
   };
 
@@ -579,28 +547,61 @@
   const submitEvaluation = () => {
     const applicantIndex = applicants.value.findIndex((a) => a.id === selectedApplicant.value.id);
     if (applicantIndex !== -1) {
-      // Now actually update the applicant's status from the pending status
+      // If this is an update to an already submitted evaluation
+      if (selectedApplicant.value.isSubmitted) {
+        // Get previous status to update job counts
+        const previousStatus = applicants.value[applicantIndex].status;
+
+        // Update job counts if status changed
+        if (previousStatus !== pendingStatus.value) {
+          const jobIndex = jobs.value.findIndex((j) => j.id === selectedJob.value.id);
+          if (jobIndex !== -1) {
+            const job = jobs.value[jobIndex];
+
+            // Decrement previous status count
+            if (previousStatus === 'Qualified') {
+              job.qualified--;
+            } else if (previousStatus === 'Unqualified') {
+              job.unqualified--;
+            } else if (previousStatus === 'Pending') {
+              job.pending--;
+            }
+
+            // Increment new status count
+            if (pendingStatus.value === 'Qualified') {
+              job.qualified++;
+            } else if (pendingStatus.value === 'Unqualified') {
+              job.unqualified++;
+            } else if (pendingStatus.value === 'Pending') {
+              job.pending++;
+            }
+          }
+        }
+      } else {
+        // This is a new submission
+        const jobIndex = jobs.value.findIndex((j) => j.id === selectedJob.value.id);
+        if (jobIndex !== -1) {
+          const job = jobs.value[jobIndex];
+
+          if (pendingStatus.value === 'Qualified') {
+            job.qualified++;
+            job.pending--;
+          } else if (pendingStatus.value === 'Unqualified') {
+            job.unqualified++;
+            job.pending--;
+          }
+        }
+      }
+
+      // Update the applicant status and mark as submitted
       applicants.value[applicantIndex] = {
         ...applicants.value[applicantIndex],
         status: pendingStatus.value,
         isSubmitted: true,
       };
+
       selectedApplicant.value.status = pendingStatus.value;
       selectedApplicant.value.isSubmitted = true;
-    }
-
-    const jobIndex = jobs.value.findIndex((j) => j.id === selectedJob.value.id);
-    if (jobIndex !== -1) {
-      const job = jobs.value[jobIndex];
-      const status = pendingStatus.value;
-
-      if (status === 'Qualified') {
-        job.qualified++;
-        job.pending--;
-      } else if (status === 'Unqualified') {
-        job.unqualified++;
-        job.pending--;
-      }
     }
 
     showQSModal.value = false;
@@ -636,9 +637,12 @@
     }
   };
 
-  onMounted(() => {
-    // Set default date range to last 30 days
-    setDateRange(30);
+  onMounted(async () => {
+    // Fetch job posts from the store
+    await jobPostStore.fetchJobPosts();
+    jobs.value = jobPostStore.jobPosts;
+    // Set the date range to the last 30 days
+    setDateRange();
   });
 </script>
 
@@ -647,7 +651,6 @@
   .text-h1,
   .text-h2,
   .text-h3,
-  .text-h4,
   .text-h5,
   .text-h6 {
     letter-spacing: -0.015em;
@@ -658,13 +661,6 @@
     font-size: 2rem;
     line-height: 2.5rem;
     margin-bottom: 1.5rem;
-  }
-
-  /* Card titles */
-  .text-h4 {
-    font-size: 1.75rem;
-    line-height: 2.25rem;
-    margin-bottom: 1rem;
   }
 
   /* Section headings */
@@ -721,10 +717,6 @@
   /* Spacing improvements */
   .q-mb-sm {
     margin-bottom: 12px;
-  }
-
-  .q-mb-md {
-    margin-bottom: 20px;
   }
 
   .q-mb-lg {

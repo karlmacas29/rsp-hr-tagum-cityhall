@@ -15,8 +15,15 @@
     <!-- Card -->
     <q-card>
       <q-card-section class="row justify-between items-center">
-        <div class="text-h5 text-bold">Raters List</div>
-        <q-btn color="primary" label="Add Rater" @click="showAddModal" icon="add" />
+        <div class="text-h5 text-bold">
+          Raters List
+          <template v-if="authStore.user.permissions.isRaterM === '0'">
+            <q-badge>View Only</q-badge>
+          </template>
+        </div>
+        <template v-if="authStore.user.permissions.isRaterM === '1'">
+          <q-btn rounded color="primary" label="Add Rater" @click="showAddModal" icon="add" />
+        </template>
       </q-card-section>
       <q-separator />
 
@@ -83,28 +90,33 @@
               >
                 <q-tooltip>View</q-tooltip>
               </q-btn>
-              <q-btn
-                flat
-                round
-                dense
-                icon="edit"
-                @click="editRater(props.row)"
-                class="q-ml-sm bg-teal-1"
-                color="positive"
+
+              <template
+                v-if="authStore.user.permissions.isRaterM === '1' && props.row.completed == 0"
               >
-                <q-tooltip>Edit</q-tooltip>
-              </q-btn>
-              <q-btn
-                flat
-                round
-                dense
-                icon="delete"
-                @click="confirmDeleteRater(props.row)"
-                class="q-ml-sm bg-red-1"
-                color="negative"
-              >
-                <q-tooltip>Delete</q-tooltip>
-              </q-btn>
+                <q-btn
+                  flat
+                  round
+                  dense
+                  icon="edit"
+                  @click="editRater(props.row)"
+                  class="q-ml-sm bg-teal-1"
+                  color="positive"
+                >
+                  <q-tooltip>Edit</q-tooltip>
+                </q-btn>
+                <q-btn
+                  flat
+                  round
+                  dense
+                  icon="delete"
+                  @click="confirmDeleteRater(props.row)"
+                  class="q-ml-sm bg-red-1"
+                  color="negative"
+                >
+                  <q-tooltip>Delete</q-tooltip>
+                </q-btn>
+              </template>
             </q-td>
           </template>
         </q-table>
@@ -114,9 +126,9 @@
     <!-- Add/Edit Rater Modal -->
     <q-dialog v-model="showModal" persistent>
       <q-card style="width: 500px; max-width: 90vw">
-        <q-card-section class="row items-center justify-between">
-          <div class="text-h6">
-            <b>{{ isEditMode ? 'Edit Rater' : 'Add Rater' }}</b>
+        <q-card-section class="row items-center justify-between bg-primary text-white">
+          <div class="text-h4">
+            <b>{{ isEditMode ? 'Edit Rater' : 'Add a Rater' }}</b>
           </div>
           <q-btn icon="close" flat round dense @click="closeModal" />
         </q-card-section>
@@ -126,28 +138,9 @@
             Please fill in all required fields.
           </q-banner>
 
-          <!-- 1. Select Batch -->
+          <!-- Select Positions -->
           <div class="q-mb-md">
-            <div class="text-subtitle2 text-weight-medium">Select Batch</div>
-            <q-select
-              v-model="selectedBatch"
-              :options="batches"
-              option-value="id"
-              option-label="display"
-              label="Select a batch"
-              outlined
-              dense
-              emit-value
-              map-options
-              @update:model-value="fetchPositions"
-            />
-          </div>
-
-          <q-separator class="q-mt-md q-mb-md" />
-
-          <!-- 2. Select Positions -->
-          <div class="q-mb-md">
-            <div class="text-subtitle2 text-weight-medium">Select Positions to Rate</div>
+            <div class="text-subtitle2 text-weight-medium">Select Job Positions to Rate</div>
             <q-select
               v-model="selectedPositions"
               multiple
@@ -160,7 +153,6 @@
               use-chips
               emit-value
               map-options
-              :disable="!selectedBatch"
               @update:model-value="handlePositionSelection"
             >
               <template v-slot:option="scope">
@@ -183,7 +175,7 @@
 
           <!-- Add Mode: Select Office FIRST, then Select Rater -->
           <template v-if="!isEditMode">
-            <!-- 3. Select Office in Add Mode (NEW) -->
+            <!-- Select Office in Add Mode -->
             <div class="q-mb-md">
               <div class="text-subtitle2 text-weight-medium">Select Office</div>
               <q-select
@@ -196,7 +188,7 @@
                 dense
                 emit-value
                 map-options
-                :disable="!selectedBatch || selectedPositions.length === 0"
+                :disable="selectedPositions.length === 0"
                 @update:model-value="handleOfficeChange"
               >
                 <template v-slot:prepend>
@@ -207,7 +199,7 @@
 
             <q-separator class="q-mt-md q-mb-md" />
 
-            <!-- 4. Select Rater in Add Mode (AFTER office) -->
+            <!-- Select Rater in Add Mode (AFTER office) -->
             <div class="q-mb-md">
               <div class="text-subtitle2 text-weight-medium">Select Rater</div>
               <q-select
@@ -241,7 +233,7 @@
 
           <!-- Edit Mode: Display Rater + Office (readonly) -->
           <template v-else>
-            <!-- 3. Select Office in Edit Mode (readonly but visible) -->
+            <!-- Select Office in Edit Mode (readonly but visible) -->
             <div class="q-mb-md">
               <div class="text-subtitle2 text-weight-medium">Office</div>
               <q-select
@@ -270,7 +262,7 @@
 
             <q-separator class="q-mt-md q-mb-md" />
 
-            <!-- 4. Display Rater in Edit Mode (readonly) -->
+            <!-- Display Rater in Edit Mode (readonly) -->
             <div class="q-mb-md">
               <div class="text-subtitle2 text-weight-medium">Rater</div>
               <q-select
@@ -300,19 +292,17 @@
         </q-card-section>
 
         <q-card-actions align="right">
-          <q-btn flat label="Cancel" color="primary" @click="closeModal" />
+          <q-btn rounded flat label="Cancel" color="primary" @click="closeModal" />
           <q-btn
+            rounded
             :label="isEditMode ? 'Update Rater' : 'Add Rater'"
             color="primary"
             @click="isEditMode ? updateRater() : addRater()"
             :loading="isSubmitting"
             :disable="
               isEditMode
-                ? !selectedBatch || selectedPositions.length === 0
-                : !selectedRater ||
-                  !selectedBatch ||
-                  !selectedOffice ||
-                  selectedPositions.length === 0
+                ? selectedPositions.length === 0
+                : !selectedRater || !selectedOffice || selectedPositions.length === 0
             "
           />
         </q-card-actions>
@@ -335,41 +325,40 @@
       </q-card>
     </q-dialog>
 
-    <!-- View Rater Dialog -->
-    <q-dialog v-model="showViewDialog" persistent maximized>
-      <q-card>
-        <q-card-section class="row items-center justify-between bg-primary text-white">
-          <div class="text-h6">
-            <b>Applicants for {{ currentViewRater.Rater }}</b>
-            <div class="text-subtitle2">
-              Rating for: {{ currentViewRater.Position }} ({{ currentViewRater.batchDate }})
-            </div>
-          </div>
-          <q-btn icon="close" flat round dense @click="showViewDialog = false" />
+    <!-- View Rater Dialog - Clean Version -->
+    <q-dialog v-model="showViewDialog" persistent>
+      <q-card style="width: 800px; max-width: 95vw">
+        <q-card-section class="row items-center bg-grey-2 q-pb-none">
+          <div class="text-h6">Applicant Ratings</div>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup />
         </q-card-section>
 
-        <q-card-section>
-          <div class="row q-mb-md">
-            <div class="col-12 col-md-6">
+        <q-card-section class="q-pt-none">
+          <div class="row q-mb-sm items-center">
+            <div class="col">
+              <div class="text-subtitle1">
+                <strong>Rater:</strong>
+                {{ currentViewRater.Rater }}
+              </div>
+              <div class="text-subtitle2">
+                <strong>Position:</strong>
+                {{ currentViewRater.Position }}
+              </div>
+            </div>
+            <div class="col-auto">
               <q-input
                 outlined
                 v-model="applicantSearch"
                 placeholder="Search applicants..."
+                dense
                 clearable
-                class="q-mb-md"
+                style="width: 250px"
               >
                 <template v-slot:prepend>
                   <q-icon name="search" />
                 </template>
               </q-input>
-            </div>
-            <div class="col-12 col-md-6 flex justify-end items-center">
-              <q-chip color="green-1" text-color="green-10" icon="done">
-                Done: {{ applicants.filter((a) => a.status === 'done').length }}
-              </q-chip>
-              <q-chip color="orange-1" text-color="orange-10" icon="schedule" class="q-ml-sm">
-                Pending: {{ applicants.filter((a) => a.status === 'pending').length }}
-              </q-chip>
             </div>
           </div>
 
@@ -380,38 +369,51 @@
             :columns="applicantColumns"
             row-key="id"
             :loading="isLoadingApplicants"
+            :pagination="{ rowsPerPage: 10 }"
+            class="sticky-header-table"
           >
-            <!-- Status column with colored badges -->
             <template v-slot:body-cell-status="props">
               <q-td :props="props">
-                <q-badge
+                <q-chip
+                  dense
                   :color="props.row.status === 'done' ? 'green-1' : 'orange-1'"
                   :text-color="props.row.status === 'done' ? 'green-10' : 'orange-10'"
-                  class="q-pa-sm"
+                  :icon="props.row.status === 'done' ? 'done' : 'schedule'"
+                  size="sm"
                 >
-                  <q-icon
-                    :name="props.row.status === 'done' ? 'done' : 'schedule'"
-                    size="xs"
-                    class="q-mr-xs"
-                  />
-                  {{ props.row.status === 'done' ? 'Done' : 'Pending' }}
-                </q-badge>
+                  {{ props.row.status === 'done' ? 'Completed' : 'Pending' }}
+                </q-chip>
               </q-td>
             </template>
 
-            <!-- Position column -->
-            <template v-slot:body-cell-position="props">
+            <template v-slot:body-cell-rating="props">
               <q-td :props="props">
-                <q-badge color="primary" text-color="white" class="q-pa-xs">
-                  {{ props.row.position }}
-                </q-badge>
+                <div v-if="props.row.status === 'done'" class="text-bold" style="color: #2e7d32">
+                  {{ props.row.rating }}
+                  <q-icon name="star" color="yellow-8" size="xs" class="q-ml-xs" />
+                </div>
+                <div v-else class="text-grey-6">-</div>
               </q-td>
             </template>
           </q-table>
+
+          <div class="row justify-between items-center q-mt-sm">
+            <div class="text-caption text-grey-7">
+              Showing {{ filteredApplicants.length }} records
+            </div>
+            <div>
+              <q-chip color="green-1" text-color="green-10" icon="done" dense>
+                Completed: {{ applicants.filter((a) => a.status === 'done').length }}
+              </q-chip>
+              <q-chip color="orange-1" text-color="orange-10" icon="schedule" dense class="q-ml-sm">
+                Pending: {{ applicants.filter((a) => a.status === 'pending').length }}
+              </q-chip>
+            </div>
+          </div>
         </q-card-section>
 
-        <q-card-actions align="right" class="bg-grey-2">
-          <q-btn flat label="Close" color="primary" @click="showViewDialog = false" />
+        <q-card-actions align="right" class="bg-grey-1">
+          <q-btn flat label="Close" color="grey-7" v-close-popup />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -419,7 +421,12 @@
 </template>
 
 <script setup>
-  import { ref, computed } from 'vue';
+  import { ref, computed, onMounted } from 'vue';
+  import { useAuthStore } from 'stores/authStore';
+  import { useJobPostStore } from 'stores/jobPostStore';
+
+  const jobPostStore = useJobPostStore();
+  const authStore = useAuthStore();
 
   // Search
   const globalSearch = ref('');
@@ -430,29 +437,10 @@
     {
       id: 1,
       Rater: 'John Smith',
-      batchDate: '2024-03-15',
       Position: 'Frontend Developer, Backend Developer',
       Office: 'Main Office',
       pending: 3,
       completed: 2,
-    },
-    {
-      id: 2,
-      Rater: 'Emily Johnson',
-      batchDate: '2024-02-28',
-      Position: 'Social Media Manager',
-      Office: 'Main Office',
-      pending: 1,
-      completed: 4,
-    },
-    {
-      id: 3,
-      Rater: 'Michael Williams',
-      batchDate: '2024-01-20',
-      Position: 'Customer Support Representative',
-      Office: 'Regional Office - North',
-      pending: 0,
-      completed: 5,
     },
   ]);
 
@@ -483,7 +471,6 @@
   const currentViewRater = ref({
     Rater: '',
     Position: '',
-    batchDate: '',
   });
 
   // Delete dialog state
@@ -491,18 +478,11 @@
   const raterToDelete = ref(null);
 
   // Form selections
-  const selectedBatch = ref(null);
   const selectedPositions = ref([]);
   const selectedRater = ref(null);
   const selectedOffice = ref(null);
 
   // Options data
-  const batches = ref([
-    { id: 1, display: 'Software Engineer Hiring (Posted: 2024-03-15)', date: '2024-03-15' },
-    { id: 2, display: 'Marketing Team Expansion (Posted: 2024-02-28)', date: '2024-02-28' },
-    { id: 3, display: 'Customer Support Hiring (Posted: 2024-01-20)', date: '2024-01-20' },
-  ]);
-
   const offices = ref([
     { id: 1, name: 'Main Office' },
     { id: 2, name: 'Regional Office - North' },
@@ -510,6 +490,7 @@
   ]);
 
   const positions = ref([]);
+
   const availableRaters = ref([
     { id: 1, name: 'John Smith', officeId: 1 },
     { id: 2, name: 'Emily Johnson', officeId: 1 },
@@ -524,8 +505,7 @@
   const columns = [
     { name: 'ID', label: 'ID', field: 'id', align: 'left' },
     { name: 'Rater', label: 'Rater Name', field: 'Rater', align: 'left' },
-    { name: 'batchDate', label: 'Assigned Batch', field: 'batchDate', align: 'left' },
-    { name: 'Position', label: 'Position to Rate', field: 'Position', align: 'left' },
+    { name: 'Position', label: 'Jobs Position to Rate', field: 'Position', align: 'left' },
     { name: 'Office', label: 'Office', field: 'Office', align: 'left' },
     { name: 'pending', label: 'Pending', field: 'pending', align: 'center', sortable: false },
     { name: 'completed', label: 'Completed', field: 'completed', align: 'center', sortable: false },
@@ -541,22 +521,6 @@
     { name: 'rating', label: 'Rating', field: 'rating', align: 'center' },
   ];
 
-  const batchPositions = {
-    1: [
-      { id: 101, name: 'Frontend Developer' },
-      { id: 102, name: 'Backend Developer' },
-      { id: 103, name: 'Full Stack Developer' },
-    ],
-    2: [
-      { id: 201, name: 'Social Media Manager' },
-      { id: 202, name: 'SEO Specialist' },
-    ],
-    3: [
-      { id: 301, name: 'Customer Support Representative' },
-      { id: 302, name: 'Technical Support' },
-    ],
-  };
-
   // Computed properties
   const filteredRaters = computed(() => {
     if (!globalSearch.value) return raters.value;
@@ -566,7 +530,6 @@
       return (
         rater.id.toString().includes(searchTerm) ||
         rater.Rater.toLowerCase().includes(searchTerm) ||
-        rater.batchDate.toLowerCase().includes(searchTerm) ||
         rater.Position.toLowerCase().includes(searchTerm) ||
         rater.Office.toLowerCase().includes(searchTerm)
       );
@@ -598,16 +561,6 @@
     isEditMode.value = false;
     showModal.value = true;
     resetForm();
-  };
-
-  const fetchPositions = (batchId) => {
-    positions.value = batchPositions[batchId] || [];
-    selectedPositions.value = [];
-    if (!isEditMode.value) {
-      selectedRater.value = null;
-      selectedOffice.value = null;
-      filteredRatersByOffice.value = [];
-    }
   };
 
   const isPositionSelected = (id) => {
@@ -672,7 +625,6 @@
 
   const handleOfficeChange = (officeId) => {
     selectedRater.value = null;
-    // Immediately populate the raters for this office
     filteredRatersByOffice.value = availableRaters.value.filter(
       (rater) => rater.officeId === officeId,
     );
@@ -704,7 +656,6 @@
   };
 
   const resetForm = () => {
-    selectedBatch.value = null;
     selectedPositions.value = [];
     selectedRater.value = null;
     selectedOffice.value = null;
@@ -727,10 +678,8 @@
     currentViewRater.value = {
       Rater: rater.Rater,
       Position: rater.Position,
-      batchDate: rater.batchDate,
     };
 
-    // In a real app, you would fetch applicants for this rater from an API
     isLoadingApplicants.value = true;
     setTimeout(() => {
       isLoadingApplicants.value = false;
@@ -753,23 +702,16 @@
       (r) => r.officeId === currentOfficeId.value,
     );
 
-    const batch = batches.value.find((b) => b.date === rater.batchDate);
-    selectedBatch.value = batch?.id || null;
-
-    if (selectedBatch.value) {
-      fetchPositions(selectedBatch.value);
-
-      const positionNames = rater.Position.split(', ');
-      selectedPositions.value = positions.value
-        .filter((pos) => positionNames.includes(pos.name))
-        .map((pos) => pos.id);
-    }
+    const positionNames = rater.Position.split(', ');
+    selectedPositions.value = positions.value
+      .filter((pos) => positionNames.includes(pos.name))
+      .map((pos) => pos.id);
 
     showModal.value = true;
   };
 
   const updateRater = () => {
-    if (!selectedBatch.value || selectedPositions.value.length === 0) {
+    if (selectedPositions.value.length === 0) {
       showError.value = true;
       return;
     }
@@ -787,7 +729,6 @@
       if (index !== -1) {
         raters.value[index] = {
           ...raters.value[index],
-          batchDate: batches.value.find((b) => b.id === selectedBatch.value)?.date || '',
           Position: selectedPositionNames,
         };
       }
@@ -798,12 +739,7 @@
   };
 
   const addRater = () => {
-    if (
-      !selectedBatch.value ||
-      selectedPositions.value.length === 0 ||
-      !selectedOffice.value ||
-      !selectedRater.value
-    ) {
+    if (selectedPositions.value.length === 0 || !selectedOffice.value || !selectedRater.value) {
       showError.value = true;
       return;
     }
@@ -822,7 +758,6 @@
       raters.value.push({
         id: raters.value.length + 1,
         Rater: raterData?.name || '',
-        batchDate: batches.value.find((b) => b.id === selectedBatch.value)?.date || '',
         Position: selectedPositionNames,
         Office: officeData?.name || '',
         pending: 0,
@@ -844,6 +779,17 @@
     showDeleteDialog.value = false;
     raterToDelete.value = null;
   };
+
+  onMounted(async () => {
+    await jobPostStore.fetchJobPosts();
+    // Convert job posts data to positions array with only Position field
+    positions.value = jobPostStore.jobPosts.map((post) => {
+      return {
+        id: post.id,
+        name: post.Position, // Extract only the Position field
+      };
+    });
+  });
 </script>
 
 <style scoped>

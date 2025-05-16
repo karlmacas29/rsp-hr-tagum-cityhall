@@ -1,14 +1,14 @@
 <template>
-  <q-page class="q-pa-md">
-    <div class="column no-gap">
+  <q-page>
+    <div v-if="authStore.user.permissions.isDashboardStat == '1'" class="column no-gap">
       <!-- Welcome Message -->
       <q-img
         src="tagum-city-hall.webp"
-        class="rounded-borders q-pa-lg column justify-center items-start"
+        class="q-pa-lg column justify-center items-start"
         style="height: 100px; opacity: 1.5"
       >
         <div
-          v-if="authStore.user != null"
+          v-if="authStore.user"
           class="column justify-center"
           style="
             position: absolute;
@@ -58,7 +58,7 @@
           <h4 class="text-weight-bold q-ma-none">Jobs Overview</h4>
           <h5 class="q-my-sm row justify-start">
             Total Active Job Posts:
-            <div class="text-bold text-primary q-mx-md">5</div>
+            <div class="text-bold text-primary q-mx-md">{{ jobs.length }}</div>
           </h5>
         </div>
       </div>
@@ -67,76 +67,79 @@
         <q-card class="q-mx-auto" style="width: 70vw">
           <q-table
             class="applicants-table"
-            :rows="applicants"
+            :rows="jobs"
             :columns="columns"
             row-key="job"
+            :loading="useJobPost.loading"
             :pagination="{ rowsPerPage: 5 }"
           />
         </q-card>
       </div>
     </div>
+
+    <!-- Redesigned Minimalist Welcome with Background -->
+    <div v-else class="welcome-container">
+      <q-img src="tagum-city-hall.webp" class="welcome-bg" style="opacity: 0.8">
+        <div class="absolute-full flex flex-center">
+          <q-card
+            class="welcome-card text-center q-pa-lg"
+            style="
+              background: rgba(255, 255, 255, 0.95);
+              border-radius: 16px;
+              max-width: 500px;
+              box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            "
+          >
+            <q-avatar
+              size="100px"
+              color="primary"
+              text-color="white"
+              icon="person"
+              class="q-mb-md"
+            />
+            <div v-if="authStore.user">
+              <div class="text-h4 text-black text-weight-bold q-mb-sm">
+                Welcome,
+                <span class="text-primary">{{ authStore.user.name }}</span>
+                !
+              </div>
+              <div class="text-subtitle1 text-grey-8 q-mb-md">
+                to Recruitment, Selection & Placement Portal
+              </div>
+              <q-separator class="q-my-md" />
+              <div class="text-body1 text-grey-7">
+                Explore the portal to manage recruitment and access key features.
+                <br />
+                Navigate using the menu to get started.
+              </div>
+            </div>
+            <div v-else>
+              <q-skeleton type="text" class="q-mb-sm" style="height: 36px; width: 80%" />
+              <q-skeleton type="text" class="q-mb-md" style="height: 24px; width: 60%" />
+              <q-skeleton type="rect" style="height: 40px; width: 120px" />
+            </div>
+          </q-card>
+        </div>
+      </q-img>
+    </div>
   </q-page>
 </template>
 
 <script setup>
-  import { onMounted } from 'vue';
+  import { onMounted, ref } from 'vue';
   import { useAuthStore } from 'src/stores/authStore';
   import StatusOverview from 'src/components/Dashboard/StatusOverview.vue';
   import { use_vwActiveStore } from 'src/stores/vwActiveStore';
+  import { useJobPostStore } from 'src/stores/jobPostStore';
 
+  const useJobPost = useJobPostStore();
   const vwActiveStore = use_vwActiveStore();
   const authStore = useAuthStore();
 
-  const applicants = [
-    {
-      job: 'Computer Programmer',
-      applicants: 10,
-      pending: 2,
-      qualified: 5,
-      unqualified: 3,
-      date: '2025-03-21',
-      active: true,
-    },
-    {
-      job: 'Data Analyst',
-      applicants: 10,
-      pending: 2,
-      qualified: 5,
-      unqualified: 3,
-      date: '2025-03-19',
-      active: true,
-    },
-    {
-      job: 'Administrative Assistant',
-      applicants: 8,
-      pending: 1,
-      qualified: 6,
-      unqualified: 1,
-      date: '2025-03-18',
-      active: true,
-    },
-    {
-      job: 'Sample Inactive Job',
-      applicants: 10,
-      pending: 2,
-      qualified: 5,
-      unqualified: 3,
-      date: '2025-03-15',
-      active: false,
-    },
-    {
-      job: 'Sample Old Job',
-      applicants: 10,
-      pending: 2,
-      qualified: 5,
-      unqualified: 3,
-      date: '2025-02-20',
-      active: false,
-    },
-  ];
+  const jobs = ref([]);
 
   const columns = [
-    { name: 'job', label: 'Job Applied', align: 'left', field: 'job', sortable: true },
+    { name: 'jobs', label: 'Position', align: 'left', field: 'Position', sortable: true },
     {
       name: 'applicants',
       label: 'No. of Applicants',
@@ -157,6 +160,9 @@
 
   onMounted(async () => {
     await vwActiveStore.fetchCountAll();
+    await useJobPost.fetchJobPosts();
+
+    jobs.value = useJobPost.jobPosts;
   });
 </script>
 
@@ -191,5 +197,28 @@
 
   .applicants-table {
     width: 100%;
+  }
+
+  .welcome-container {
+    position: relative;
+    height: 85vh;
+    overflow: hidden;
+  }
+
+  .welcome-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .welcome-card {
+    transition: transform 0.3s ease;
+  }
+
+  .welcome-card:hover {
+    transform: scale(1.02);
   }
 </style>

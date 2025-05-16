@@ -30,7 +30,7 @@ export const usexPDS = defineStore('xPDS', {
           },
         );
         this.xPDS = response.data;
-        console.log(response.data);
+        // console.log(response.data);
         this.error = null;
       } catch (err) {
         this.error = err.message;

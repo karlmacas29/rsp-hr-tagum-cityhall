@@ -3,21 +3,28 @@
     <div class="row justify-center items-center" style="height: 89vh">
       <!--  -->
       <div class="col-3 q-pa-sm">
-        <PlantillaSelection @structure-selected="handleStructureSelection"></PlantillaSelection>
+        <PlantillaSelection
+          :positions="positions"
+          @structure-selected="handleStructureSelection"
+        ></PlantillaSelection>
       </div>
       <!--  -->
       <div class="col-9 q-gutter-md">
         <q-card>
           <q-scroll-area class="q-pa-sm" style="height: 82vh">
-            <q-card flat v-if="getStructureTitle() != ''" class="q-pa-md">
-              <div class="text-h4 text-bold">
+            <q-card
+              flat
+              v-if="getStructureTitle() != ''"
+              class="row justify-between items-center q-pa-md"
+            >
+              <div class="text-h4 text-bold" style="width: 500px">
                 {{ getStructureTitle() }}
+              </div>
+              <div>
+                <q-btn color="primary" @click="clearFilters" icon="clear_all">Clear All</q-btn>
               </div>
             </q-card>
             <q-card flat v-if="currentStructure">
-              <q-card-section class="row justify-end">
-                <q-btn color="primary" @click="clearFilters" icon="clear_all">Clear All</q-btn>
-              </q-card-section>
               <q-separator />
               <q-card-section>
                 <q-table
@@ -33,6 +40,7 @@
                   :loading="usePlantilla.loading"
                 >
                   <!-- Header with search boxes -->
+
                   <template v-slot:header="props">
                     <q-tr :props="props">
                       <q-th
@@ -99,15 +107,23 @@
                   <!-- for switch -->
                   <template v-slot:body-cell-fd="props">
                     <q-td :props="props">
-                      <q-toggle
-                        v-model="props.row.Funded"
-                        color="green"
-                        true-value="1"
-                        false-value="0"
-                        checked-icon="check"
-                        unchecked-icon="clear"
-                        @update:model-value="handleToggle(props.row)"
-                      />
+                      <template v-if="authStore.user.permissions.isFunded == '1'">
+                        <q-toggle
+                          v-model="props.row.Funded"
+                          color="green"
+                          true-value="1"
+                          false-value="0"
+                          checked-icon="check"
+                          unchecked-icon="clear"
+                          @update:model-value="handleToggle(props.row)"
+                          :disable="props.row.Funded === '1'"
+                        />
+                      </template>
+                      <template v-else>
+                        <q-badge :color="props.row.Funded === '1' ? 'positive' : 'negative'">
+                          {{ props.row.Funded === '1' ? 'Yes' : 'No' }}
+                        </q-badge>
+                      </template>
                     </q-td>
                   </template>
                   <!-- Add body cell template for position -->
@@ -141,25 +157,35 @@
                   </template>
 
                   <template v-slot:body-cell-action="props">
-                    <q-td :props="props">
+                    <q-td :props="props" class="q-gutter-x-sm">
                       <q-btn
                         v-if="props.row.Funded != '0'"
                         flat
                         dense
                         round
-                        color="blue"
-                        class="bg-blue-1"
+                        :color="
+                          props.row.Funded == '1' && props.row.Name1 != null ? 'blue' : 'green'
+                        "
+                        :class="
+                          props.row.Funded == '1' && props.row.Name1 != null
+                            ? 'bg-blue-1'
+                            : 'bg-green-1'
+                        "
                         :icon="
                           props.row.Funded == '1' && props.row.Name1 != null
                             ? 'visibility'
                             : 'post_add'
                         "
-                        @click="viewPosition(props.row)"
+                        @click="
+                          authStore.user.permissions.isFunded == '1'
+                            ? viewPosition(props.row)
+                            : null
+                        "
                       >
                         <q-tooltip>
                           {{
                             props.row.Funded == '1' && props.row.Name1 != null
-                              ? 'View QS'
+                              ? 'View Qualification Standard'
                               : 'Create Job Post'
                           }}
                         </q-tooltip>
@@ -169,12 +195,12 @@
                         flat
                         dense
                         round
-                        color="green"
-                        class="bg-green-1"
+                        color="black"
+                        class="bg-grey-4"
                         icon="print"
                         @click="printPosition(props.row)"
                       >
-                        <q-tooltip>Print</q-tooltip>
+                        <q-tooltip>Print PDS</q-tooltip>
                       </q-btn>
                     </q-td>
                   </template>
@@ -204,12 +230,6 @@
                         @click="pagination.page++"
                       />
                     </div>
-                  </template>
-
-                  <template v-slot:loading>
-                    <q-inner-loading showing color="primary">
-                      <q-linear-progress indeterminate color="primary" class="q-mt-sm" />
-                    </q-inner-loading>
                   </template>
                 </q-table>
               </q-card-section>
@@ -248,12 +268,26 @@
 
     <!-- Vacant Position Modal -->
     <q-dialog v-model="showVacantPositionModal">
-      <q-card class="q-pa-lg" style="width: 900px; max-width: 80vw">
-        <q-card-section>
+      <q-card
+        class="q-pa-none"
+        style="
+          width: 900px;
+          max-width: 90vw;
+          max-height: 90vh;
+          display: flex;
+          flex-direction: column;
+        "
+      >
+        <!-- Sticky Header -->
+        <q-card-section
+          class="q-pa-lg"
+          style="position: sticky; top: 0; z-index: 2; background: white"
+        >
           <div class="row justify-between">
             <div>
-              <div class="text-h5 text-bold">Plantilla Job Post</div>
-              <div class="text-subtitle2 text-grey">Software Engineer</div>
+              <div class="text-h4 text-bold">Post A Job</div>
+              <div class="text-body text-grey">{{ postJobDetails.position }}</div>
+              <q-badge>{{ postJobDetails.PositionID }}</q-badge>
             </div>
             <div>
               <q-btn
@@ -266,84 +300,145 @@
           </div>
         </q-card-section>
 
-        <q-card-section>
-          <div class="row q-col-gutter-md">
-            <div class="col-6">
-              <q-input v-model="jobTitle" label="Job Title" outlined dense />
+        <!-- Scrollable Body -->
+        <q-scroll-area class="q-px-md" style="height: 1000px">
+          <q-card-section class="q-py-none">
+            <!--  -->
+            <div class="row q-col-gutter-md">
+              <div class="col-6">
+                <q-input v-model="postJobDetails.office" label="Office" outlined dense disable />
+              </div>
+              <div class="col-6">
+                <q-input
+                  v-model="postJobDetails.division"
+                  label="Division"
+                  outlined
+                  dense
+                  disable
+                />
+              </div>
             </div>
-            <div class="col-6">
-              <q-input v-model="jobRole" label="Job Role/Position" outlined dense />
+            <div class="row q-col-gutter-md">
+              <div class="col-6">
+                <q-input v-model="postJobDetails.section" label="Section" outlined dense disable />
+              </div>
+              <div class="col-6">
+                <q-input v-model="postJobDetails.unit" label="Unit" outlined dense disable />
+              </div>
             </div>
-          </div>
+            <div class="row justify-center q-col-gutter-md">
+              <div class="col-6">
+                <q-input
+                  v-model="postJobDetails.position"
+                  label="Position"
+                  outlined
+                  dense
+                  disable
+                />
+              </div>
+            </div>
+            <!--  -->
 
-          <div class="row q-col-gutter-md q-mt-sm">
-            <div class="col-6">
-              <q-input v-model="startingDate" label="Starting Date" outlined dense mask="date">
-                <template v-slot:append>
-                  <q-icon name="event" class="cursor-pointer">
-                    <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                      <q-date v-model="startingDate" :options="(date) => date >= endedDate">
-                        <div class="row items-center justify-end">
-                          <q-btn v-close-popup label="Close" color="primary" flat />
-                        </div>
-                      </q-date>
-                    </q-popup-proxy>
-                  </q-icon>
-                </template>
-              </q-input>
+            <div class="row q-col-gutter-md q-mt-sm">
+              <div class="col-6">
+                <q-input
+                  v-model="postJobDetails.startingDate"
+                  label="Starting Date"
+                  outlined
+                  dense
+                  mask="date"
+                >
+                  <template v-slot:append>
+                    <q-icon name="event" class="cursor-pointer">
+                      <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                        <q-date
+                          v-model="postJobDetails.startingDate"
+                          :options="(date) => date >= postJobDetails.endedDate"
+                        >
+                          <div class="row items-center justify-end">
+                            <q-btn v-close-popup label="Close" color="primary" flat />
+                          </div>
+                        </q-date>
+                      </q-popup-proxy>
+                    </q-icon>
+                  </template>
+                </q-input>
+              </div>
+              <div class="col-6">
+                <q-input
+                  v-model="postJobDetails.endedDate"
+                  label="Ended Date"
+                  outlined
+                  dense
+                  mask="date"
+                  :rules="[
+                    (date) =>
+                      date >= postJobDetails.startingDate || 'End date cannot be before start date',
+                  ]"
+                >
+                  <template v-slot:append>
+                    <q-icon name="event" class="cursor-pointer">
+                      <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                        <q-date
+                          v-model="postJobDetails.endedDate"
+                          :options="(date) => date >= postJobDetails.startingDate"
+                        >
+                          <div class="row items-center justify-end">
+                            <q-btn v-close-popup label="Close" color="primary" flat />
+                          </div>
+                        </q-date>
+                      </q-popup-proxy>
+                    </q-icon>
+                  </template>
+                </q-input>
+              </div>
             </div>
-            <div class="col-6">
-              <q-input
-                v-model="endedDate"
-                label="Ended Date"
-                outlined
-                dense
-                mask="date"
-                :rules="[(date) => date >= startingDate || 'End date cannot be before start date']"
-              >
-                <template v-slot:append>
-                  <q-icon name="event" class="cursor-pointer">
-                    <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                      <q-date v-model="endedDate" :options="(date) => date >= startingDate">
-                        <div class="row items-center justify-end">
-                          <q-btn v-close-popup label="Close" color="primary" flat />
-                        </div>
-                      </q-date>
-                    </q-popup-proxy>
-                  </q-icon>
-                </template>
-              </q-input>
-            </div>
-          </div>
-        </q-card-section>
+          </q-card-section>
 
-        <q-card-section>
-          <div class="text-subtitle1 q-mb-sm text-bold">Qualification Standard</div>
-          <q-markup-table flat bordered>
-            <thead>
-              <tr>
-                <th class="text-left">Education</th>
-                <th class="text-left">Experience</th>
-                <th class="text-left">Training</th>
-                <th class="text-left">Eligibility</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>
-                  <q-select v-model="education" :options="['Bachelor\'s Degree']" outlined dense />
-                </td>
-                <td><q-select v-model="experience" :options="['Something']" outlined dense /></td>
-                <td><q-select v-model="training" :options="['Something']" outlined dense /></td>
-                <td><q-select v-model="eligibility" :options="['Something']" outlined dense /></td>
-              </tr>
-            </tbody>
-          </q-markup-table>
-        </q-card-section>
+          <q-card-section>
+            <div class="text-h5 q-mb-sm text-bold">Qualification Standard</div>
+            <q-table
+              :rows="qsDataLoad"
+              :columns="[
+                { name: 'education', label: 'Education', field: 'Education', align: 'left' },
+                { name: 'experience', label: 'Experience', field: 'Experience', align: 'left' },
+                { name: 'training', label: 'Training', field: 'Training', align: 'left' },
+                { name: 'eligibility', label: 'Eligibility', field: 'Eligibility', align: 'left' },
+              ]"
+              row-key="id"
+              :loading="usePlantilla.qsLoad"
+              hide-bottom
+            >
+              <template v-slot:body="props">
+                <q-tr :props="props">
+                  <q-td style="width: 100px; white-space: pre-line; word-break: break-word">
+                    {{ props.row.Education }}
+                  </q-td>
+                  <q-td style="width: 100px; white-space: pre-line; word-break: break-word">
+                    {{ props.row.Experience }}
+                  </q-td>
+                  <q-td style="width: 100px; white-space: pre-line; word-break: break-word">
+                    {{ props.row.Training }}
+                  </q-td>
+                  <q-td style="width: 120px; white-space: pre-line; word-break: break-word">
+                    {{ props.row.Eligibility }}
+                  </q-td>
+                </q-tr>
+              </template>
+            </q-table>
+          </q-card-section>
+        </q-scroll-area>
 
-        <q-card-actions align="right" class="q-pa-md">
+        <!-- Sticky Footer -->
+        <q-card-actions
+          align="right"
+          class="q-pa-md"
+          style="position: sticky; bottom: 0; z-index: 2; background: white"
+        >
           <q-btn
             color="primary"
+            :loading="usePlantilla.qsLoad"
+            :disabled="jobPostStore.loading"
             label="Create Post"
             @click="submitJobPost"
             size="md"
@@ -371,16 +466,28 @@
 </template>
 
 <script setup>
-  import { ref, onMounted, computed } from 'vue';
+  import { ref, onMounted, computed, watch } from 'vue';
   import QualityStandardModal from 'components/QualityStandardModal.vue';
   import PlantillaSelection from 'components/PlantillaSelection.vue';
   import { usePlantillaStore } from 'stores/plantillaStore';
   import PDSModal from 'components/PDSModal.vue';
+  import { useAuthStore } from 'stores/authStore';
+  import { useJobPostStore } from 'stores/jobPostStore';
 
+  const authStore = useAuthStore();
   const usePlantilla = usePlantillaStore();
 
   const showModal = ref(false);
   const showVacantPositionModal = ref(false);
+
+  // Watch for modal close and emit event to clear qsDataLoad
+  watch(showVacantPositionModal, (val) => {
+    if (!val) {
+      qsDataLoad.value = [];
+      // Optionally emit an event if needed, e.g.:
+      // emit('modal-closed', []);
+    }
+  });
 
   const closeQualificationModal = () => {
     showFilledPositionModal.value = false;
@@ -397,6 +504,8 @@
   };
   const showPDSModal = ref(false);
 
+  const qsDataLoad = ref([]);
+
   // Add filter object to store search values for each column
   const filters = ref({
     PageNo: '',
@@ -406,30 +515,6 @@
     Name2: '',
     fd: 'All',
     Status: '',
-  });
-
-  // eslint-disable-next-line no-unused-vars
-  const applicants = ref([
-    {
-      id: 1,
-      name: 'John Doe',
-      appliedDate: '2025-04-02',
-      status: 'Pending',
-      isSubmitted: false,
-    },
-  ]);
-
-  // eslint-disable-next-line no-unused-vars
-  const selectedJob = ref({
-    id: null,
-    officePosition: '',
-    position: '',
-    postingDate: '',
-    applicants: 0,
-    pending: 0,
-    qualified: 0,
-    unqualified: 0,
-    qualifications: [],
   });
 
   const viewApplicantPDS = () => {
@@ -449,6 +534,7 @@
 
   const selectedApplicant = ref({
     id: null,
+    PositionID: '',
     controlno: '',
     name: '',
     photo: '',
@@ -463,6 +549,28 @@
     personalInfo: {},
   });
 
+  const postJobDetails = ref({
+    office: '',
+    division: '',
+    section: '',
+    unit: '',
+    position: '',
+    startingDate: '',
+    endedDate: '',
+    PositionID: '',
+    PageNo: '',
+    ItemNo: '',
+    SG: '',
+  });
+
+  const qsCriteria = ref({
+    PositionID: '',
+    Education: '',
+    Eligibility: '',
+    Experience: '',
+    Training: '',
+  });
+
   // Add current structure selection
   const currentStructure = ref(null);
 
@@ -471,16 +579,8 @@
     rowsPerPage: 7,
   });
 
-  const jobTitle = ref('City Office of ...');
-  const jobRole = ref('Software Engineer');
-  const startingDate = ref('2019/02/01');
-  const endedDate = ref('2001/01/01');
-  const education = ref(null);
-  const experience = ref(null);
-  const training = ref(null);
-  const eligibility = ref(null);
   // const currentPosition = ref('');
-  const higherEducation = ref('');
+  // const higherEducation = ref('');
 
   const positions = ref([]);
 
@@ -503,46 +603,43 @@
 
   // Create a computed property to filter the positions based on search inputs and structure selection
   const filteredPositions = computed(() => {
-    // Return empty array if no structure is selected
     if (!currentStructure.value) {
       return [];
     }
 
-    // Filter by organizational structure
     let filtered = positions.value.filter((row) => {
-      // Match by office
-      if (
-        currentStructure.value.office &&
-        (!row.office || row.office !== currentStructure.value.office)
-      ) {
-        return false;
-      }
+      const s = currentStructure.value;
 
-      // Match by division if specified
-      if (
-        currentStructure.value.division &&
-        (!row.division || row.division !== currentStructure.value.division)
-      ) {
-        return false;
-      }
+      // Always filter by office
+      if (!row.office || row.office !== s.office) return false;
 
-      // Match by section if specified
-      if (
-        currentStructure.value.section &&
-        (!row.section || row.section !== currentStructure.value.section)
-      ) {
-        return false;
+      // Now, filter by the "deepest" selected structure
+      if (s.unit) {
+        // Must match division, section, unit exactly
+        return row.division === s.division && row.section === s.section && row.unit === s.unit;
+      } else if (s.section) {
+        // Must match division & section, unit must be empty/null
+        return (
+          row.division === s.division && row.section === s.section && (!row.unit || row.unit === '')
+        );
+      } else if (s.division) {
+        // Must match division, section & unit must be empty/null
+        return (
+          row.division === s.division &&
+          (!row.section || row.section === '') &&
+          (!row.unit || row.unit === '')
+        );
+      } else {
+        // Only office selected: division, section, unit must be empty/null
+        return (
+          (!row.division || row.division === '') &&
+          (!row.section || row.section === '') &&
+          (!row.unit || row.unit === '')
+        );
       }
-
-      // Match by unit if specified
-      if (currentStructure.value.unit && (!row.unit || row.unit !== currentStructure.value.unit)) {
-        return false;
-      }
-
-      return true;
     });
 
-    // Then apply the search filters
+    // Apply column text filters as before
     return filtered.filter((row) => {
       for (const key in filters.value) {
         if (filters.value[key]) {
@@ -611,17 +708,36 @@
     selectedFile.value = null;
   };
   // view qs
-  const viewPosition = (row) => {
+  const viewPosition = async (row) => {
     selectedPosition.value = row;
     if (row.Name1) {
       selectedApplicant.value.controlno = row.ControlNo;
+      selectedApplicant.value.PositionID = row.PositionID;
       selectedApplicant.value.name = row.Name4;
       selectedApplicant.value.position = row.position;
       selectedApplicant.value.status = row.Status;
-      higherEducation.value = 'Bachelor of Science in Management';
+      // higherEducation.value = 'Bachelor of Science in Management';
       showFilledPositionModal.value = true;
     } else {
       showVacantPositionModal.value = true;
+      postJobDetails.value.office = row.office;
+      postJobDetails.value.division = row.division;
+      postJobDetails.value.section = row.section;
+      postJobDetails.value.unit = row.unit;
+      postJobDetails.value.position = row.position;
+      postJobDetails.value.PositionID = row.PositionID;
+      postJobDetails.value.PageNo = row.PageNo;
+      postJobDetails.value.ItemNo = row.ItemNo;
+      postJobDetails.value.SG = row.SG;
+      // console.log(postJobDetails.value);
+      await usePlantilla.fetchQsData(row.PositionID);
+      qsDataLoad.value = usePlantilla.qsData;
+      // console.log(usePlantilla.qsData[0].Education);
+      qsCriteria.value.Education = usePlantilla.qsData[0].Education;
+      qsCriteria.value.Experience = usePlantilla.qsData[0].Experience;
+      qsCriteria.value.Eligibility = usePlantilla.qsData[0].Eligibility;
+      qsCriteria.value.Training = usePlantilla.qsData[0].Training;
+      qsCriteria.value.PositionID = row.PositionID;
     }
   };
 
@@ -629,8 +745,44 @@
     console.log('Printing:', row);
   };
 
-  const submitJobPost = () => {
-    console.log('Job Post Submitted');
+  const jobPostStore = useJobPostStore();
+
+  const submitJobPost = async () => {
+    // Perform the job post submission logic here
+    const jobBatch = {
+      PositionID: parseInt(postJobDetails.value.PositionID),
+      Office: postJobDetails.value.office,
+      Office2: null,
+      Group: null,
+      Division: postJobDetails.value.division,
+      Section: postJobDetails.value.section,
+      Unit: postJobDetails.value.unit,
+      Position: postJobDetails.value.position,
+      post_date: postJobDetails.value.startingDate,
+      end_date: postJobDetails.value.endedDate,
+      PageNo: postJobDetails.value.PageNo,
+      ItemNo: postJobDetails.value.ItemNo,
+      SalaryGrade: postJobDetails.value.SG,
+      salaryMin: null,
+      salaryMax: null,
+    };
+
+    const jobCriteria = {
+      PositionID: parseInt(qsCriteria.value.PositionID),
+      EduPercent: '0',
+      EliPercent: '0',
+      TrainPercent: '0',
+      ExperiencePercent: '0',
+      Education: qsCriteria.value.Education,
+      Eligibility: qsCriteria.value.Eligibility,
+      Training: qsCriteria.value.Training,
+      Experience: qsCriteria.value.Experience,
+    };
+    await jobPostStore.insertJobPost({
+      jobBatch: jobBatch,
+      criteria: jobCriteria,
+    });
+
     showVacantPositionModal.value = false;
   };
 
@@ -659,8 +811,8 @@
 
   onMounted(async () => {
     // Fetch data or perform any setup when the component is mounted
-    startingDate.value = new Date().toISOString().split('T')[0].replace(/-/g, '/');
-    endedDate.value = new Date().toISOString().split('T')[0].replace(/-/g, '/');
+    postJobDetails.value.startingDate = new Date().toISOString().split('T')[0].replace(/-/g, '/');
+    postJobDetails.value.endedDate = new Date().toISOString().split('T')[0].replace(/-/g, '/');
 
     await usePlantilla.fetchPlantilla();
     positions.value = usePlantilla.plantilla.map((item) => ({

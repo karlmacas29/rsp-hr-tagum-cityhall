@@ -14,15 +14,6 @@
     </div>
     <div class="row justify-between items-center q-mb-lg">
       <div class="text-h4 text-weight-bold q-ma-none">Edit Criteria</div>
-      <q-btn
-        color="primary"
-        label="Save Ratings"
-        icon="save"
-        :loading="loading"
-        @click="confirmSave"
-        v-if="showRatingTable"
-        rounded
-      />
     </div>
 
     <q-card flat bordered class="q-pa-md q-mb-lg">
@@ -131,7 +122,20 @@
         <div class="col-12 col-md-6">
           <q-card flat bordered class="criteria-card">
             <q-card-section class="bg-blue-1">
-              <div class="text-subtitle1 text-weight-medium">Education (20%)</div>
+              <div class="row items-center justify-between">
+                <div class="text-subtitle1 text-weight-medium">Education</div>
+                <q-input
+                  v-model.number="editableCriteria.education.weight"
+                  type="number"
+                  min="0"
+                  max="100"
+                  suffix="%"
+                  dense
+                  outlined
+                  style="width: 100px"
+                  @update:model-value="validatePercentage('education')"
+                />
+              </div>
             </q-card-section>
             <q-card-section>
               <q-input
@@ -164,7 +168,20 @@
         <div class="col-12 col-md-6">
           <q-card flat bordered class="criteria-card">
             <q-card-section class="bg-blue-1">
-              <div class="text-subtitle1 text-weight-medium">Experience (20%)</div>
+              <div class="row items-center justify-between">
+                <div class="text-subtitle1 text-weight-medium">Experience</div>
+                <q-input
+                  v-model.number="editableCriteria.experience.weight"
+                  type="number"
+                  min="0"
+                  max="100"
+                  suffix="%"
+                  dense
+                  outlined
+                  style="width: 100px"
+                  @update:model-value="validatePercentage('experience')"
+                />
+              </div>
             </q-card-section>
             <q-card-section>
               <q-input
@@ -204,7 +221,20 @@
         <div class="col-12 col-md-6">
           <q-card flat bordered class="criteria-card">
             <q-card-section class="bg-blue-1">
-              <div class="text-subtitle1 text-weight-medium">Training (15%)</div>
+              <div class="row items-center justify-between">
+                <div class="text-subtitle1 text-weight-medium">Training</div>
+                <q-input
+                  v-model.number="editableCriteria.training.weight"
+                  type="number"
+                  min="0"
+                  max="100"
+                  suffix="%"
+                  dense
+                  outlined
+                  style="width: 100px"
+                  @update:model-value="validatePercentage('training')"
+                />
+              </div>
             </q-card-section>
             <q-card-section>
               <q-input
@@ -237,7 +267,20 @@
         <div class="col-12 col-md-6">
           <q-card flat bordered class="criteria-card">
             <q-card-section class="bg-blue-1">
-              <div class="text-subtitle1 text-weight-medium">Performance (15%)</div>
+              <div class="row items-center justify-between">
+                <div class="text-subtitle1 text-weight-medium">Performance</div>
+                <q-input
+                  v-model.number="editableCriteria.performance.weight"
+                  type="number"
+                  min="0"
+                  max="100"
+                  suffix="%"
+                  dense
+                  outlined
+                  style="width: 100px"
+                  @update:model-value="validatePercentage('performance')"
+                />
+              </div>
             </q-card-section>
             <q-card-section>
               <q-input
@@ -270,6 +313,69 @@
             </q-card-section>
           </q-card>
         </div>
+
+        <div class="col-12 col-md-6">
+          <q-card flat bordered class="criteria-card">
+            <q-card-section class="bg-blue-1">
+              <div class="row items-center justify-between">
+                <div class="text-subtitle1 text-weight-medium">Behavioral Event Interview</div>
+                <q-input
+                  v-model.number="editableCriteria.bei.weight"
+                  type="number"
+                  min="0"
+                  max="100"
+                  suffix="%"
+                  dense
+                  outlined
+                  style="width: 100px"
+                  @update:model-value="validatePercentage('bei')"
+                />
+              </div>
+            </q-card-section>
+            <q-card-section>
+              <q-input
+                v-model="editableCriteria.bei.title"
+                label="Title"
+                dense
+                outlined
+                class="q-mb-sm"
+              />
+              <q-input
+                v-model="editableCriteria.bei.description"
+                label="Description"
+                dense
+                outlined
+                type="textarea"
+                autogrow
+                rows="3"
+              />
+            </q-card-section>
+          </q-card>
+        </div>
+      </div>
+
+      <div class="row justify-between items-center q-mt-lg">
+        <q-banner rounded class="bg-grey-3 col-md-6 q-mr-md">
+          <template v-slot:avatar>
+            <q-icon name="info" color="primary" />
+          </template>
+          <div class="text-subtitle2">Total Weight: {{ totalWeight }}%</div>
+          <div v-if="totalWeight !== 100" class="text-negative text-caption">
+            The total weight must equal 100%
+          </div>
+        </q-banner>
+
+        <q-btn
+          color="primary"
+          label="Save Criteria"
+          icon="save"
+          :loading="loading"
+          @click="confirmSave"
+          rounded
+          padding="12px 24px"
+          class="text-weight-bold"
+          :disable="totalWeight !== 100"
+        />
       </div>
 
       <RaterPreview
@@ -333,7 +439,7 @@
             title2: 'RELEVANT EDUCATION',
             description:
               "Completion of Bachelor's Degree and/or Master/ Doctorate/ Professional Ed or Position → 20%",
-            weight: 0.2,
+            weight: 20,
           },
           experience: {
             title1: 'None required',
@@ -341,21 +447,27 @@
             description1:
               'With Experience with higher Salary Grade/level with Office Order of Designation from the Local Chief → 20%',
             description2: 'Without Experience → 10%',
-            weight: 0.2,
+            weight: 20,
           },
           training: {
             title1: 'None required',
             title2: 'RELEVANT TRAINING',
             description:
               'With the Minimum hours of related Training to the position or at least 4 hours if required of the position → 15%',
-            weight: 0.15,
+            weight: 15,
           },
           performance: {
             title: 'IPCR Rating/OPV Rating',
             rating1: 'Outstanding → 15%',
             rating2: 'Very Satisfactory → 13%',
             rating3: 'Below VS rating → 10%',
-            weight: 0.15,
+            weight: 15,
+          },
+          bei: {
+            title: 'Behavioral Event Interview',
+            description:
+              'Score based on behavioral competencies (e.g., leadership, teamwork, problem-solving) → 10%',
+            weight: 10,
           },
         },
         editableCriteria: null,
@@ -418,7 +530,22 @@
         return rankApplicants(this.applicants, this.displayCriteria);
       },
       canSave() {
-        return this.formData.office && this.formData.position && this.editableCriteria;
+        return (
+          this.formData.office &&
+          this.formData.position &&
+          this.editableCriteria &&
+          this.totalWeight === 100
+        );
+      },
+      totalWeight() {
+        if (!this.editableCriteria) return 0;
+        return (
+          (this.editableCriteria.education.weight || 0) +
+          (this.editableCriteria.experience.weight || 0) +
+          (this.editableCriteria.training.weight || 0) +
+          (this.editableCriteria.performance.weight || 0) +
+          (this.editableCriteria.bei.weight || 0)
+        );
       },
     },
     created() {
@@ -440,6 +567,13 @@
       };
     },
     methods: {
+      validatePercentage(field) {
+        if (this.editableCriteria[field].weight < 0) {
+          this.editableCriteria[field].weight = 0;
+        } else if (this.editableCriteria[field].weight > 100) {
+          this.editableCriteria[field].weight = 100;
+        }
+      },
       async fetchInitialData() {
         try {
           await this.raterStore.fetchRaters();
@@ -452,14 +586,22 @@
       },
       confirmSave() {
         if (!this.canSave) {
-          toast.warning('Please complete all required fields before saving.');
+          if (this.totalWeight !== 100) {
+            toast.warning('The total weight must equal 100% before saving.');
+          } else {
+            toast.warning('Please complete all required fields before saving.');
+          }
           return;
         }
         this.confirmDialog = true;
       },
       async saveRatings() {
         if (!this.canSave) {
-          toast.warning('Please complete all required fields before saving.');
+          if (this.totalWeight !== 100) {
+            toast.warning('The total weight must equal 100% before saving.');
+          } else {
+            toast.warning('Please complete all required fields before saving.');
+          }
           return;
         }
 
@@ -467,22 +609,34 @@
         this.savingAttempts++;
 
         try {
+          const criteriaForStorage = JSON.parse(JSON.stringify(this.editableCriteria));
+          criteriaForStorage.education.weight = criteriaForStorage.education.weight / 100;
+          criteriaForStorage.experience.weight = criteriaForStorage.experience.weight / 100;
+          criteriaForStorage.training.weight = criteriaForStorage.training.weight / 100;
+          criteriaForStorage.performance.weight = criteriaForStorage.performance.weight / 100;
+          criteriaForStorage.bei.weight = criteriaForStorage.bei.weight / 100;
+
           const payload = {
             position: this.formData.position,
             office: this.formData.office,
             plantillaItemNo: this.formData.plantillaItemNo,
             salaryGrade: this.formData.salaryGrade,
-            criteria: JSON.parse(JSON.stringify(this.editableCriteria)),
+            criteria: criteriaForStorage,
           };
 
           const result = await this.raterStore.savePositionCriteria(payload);
 
           if (result) {
-            this.displayCriteria = JSON.parse(JSON.stringify(this.editableCriteria));
+            result.education.weight = result.education.weight * 100;
+            result.experience.weight = result.experience.weight * 100;
+            result.training.weight = result.training.weight * 100;
+            result.performance.weight = result.performance.weight * 100;
+            result.bei.weight = result.bei.weight * 100;
+
+            this.displayCriteria = JSON.parse(JSON.stringify(result));
             toast.success(`Criteria for ${this.formData.position} saved successfully`);
             this.savingAttempts = 0;
 
-            // Save applicants separately
             await this.saveApplicantRatings();
 
             return result;
@@ -520,16 +674,29 @@
         try {
           this.loading = true;
 
+          const criteriaForStorage = JSON.parse(JSON.stringify(this.editableCriteria));
+          criteriaForStorage.education.weight = criteriaForStorage.education.weight / 100;
+          criteriaForStorage.experience.weight = criteriaForStorage.experience.weight / 100;
+          criteriaForStorage.training.weight = criteriaForStorage.training.weight / 100;
+          criteriaForStorage.performance.weight = criteriaForStorage.performance.weight / 100;
+          criteriaForStorage.bei.weight = criteriaForStorage.bei.weight / 100;
+
           const payload = {
             position: this.formData.position,
             office: this.formData.office,
-            criteria: JSON.parse(JSON.stringify(this.editableCriteria)),
+            criteria: criteriaForStorage,
           };
 
           const response = await api.post('/criteria', payload);
 
           if (response.data) {
-            this.displayCriteria = JSON.parse(JSON.stringify(this.editableCriteria));
+            response.data.education.weight = response.data.education.weight * 100;
+            response.data.experience.weight = response.data.experience.weight * 100;
+            response.data.training.weight = response.data.training.weight * 100;
+            response.data.performance.weight = response.data.performance.weight * 100;
+            response.data.bei.weight = response.data.bei.weight * 100;
+
+            this.displayCriteria = JSON.parse(JSON.stringify(response.data));
             toast.success(`Criteria saved successfully (via fallback)`);
             this.savingAttempts = 0;
             return response.data;
@@ -589,6 +756,12 @@
           const existingCriteria = await this.fetchExistingCriteria();
 
           if (existingCriteria) {
+            existingCriteria.education.weight = existingCriteria.education.weight * 100;
+            existingCriteria.experience.weight = existingCriteria.experience.weight * 100;
+            existingCriteria.training.weight = existingCriteria.training.weight * 100;
+            existingCriteria.performance.weight = existingCriteria.performance.weight * 100;
+            existingCriteria.bei.weight = existingCriteria.bei.weight * 100;
+
             this.editableCriteria = JSON.parse(JSON.stringify(existingCriteria));
             this.displayCriteria = JSON.parse(JSON.stringify(existingCriteria));
           } else {
@@ -620,7 +793,8 @@
             criteria.education &&
             criteria.experience &&
             criteria.training &&
-            criteria.performance
+            criteria.performance &&
+            criteria.bei
           ) {
             return criteria;
           }
@@ -634,24 +808,31 @@
       loadMockPositionDetails() {
         if (this.formData.position === 'Administrative Officer') {
           this.formData.salaryGrade = 'SG-24';
-          this.formData.plantillaItemNo = 'ADMIN-2024-001';
+          this.formData.plantillaItemNo = 'ADMIN-2024-001　　　　　';
           this.editableCriteria.education.title1 = "Bachelor's Degree";
           this.editableCriteria.experience.title1 = '5 years of relevant experience';
+          this.editableCriteria.bei.description =
+            'Behavioral competencies for administrative leadership';
         } else if (this.formData.position === 'Budget Officer') {
           this.formData.salaryGrade = 'SG-22';
           this.formData.plantillaItemNo = 'BUDG-2024-003';
           this.editableCriteria.education.title1 = "Bachelor's Degree in Accounting or Finance";
           this.editableCriteria.experience.title1 = '3 years of relevant experience';
+          this.editableCriteria.bei.description =
+            'Behavioral competencies for financial decision-making';
         } else if (this.formData.position === 'Accountant') {
           this.formData.salaryGrade = 'SG-19';
           this.formData.plantillaItemNo = 'ACCT-2024-002';
           this.editableCriteria.education.title1 = "Bachelor's Degree in Accounting";
           this.editableCriteria.experience.title1 = '2 years of accounting experience';
+          this.editableCriteria.bei.description =
+            'Behavioral competencies for accounting precision';
         } else {
           this.formData.salaryGrade = 'SG-18';
           this.formData.plantillaItemNo = `${this.formData.position.substr(0, 4).toUpperCase()}-2024-005`;
           this.editableCriteria.education.title1 = "Bachelor's Degree";
           this.editableCriteria.experience.title1 = '1 year of relevant experience';
+          this.editableCriteria.bei.description = 'General behavioral competencies';
         }
 
         this.displayCriteria = JSON.parse(JSON.stringify(this.editableCriteria));

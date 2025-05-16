@@ -13,7 +13,7 @@
             <div class="text-body q-mb-xs">Posted on 20 February 2025</div>
           </div>
     </div>
-    
+
     <div class="row justify-evenly items-center">
         <!-- Main content card -->
     <q-card class="col-8" flat bordered>
@@ -48,7 +48,7 @@
             <div class="text-h5 text-bold text-green">Office</div>
             <div class="text-body2 text-uppercase">CITY OF INFORMATION COMMUNICATIONS & TECHNOLOGY MANAGEMENT OFFICE</div>
           </div>
-          
+
         </div>
       </q-card-section>
       <q-separator />
@@ -73,8 +73,8 @@
         <div class="text-body2">Computer Programmer II</div>
       </q-card-section>
     </q-card>
-    
-    
+
+
     </div>
   </q-page>
 </template>

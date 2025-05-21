@@ -3,7 +3,9 @@
     <div class="row items-center justify-between full-width">
       <div class="grid justify-start items-start q-pa-sm">
         <h5 class="text-h6 q-ma-none"><b>Recruitment, Selection and Placement</b></h5>
-        <p class="q-ma-none" style="font-size: 12px">City of Human Resources</p>
+        <p class="q-ma-none" style="font-size: 12px">
+          City of Tagum Human Resource Management Office
+        </p>
       </div>
 
       <div class="row items-center">

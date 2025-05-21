@@ -9,8 +9,11 @@
       <q-card-section v-if="!jobPostStore.loading">
         <q-card-section>
           <div class="grid items-center">
-            <q-btn icon="arrow_back" round class="q-mr-sm" color="primary" @click="goBack" />
-            <div class="text-h3">{{ selectedJob?.Position || 'Test' }}</div>
+            <div class="row justify-between items-center">
+              <q-btn icon="arrow_back" round class="q-mr-sm" color="primary" @click="goBack" />
+              <q-btn rounded color="black" @click="viewFundedDocument">View Funded</q-btn>
+            </div>
+            <div class="text-h3 q-mt-md">{{ selectedJob?.Position || 'Test' }}</div>
           </div>
         </q-card-section>
 
@@ -118,6 +121,37 @@
         </q-card-section>
       </q-card-section>
     </q-card>
+
+    <q-dialog v-model="pdfModalVisible">
+      <q-card style="width: 80vw; max-width: 90vw; height: 90vh">
+        <q-card-section class="row items-center bg-green text-white">
+          <div class="text-h5 text-bold">Funded Plantilla Document</div>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup />
+        </q-card-section>
+
+        <q-card-section style="height: calc(100% - 80px)">
+          <q-inner-loading :showing="isLoadingPdf">
+            <q-spinner size="50px" color="primary" />
+          </q-inner-loading>
+          <template v-if="!isLoadingPdf && pdfFileUrl">
+            <iframe
+              :src="pdfFileUrl"
+              style="width: 100%; height: 100%; border: 2px dashed black; border-radius: 10px"
+              title="Funded Plantilla PDF"
+            ></iframe>
+          </template>
+          <template v-if="!isLoadingPdf && !pdfFileUrl && !isLoadingPdf">
+            <!-- Added !isLoadingPdf here -->
+            <div class="text-center q-pa-md">
+              <q-icon name="error_outline" size="3em" color="negative" />
+              <p>Could not load PDF document. The file might be missing or an error occurred.</p>
+              <p v-if="pdfErrorMessage">{{ pdfErrorMessage }}</p>
+            </div>
+          </template>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
   </div>
 </template>
 <script setup>
@@ -125,17 +159,71 @@
   import { useJobPostStore } from 'stores/jobPostStore';
   import { onMounted, ref } from 'vue';
   import { date } from 'quasar';
+  import axios from 'axios'; // Import axios
+  import { toast } from 'src/boot/toast';
 
   const router = useRouter();
   const route = useRoute();
   const jobPostStore = useJobPostStore();
-  const jobId = route.params.id;
+  const P_ID = route.params.PositionID;
+  const I_No = route.params.ItemNo;
   const selectedJob = ref([]);
   const { formatDate } = date;
   const selectedCriteria = ref([]);
 
   const goBack = () => {
     router.push('/job-post');
+    // selectedJob.value = [];
+    // selectedCriteria.value = [];
+  };
+
+  const pdfModalVisible = ref(false);
+  const pdfFileUrl = ref('');
+  const isLoadingPdf = ref(false);
+  const pdfErrorMessage = ref('');
+
+  const viewFundedDocument = async () => {
+    if (!selectedJob.value || !selectedJob.value.PositionID || !selectedJob.value.ItemNo) {
+      toast.error('PositionID or ItemNo not found for the selected job. Cannot fetch document.');
+
+      console.error('PositionID or ItemNo not found for the selected job.');
+      return;
+    }
+
+    isLoadingPdf.value = true;
+    pdfModalVisible.value = true;
+    pdfFileUrl.value = '';
+    pdfErrorMessage.value = '';
+
+    try {
+      const apiUrl = process.env.VUE_APP_API_URL;
+      const response = await axios.get(
+        `${apiUrl}/on-funded-plantilla/by-funded/${selectedJob.value.PositionID}/${selectedJob.value.ItemNo}`,
+      );
+
+      // Remove '/api' from the apiUrl if present
+      let apiPDF = apiUrl.replace(/\/api\/?$/, '');
+
+      if (response.data.status === 'success' && response.data.data.fileUpload) {
+        pdfFileUrl.value = `${apiPDF}/storage/${response.data.data.fileUpload}`;
+      } else {
+        pdfErrorMessage.value =
+          response.data.message || 'Failed to fetch PDF path or file is missing.';
+        toast.error(pdfErrorMessage.value);
+
+        console.error('Failed to fetch PDF path or fileUpload is missing:', response.data.message);
+      }
+    } catch (error) {
+      console.error('Error fetching PDF path:', error);
+      if (error.response && error.response.data && error.response.data.message) {
+        pdfErrorMessage.value = error.response.data.message;
+      } else {
+        pdfErrorMessage.value = 'An unexpected error occurred while fetching the PDF.';
+      }
+      toast.error(pdfErrorMessage.value);
+    } finally {
+      isLoadingPdf.value = false;
+    }
   };
 
   const applicantColumns = [
@@ -162,10 +250,10 @@
     },
   ];
   onMounted(async () => {
-    await jobPostStore.fetchJobPostById(jobId).then((job) => {
+    await jobPostStore.fetchJobPostByPositionAndItemNo(P_ID, I_No).then((job) => {
       selectedJob.value = job;
     });
-    await jobPostStore.fetchCriteriaById(jobId).then((criteria) => {
+    await jobPostStore.fetchCriteriaByPositionAndItemNo(P_ID, I_No).then((criteria) => {
       selectedCriteria.value = criteria;
     });
   });

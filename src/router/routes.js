@@ -64,7 +64,7 @@ const routes = [
         component: () => import('pages/admin/Dashboard/StatusPageView.vue'),
       },
       {
-        path: '/job-post/view/:id',
+        path: '/job-post/view/:PositionID/:ItemNo',
         name: 'JobPost View',
         component: () => import('pages/admin/job_post/ViewJobDetails.vue'),
       },
@@ -87,7 +87,7 @@ const routes = [
         component: () => import('pages/user/UserJobList.vue'),
       },
       {
-        path: '/jobList/details/:id',
+        path: '/jobList/details/:PositionID/:ItemNo',
         name: 'Joblist Details',
         component: () => import('pages/user/ViewJobDetails.vue'),
       },

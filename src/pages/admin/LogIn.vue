@@ -15,10 +15,10 @@
                   <br />
                   Selection and
                   <br />
-                  Placement
+                  Placement System
                 </div>
                 <div class="text-h6" style="text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5)">
-                  City of Human Resources
+                  City of Tagum Human Resource Management Office
                 </div>
               </div>
             </div>

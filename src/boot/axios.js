@@ -2,7 +2,8 @@ import { boot } from 'quasar/wrappers';
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: process.env.VUE_APP_API_URL, // Ensure this matches your backend URL
+  baseURL: process.env.VUE_APP_API_URL,
+  withCredentials: true,
 });
 
 // Add a request interceptor to include the token in the Authorization header

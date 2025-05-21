@@ -42,7 +42,7 @@
                 color="primary"
                 size="sm"
                 label="Apply Now"
-                @click="handleJobClick(props.row.PositionID)"
+                @click="handleJobClick(props.row.PositionID, props.row.ItemNo)"
               />
             </q-td>
           </template>
@@ -118,10 +118,8 @@
   // Generate mock job data
   const jobs = ref([]);
 
-  const handleJobClick = (jobId) => {
-    console.log('Job clicked:', jobId);
-    // You would typically navigate to a job detail page here
-    router.push(`/jobList/details/${jobId}`);
+  const handleJobClick = (PositionID, ItemNo) => {
+    router.push(`/jobList/details/${PositionID}/${ItemNo}`);
   };
 
   onMounted(async () => {

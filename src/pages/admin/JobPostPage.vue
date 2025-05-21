@@ -404,7 +404,10 @@
   });
 
   const viewJobDetails = (job) => {
-    router.push({ name: 'JobPost View', params: { id: job.PositionID } });
+    router.push({
+      name: 'JobPost View',
+      params: { PositionID: job.PositionID, ItemNo: job.ItemNo },
+    });
     // selectedJob.value = { ...job };
     // showingDetails.value = true;
     // applicants.value = applicants.value.map((applicant) => ({

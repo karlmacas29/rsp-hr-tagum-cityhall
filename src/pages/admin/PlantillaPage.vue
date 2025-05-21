@@ -79,7 +79,7 @@
 
                   <!-- Add body cell template for ItemNo -->
                   <template v-slot:body-cell-ItemNo="props">
-                    <q-td :props="props" style="width: 70px; white-space: normal">
+                    <q-td :props="props" style="width: 80px; white-space: normal">
                       {{ props.value }}
                     </q-td>
                   </template>
@@ -109,14 +109,13 @@
                     <q-td :props="props">
                       <template v-if="authStore.user.permissions.isFunded == '1'">
                         <q-toggle
-                          v-model="props.row.Funded"
+                          :model-value="props.row.Funded"
                           color="green"
                           true-value="1"
                           false-value="0"
                           checked-icon="check"
                           unchecked-icon="clear"
-                          @update:model-value="handleToggle(props.row)"
-                          :disable="props.row.Funded === '1'"
+                          @update:model-value="(val) => handleToggle(props.row, val)"
                         />
                       </template>
                       <template v-else>
@@ -250,18 +249,73 @@
 
     <!-- Upload File Modal -->
     <q-dialog v-model="showModal">
-      <q-card>
-        <q-card-section>
-          <div class="text-h6">Upload Verification File</div>
+      <q-card class="q-pa-none" style="width: 500px; max-width: 90vw">
+        <q-card-section class="q-pa-md bg-green text-white">
+          <div class="text-h4 text-bold">Upload a Plantilla Funded</div>
         </q-card-section>
 
-        <q-card-section>
-          <q-file v-model="selectedFile" label="Choose a file" filled />
+        <q-card-section class="q-pa-md grid justify-center items-center">
+          <q-file
+            v-model="selectedFile"
+            borderless
+            clearable
+            accept=".pdf"
+            :max-files="1"
+            @rejected="onFileRejected"
+            label="Upload PDF file (max 5MB)"
+            style="
+              width: 350px; /* Adjust width as needed */
+              padding: 20px;
+              border: 2px dashed #ccc;
+              border-radius: 8px;
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+              align-items: center;
+              cursor: pointer;
+            "
+            class="q-mx-auto"
+          >
+            <template v-slot:prepend>
+              <q-icon name="upload_file" size="2em" color="grey-7" />
+            </template>
+          </q-file>
+
+          <!-- Add progress indicator -->
+          <div class="q-mt-md full-width">
+            <q-linear-progress
+              rounded
+              stripe
+              size="10px"
+              :value="uploadStatus.progress / 100"
+              color="blue"
+              class="q-mt-sm"
+            />
+            <div class="text-caption q-mt-xs text-center">
+              Uploading: {{ uploadStatus.progress }}%
+            </div>
+          </div>
+
+          <!-- Display error message if any -->
+          <div v-if="uploadStatus.error" class="text-negative q-mt-sm text-center">
+            {{ uploadStatus.error }}
+          </div>
+
+          <!-- Show success message when upload is complete -->
+          <div v-if="isUploadComplete" class="text-positive q-mt-sm text-center">
+            Upload completed successfully!
+          </div>
         </q-card-section>
 
         <q-card-actions align="right">
-          <q-btn label="Confirm" color="green" :disabled="!selectedFile" @click="confirmUpload" />
           <q-btn label="Cancel" color="red" flat @click="cancelUpload" />
+          <q-btn
+            rounded
+            label="Confirm"
+            color="green"
+            :disabled="!selectedFile || uploadStatus.isUploading"
+            @click="confirmUpload"
+          />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -287,7 +341,6 @@
             <div>
               <div class="text-h4 text-bold">Post A Job</div>
               <div class="text-body text-grey">{{ postJobDetails.position }}</div>
-              <q-badge>{{ postJobDetails.PositionID }}</q-badge>
             </div>
             <div>
               <q-btn
@@ -431,10 +484,18 @@
 
         <!-- Sticky Footer -->
         <q-card-actions
-          align="right"
-          class="q-pa-md"
+          align="center"
+          class="q-pa-md row justify-between items-center"
           style="position: sticky; bottom: 0; z-index: 2; background: white"
         >
+          <q-input
+            outlined
+            dense
+            label="Set Page No."
+            type="number"
+            v-model="postJobDetails.PageNo"
+          />
+
           <q-btn
             color="primary"
             :loading="usePlantilla.qsLoad"
@@ -473,11 +534,298 @@
   import PDSModal from 'components/PDSModal.vue';
   import { useAuthStore } from 'stores/authStore';
   import { useJobPostStore } from 'stores/jobPostStore';
+  import { toast } from 'src/boot/toast';
+  import axios from 'axios';
 
   const authStore = useAuthStore();
   const usePlantilla = usePlantillaStore();
-
+  //
+  const currentRow = ref(null);
   const showModal = ref(false);
+  const selectedFile = ref(null); // Used with q-file v-model
+  const uploadStatus = ref({
+    isUploaded: false,
+    isUploading: false,
+    progress: 0,
+    error: null,
+  });
+
+  // New function to handle the actual upload
+  const uploadFileToServer = (fileToUpload) => {
+    return new Promise((resolve, reject) => {
+      const progressHandler = (progressEvent) => {
+        const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+        uploadStatus.value.progress = percentCompleted;
+      };
+
+      if (!currentRow.value || !currentRow.value.PositionID) {
+        const errorMessage = 'PositionID is required but not set. Please select a valid row.';
+        uploadStatus.value = {
+          isUploading: false,
+          isUploaded: false,
+          progress: 0,
+          error: errorMessage,
+        };
+        console.error(errorMessage);
+        return reject(new Error(errorMessage));
+      }
+
+      const formData = new FormData();
+      formData.append('fileUpload', fileToUpload);
+      formData.append('PositionID', currentRow.value.PositionID);
+      formData.append('ItemNo', currentRow.value.ItemNo); // Include ItemNo in the form data
+
+      console.log('Uploading with PositionID:', currentRow.value.PositionID);
+      console.log('Uploading with ItemNo:', currentRow.value.ItemNo);
+
+      uploadStatus.value = {
+        isUploading: true,
+        progress: 0,
+        error: null,
+        isUploaded: false,
+      };
+
+      const token = document.cookie
+        .split('; ')
+        .find((row) => row.startsWith('auth_token='))
+        ?.split('=')[1];
+
+      const requestConfig = {
+        onUploadProgress: progressHandler,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+      };
+
+      axios
+        .post(`${process.env.VUE_APP_API_URL}/plantilla/funded`, formData, requestConfig)
+        .then((response) => {
+          uploadStatus.value = {
+            isUploading: false,
+            isUploaded: true,
+            progress: 100,
+            error: null,
+          };
+          toast.success('File uploaded successfully');
+          resolve({
+            url: response.data?.data?.fileUpload ?? '',
+          });
+        })
+        .catch((error) => {
+          const errorMessage = error.response?.data?.message || error.message || 'Upload failed';
+          uploadStatus.value = {
+            isUploading: false,
+            isUploaded: false,
+            progress: 0,
+            error: errorMessage,
+          };
+          console.error('Upload error:', errorMessage);
+          toast.error('Error -> ' + errorMessage);
+          reject(new Error(errorMessage));
+        });
+    });
+  };
+
+  const onFileRejected = (rejectedEntries) => {
+    let message = 'File rejected.';
+    if (rejectedEntries && rejectedEntries.length > 0) {
+      const entry = rejectedEntries[0];
+      if (entry.failedPropValidation === 'accept') {
+        message = 'Invalid file type. Please upload a PDF.';
+      } else if (entry.failedPropValidation === 'max-files') {
+        message = 'You can only upload one file.';
+      } else if (entry.failedPropValidation === 'max-file-size') {
+        message = `File is too large. Maximum size is ${entry.maxFileSize}.`;
+      }
+    }
+    toast.error(message);
+    uploadStatus.value.error = message;
+  };
+
+  // Computed property to check if upload is complete
+  const isUploadComplete = computed(() => {
+    return uploadStatus.value.isUploaded && !uploadStatus.value.isUploading;
+  });
+
+  // Function to reset upload status
+  const resetUploadStatus = () => {
+    uploadStatus.value = {
+      isUploaded: false,
+      isUploading: false,
+      progress: 0,
+      error: null,
+    };
+  };
+
+  const confirmUpload = async () => {
+    if (!selectedFile.value) {
+      const msg = 'Please select a file first.';
+      uploadStatus.value.error = msg;
+      toast.error(msg);
+      return;
+    }
+    if (!currentRow.value || !currentRow.value.PositionID || !currentRow.value.ItemNo) {
+      const msg = 'PositionID or ItemNo is not set. Cannot start upload.';
+      uploadStatus.value.error = msg;
+      console.error(msg);
+      toast.error(msg);
+      return;
+    }
+
+    try {
+      await uploadFileToServer(selectedFile.value);
+      // Success:
+      if (currentRow.value) {
+        await updateFundedStatusAPI(currentRow.value.PositionID, true, currentRow.value.ItemNo);
+        currentRow.value.Funded = '1';
+      }
+      showModal.value = false;
+
+      selectedFile.value = null; // Clear the file input
+      resetUploadStatus(); // Reset status for next upload
+    } catch (error) {
+      // Error is already handled in uploadFileToServer (sets uploadStatus.error, shows toast)
+      console.error('Upload failed in confirmUpload:', error.message);
+    }
+  };
+
+  // New Axios function to update funded status
+  const updateFundedStatusAPI = (positionId, isFunded, itemNo) => {
+    return new Promise((resolve, reject) => {
+      if (!positionId || !itemNo) {
+        const errorMessage = 'PositionID or ItemNo is required for updating funded status.';
+        console.error(errorMessage);
+        toast.error(errorMessage);
+        return reject(new Error(errorMessage));
+      }
+
+      const token = document.cookie
+        .split('; ')
+        .find((row) => row.startsWith('auth_token='))
+        ?.split('=')[1];
+
+      const requestConfig = {
+        headers: {
+          'Content-Type': 'application/json', // Sending JSON data
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+      };
+
+      // Backend expects 'PositionID' and 'Funded' (boolean)
+      const payload = {
+        PositionID: positionId,
+        Funded: !!isFunded, // Ensure boolean value
+        ItemNo: itemNo, // Include ItemNo in the payload
+      };
+
+      axios
+        .post(
+          `${process.env.VUE_APP_API_URL}/structure-details/update-funded`,
+          payload,
+          requestConfig,
+        )
+        .then((response) => {
+          toast.success(response.data?.message || 'Funded status updated successfully!');
+          resolve(response.data);
+        })
+        .catch((error) => {
+          const errorMessage =
+            error.response?.data?.message || error.message || 'Failed to update funded status.';
+          console.error('Update funded status error:', errorMessage, error.response?.data);
+          toast.error('Error -> ' + errorMessage);
+          reject(new Error(errorMessage));
+        });
+    });
+  };
+
+  const cancelUpload = () => {
+    showModal.value = false;
+    selectedFile.value = null;
+    resetUploadStatus();
+    currentRow.value = null; // Assuming you want to clear the current row context on cancel
+  };
+
+  const handleToggle = (row, val) => {
+    if (val) {
+      // Toggle ON
+      currentRow.value = row;
+      resetUploadStatus(); // Reset status before opening modal
+      selectedFile.value = null; // Clear any previously selected file
+      showModal.value = true;
+      console.log('Toggled ON for PositionID:', currentRow.value.PositionID);
+      console.log('Toggled ON for ItemNo:', currentRow.value.ItemNo);
+    } else {
+      // Toggle OFF
+      row.Funded = '0';
+      // Optionally, call backend to mark as unfunded/delete file
+      console.log('Toggled OFF for PositionID:', row.PositionID);
+      toast.info('File removed successfully');
+    }
+  };
+
+  // New Axios function to update PageNo for tblStructureDetails
+  const updatePageNoAPI = (positionId, pageNo, itemNo) => {
+    return new Promise((resolve, reject) => {
+      if (!positionId || !itemNo) {
+        const errorMessage = 'PositionID or ItemNo is required for updating PageNo.';
+        console.error(errorMessage);
+        toast.error(errorMessage);
+        return reject(new Error(errorMessage));
+      }
+
+      // The backend validates 'PageNo' as 'required|string'.
+      // We will cast pageNo to string. If pageNo is null or undefined,
+      // String(pageNo) will become "null" or "undefined".
+      // If the input field is empty, postJobDetails.PageNo might be null or an empty string.
+      // An empty string "" is a valid string for the backend.
+      // "null" as a string might also be accepted by the backend if it expects any string.
+      // The 'required' rule means the key must be present and not PHP null.
+
+      const token = document.cookie
+        .split('; ')
+        .find((row) => row.startsWith('auth_token='))
+        ?.split('=')[1];
+
+      const requestConfig = {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+      };
+
+      const payload = {
+        PositionID: String(positionId), // Ensure string as per backend 'string' validation
+        PageNo: String(pageNo), // Ensure string as per backend 'string' validation
+        ItemNo: String(itemNo), // Include ItemNo in the payload
+      };
+
+      axios
+        .post(
+          `${process.env.VUE_APP_API_URL}/structure-details/update-pageno`,
+          payload,
+          requestConfig,
+        )
+        .then((response) => {
+          toast.success(response.data?.message || 'PageNo updated successfully!');
+          resolve(response.data);
+        })
+        .catch((error) => {
+          let errorMessage;
+          if (error.response?.data?.errors) {
+            // Concatenate all validation error messages
+            errorMessage = Object.values(error.response.data.errors).flat().join('; ');
+          } else {
+            errorMessage =
+              error.response?.data?.message || error.message || 'Failed to update PageNo.';
+          }
+          console.error('Update PageNo error:', errorMessage, error.response?.data);
+          toast.error('Error -> ' + errorMessage);
+          reject(new Error(errorMessage));
+        });
+    });
+  };
+
   const showVacantPositionModal = ref(false);
 
   // Watch for modal close and emit event to clear qsDataLoad
@@ -494,8 +842,6 @@
   };
   const showFilledPositionModal = ref(false);
 
-  const selectedFile = ref(null);
-  const currentRow = ref(null);
   const selectedPosition = ref(null);
   const filter = ref('');
 
@@ -512,7 +858,7 @@
     ItemNo: '',
     SG: '',
     position: '',
-    Name2: '',
+    Name2: '', // Assuming Name1 was intended here based on table columns
     fd: 'All',
     Status: '',
   });
@@ -579,9 +925,6 @@
     rowsPerPage: 7,
   });
 
-  // const currentPosition = ref('');
-  // const higherEducation = ref('');
-
   const positions = ref([]);
 
   const columns = [
@@ -601,7 +944,6 @@
     { name: 'action', label: 'Action', field: 'action', align: 'center' },
   ];
 
-  // Create a computed property to filter the positions based on search inputs and structure selection
   const filteredPositions = computed(() => {
     if (!currentStructure.value) {
       return [];
@@ -610,27 +952,21 @@
     let filtered = positions.value.filter((row) => {
       const s = currentStructure.value;
 
-      // Always filter by office
       if (!row.office || row.office !== s.office) return false;
 
-      // Now, filter by the "deepest" selected structure
       if (s.unit) {
-        // Must match division, section, unit exactly
         return row.division === s.division && row.section === s.section && row.unit === s.unit;
       } else if (s.section) {
-        // Must match division & section, unit must be empty/null
         return (
           row.division === s.division && row.section === s.section && (!row.unit || row.unit === '')
         );
       } else if (s.division) {
-        // Must match division, section & unit must be empty/null
         return (
           row.division === s.division &&
           (!row.section || row.section === '') &&
           (!row.unit || row.unit === '')
         );
       } else {
-        // Only office selected: division, section, unit must be empty/null
         return (
           (!row.division || row.division === '') &&
           (!row.section || row.section === '') &&
@@ -639,7 +975,6 @@
       }
     });
 
-    // Apply column text filters as before
     return filtered.filter((row) => {
       for (const key in filters.value) {
         if (filters.value[key]) {
@@ -660,95 +995,63 @@
     });
   });
 
-  // Handle structure selection from PlantillaSelection component
   const handleStructureSelection = (selectedData) => {
     currentStructure.value = selectedData;
-    // Clear search filters when changing structure selection
     clearSearchFilters();
   };
 
-  // Get a descriptive title for the current structure selection
   const getStructureTitle = () => {
     if (!currentStructure.value) return '';
-
-    let title = currentStructure.value.office || '';
-
-    // if (currentStructure.value.division) {
-    //   title += ` > ${currentStructure.value.division}`;
-    // }
-
-    // if (currentStructure.value.section) {
-    //   title += ` > ${currentStructure.value.section}`;
-    // }
-
-    // if (currentStructure.value.unit) {
-    //   title += ` > ${currentStructure.value.unit}`;
-    // }
-
-    return title;
+    return currentStructure.value.office || '';
   };
 
-  const handleToggle = (row) => {
-    if (row.Funded == '1') {
-      // currentRow.value = row;
-      showModal.value = true;
-    }
-  };
-
-  const confirmUpload = () => {
-    if (selectedFile.value && currentRow.value) {
-      currentRow.value.Funded = '1';
-      showModal.value = false;
-      selectedFile.value = null;
-    }
-  };
-
-  const cancelUpload = () => {
-    showModal.value = false;
-    selectedFile.value = null;
-  };
-  // view qs
   const viewPosition = async (row) => {
     selectedPosition.value = row;
     if (row.Name1) {
       selectedApplicant.value.controlno = row.ControlNo;
       selectedApplicant.value.PositionID = row.PositionID;
-      selectedApplicant.value.name = row.Name4;
+      selectedApplicant.value.name = row.Name4; // Assuming Name4 is correct for applicant name
       selectedApplicant.value.position = row.position;
       selectedApplicant.value.status = row.Status;
-      // higherEducation.value = 'Bachelor of Science in Management';
       showFilledPositionModal.value = true;
     } else {
       showVacantPositionModal.value = true;
-      postJobDetails.value.office = row.office;
-      postJobDetails.value.division = row.division;
-      postJobDetails.value.section = row.section;
-      postJobDetails.value.unit = row.unit;
-      postJobDetails.value.position = row.position;
-      postJobDetails.value.PositionID = row.PositionID;
-      postJobDetails.value.PageNo = row.PageNo;
-      postJobDetails.value.ItemNo = row.ItemNo;
-      postJobDetails.value.SG = row.SG;
-      // console.log(postJobDetails.value);
+      postJobDetails.value = {
+        office: row.office,
+        division: row.division,
+        section: row.section,
+        unit: row.unit,
+        position: row.position,
+        PositionID: row.PositionID,
+        PageNo: row.PageNo,
+        ItemNo: row.ItemNo,
+        SG: row.SG,
+        startingDate: new Date().toISOString().split('T')[0].replace(/-/g, '/'), // Default date
+        endedDate: new Date().toISOString().split('T')[0].replace(/-/g, '/'), // Default date
+      };
       await usePlantilla.fetchQsData(row.PositionID);
       qsDataLoad.value = usePlantilla.qsData;
-      // console.log(usePlantilla.qsData[0].Education);
-      qsCriteria.value.Education = usePlantilla.qsData[0].Education;
-      qsCriteria.value.Experience = usePlantilla.qsData[0].Experience;
-      qsCriteria.value.Eligibility = usePlantilla.qsData[0].Eligibility;
-      qsCriteria.value.Training = usePlantilla.qsData[0].Training;
-      qsCriteria.value.PositionID = row.PositionID;
+      if (usePlantilla.qsData && usePlantilla.qsData.length > 0) {
+        qsCriteria.value = {
+          Education: usePlantilla.qsData[0].Education,
+          Experience: usePlantilla.qsData[0].Experience,
+          Eligibility: usePlantilla.qsData[0].Eligibility,
+          Training: usePlantilla.qsData[0].Training,
+          PositionID: row.PositionID,
+        };
+      }
     }
   };
 
   const printPosition = (row) => {
     console.log('Printing:', row);
+    // Implement actual print logic here
+    toast.info(`Printing PDS for ${row.Name1 || 'selected position'}`);
   };
 
   const jobPostStore = useJobPostStore();
 
   const submitJobPost = async () => {
-    // Perform the job post submission logic here
     const jobBatch = {
       PositionID: parseInt(postJobDetails.value.PositionID),
       Office: postJobDetails.value.office,
@@ -758,8 +1061,8 @@
       Section: postJobDetails.value.section,
       Unit: postJobDetails.value.unit,
       Position: postJobDetails.value.position,
-      post_date: postJobDetails.value.startingDate,
-      end_date: postJobDetails.value.endedDate,
+      post_date: postJobDetails.value.startingDate.replace(/\//g, '-'), // Ensure YYYY-MM-DD
+      end_date: postJobDetails.value.endedDate.replace(/\//g, '-'), // Ensure YYYY-MM-DD
       PageNo: postJobDetails.value.PageNo,
       ItemNo: postJobDetails.value.ItemNo,
       SalaryGrade: postJobDetails.value.SG,
@@ -768,8 +1071,9 @@
     };
 
     const jobCriteria = {
+      ItemNo: parseInt(postJobDetails.value.ItemNo),
       PositionID: parseInt(qsCriteria.value.PositionID),
-      EduPercent: '0',
+      EduPercent: '0', // These seem to be default values
       EliPercent: '0',
       TrainPercent: '0',
       ExperiencePercent: '0',
@@ -782,11 +1086,14 @@
       jobBatch: jobBatch,
       criteria: jobCriteria,
     });
-
+    await updatePageNoAPI(
+      postJobDetails.value.PositionID,
+      postJobDetails.value.PageNo,
+      postJobDetails.value.ItemNo,
+    );
     showVacantPositionModal.value = false;
   };
 
-  // Clear search filters only (not structure selection)
   const clearSearchFilters = () => {
     Object.keys(filters.value).forEach((key) => {
       if (key === 'fd') {
@@ -797,27 +1104,20 @@
     });
   };
 
-  // Clear all filters including structure selection
   const clearFilters = () => {
-    clearSearchFilters();
-    (filters.value.PageNo = ''),
-      (filters.value.ItemNo = ''),
-      (filters.value.SG = ''),
-      (filters.value.position = ''),
-      (filters.value.Name2 = ''),
-      (filters.value.fd = 'All'),
-      (filters.value.Status = '');
+    clearSearchFilters(); // Clears individual column filters
+    // currentStructure.value = null; // Uncomment if you want to clear office selection too
   };
 
   onMounted(async () => {
-    // Fetch data or perform any setup when the component is mounted
-    postJobDetails.value.startingDate = new Date().toISOString().split('T')[0].replace(/-/g, '/');
-    postJobDetails.value.endedDate = new Date().toISOString().split('T')[0].replace(/-/g, '/');
+    const today = new Date().toISOString().split('T')[0].replace(/-/g, '/');
+    postJobDetails.value.startingDate = today;
+    postJobDetails.value.endedDate = today;
 
     await usePlantilla.fetchPlantilla();
     positions.value = usePlantilla.plantilla.map((item) => ({
       ...item,
-      Status: item.Status || 'VACANT',
+      Status: item.Status || 'VACANT', // Default status if not provided
     }));
   });
 </script>
@@ -840,7 +1140,6 @@
     }
   }
 
-  // Added styles for search inputs in table header
   :deep(.q-table th) {
     white-space: normal;
     padding-bottom: 8px;

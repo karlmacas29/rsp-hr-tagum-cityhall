@@ -10,7 +10,9 @@
         <div class="text-white grid justify-start items-start">
           <div class="row justify-start items-start">Welcome to</div>
           <div class="text-weight-bold text-h4">Recruitment, Selection and Placement</div>
-          <div class="row justify-start items-start">City of Human Resources</div>
+          <div class="row justify-start items-start">
+            City of Tagum Human Resource Management Office
+          </div>
         </div>
       </div>
     </div>
@@ -49,7 +51,7 @@
               rounded
               size="sm"
               label="View"
-              @click="handleJobClick(props.row.PositionID)"
+              @click="handleJobClick(props.row.PositionID, props.row.ItemNo)"
             />
           </q-td>
         </template>
@@ -83,10 +85,8 @@
   // Generate mock job data
   const jobs = ref([]);
 
-  const handleJobClick = (jobId) => {
-    console.log('Job clicked:', jobId);
-    // You would typically navigate to a job detail page here
-    router.push(`/jobList/details/${jobId}`);
+  const handleJobClick = (PositionID, ItemNo) => {
+    router.push(`/jobList/details/${PositionID}/${ItemNo}`);
   };
 
   onMounted(async () => {

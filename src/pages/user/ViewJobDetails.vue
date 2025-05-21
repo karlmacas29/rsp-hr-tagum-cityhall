@@ -272,7 +272,8 @@
   const jobPostStore = useJobPostStore();
 
   const route = useRoute();
-  const jobId = route.params.id;
+  const P_ID = route.params.PositionID;
+  const I_No = route.params.ItemNo;
 
   // Job details
   const selectedJob = ref([]);
@@ -331,10 +332,10 @@
 
   onMounted(async () => {
     // Fetch job details if needed
-    await jobPostStore.fetchJobPostById(jobId).then((job) => {
+    await jobPostStore.fetchJobPostByPositionAndItemNo(P_ID, I_No).then((job) => {
       selectedJob.value = job;
     });
-    await jobPostStore.fetchCriteriaById(jobId).then((criteria) => {
+    await jobPostStore.fetchCriteriaByPositionAndItemNo(P_ID, I_No).then((criteria) => {
       selectedCriteria.value = criteria;
     });
   });

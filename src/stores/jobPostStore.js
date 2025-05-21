@@ -22,31 +22,41 @@ export const useJobPostStore = defineStore('jobPost', {
         this.loading = false;
       }
     },
-    async fetchJobPostById(id) {
+    async fetchJobPostByPositionAndItemNo(PositionID, ItemNo) {
       this.loading = true;
+
       try {
-        const { data } = await api.get(`/job-batches-rsp/${id}`);
+        // Assuming the API endpoint is structured to accept PositionID and ItemNo as path parameters
+        // e.g., /api/job-batches-rsp/{PositionID}/{ItemNo}
+        // Or as query parameters: /api/job-batches-rsp?PositionID={PositionID}&ItemNo={ItemNo}
+        // Adjust the URL formatting as per your API's actual route definition.
+        // Using path parameters as it's common for 'show' methods with multiple identifiers.
+        const { data } = await api.get(`/job-batches-rsp/${PositionID}/${ItemNo}`);
         this.error = null;
+        console.log(data);
         return data;
       } catch (err) {
         this.error = err;
-        toast.error('Failed to fetch job post: ' + err);
+        toast.error('Failed to fetch job post: ' + (err.response?.data?.message || err.message));
         throw err;
       } finally {
         this.loading = false;
       }
     },
-    async fetchCriteriaById(id) {
+    async fetchCriteriaByPositionAndItemNo(PositionID, ItemNo) {
       this.loading = true;
+
       try {
-        const { data } = await api.get(`/on-criteria-job/${id}`);
+        // Assuming the API endpoint is structured to accept PositionID and ItemNo as path parameters
+        // e.g., /api/on-criteria-job/{PositionID}/{ItemNo}
+        const { data } = await api.get(`/on-criteria-job/${PositionID}/${ItemNo}`);
         this.error = null;
-        console.log('criteria data:');
-        console.log(data);
+        // console.log('criteria data by PositionID and ItemNo:');
+        // console.log(data);
         return data;
       } catch (err) {
         this.error = err;
-        toast.error('Failed to fetch Criteria: ' + err);
+        toast.error('Failed to fetch Criteria: ' + (err.response?.data?.message || err.message));
         throw err;
       } finally {
         this.loading = false;

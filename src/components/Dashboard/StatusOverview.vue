@@ -14,11 +14,10 @@
         }"
         @click="showEmployeeDialog(stat.title)"
       >
-        <q-card-section class="q-pa-sm row">
+        <q-card-section class="q-pa-xs row">
           <div class="column justify-center items-start">
             <div class="text-subtitle1 text-bold">{{ stat.title }}</div>
             <div class="text-h4">{{ getStatValue(stat.valueKey) }}</div>
-            <div class="text-caption">{{ stat.caption }}</div>
           </div>
           <!-- <div><q-icon :name="stat.icon" size="30px" /></div> -->
         </q-card-section>

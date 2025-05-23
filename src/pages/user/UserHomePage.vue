@@ -44,13 +44,22 @@
             </div>
           </q-td>
         </template>
+        <template v-slot:body-cell-post_date="props">
+          <q-td :props="props">
+            <div style="width: 180px; white-space: normal">
+              <q-chip class="text-body1 text-weight-medium bg-blue text-white">
+                {{ formatDate(props.row.post_date, 'MMM D, YYYY') }}
+              </q-chip>
+            </div>
+          </q-td>
+        </template>
         <template #body-cell-actions="props">
           <q-td align="center">
             <q-btn
               color="primary"
               rounded
               size="sm"
-              label="View"
+              label="Apply Now"
               @click="handleJobClick(props.row.PositionID, props.row.ItemNo)"
             />
           </q-td>
@@ -63,7 +72,9 @@
   import { onMounted, ref } from 'vue';
   import { useRouter } from 'vue-router';
   import { useJobPostStore } from 'stores/jobPostStore';
+  import { date } from 'quasar';
 
+  const { formatDate } = date;
   const jobPostStore = useJobPostStore();
   const router = useRouter();
 

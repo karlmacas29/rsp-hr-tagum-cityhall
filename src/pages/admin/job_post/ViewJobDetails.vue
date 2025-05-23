@@ -14,10 +14,29 @@
               <q-btn rounded color="black" @click="viewFundedDocument">View Funded</q-btn>
             </div>
             <div class="text-h3 q-mt-md">{{ selectedJob?.Position || 'Test' }}</div>
-            <q-chip dense>
-              Position Level:
-              <q-badge rounded color="green q-ml-sm">{{ selectedJob?.level || 'Test' }}</q-badge>
-            </q-chip>
+            <div class="row justify-start items-center q-gutter-x-md">
+              <q-chip dense>
+                Position Level:
+                <q-badge rounded color="green q-ml-sm">{{ selectedJob?.level || 'Test' }}</q-badge>
+              </q-chip>
+              <!--  -->
+              <q-chip dense>
+                Page No.:
+                <q-badge rounded color="green q-ml-sm">{{ selectedJob?.PageNo || '0' }}</q-badge>
+              </q-chip>
+              <!--  -->
+              <q-chip dense>
+                Item No.:
+                <q-badge rounded color="green q-ml-sm">{{ selectedJob?.ItemNo || '0' }}</q-badge>
+              </q-chip>
+              <!--  -->
+              <q-chip dense>
+                Salary Grade:
+                <q-badge rounded color="green q-ml-sm">
+                  {{ selectedJob?.SalaryGrade || '0' }}
+                </q-badge>
+              </q-chip>
+            </div>
           </div>
         </q-card-section>
 
@@ -25,46 +44,44 @@
           <div class="row q-col-gutter-md">
             <div class="col-12">
               <div class="text-h6 q-mb-sm">
-                <q-icon name="business" class="q-mr-sm" />
                 <span class="text-weight-bold">Office:</span>
                 {{ selectedJob?.Office || 'No Office' }}
               </div>
               <div class="text-h6 q-mb-sm">
-                <q-icon name="business" class="q-mr-sm" />
                 <span class="text-weight-bold">Division:</span>
                 {{ selectedJob?.Division || 'No Division' }}
               </div>
               <div class="text-h6 q-mb-sm">
-                <q-icon name="business" class="q-mr-sm" />
                 <span class="text-weight-bold">Section:</span>
                 {{ selectedJob?.Section || 'No Section' }}
               </div>
               <div class="text-h6 q-mb-sm">
-                <q-icon name="business" class="q-mr-sm" />
                 <span class="text-weight-bold">Unit:</span>
                 {{ selectedJob?.Unit || 'No Unit' }}
               </div>
               <div class="text-h6 q-mb-sm">
-                <q-icon name="work" class="q-mr-sm" />
                 <span class="text-weight-bold">Position:</span>
                 {{ selectedJob?.Position || 'No Position' }}
               </div>
-              <div class="text-h6 q-mb-sm">
-                <q-icon name="event" class="q-mr-sm" />
-                <span class="text-weight-bold">Posting Date:</span>
-                {{ formatDate(selectedJob?.post_date, 'MMM D, YYYY') || 'Test' }}
-              </div>
-              <div class="text-h6 q-mb-sm">
-                <q-icon name="event" class="q-mr-sm" />
-                <span class="text-weight-bold">End Date:</span>
-                {{ formatDate(selectedJob?.end_date, 'MMM D, YYYY') || 'Test' }}
+              <div class="row justify-center items-center q-gutter-x-md">
+                <div class="text-h6 q-mb-sm">
+                  <q-chip>
+                    <span class="text-weight-bold q-mr-sm">Posting Date:</span>
+                    <q-badge dense rounded>
+                      {{ formatDate(selectedJob?.post_date, 'MMM D, YYYY') || 'Test' }}
+                    </q-badge>
+                  </q-chip>
+                </div>
+                <div class="text-h6 q-mb-sm">
+                  <q-chip>
+                    <span class="text-weight-bold q-mr-sm">End Date:</span>
+                    <q-badge dense rounded>
+                      {{ formatDate(selectedJob?.end_date, 'MMM D, YYYY') || 'Test' }}
+                    </q-badge>
+                  </q-chip>
+                </div>
               </div>
               <q-separator></q-separator>
-              <div class="text-h6 q-mb-sm q-gutter-x-md">
-                <q-badge>PageNo {{ selectedJob?.PageNo || '0' }}</q-badge>
-                <q-badge>ItemNo {{ selectedJob?.ItemNo || '0' }}</q-badge>
-                <q-badge>Salary Grade {{ selectedJob?.SalaryGrade || '0' }}</q-badge>
-              </div>
             </div>
           </div>
 
@@ -72,12 +89,49 @@
           <div class="q-pl-md">
             <div class="text-h6 q-mb-sm text-weight-bold">BASIC QUALIFICATIONS:</div>
 
-            <ol v-if="selectedCriteria" class="q-pl-md text-body1">
+            <!-- Qualification Standards section -->
+            <q-card-section>
+              <div class="q-gutter-y-md">
+                <!--  -->
+                <div class="row justify-center q-gutter-x-md">
+                  <q-card flat bordered class="col">
+                    <q-card-section>
+                      <q-badge color="primary">Education</q-badge>
+                      <div class="text-body1">{{ selectedCriteria?.Education || 'None' }}</div>
+                    </q-card-section>
+                  </q-card>
+
+                  <q-card flat bordered class="col">
+                    <q-card-section>
+                      <q-badge>Training</q-badge>
+                      <div class="text-body1">{{ selectedCriteria?.Training || 'None' }}</div>
+                    </q-card-section>
+                  </q-card>
+                </div>
+                <!--  -->
+                <div class="row justify-center q-gutter-x-md">
+                  <q-card flat bordered class="col">
+                    <q-card-section>
+                      <q-badge>Experience</q-badge>
+                      <div class="text-body1">{{ selectedCriteria?.Experience || 'None' }}</div>
+                    </q-card-section>
+                  </q-card>
+
+                  <q-card flat bordered class="col">
+                    <q-card-section>
+                      <q-badge>Eligibility</q-badge>
+                      <div class="text-body1">{{ selectedCriteria?.Eligibility || 'None' }}</div>
+                    </q-card-section>
+                  </q-card>
+                </div>
+              </div>
+            </q-card-section>
+            <!-- <ol v-if="selectedCriteria" class="q-pl-md text-body1">
               <li>Education - {{ selectedCriteria.Education }}</li>
               <li>Experience - {{ selectedCriteria.Experience }}</li>
               <li>Training - {{ selectedCriteria.Training }}</li>
               <li>Eligibility - {{ selectedCriteria.Eligibility }}</li>
-            </ol>
+            </ol> -->
           </div>
         </q-card-section>
       </q-card-section>

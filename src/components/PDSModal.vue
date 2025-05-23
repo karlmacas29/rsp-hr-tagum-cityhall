@@ -102,7 +102,7 @@
 
         <!-- Footer with buttons -->
         <q-card-actions class="justify-end q-pa-md">
-          <q-btn unelevated label="Close" color="grey-7" @click="closeModal" class="q-mx-sm" />
+          <q-btn rounded label="Close" color="grey-7" @click="closeModal" class="q-mx-sm" />
         </q-card-actions>
       </q-card-section>
     </q-card>

@@ -71,7 +71,7 @@ export const use_vwActiveStore = defineStore('vwactive', {
         // Assuming you will add totalMale and totalFemale to your state
         this.totalMale = response.data.totalMale;
         this.totalFemale = response.data.totalFemale;
-        console.log(response.data);
+        // console.log(response.data);
       } catch (error) {
         this.totalMale = 0;
         this.totalFemale = 0;

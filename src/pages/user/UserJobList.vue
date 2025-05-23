@@ -15,6 +15,20 @@
         </div>
       </div>
     </div>
+    <q-card class="q-mt-md">
+      <q-card-section>
+        <q-badge color="yellow" floating class="q-mb-md q-mr-md text-black">
+          <q-icon name="info" size="xs" />
+        </q-badge>
+        <div class="text-h3 text-bold text-center">Notice</div>
+      </q-card-section>
+      <q-card-section>
+        Lorem ipsum dolor sit, amet consectetur adipisicing elit. Inventore cumque et sapiente
+        accusantium sunt quibusdam. Repellat impedit veniam modi, nesciunt perferendis inventore
+        maiores tenetur ut delectus dolores ab earum consectetur.
+      </q-card-section>
+    </q-card>
+
     <div>
       <div class="grid justify-center items-center q-py-md q-px-xl">
         <!-- Job List Table -->
@@ -32,6 +46,15 @@
                 <span class="text-body1 text-weight-medium text-black">
                   {{ props.row.Office }}
                 </span>
+              </div>
+            </q-td>
+          </template>
+          <template v-slot:body-cell-post_date="props">
+            <q-td :props="props">
+              <div style="width: 180px; white-space: normal">
+                <q-chip class="text-body1 text-weight-medium bg-blue text-white">
+                  {{ formatDate(props.row.post_date, 'MMM D, YYYY') }}
+                </q-chip>
               </div>
             </q-td>
           </template>
@@ -84,7 +107,9 @@
   import { ref, reactive, onMounted } from 'vue';
   import { useRouter } from 'vue-router';
   import { useJobPostStore } from 'stores/jobPostStore';
+  import { date } from 'quasar';
 
+  const { formatDate } = date;
   const router = useRouter();
   const jobPostStore = useJobPostStore();
 

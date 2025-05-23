@@ -117,8 +117,23 @@
       Honorarium: 'HONORARIUM',
     };
 
-    const status_title = statusMapping[status] || status;
-    router.push(`/dashboard/status/${status_title}`);
+    // 'status' is the stat.title, e.g., "Permanent"
+    const nameParam = status.toLowerCase(); // This will be "permanent"
+
+    // 'status_title' should be the valueKey from the mapping, e.g., "REGULAR"
+    const valueKeyParam = statusMapping[status];
+
+    // Ensure that a mapping exists for the status.
+    // If valueKeyParam is undefined, the status was not found in statusMapping.
+    if (valueKeyParam === undefined) {
+      console.error(
+        `Error: Status "${status}" not found in statusMapping. Cannot generate correct route.`,
+      );
+      // Optionally, prevent navigation or navigate to an error page.
+      return;
+    }
+
+    router.push(`/dashboard/status/${nameParam}/${valueKeyParam}`);
   };
 
   onMounted(async () => {

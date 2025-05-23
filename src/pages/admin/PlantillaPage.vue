@@ -21,7 +21,9 @@
                 {{ getStructureTitle() }}
               </div>
               <div>
-                <q-btn color="primary" @click="clearFilters" icon="clear_all">Clear All</q-btn>
+                <q-btn rounded color="primary" @click="clearFilters" icon="clear_all">
+                  Clear All
+                </q-btn>
               </div>
             </q-card>
             <q-card flat v-if="currentStructure">
@@ -343,12 +345,12 @@
               <div class="text-body text-grey">
                 {{ postJobDetails.position }}
               </div>
-              <div>
-                <div class="row items-center">
-                  <div class="text-body1">Position Level:</div>
-                  <q-chip color="green" class="text-white">{{ postJobDetails.level }}</q-chip>
-                </div>
-              </div>
+              <q-chip dense>
+                Position Level:
+                <q-badge rounded dense color="green" class="text-white q-ml-sm">
+                  {{ postJobDetails.level }}
+                </q-badge>
+              </q-chip>
             </div>
             <div>
               <q-btn

@@ -15,27 +15,13 @@
     <!-- Card -->
     <q-card>
       <q-card-section class="row justify-between items-center">
-        <div class="text-h5 text-bold">
-          Raters List
-          <template v-if="authStore.user.permissions.isRaterM === '0'">
-            <q-badge>View Only</q-badge>
-          </template>
-        </div>
-        <template v-if="authStore.user.permissions.isRaterM === '1'">
-          <q-btn rounded color="primary" label="Add Rater" @click="showAddModal" icon="add" />
-        </template>
-      </q-card-section>
-      <q-separator />
-
-      <q-card-section>
-        <!-- Single powerful search bar -->
-        <div class="q-mb-md">
+        <div>
           <q-input
+            dense
             outlined
             v-model="globalSearch"
             placeholder="Search all raters..."
             clearable
-            class="q-mb-md"
           >
             <template v-slot:prepend>
               <q-icon name="search" />
@@ -50,6 +36,14 @@
             </template>
           </q-input>
         </div>
+        <div v-if="authStore.user.permissions.isRaterM === '1'">
+          <q-btn rounded color="primary" label="Add Rater" @click="showAddModal" icon="add" />
+        </div>
+      </q-card-section>
+      <q-separator />
+
+      <q-card-section>
+        <!-- Single powerful search bar -->
 
         <q-table
           flat
@@ -62,7 +56,7 @@
           <!-- Position column with badges -->
           <template v-slot:body-cell-Position="props">
             <q-td :props="props">
-              <div class="row q-gutter-xs">
+              <div class="row q-gutter-xs" style="width: 200px">
                 <q-badge
                   v-for="(pos, index) in props.row.Position.split(', ')"
                   :key="index"
@@ -75,7 +69,13 @@
               </div>
             </q-td>
           </template>
-
+          <template v-slot:body-cell-Office="props">
+            <q-td :props="props">
+              <div style="white-space: normal; overflow-wrap: break-word">
+                {{ props.row.Office }}
+              </div>
+            </q-td>
+          </template>
           <!-- Actions column -->
           <template v-slot:body-cell-actions="props">
             <q-td :props="props">
@@ -171,8 +171,6 @@
             </q-select>
           </div>
 
-          <q-separator class="q-mt-md q-mb-md" />
-
           <!-- Add Mode: Select Office FIRST, then Select Rater -->
           <template v-if="!isEditMode">
             <!-- Select Office in Add Mode -->
@@ -196,8 +194,6 @@
                 </template>
               </q-select>
             </div>
-
-            <q-separator class="q-mt-md q-mb-md" />
 
             <!-- Select Rater in Add Mode (AFTER office) -->
             <div class="q-mb-md">
@@ -292,7 +288,7 @@
         </q-card-section>
 
         <q-card-actions align="right">
-          <q-btn rounded flat label="Cancel" color="primary" @click="closeModal" />
+          <q-btn rounded flat label="Cancel" color="negative" @click="closeModal" />
           <q-btn
             rounded
             :label="isEditMode ? 'Update Rater' : 'Add Rater'"
@@ -424,25 +420,18 @@
   import { ref, computed, onMounted } from 'vue';
   import { useAuthStore } from 'stores/authStore';
   import { useJobPostStore } from 'stores/jobPostStore';
+  import { usePlantillaStore } from 'stores/plantillaStore';
 
   const jobPostStore = useJobPostStore();
   const authStore = useAuthStore();
+  const plantillaStore = usePlantillaStore();
 
   // Search
   const globalSearch = ref('');
   const applicantSearch = ref('');
 
   // Data
-  const raters = ref([
-    {
-      id: 1,
-      Rater: 'John Smith',
-      Position: 'Frontend Developer, Backend Developer',
-      Office: 'Main Office',
-      pending: 3,
-      completed: 2,
-    },
-  ]);
+  const raters = ref([]);
 
   // Applicants data
   const applicants = ref([
@@ -483,21 +472,10 @@
   const selectedOffice = ref(null);
 
   // Options data
-  const offices = ref([
-    { id: 1, name: 'Main Office' },
-    { id: 2, name: 'Regional Office - North' },
-    { id: 3, name: 'Regional Office - South' },
-  ]);
-
+  const offices = ref([]);
   const positions = ref([]);
 
-  const availableRaters = ref([
-    { id: 1, name: 'John Smith', officeId: 1 },
-    { id: 2, name: 'Emily Johnson', officeId: 1 },
-    { id: 3, name: 'Michael Williams', officeId: 2 },
-    { id: 4, name: 'Sarah Brown', officeId: 2 },
-    { id: 5, name: 'David Jones', officeId: 3 },
-  ]);
+  const availableRaters = ref([]);
 
   const filteredRatersByOffice = ref([]);
 
@@ -624,7 +602,9 @@
   };
 
   const handleOfficeChange = (officeId) => {
-    selectedRater.value = null;
+    selectedRater.value = null; // Reset selected rater
+    // Filter raters based on the selected office's ID
+    // Assumes availableRaters items have { id, name, officeId }
     filteredRatersByOffice.value = availableRaters.value.filter(
       (rater) => rater.officeId === officeId,
     );
@@ -637,15 +617,19 @@
 
     update(() => {
       if (!selectedOffice.value) {
+        // selectedOffice.value holds the ID of the selected office
         filteredRatersByOffice.value = [];
         return;
       }
 
+      // Assumes availableRaters items have { id, name, officeId }
       if (val === '') {
+        // If search input is empty, list all raters for the selected office
         filteredRatersByOffice.value = availableRaters.value.filter(
           (rater) => rater.officeId === selectedOffice.value,
         );
       } else {
+        // Otherwise, filter by name within the selected office
         const needle = val.toLowerCase();
         filteredRatersByOffice.value = availableRaters.value.filter(
           (rater) =>
@@ -782,13 +766,61 @@
 
   onMounted(async () => {
     await jobPostStore.fetchJobPosts();
-    // Convert job posts data to positions array with only Position field
+    await plantillaStore.fetchPlantilla();
+
+    // Populate uniqueOffices
+    const uniqueOfficesData = plantillaStore.plantilla.reduce((acc, item) => {
+      if (!acc.some((office) => office.name === item.office)) {
+        acc.push({
+          id: item.OfficeID, // Assuming OfficeID is the ID for the office
+          name: item.office, // Assuming office is the name of the office
+        });
+      }
+      return acc;
+    }, []);
+    offices.value = uniqueOfficesData;
+
+    // Populate positions
+    positions.value = jobPostStore.jobPosts.map((post) => {
+      return {
+        id: post.id,
+        name: post.Position,
+      };
+    });
+
+    // Populate availableRaters from plantillaStore.plantilla
+    // Assuming each item in plantillaStore.plantilla has EmployeeID, Name4, and OfficeID
+    if (plantillaStore.plantilla && plantillaStore.plantilla.length > 0) {
+      availableRaters.value = plantillaStore.plantilla
+        .map((person) => ({
+          id: person.ControlNo, // Or a unique identifier for the person
+          name: person.Name4, // This will be displayed as the rater's name
+          officeId: person.OfficeID, // Used to link rater to an office
+        }))
+        .filter((person) => person.id && person.name && person.officeId); // Basic validation
+
+      // Optional: Remove duplicate raters if EmployeeID might not be unique across all plantilla entries
+      // but typically plantilla items are unique per employee.
+      // For example, if you only want unique employee IDs:
+      // const uniqueAvailableRaters = [];
+      // const seenIds = new Set();
+      // for (const rater of availableRaters.value) {
+      //   if (!seenIds.has(rater.id)) {
+      //     uniqueAvailableRaters.push(rater);
+      //     seenIds.add(rater.id);
+      //   }
+      // }
+      // availableRaters.value = uniqueAvailableRaters;
+    }
+
     positions.value = jobPostStore.jobPosts.map((post) => {
       return {
         id: post.id,
         name: post.Position, // Extract only the Position field
       };
     });
+
+    //
   });
 </script>
 

@@ -10,7 +10,7 @@
         </div>
       </div>
       <div class="column">
-        <q-badge class="text-h6 q-mb-xs bg-blue">
+        <q-chip v-if="!jobPostStore.loading" class="text-h6 q-mb-xs text-white bg-blue">
           Posted on
           {{
             selectedJob?.post_date
@@ -21,13 +21,16 @@
                 })
               : ''
           }}
-        </q-badge>
+        </q-chip>
+        <q-chip v-else class="text-h6 q-mb-xs text-white bg-blue">
+          <q-linear-progress rounded color="white" query style="width: 100px" />
+        </q-chip>
       </div>
     </div>
 
     <div class="row justify-evenly items-center">
       <!-- Main content card -->
-      <q-card class="col-8" flat bordered>
+      <q-card v-if="!jobPostStore.loading" class="col-8" flat bordered>
         <q-card-section>
           <!-- Job header with logo and info -->
           <div class="row items-center">
@@ -39,25 +42,21 @@
                 {{ selectedJob?.Position || 'No Position' }}
               </div>
               <div class="row items-center">
-                <q-icon name="business" size="xs" color="grey-8" />
                 <span class="q-ml-xs text-body1 text-grey-8">
                   {{ selectedJob?.Office || 'No Office' }}
                 </span>
               </div>
               <div class="row items-center">
-                <q-icon name="business" size="xs" color="grey-8" />
                 <span class="q-ml-xs text-body1 text-grey-8">
                   {{ selectedJob?.Division || 'No Division' }}
                 </span>
               </div>
               <div class="row items-center">
-                <q-icon name="business" size="xs" color="grey-8" />
                 <span class="q-ml-xs text-body1 text-grey-8">
                   {{ selectedJob?.Section || 'No Section' }}
                 </span>
               </div>
               <div class="row items-center">
-                <q-icon name="business" size="xs" color="grey-8" />
                 <span class="q-ml-xs text-body1 text-grey-8">
                   {{ selectedJob?.Unit || 'No Unit' }}
                 </span>
@@ -80,27 +79,41 @@
 
         <!-- Qualification Standards section -->
         <q-card-section>
-          <div class="text-h5 text-bold text-green">Qualification Standards/Requirements</div>
-          <div class="text-weight-bold q-mt-sm">BRIEF QUALIFICATIONS:</div>
-          <div class="text-body2">
-            <ol v-if="selectedCriteria" class="q-pl-md text-body1 q-gutter-sm">
-              <li>
-                <q-badge>Education</q-badge>
-                - {{ selectedCriteria?.Education || 'None' }}
-              </li>
-              <li>
-                <q-badge>Experience</q-badge>
-                - {{ selectedCriteria?.Experience || 'None' }}
-              </li>
-              <li>
-                <q-badge>Training</q-badge>
-                - {{ selectedCriteria?.Training || 'None' }}
-              </li>
-              <li>
-                <q-badge>Eligibility</q-badge>
-                - {{ selectedCriteria?.Eligibility || 'None' }}
-              </li>
-            </ol>
+          <div class="text-h4 text-bold text-green">Qualification Standards/Requirements</div>
+
+          <div class="q-gutter-y-md q-mt-md">
+            <!--  -->
+            <div class="row justify-center q-gutter-x-md">
+              <q-card flat bordered class="col">
+                <q-card-section>
+                  <q-badge color="primary">Education</q-badge>
+                  <div class="text-body1">{{ selectedCriteria?.Education || 'None' }}</div>
+                </q-card-section>
+              </q-card>
+
+              <q-card flat bordered class="col">
+                <q-card-section>
+                  <q-badge>Training</q-badge>
+                  <div class="text-body1">{{ selectedCriteria?.Training || 'None' }}</div>
+                </q-card-section>
+              </q-card>
+            </div>
+            <!--  -->
+            <div class="row justify-center q-gutter-x-md">
+              <q-card flat bordered class="col">
+                <q-card-section>
+                  <q-badge>Experience</q-badge>
+                  <div class="text-body1">{{ selectedCriteria?.Experience || 'None' }}</div>
+                </q-card-section>
+              </q-card>
+
+              <q-card flat bordered class="col">
+                <q-card-section>
+                  <q-badge>Eligibility</q-badge>
+                  <div class="text-body1">{{ selectedCriteria?.Eligibility || 'None' }}</div>
+                </q-card-section>
+              </q-card>
+            </div>
           </div>
         </q-card-section>
 
@@ -212,6 +225,54 @@
           </div>
         </q-card-section>
       </q-card>
+      <q-card v-else flat bordered style="width: 70vw">
+        <q-card-section>
+          <div class="row items-center q-mb-md">
+            <q-skeleton type="QAvatar" size="75px" />
+            <div class="column q-ml-md" style="flex-grow: 1">
+              <q-skeleton type="text" width="150px" height="30px" class="q-mb-xs" />
+              <q-skeleton type="text" width="200px" />
+              <q-skeleton type="text" width="180px" />
+              <q-skeleton type="text" width="160px" />
+              <q-skeleton type="text" width="140px" />
+            </div>
+          </div>
+          <q-separator />
+          <div class="q-my-md">
+            <q-skeleton type="text" width="100px" height="25px" class="q-mb-xs" />
+            <q-skeleton type="text" width="250px" />
+          </div>
+          <q-separator />
+          <div class="q-my-md">
+            <q-skeleton type="text" width="250px" height="25px" class="q-mb-xs" />
+            <q-skeleton type="text" width="150px" class="q-mb-sm" />
+            <q-skeleton type="text" width="300px" />
+            <q-skeleton type="text" width="300px" />
+            <q-skeleton type="text" width="300px" />
+            <q-skeleton type="text" width="300px" />
+          </div>
+          <q-separator />
+          <div class="q-my-md">
+            <q-skeleton type="text" width="100px" height="25px" class="q-mb-xs" />
+            <q-skeleton type="text" width="200px" />
+          </div>
+          <q-separator />
+          <div class="q-pa-md bg-grey-1">
+            <q-skeleton type="text" width="200px" height="30px" class="q-mx-auto q-mb-xl" />
+            <div class="row items-start justify-center q-col-gutter-lg">
+              <div class="col-12 col-md-4">
+                <q-skeleton height="250px" square />
+              </div>
+              <div class="col-12 col-md-4">
+                <q-skeleton height="250px" square />
+              </div>
+              <div class="col-12 col-md-4">
+                <q-skeleton height="250px" square />
+              </div>
+            </div>
+          </div>
+        </q-card-section>
+      </q-card>
     </div>
 
     <!-- Application Confirmation Dialog -->
@@ -287,7 +348,7 @@
 
   // Download the Excel template
   const downloadExcelForm = () => {
-    const excelFileUrl = '/application-forms/programmer-application-form.xlsx';
+    const excelFileUrl = '/public/pds.xlsx';
     const a = document.createElement('a');
     a.href = excelFileUrl;
 

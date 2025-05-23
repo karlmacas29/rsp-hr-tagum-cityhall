@@ -59,7 +59,7 @@ const routes = [
       },
       // page in a page
       {
-        path: '/dashboard/status/:name',
+        path: '/dashboard/status/:title/:name',
         name: 'Dashboard Status',
         component: () => import('pages/admin/Dashboard/StatusPageView.vue'),
       },

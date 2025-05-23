@@ -173,10 +173,8 @@
   ];
 
   onMounted(async () => {
-    await vwActiveStore.fetchCountAll();
+    await Promise.all([vwActiveStore.fetchCountAll(), vwActiveStore.getSexCount()]);
     await useJobPost.fetchJobPosts();
-    await vwActiveStore.getSexCount();
-
     jobs.value = useJobPost.jobPosts;
   });
 </script>

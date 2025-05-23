@@ -114,7 +114,7 @@
                 <q-tab name="training" label="TRAINING" class="text-weight-medium" />
                 <q-tab name="eligibility" label="ELIGIBILITY" class="text-weight-medium" />
               </q-tabs>
-              <q-btn label="VIEW PDS" color="primary" outline @click="onViewPDS" />
+              <q-btn label="VIEW PDS" color="primary" rounded @click="onViewPDS" />
             </div>
 
             <q-separator />

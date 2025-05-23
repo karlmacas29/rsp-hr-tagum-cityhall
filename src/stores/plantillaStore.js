@@ -20,7 +20,7 @@ export const usePlantillaStore = defineStore('plantilla', {
       try {
         const response = await api.get('/plantilla');
 
-        // console.log(response.data) // Debugging
+        // console.log(response.data); // Debugging
 
         if (Array.isArray(response.data)) {
           this.plantilla = response.data;

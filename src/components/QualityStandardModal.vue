@@ -72,6 +72,12 @@
                   <div class="text-body2 text-bold">
                     {{ applicantData?.position || 'Office of the ...' }}
                   </div>
+                  <q-chip dense>
+                    Position Level:
+                    <q-badge rounded dense color="green" class="text-white q-ml-sm">
+                      {{ applicantData?.level || 'A' }}
+                    </q-badge>
+                  </q-chip>
                 </div>
 
                 <div v-if="applicantData.applicationDate" class="text-center q-mb-sm">

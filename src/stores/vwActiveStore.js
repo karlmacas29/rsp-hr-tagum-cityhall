@@ -6,6 +6,8 @@ export const use_vwActiveStore = defineStore('vwactive', {
   state: () => ({
     vw_active: [],
     vw_status: [],
+    totalMale: 0,
+    totalFemale: 0,
     countAll: 0,
     loading: false,
     error: null,
@@ -54,6 +56,28 @@ export const use_vwActiveStore = defineStore('vwactive', {
         this.countAll = 0;
         console.log(error.response.data?.message);
         toast.warning(error.response.data?.message);
+      } finally {
+        this.loading = false;
+      }
+    },
+    async getSexCount() {
+      this.loading = true;
+      this.error = null;
+      try {
+        // Assuming the API endpoint is '/vw-Active/sex-count'
+        // based on the Laravel controller method name.
+        // Ensure this route is defined in your Laravel routes file.
+        const response = await api.get('/vw-Active/Sex');
+        // Assuming you will add totalMale and totalFemale to your state
+        this.totalMale = response.data.totalMale;
+        this.totalFemale = response.data.totalFemale;
+        console.log(response.data);
+      } catch (error) {
+        this.totalMale = 0;
+        this.totalFemale = 0;
+        const errorMessage = error.response?.data?.message || 'Failed to fetch sex count';
+        console.log(errorMessage); // Logging error message as in other actions
+        toast.warning(errorMessage); // Using toast.warning consistent with other actions
       } finally {
         this.loading = false;
       }

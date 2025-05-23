@@ -37,12 +37,26 @@
         </div>
         <div class="column">
           <h4 class="text-weight-bold q-ma-none">Statistics Overview</h4>
-          <h5 class="q-my-sm row justify-start">
-            Total Employees:
-            <div class="text-bold text-primary q-mx-md">
-              {{ Number(vwActiveStore.countAll).toLocaleString() }}
-            </div>
-          </h5>
+          <div class="row justify-start items-center q-gutter-x-sm">
+            <h5 class="q-my-sm row justify-start">
+              Total Employees:
+              <div class="text-bold text-primary q-mx-md">
+                {{ Number(vwActiveStore.countAll).toLocaleString() }}
+              </div>
+            </h5>
+            <h5 class="q-my-sm row justify-start">
+              Total Female Employees:
+              <div class="text-bold text-pink q-mx-md">
+                {{ Number(vwActiveStore.totalFemale).toLocaleString() }}
+              </div>
+            </h5>
+            <h5 class="q-my-sm row justify-start">
+              Total Male Employees:
+              <div class="text-bold text-blue q-mx-md">
+                {{ Number(vwActiveStore.totalMale).toLocaleString() }}
+              </div>
+            </h5>
+          </div>
         </div>
       </div>
 
@@ -161,6 +175,7 @@
   onMounted(async () => {
     await vwActiveStore.fetchCountAll();
     await useJobPost.fetchJobPosts();
+    await vwActiveStore.getSexCount();
 
     jobs.value = useJobPost.jobPosts;
   });

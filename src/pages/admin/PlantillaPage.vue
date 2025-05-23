@@ -248,7 +248,7 @@
     <!-- separate for modal -->
 
     <!-- Upload File Modal -->
-    <q-dialog v-model="showModal">
+    <q-dialog persistent v-model="showModal">
       <q-card class="q-pa-none" style="width: 500px; max-width: 90vw">
         <q-card-section class="q-pa-md bg-green text-white">
           <div class="text-h4 text-bold">Upload a Plantilla Funded</div>
@@ -262,7 +262,7 @@
             accept=".pdf"
             :max-files="1"
             @rejected="onFileRejected"
-            label="Upload PDF file (max 5MB)"
+            label="Upload PDF file (Max 5MB)"
             style="
               width: 350px; /* Adjust width as needed */
               padding: 20px;
@@ -320,7 +320,7 @@
       </q-card>
     </q-dialog>
 
-    <!-- Vacant Position Modal -->
+    <!-- Job Posting Modal -->
     <q-dialog v-model="showVacantPositionModal">
       <q-card
         class="q-pa-none"
@@ -334,13 +334,21 @@
       >
         <!-- Sticky Header -->
         <q-card-section
-          class="q-pa-lg"
+          class="q-pa-md"
           style="position: sticky; top: 0; z-index: 2; background: white"
         >
           <div class="row justify-between">
             <div>
               <div class="text-h4 text-bold">Post A Job</div>
-              <div class="text-body text-grey">{{ postJobDetails.position }}</div>
+              <div class="text-body text-grey">
+                {{ postJobDetails.position }}
+              </div>
+              <div>
+                <div class="row items-center">
+                  <div class="text-body1">Position Level:</div>
+                  <q-chip color="green" class="text-white">{{ postJobDetails.level }}</q-chip>
+                </div>
+              </div>
             </div>
             <div>
               <q-btn
@@ -880,6 +888,7 @@
 
   const selectedApplicant = ref({
     id: null,
+    level: '',
     PositionID: '',
     controlno: '',
     name: '',
@@ -907,6 +916,7 @@
     PageNo: '',
     ItemNo: '',
     SG: '',
+    level: '',
   });
 
   const qsCriteria = ref({
@@ -1013,6 +1023,7 @@
       selectedApplicant.value.name = row.Name4; // Assuming Name4 is correct for applicant name
       selectedApplicant.value.position = row.position;
       selectedApplicant.value.status = row.Status;
+      selectedApplicant.value.level = row.level;
       showFilledPositionModal.value = true;
     } else {
       showVacantPositionModal.value = true;
@@ -1028,6 +1039,7 @@
         SG: row.SG,
         startingDate: new Date().toISOString().split('T')[0].replace(/-/g, '/'), // Default date
         endedDate: new Date().toISOString().split('T')[0].replace(/-/g, '/'), // Default date
+        level: row.level,
       };
       await usePlantilla.fetchQsData(row.PositionID);
       qsDataLoad.value = usePlantilla.qsData;
@@ -1066,6 +1078,7 @@
       PageNo: postJobDetails.value.PageNo,
       ItemNo: postJobDetails.value.ItemNo,
       SalaryGrade: postJobDetails.value.SG,
+      level: postJobDetails.value.level,
       salaryMin: null,
       salaryMax: null,
     };

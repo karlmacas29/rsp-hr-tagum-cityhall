@@ -14,6 +14,10 @@
               <q-btn rounded color="black" @click="viewFundedDocument">View Funded</q-btn>
             </div>
             <div class="text-h3 q-mt-md">{{ selectedJob?.Position || 'Test' }}</div>
+            <q-chip dense>
+              Position Level:
+              <q-badge rounded color="green q-ml-sm">{{ selectedJob?.level || 'Test' }}</q-badge>
+            </q-chip>
           </div>
         </q-card-section>
 
@@ -67,6 +71,7 @@
           <div class="text-h4 q-mb-md">Qualification Standard/Requirements</div>
           <div class="q-pl-md">
             <div class="text-h6 q-mb-sm text-weight-bold">BASIC QUALIFICATIONS:</div>
+
             <ol v-if="selectedCriteria" class="q-pl-md text-body1">
               <li>Education - {{ selectedCriteria.Education }}</li>
               <li>Experience - {{ selectedCriteria.Experience }}</li>

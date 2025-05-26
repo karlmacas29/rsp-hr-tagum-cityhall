@@ -4,6 +4,9 @@
 # Recruitment, Selection and Placement System (FrontEnd)
 
 A Recruitment, Selection and Placement Web System for tagum created by DNSC OJT student.
+- Admin
+- User
+- Rater
 
 ## 
 ![image](https://img.shields.io/badge/Vue%20js-35495E?style=for-the-badge&logo=vuedotjs&logoColor=4FC08D)

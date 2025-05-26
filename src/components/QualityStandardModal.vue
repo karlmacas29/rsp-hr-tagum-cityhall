@@ -25,9 +25,9 @@
         <div class="row no-wrap full-height">
           <!-- Left Card (Applicant Info) -->
           <q-card class="col-3 q-mr-md">
-            <q-card-section class="column items-center q-pa-md">
+            <q-card-section class="column justify-between items-center q-pa-md">
               <q-img
-                src="https://placehold.co/100"
+                :src="applicantData?.Pics || 'https://placehold.co/100'"
                 class="bg-grey-4"
                 style="width: 100px; height: 100px; border-radius: 10px"
                 alt="Applicant Photo"
@@ -36,6 +36,7 @@
                 {{ applicantData?.name || 'John Doe' }}
               </div>
               <q-badge
+                rounded
                 class="q-pa-xs"
                 :class="
                   applicantData.status == 'ELECTIVE'

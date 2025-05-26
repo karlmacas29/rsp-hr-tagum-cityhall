@@ -22,10 +22,15 @@
           row-key="id"
           :loading="logStore.loading"
         >
+          <template v-slot:body-cell-actions="props">
+            <q-td :props="props" style="white-space: normal; word-wrap: break-word">
+              {{ props.row.actions }}
+            </q-td>
+          </template>
           <!-- Add body cell template for position -->
           <template v-slot:body-cell-date_performed="props">
             <q-td :props="props" style="width: 230px; white-space: normal">
-              <q-badge class="bg-teal" outline>
+              <q-badge rounded class="bg-purple" outline>
                 {{
                   new Date(props.value).toLocaleString('en-US', {
                     month: 'long',

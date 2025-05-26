@@ -3,9 +3,9 @@
     <div v-if="authStore.user.permissions.isDashboardStat == '1'" class="column no-gap">
       <!-- Welcome Message -->
       <q-img
-        src="tagum-city-hall.webp"
+        src="tgch.png"
         class="q-pa-lg column justify-center items-start"
-        style="height: 100px; opacity: 1.5"
+        style="height: 120px; opacity: 1.5"
       >
         <div
           v-if="authStore.user"
@@ -38,24 +38,24 @@
         <div class="column">
           <h4 class="text-weight-bold q-ma-none">Statistics Overview</h4>
           <div class="row justify-start items-center q-gutter-x-sm">
-            <h5 class="q-my-sm row justify-start">
+            <q-chip dense class="q-my-sm row justify-start">
               Total Employees:
-              <div class="text-bold text-primary q-mx-md">
+              <q-badge rounded dense class="text-bold q-ml-sm">
                 {{ Number(vwActiveStore.countAll).toLocaleString() }}
-              </div>
-            </h5>
-            <h5 class="q-my-sm row justify-start">
+              </q-badge>
+            </q-chip>
+            <q-chip dense class="q-my-sm row justify-start">
               Total Female Employees:
-              <div class="text-bold text-pink q-mx-md">
+              <q-badge rounded dense color="pink" class="text-bold q-ml-sm">
                 {{ Number(vwActiveStore.totalFemale).toLocaleString() }}
-              </div>
-            </h5>
-            <h5 class="q-my-sm row justify-start">
+              </q-badge>
+            </q-chip>
+            <q-chip dense class="q-my-sm row justify-start">
               Total Male Employees:
-              <div class="text-bold text-blue q-mx-md">
+              <q-badge rounded dense color="blue" class="text-bold q-ml-sm">
                 {{ Number(vwActiveStore.totalMale).toLocaleString() }}
-              </div>
-            </h5>
+              </q-badge>
+            </q-chip>
           </div>
         </div>
       </div>
@@ -70,10 +70,12 @@
         </div>
         <div class="column">
           <h4 class="text-weight-bold q-ma-none">Jobs Overview</h4>
-          <h5 class="q-my-sm row justify-start">
+          <q-chip dense class="q-my-sm row justify-start">
             Total Active Job Posts:
-            <div class="text-bold text-primary q-mx-md">{{ jobs.length }}</div>
-          </h5>
+            <q-badge dense rounded color="green" class="text-bold q-ml-sm">
+              {{ jobs.length }}
+            </q-badge>
+          </q-chip>
         </div>
       </div>
       <!-- MAIN CONTENT -->
@@ -86,7 +88,22 @@
             row-key="job"
             :loading="useJobPost.loading"
             :pagination="{ rowsPerPage: 5 }"
-          />
+          >
+            <template v-slot:body-cell-jobs="props">
+              <q-td :props="props">
+                <div class="text-body2" style="white-space: normal; width: 300px">
+                  {{ props.row.Position }}
+                </div>
+              </q-td>
+            </template>
+            <template v-slot:body-cell-action="props">
+              <q-td :props="props">
+                <q-btn flat round dense color="blue" icon="visibility" @click="viewJob(props.row)">
+                  <q-tooltip>View Job Details</q-tooltip>
+                </q-btn>
+              </q-td>
+            </template>
+          </q-table>
         </q-card>
       </div>
     </div>
@@ -145,6 +162,9 @@
   import StatusOverview from 'src/components/Dashboard/StatusOverview.vue';
   import { use_vwActiveStore } from 'src/stores/vwActiveStore';
   import { useJobPostStore } from 'src/stores/jobPostStore';
+  import { useRouter } from 'vue-router';
+
+  const router = useRouter();
 
   const useJobPost = useJobPostStore();
   const vwActiveStore = use_vwActiveStore();
@@ -170,7 +190,21 @@
       field: 'unqualified',
       sortable: true,
     },
+    {
+      name: 'action',
+      label: 'Action',
+      align: 'center',
+      field: 'action',
+      sortable: false,
+    },
   ];
+
+  const viewJob = (row) => {
+    router.push({
+      name: 'JobPost View',
+      params: { PositionID: row.PositionID, ItemNo: row.ItemNo },
+    });
+  };
 
   onMounted(async () => {
     await Promise.all([vwActiveStore.fetchCountAll(), vwActiveStore.getSexCount()]);

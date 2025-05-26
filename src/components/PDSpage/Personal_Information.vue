@@ -1,12 +1,22 @@
 <template>
   <div class="row">
     <div class="col-3 flex justify-center items-center">
-      <q-img
-        :src="props.personal?.Pics || '...'"
+      <img
+        v-if="props.personal?.Pics"
+        :src="props.personal.Pics"
         class="bg-grey-4"
-        style="width: 140px; height: 140px; border-radius: 10px"
+        style="width: 140px; height: 140px; border-radius: 10px; object-fit: cover"
         alt="Applicant Photo"
       />
+      <div
+        v-else
+        class="bg-grey-4 flex justify-center items-center"
+        style="width: 140px; height: 140px; border-radius: 10px"
+        title="Applicant Photo"
+      >
+        <!-- You can put a placeholder icon or text here -->
+        No Photo
+      </div>
     </div>
     <div class="col">
       <div class="form-title-container">

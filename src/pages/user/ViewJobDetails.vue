@@ -3,7 +3,7 @@
     <!-- Header with back button and title -->
     <div class="row justify-between items-center q-my-md q-mx-xl q-px-xl">
       <div class="row items-center">
-        <q-btn icon="arrow_back" round class="bg-primary text-white" to="/jobList" />
+        <q-btn icon="arrow_back" round class="bg-black text-white" to="/jobList" />
         <div class="column q-ml-sm">
           <div class="text-h4 text-bold q-mb-none">Job details</div>
           <div class="text-subtitle1 text-grey">Available Job Posts / Job details</div>

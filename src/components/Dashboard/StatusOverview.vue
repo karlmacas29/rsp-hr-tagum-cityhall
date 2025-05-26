@@ -5,19 +5,12 @@
         v-for="(stat, index) in stats"
         :key="index"
         class="stat-card text-dark cursor-pointer q-pr-md"
-        :style="{
-          backgroundColor: stat.color,
-          width: '115px',
-          borderTop: '8px solid #00b034',
-          borderRadius: '12px',
-          margin: '9px',
-        }"
         @click="showEmployeeDialog(stat.title)"
       >
         <q-card-section class="q-pa-xs row">
           <div class="column justify-center items-start">
-            <div class="text-subtitle1 text-bold">{{ stat.title }}</div>
-            <div class="text-h4">{{ getStatValue(stat.valueKey) }}</div>
+            <div class="text-subtitle1">{{ stat.title }}</div>
+            <div class="text-h4 text-weight-bolder">{{ getStatValue(stat.valueKey) }}</div>
           </div>
           <!-- <div><q-icon :name="stat.icon" size="30px" /></div> -->
         </q-card-section>
@@ -147,14 +140,18 @@
 
 <style scoped>
   .stat-card {
+    width: 115px;
+    border-top: 6px solid #00b034;
     border-radius: 12px;
+    margin: 9px;
     transition:
       transform 0.3s ease,
       box-shadow 0.3s ease;
   }
 
   .stat-card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-10px);
     box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+    border-top: 6px solid #1088d8;
   }
 </style>

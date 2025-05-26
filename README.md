@@ -1,40 +1,26 @@
-# Recruitment, Selection and Placement (Quasar Front End Project)
 
-A Quasar Project
+![logo](https://github.com/user-attachments/assets/7ee09655-8a3f-4b3a-ae93-68acc6502c5d)
 
-## Install the dependencies
-```bash
-yarn
-# or
-npm install
-```
+# Recruitment, Selection and Placement System (FrontEnd)
 
-### Start the app in development mode (hot-code reloading, error reporting, etc.)
-```bash
-quasar dev
-```
+A Recruitment, Selection and Placement Web System for tagum created by DNSC OJT student.
 
+## 
+![image](https://img.shields.io/badge/Vue%20js-35495E?style=for-the-badge&logo=vuedotjs&logoColor=4FC08D)
 
-### Lint the files
-```bash
-yarn lint
-# or
-npm run lint
-```
+![image](https://img.shields.io/badge/Quasar-1976D2?style=for-the-badge&logo=quasar&logoColor=white)
+
+- Axios API
+- Pinia State Management
+
+## Screenshots
+![Capturesadasd](https://github.com/user-attachments/assets/1edee173-cf2a-4e79-89f1-24483341f631)
 
 
-### Format the files
-```bash
-yarn format
-# or
-npm run format
-```
+## Documentation
 
+[Documentation for Quasar](https://quasar.dev/start/quick-start)
 
-### Build the app for production
-```bash
-quasar build
-```
+[Documentation for Axios](https://axios-http.com/docs/intro)
 
-### Customize the configuration
-See [Configuring quasar.config.js](https://v2.quasar.dev/quasar-cli-vite/quasar-config-js).
+[Documentation for Pinia](https://pinia.vuejs.org/)

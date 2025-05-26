@@ -10,7 +10,7 @@
         <q-card-section>
           <div class="grid items-center">
             <div class="row justify-between items-center">
-              <q-btn icon="arrow_back" round class="q-mr-sm" color="primary" @click="goBack" />
+              <q-btn icon="arrow_back" round class="q-mr-sm" color="black" @click="goBack" />
               <q-btn rounded color="black" @click="viewFundedDocument">View Funded</q-btn>
             </div>
             <div class="text-h3 q-mt-md">{{ selectedJob?.Position || 'Test' }}</div>

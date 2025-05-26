@@ -57,7 +57,7 @@
                     class="q-mr-sm"
                   />
                   <div class="text-body1">{{ prop.node.label }}</div>
-                  <q-badge v-if="prop.node.positions" color="green" class="q-ml-sm">
+                  <q-badge dense rounded v-if="prop.node.positions" color="green" class="q-ml-sm">
                     {{ prop.node.positions }}
                     {{ prop.node.positions > 1 ? 'positions' : 'position' }}
                   </q-badge>

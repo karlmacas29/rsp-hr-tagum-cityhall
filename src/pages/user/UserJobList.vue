@@ -23,9 +23,10 @@
         <div class="text-h3 text-bold text-center">Notice</div>
       </q-card-section>
       <q-card-section>
-        Lorem ipsum dolor sit, amet consectetur adipisicing elit. Inventore cumque et sapiente
-        accusantium sunt quibusdam. Repellat impedit veniam modi, nesciunt perferendis inventore
-        maiores tenetur ut delectus dolores ab earum consectetur.
+        <p class="text-center text-body1">
+          Please be advised that applicants are limited to applying for a maximum of three (3) job
+          positions.
+        </p>
       </q-card-section>
     </q-card>
 

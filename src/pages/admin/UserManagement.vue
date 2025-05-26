@@ -47,17 +47,17 @@
           <!-- Active status -->
           <template v-slot:body-cell-active="props">
             <q-td :props="props">
-              <q-badge :color="props.row.active ? 'positive' : 'negative'">
+              <q-badge rounded :color="props.row.active ? 'positive' : 'negative'">
                 {{ props.row.active ? 'Active' : 'Inactive' }}
               </q-badge>
             </q-td>
           </template>
 
-          <!-- Permissions column -->
+          <!-- Permissions column
           <template v-slot:body-cell-permissions="props">
             <q-td :props="props">
               <div class="row q-gutter-xs">
-                <q-badge v-if="props.row.rsp_control.isFunded == '1'" color="primary">
+                <q-badge rounded v-if="props.row.rsp_control.isFunded == '1'" color="primary">
                   <q-icon name="paid" size="xs" />
                   <q-tooltip>Funding Access</q-tooltip>
                 </q-badge>
@@ -83,12 +83,12 @@
                 </q-badge>
               </div>
             </q-td>
-          </template>
+          </template> -->
 
           <!-- Add body cell template for position -->
           <template v-slot:body-cell-created_at="props">
             <q-td :props="props" style="width: 230px; white-space: normal">
-              <q-badge class="bg-teal" outline>
+              <q-badge rounded class="bg-blue" outline>
                 {{
                   new Date(props.value).toLocaleString('en-US', {
                     month: 'long',
@@ -106,7 +106,7 @@
           <!-- Add body cell template for position -->
           <template v-slot:body-cell-updated_at="props">
             <q-td :props="props" style="width: 230px; white-space: normal">
-              <q-badge class="bg-teal" outline>
+              <q-badge rounded class="bg-teal" outline>
                 {{
                   new Date(props.value).toLocaleString('en-US', {
                     month: 'long',
@@ -148,7 +148,7 @@
                   <q-tooltip>Delete User</q-tooltip>
                 </q-btn> -->
 
-              <q-badge v-if="props.row.id == authStore.user.id" color="blue">You</q-badge>
+              <q-badge rounded v-if="props.row.id == authStore.user.id" color="blue">You</q-badge>
             </q-td>
           </template>
           <!-- Loading -->

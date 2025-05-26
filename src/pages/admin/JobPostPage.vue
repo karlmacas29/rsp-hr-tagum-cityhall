@@ -110,7 +110,7 @@
           <q-td :props="props">
             <div style="width: 80px; white-space: normal">
               <span class="text-body1 text-weight-medium text-black">
-                <q-badge color="green">
+                <q-badge rounded color="green">
                   {{ formatDate(props.row.post_date, 'MMM D, YYYY') }}
                 </q-badge>
               </span>

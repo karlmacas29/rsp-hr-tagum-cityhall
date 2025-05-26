@@ -131,7 +131,9 @@
                   <template v-slot:body-cell-Status="props">
                     <q-td :props="props" style="width: 70px; white-space: normal">
                       <q-badge
-                        class="q-pa-xs"
+                        rounded
+                        dense
+                        class="q-pa-xs text-white"
                         :class="
                           props.row.Status == 'ELECTIVE'
                             ? 'bg-blue'
@@ -546,9 +548,12 @@
   import { useJobPostStore } from 'stores/jobPostStore';
   import { toast } from 'src/boot/toast';
   import axios from 'axios';
+  import { useLogsStore } from 'stores/logsStore';
 
   const authStore = useAuthStore();
   const usePlantilla = usePlantillaStore();
+  const logStore = useLogsStore();
+
   //
   const currentRow = ref(null);
   const showModal = ref(false);
@@ -691,7 +696,9 @@
         currentRow.value.Funded = '1';
       }
       showModal.value = false;
-
+      logStore.logAction(
+        `${authStore.user.name} uploaded a Plantilla Funded for ${currentRow.value.position}. PositionID: ${currentRow.value.PositionID}, ItemNo: ${currentRow.value.ItemNo}`,
+      );
       selectedFile.value = null; // Clear the file input
       resetUploadStatus(); // Reset status for next upload
     } catch (error) {
@@ -1107,6 +1114,10 @@
       postJobDetails.value.ItemNo,
     );
     showVacantPositionModal.value = false;
+
+    logStore.logAction(
+      `${authStore.user.name} created a job post for ${postJobDetails.value.position}. PositionID: ${postJobDetails.value.PositionID}, ItemNo: ${postJobDetails.value.ItemNo}`,
+    );
   };
 
   const clearSearchFilters = () => {

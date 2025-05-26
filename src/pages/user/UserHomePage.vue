@@ -35,6 +35,15 @@
         :pagination="{ rowsPerPage: 3, sortBy: 'post_date', descending: true }"
         hide-bottom
       >
+        <template v-slot:body-cell-Position="props">
+          <q-td :props="props">
+            <div style="width: 180px; white-space: normal">
+              <span class="text-body1 text-weight-medium text-black line-clamp-2">
+                {{ props.row.Position }}
+              </span>
+            </div>
+          </q-td>
+        </template>
         <template v-slot:body-cell-Office="props">
           <q-td :props="props">
             <div style="width: 180px; white-space: normal">

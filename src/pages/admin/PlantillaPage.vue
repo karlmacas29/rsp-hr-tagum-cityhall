@@ -121,7 +121,10 @@
                         />
                       </template>
                       <template v-else>
-                        <q-badge :color="props.row.Funded === '1' ? 'positive' : 'negative'">
+                        <q-badge
+                          rounded
+                          :color="props.row.Funded === '1' ? 'positive' : 'negative'"
+                        >
                           {{ props.row.Funded === '1' ? 'Yes' : 'No' }}
                         </q-badge>
                       </template>

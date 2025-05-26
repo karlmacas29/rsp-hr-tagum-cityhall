@@ -1,6 +1,6 @@
 <template>
   <q-page padding>
-    <q-btn color="primary" round icon="arrow_back" @click="onClick" />
+    <q-btn color="black" round icon="arrow_back" @click="onClick" />
     <h3 style="text-transform: capitalize">{{ route.params.title }}</h3>
 
     <!-- Separate search inputs for each column -->

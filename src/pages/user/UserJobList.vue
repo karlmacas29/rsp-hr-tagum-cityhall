@@ -15,15 +15,13 @@
         </div>
       </div>
     </div>
-    <q-card class="q-mt-md">
-      <q-card-section>
-        <q-badge color="yellow" floating class="q-mb-md q-mr-md text-black">
-          <q-icon name="info" size="xs" />
-        </q-badge>
+    <q-card class="q-mt-md q-mx-auto" style="width: 700px">
+      <q-card-section class="row justify-center items-center q-gutter-md">
+        <div><q-icon name="info" size="xl" /></div>
         <div class="text-h3 text-bold text-center">Notice</div>
       </q-card-section>
       <q-card-section>
-        <p class="text-center text-body1">
+        <p class="text-center text-body">
           Please be advised that applicants are limited to applying for a maximum of three (3) job
           positions.
         </p>

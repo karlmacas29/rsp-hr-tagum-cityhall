@@ -1,7 +1,7 @@
 
 ![logo](https://github.com/user-attachments/assets/7ee09655-8a3f-4b3a-ae93-68acc6502c5d)
 
-# Recruitment, Selection and Placement System (FrontEnd)
+# Recruitment, Selection and Placement System (Frontend)
 
 A Recruitment, Selection and Placement Web System for tagum created by DNSC OJT student.
 - Admin
@@ -26,3 +26,34 @@ A Recruitment, Selection and Placement Web System for tagum created by DNSC OJT 
 [Documentation for Axios](https://axios-http.com/docs/intro)
 
 [Documentation for Pinia](https://pinia.vuejs.org/)
+
+
+## Run Locally 
+- Make sure you have to install node.js and quasar vue framework
+- Run also in laravel project make sure you should clone project link [here](https://github.com/karlmacas29/backend)
+
+Clone the project
+
+```bash
+  git clone https://github.com/karlmacas29/rsp-hr-tagum-cityhall.git
+```
+
+Go to the project directory
+
+```bash
+  cd rsp-hr-tagum-cityhall
+```
+
+Install dependencies
+
+```bash
+  npm install
+```
+
+Start the server (also run in laravel for backend)
+
+```bash
+  quasar dev
+```
+
+

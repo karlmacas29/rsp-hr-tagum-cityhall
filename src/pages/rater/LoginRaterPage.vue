@@ -37,8 +37,23 @@
             </div>
             <div>
               <form @submit.prevent="login">
-                <div class="q-gutter-md" style="width: 400px">
-                  <q-select outlined v-model="username" :options="options" label="Select Raters">
+                <div class="login-form-inputs" style="width: 400px">
+                  <q-select
+                    outlined
+                    v-model="username"
+                    :options="filteredOptions"
+                    label="Select Rater"
+                    use-input
+                    input-debounce="0"
+                    @filter="filterFn"
+                    :error="formSubmitted && !username"
+                    error-message="Please select a rater"
+                  >
+                    <template v-slot:no-option>
+                      <q-item>
+                        <q-item-section class="text-grey">No matching raters found</q-item-section>
+                      </q-item>
+                    </template>
                     <template v-slot:option="scope">
                       <q-item v-bind="scope.itemProps" :class="{ 'bg-grey-2': scope.selected }">
                         <q-item-section>
@@ -48,6 +63,16 @@
                       </q-item>
                     </template>
                   </q-select>
+
+                  <q-input
+                    v-if="username"
+                    outlined
+                    v-model="password"
+                    label="Password"
+                    type="password"
+                    :error="formSubmitted && !password"
+                    error-message="Password is required"
+                  />
                 </div>
                 <div class="row justify-center items-center q-mt-md">
                   <q-btn
@@ -57,6 +82,7 @@
                     size="md"
                     style="width: 200px"
                     rounded
+                    :loading="loading"
                   />
                 </div>
               </form>
@@ -68,21 +94,105 @@
   </q-layout>
 </template>
 
-<script setup>
+<script>
   import { ref } from 'vue';
   import { useRouter } from 'vue-router';
+  import { useQuasar } from 'quasar';
 
-  const router = useRouter();
-  const username = ref('');
-  const options = ref([
-    { label: 'User A. User', role: 'HR Manager', value: 'opt1' },
-    { label: 'User A. User', role: 'HR Manager', value: 'opt2' },
-    { label: 'User A. User', role: 'HR Manager', value: 'opt3' },
-    { label: 'User A. User', role: 'HR Manager', value: 'opt4' },
-    { label: 'User A. User', role: 'HR Manager', value: 'opt5' },
-  ]);
+  export default {
+    setup() {
+      const router = useRouter();
+      const $q = useQuasar();
+      const username = ref('');
+      const password = ref('');
+      const loading = ref(false);
+      const formSubmitted = ref(false);
+      const options = ref([
+        { label: 'User A. User', role: 'HR Manager', value: 'opt1' },
+        { label: 'John Doe', role: 'HR Manager', value: 'opt2' },
+        { label: 'Jane Smith', role: 'HR Officer', value: 'opt3' },
+        { label: 'Robert Johnson', role: 'HR Specialist', value: 'opt4' },
+        { label: 'Emily Davis', role: 'HR Manager', value: 'opt5' },
+      ]);
 
-  const login = () => {
-    router.push('/uRater');
+      const filteredOptions = ref([...options.value]);
+
+      function filterFn(val, update) {
+        if (val === '') {
+          update(() => {
+            filteredOptions.value = options.value;
+          });
+          return;
+        }
+
+        update(() => {
+          const needle = val.toLowerCase();
+          filteredOptions.value = options.value.filter(
+            (v) =>
+              v.label.toLowerCase().indexOf(needle) > -1 ||
+              v.role.toLowerCase().indexOf(needle) > -1,
+          );
+        });
+      }
+
+      const login = () => {
+        formSubmitted.value = true;
+
+        if (!username.value || !password.value) {
+          return;
+        }
+
+        loading.value = true;
+
+        setTimeout(() => {
+          loading.value = false;
+
+          if (password.value === 'password') {
+            $q.notify({
+              type: 'positive',
+              message: 'Login successful',
+            });
+            router.push('/uRater');
+          } else {
+            $q.notify({
+              type: 'negative',
+              message: 'Invalid credentials',
+            });
+            password.value = '';
+          }
+        }, 1000);
+      };
+
+      return {
+        username,
+        password,
+        loading,
+        formSubmitted,
+        options,
+        filteredOptions,
+        filterFn,
+        login,
+      };
+    },
   };
 </script>
+
+<style scoped>
+  .login-form-inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .q-field {
+    min-height: 56px !important;
+  }
+
+  .q-field--with-bottom {
+    padding-bottom: 12px !important;
+  }
+
+  .q-field:not(.q-field--with-bottom) {
+    padding-bottom: 0 !important;
+  }
+</style>

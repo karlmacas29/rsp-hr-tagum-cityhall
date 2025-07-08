@@ -10,14 +10,13 @@
       <div class="page-container">
         <!-- Fixed Header Container -->
         <div class="fixed-header-container">
-          <!-- Page Title Section -->
           <div class="row q-mb-sm page-header">
             <div class="col-9">
               <h5 class="q-mt-none q-mb-xs text-weight-bold">
                 Rating Form for Qualification Standards
               </h5>
               <div class="text-subtitle1 q-mb-xs">Position Title: {{ position.title }}</div>
-              <div class="text-caption">Plantilla Code: {{ position.code }}</div>
+              <div class="text-caption">Slot: {{ position.slots }}</div>
             </div>
             <div class="col-3 text-right">
               <q-btn flat round dense icon="close" @click="closeForm" class="close-button" />
@@ -68,7 +67,7 @@
                   class="full-width"
                   unelevated
                   rounded
-                  style="height: 32px"
+                  style="height: 30px"
                 />
               </div>
             </div>
@@ -184,33 +183,42 @@
           />
         </div>
 
-        <!-- Footer with Submit Button -->
         <div class="modal-footer">
           <div class="row justify-end">
             <q-btn
               color="green"
               label="Submit Ratings"
               icon-right="check"
-              @click="submitRatings"
+              @click="showConfirmationModal"
               class="submit-button consistent-font"
               dense
             />
           </div>
         </div>
       </div>
+
+      <!-- Confirmation Modal -->
+      <ConfirmationModal
+        v-model:visible="confirmModalVisible"
+        :applicants="applicants"
+        :slot-count="parseInt(position.slots) || 1"
+        @confirm="handleConfirmSubmit"
+        @cancel="handleCancelSubmit"
+      />
     </q-card>
   </q-dialog>
 </template>
 
 <script>
   import { ref, onMounted, computed, watch } from 'vue';
-  import { useQuasar } from 'quasar';
   import RaterPreview from './RaterPreview.vue';
+  import ConfirmationModal from 'components/Rater/ConfirmationModal.vue';
 
   export default {
     name: 'RatingForm',
     components: {
       RaterPreview,
+      ConfirmationModal,
     },
     props: {
       modelValue: {
@@ -223,23 +231,26 @@
         default: () => ({
           id: 0,
           title: '',
-          code: '',
+          slots: '',
           department: '',
+          slotCount: 1,
           applicants: [],
         }),
       },
     },
     emits: ['update:modelValue', 'submit-ratings'],
     setup(props, { emit }) {
-      const $q = useQuasar();
       const isOpen = computed({
         get: () => props.modelValue,
         set: (value) => emit('update:modelValue', value),
       });
 
+      // Confirmation modal visibility
+      const confirmModalVisible = ref(false);
+
       // Filter and sort controls
       const filterText = ref('');
-      const sortBy = ref({ label: 'Ranking', value: 'ranking' });
+      const sortBy = ref({ label: 'Name', value: 'name' });
       const sortOrder = ref('asc');
 
       // Sort options
@@ -289,39 +300,111 @@
       const initializeApplicants = () => {
         if (props.position && props.position.applicants) {
           applicants.value = [...props.position.applicants];
-          // Ensure totals are calculated
+
           applicants.value.forEach((applicant) => {
             calculateTotals(applicant);
           });
+          updateRankingsWithTies();
+        }
+      };
+
+      // Function to calculate QS value
+      const calculateQSValue = (applicant) => {
+        const education = parseFloat(applicant.educationScore) || 0;
+        const experience = parseFloat(applicant.experienceScore) || 0;
+        const training = parseFloat(applicant.trainingScore) || 0;
+        const performance = parseFloat(applicant.performance) || 0;
+        return Math.min(education + experience + training + performance, 75);
+      };
+
+      // Function to calculate Grand Total value
+      const calculateTotalValue = (applicant) => {
+        const qs = calculateQSValue(applicant);
+        const bei = parseFloat(applicant.bei) || 0;
+        return Math.min(qs + bei, 100);
+      };
+
+      // Calculate totals for an applicant
+      const calculateTotals = (applicant) => {
+        const education = parseFloat(applicant.educationScore) || 0;
+        const experience = parseFloat(applicant.experienceScore) || 0;
+        const training = parseFloat(applicant.trainingScore) || 0;
+        const performance = parseFloat(applicant.performance) || 0;
+
+        applicant.totalQS = Math.min(education + experience + training + performance, 75);
+        applicant.grandTotal = Math.min(applicant.totalQS + (parseFloat(applicant.bei) || 0), 100);
+      };
+
+      // Update rankings with ties - FIXED algorithm
+      const updateRankingsWithTies = () => {
+        const sortedByTotal = [...applicants.value].sort((a, b) => {
+          const aTotal = parseFloat(calculateTotalValue(a));
+          const bTotal = parseFloat(calculateTotalValue(b));
+          return bTotal - aTotal;
+        });
+
+        const scoreMap = {};
+
+        // First pass: collect all unique scores and their positions
+        sortedByTotal.forEach((applicant, index) => {
+          const total = parseFloat(calculateTotalValue(applicant)).toFixed(1);
+          if (!scoreMap[total]) {
+            scoreMap[total] = {
+              firstPosition: index,
+              count: 0,
+            };
+          }
+          scoreMap[total].count++;
+        });
+
+        // Second pass: assign rankings
+        sortedByTotal.forEach((applicant) => {
+          const total = parseFloat(calculateTotalValue(applicant)).toFixed(1);
+          const position = scoreMap[total].firstPosition;
+          applicant.ranking = position + 1;
+        });
+      };
+
+      // Handle rating updates from RaterPreview
+      const handleRatingUpdate = ({ applicantId, field, value }) => {
+        const applicant = applicants.value.find((a) => a.id === applicantId);
+        if (applicant) {
+          applicant[field] = parseFloat(value) || 0;
+          calculateTotals(applicant);
+          updateRankingsWithTies();
         }
       };
 
       // Computed property for filtered and sorted applicants
       const filteredSortedApplicants = computed(() => {
-        // First filter by name
         const filtered = filterText.value
           ? applicants.value.filter((a) =>
               a.name.toLowerCase().includes(filterText.value.toLowerCase()),
             )
           : [...applicants.value];
 
-        // Then sort by selected field
         const sorted = [...filtered].sort((a, b) => {
-          const aValue =
-            sortBy.value.value === 'totalQS'
-              ? calculateQSValue(a)
-              : sortBy.value.value === 'grandTotal'
-                ? calculateTotalValue(a)
-                : a[sortBy.value.value];
+          let aValue, bValue;
 
-          const bValue =
-            sortBy.value.value === 'totalQS'
-              ? calculateQSValue(b)
-              : sortBy.value.value === 'grandTotal'
-                ? calculateTotalValue(b)
-                : b[sortBy.value.value];
+          if (sortBy.value.value === 'totalQS') {
+            aValue = calculateQSValue(a);
+            bValue = calculateQSValue(b);
+          } else if (sortBy.value.value === 'grandTotal') {
+            aValue = calculateTotalValue(a);
+            bValue = calculateTotalValue(b);
+          } else if (sortBy.value.value === 'name') {
+            aValue = String(a[sortBy.value.value] || '').toLowerCase();
+            bValue = String(b[sortBy.value.value] || '').toLowerCase();
+          } else {
+            aValue = a[sortBy.value.value];
+            bValue = b[sortBy.value.value];
 
-          // Handle numeric vs string comparison
+            if (!isNaN(parseFloat(aValue))) {
+              aValue = parseFloat(aValue) || 0;
+              bValue = parseFloat(bValue) || 0;
+            }
+          }
+
           if (typeof aValue === 'string') {
             return sortOrder.value === 'asc'
               ? aValue.localeCompare(bValue)
@@ -334,69 +417,24 @@
         return sorted;
       });
 
-      // Function to calculate QS value for sorting
-      const calculateQSValue = (applicant) => {
-        const education = parseFloat(applicant.educationScore) || 0;
-        const experience = parseFloat(applicant.experienceScore) || 0;
-        const training = parseFloat(applicant.trainingScore) || 0;
-        const performance = parseFloat(applicant.performance) || 0;
-        return Math.min(education + experience + training + performance, 75);
+      // Show confirmation modal
+      const showConfirmationModal = () => {
+        confirmModalVisible.value = true;
       };
 
-      // Function to calculate Grand Total value for sorting
-      const calculateTotalValue = (applicant) => {
-        const qs = calculateQSValue(applicant);
-        const bei = parseFloat(applicant.bei) || 0;
-        return Math.min(qs + bei, 100);
-      };
-
-      // Handle rating updates from RaterPreview
-      const handleRatingUpdate = ({ applicantId, field, value }) => {
-        const applicant = applicants.value.find((a) => a.id === applicantId);
-        if (applicant) {
-          applicant[field] = parseFloat(value) || 0;
-          calculateTotals(applicant);
-        }
-      };
-
-      // Calculate totals for an applicant
-      const calculateTotals = (applicant) => {
-        // Ensure all numerical values are properly converted
-        const education = parseFloat(applicant.educationScore) || 0;
-        const experience = parseFloat(applicant.experienceScore) || 0;
-        const training = parseFloat(applicant.trainingScore) || 0;
-        const performance = parseFloat(applicant.performance) || 0;
-
-        applicant.totalQS = education + experience + training + performance;
-        applicant.grandTotal = applicant.totalQS + (parseFloat(applicant.bei) || 0);
-        updateRankings();
-      };
-
-      // Update rankings based on grand totals
-      const updateRankings = () => {
-        const sorted = [...applicants.value].sort((a, b) => b.grandTotal - a.grandTotal);
-        sorted.forEach((applicant, index) => {
-          const matchingApplicant = applicants.value.find((a) => a.id === applicant.id);
-          if (matchingApplicant) {
-            matchingApplicant.ranking = index + 1;
-          }
-        });
-      };
-
-      // Submit ratings
-      const submitRatings = () => {
-        $q.notify({
-          color: 'positive',
-          message: 'Ratings submitted successfully',
-          icon: 'check_circle',
-        });
-
+      // Handle confirm from modal
+      const handleConfirmSubmit = (successfulApplicants) => {
         emit('submit-ratings', {
           positionId: props.position.id,
           applicants: applicants.value,
+          successfulApplicants: successfulApplicants,
         });
-
         closeForm();
+      };
+
+      // Handle cancel from modal
+      const handleCancelSubmit = () => {
+        confirmModalVisible.value = false;
       };
 
       // Close the form
@@ -415,6 +453,15 @@
         { immediate: true },
       );
 
+      // Watch for changes that should trigger re-ranking
+      watch(
+        [applicants],
+        () => {
+          updateRankingsWithTies();
+        },
+        { deep: true },
+      );
+
       onMounted(() => {
         initializeApplicants();
       });
@@ -427,16 +474,19 @@
         sortOptions,
         criteria,
         filteredSortedApplicants,
+        applicants,
         handleRatingUpdate,
-        submitRatings,
         closeForm,
+        confirmModalVisible,
+        showConfirmationModal,
+        handleConfirmSubmit,
+        handleCancelSubmit,
       };
     },
   };
 </script>
 
 <style lang="scss" scoped>
-  // Modal styling
   .rating-form-modal {
     width: 1200px;
     max-width: 90vw;
@@ -446,7 +496,6 @@
     overflow: hidden;
   }
 
-  // Set up the overall page structure
   .page-container {
     display: flex;
     flex-direction: column;
@@ -455,7 +504,6 @@
     position: relative;
   }
 
-  // Fixed header container
   .fixed-header-container {
     position: sticky;
     top: 0;
@@ -467,18 +515,15 @@
     padding: 8px;
   }
 
-  // Close button styling
   .close-button {
     margin-top: 4px;
   }
 
-  // Page header styling
   .page-header {
     padding-bottom: 4px;
     border-bottom: 1px solid #f0f0f0;
   }
 
-  // Filter and sort controls
   .filter-sort-controls {
     padding: 6px 0;
     background-color: white;
@@ -492,7 +537,7 @@
     }
 
     :deep(input) {
-      font-size: 0.8rem !important;
+      font-size: 1rem !important;
       line-height: 1.1 !important;
     }
 
@@ -509,23 +554,21 @@
     }
 
     :deep(.q-field__native) {
-      font-size: 0.8rem !important;
+      font-size: 1rem !important;
       line-height: 1.1 !important;
       padding-top: 0;
       padding-bottom: 0;
     }
   }
 
-  // Styling for the toggle buttons
   :deep(.q-btn-toggle) {
     .q-btn {
       min-height: 32px;
-      font-size: 0.85rem !important;
+      font-size: 1rem !important;
       line-height: 1.1 !important;
     }
   }
 
-  // Criteria tables
   .criteria-header,
   .criteria-description {
     margin-top: 0;
@@ -537,46 +580,38 @@
     }
   }
 
-  // Scrollable content area
   .scrollable-content {
     flex: 1;
     overflow-y: auto;
     padding: 8px;
   }
 
-  // Modal footer styling
   .modal-footer {
     border-top: 1px solid rgba(0, 0, 0, 0.1);
     padding: 12px 16px;
     background-color: #f5f5f5;
   }
 
-  // Apply consistent font size
   .consistent-font {
-    font-size: 0.85rem !important;
+    font-size: 1rem !important;
   }
 
-  // Submit button styling
   .submit-button {
     min-width: 150px;
 
-    // Make sure icons are consistent size too
     :deep(.q-icon) {
       font-size: 1rem !important;
     }
 
-    // Adjust padding for better proportions with smaller font
     padding: 8px 16px !important;
   }
 
-  // Compact cells with less padding
   .compact-cell {
     padding: 4px !important;
-    font-size: 0.85rem;
+    font-size: 0.95rem;
     line-height: 1.2;
   }
 
-  // Compact criteria cell styling with less padding
   .compact-criteria-cell {
     padding: 4px !important;
     vertical-align: top;
@@ -590,10 +625,10 @@
     font-weight: 500;
   }
 
-  // Tighter line heights for text
   .text-subtitle1,
   .text-subtitle2,
   .text-caption {
+    font-size: 0.9rem;
     line-height: 1.2;
   }
 </style>

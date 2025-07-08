@@ -255,13 +255,6 @@
         // Ensure the total doesn't exceed 100%
         return Math.min(qs + bei, 100).toFixed(1);
       },
-      getRank(applicant) {
-        // Note: We're not using this method anymore since we're using the pre-calculated ranking
-        const sorted = [...this.applicants].sort(
-          (a, b) => parseFloat(this.calculateTotal(b)) - parseFloat(this.calculateTotal(a)),
-        );
-        return sorted.findIndex((a) => a.id === applicant.id) + 1;
-      },
     },
     watch: {
       // Close expanded panels when applicant list changes due to filtering
@@ -289,30 +282,27 @@
 
   .applicant-name {
     background-color: #f9f9f9;
-    font-weight: 500;
+    font-weight: 650;
   }
 
-  /* Make input fields more compact and consistent */
   .score-input {
     min-height: 28px;
   }
 
   .score-input :deep(.q-field__control) {
     height: 28px;
-    min-height: 28px;
+    min-height: 30px;
   }
 
   .score-input :deep(.q-field__marginal) {
     height: 28px;
   }
 
-  /* Make input font size match the rest of the text */
   .score-input :deep(input) {
-    font-size: 0.8rem !important;
+    font-size: 0.95rem !important;
     line-height: 1.1 !important;
   }
 
-  /* Fix any other input-related styling for consistency */
   .score-input :deep(.q-field__native) {
     padding-top: 0;
     padding-bottom: 0;
@@ -323,10 +313,9 @@
     padding-bottom: 0;
   }
 
-  /* Table cells formatting */
   .compact-cell {
     padding: 2px 4px !important;
-    font-size: 0.8rem;
+    font-size: 0.95rem;
     line-height: 1.1;
   }
 
@@ -340,7 +329,6 @@
     background-color: #f0f8ff;
   }
 
-  /* Expanded details formatting */
   .applicant-details {
     border-top: 1px dashed #ddd;
     margin-top: -1px;
@@ -364,16 +352,14 @@
 
   .detail-content {
     color: #546e7a;
-    font-size: 0.85rem;
+    font-size: 0.95rem;
     line-height: 1.2;
   }
 
-  /* Make spacing between rows minimal */
   .q-mb-xs {
     margin-bottom: 2px !important;
   }
 
-  /* Text ellipsis for long names */
   .ellipsis {
     white-space: nowrap;
     overflow: hidden;

@@ -147,24 +147,21 @@
       const filterByDepartment = ref(null);
       const statusFilter = ref(null);
 
-      // Rating form controls
       const showRatingForm = ref(false);
       const selectedPosition = ref({});
 
-      // Pagination settings
       const pagination = ref({
         rowsPerPage: 10,
       });
 
-      // Table columns with specific width percentages
       const columns = [
         {
-          name: 'code',
-          label: 'Plantilla Code',
-          field: 'code',
+          name: 'slots',
+          label: 'Slots',
+          field: 'slots',
           sortable: true,
           align: 'left',
-          width: '15%',
+          width: '10%',
         },
         {
           name: 'title',
@@ -172,7 +169,7 @@
           field: 'title',
           sortable: true,
           align: 'left',
-          width: '18%',
+          width: '23%',
         },
         {
           name: 'department',
@@ -235,39 +232,31 @@
         return statuses.map((status) => ({ label: status, value: status }));
       });
 
-      // Filtered positions based on search and filters
       const filteredPositions = computed(() => {
         return positions.value.filter((position) => {
-          // Text search
           const searchMatch =
             search.value === '' ||
             position.title.toLowerCase().includes(search.value.toLowerCase()) ||
-            position.code.toLowerCase().includes(search.value.toLowerCase()) ||
+            position.slots.toLowerCase().includes(search.value.toLowerCase()) ||
             position.department.toLowerCase().includes(search.value.toLowerCase());
 
-          // Department filter
           const departmentMatch =
             !filterByDepartment.value || position.department === filterByDepartment.value;
 
-          // Status filter
           const statusMatch = !statusFilter.value || position.status === statusFilter.value;
 
           return searchMatch && departmentMatch && statusMatch;
         });
       });
 
-      // Open the rating form for a position
       const openRatingForm = (position) => {
         selectedPosition.value = { ...position };
         showRatingForm.value = true;
       };
 
-      // Handle submit ratings from form
       const handleSubmitRatings = (data) => {
-        // In a real app, you would save the ratings to an API here
         console.log('Ratings submitted:', data);
 
-        // Update the position status
         const position = positions.value.find((p) => p.id === data.positionId);
         if (position) {
           position.status = 'Completed';
@@ -281,14 +270,12 @@
         }
       };
 
-      // Load sample data
       const loadPositions = () => {
-        // Simulating API call with timeout
         setTimeout(() => {
           positions.value = [
             {
               id: 1,
-              code: 'CDRRMO x-23',
+              slots: '1',
               title: 'City Government Department Head',
               department: 'DRRM Office',
               deadline: '2025-06-30',
@@ -346,7 +333,7 @@
             },
             {
               id: 2,
-              code: 'CITY-IT-12',
+              slots: '2',
               title: 'Information Technology Officer',
               department: 'IT Department',
               deadline: '2025-06-25',
@@ -388,7 +375,7 @@
             },
             {
               id: 3,
-              code: 'CITY-PLAN-07',
+              slots: '2',
               title: 'City Planner IV',
               department: 'Planning and Development',
               deadline: '2025-07-05',
@@ -430,7 +417,7 @@
             },
             {
               id: 4,
-              code: 'CHO-DOC-15',
+              slots: '1',
               title: 'City Health Officer',
               department: 'Health Department',
               deadline: '2025-07-15',
@@ -456,7 +443,7 @@
             },
             {
               id: 5,
-              code: 'CENRO-ENV-08',
+              slots: '1',
               title: 'Environmental Management Specialist',
               department: 'Environment and Natural Resources',
               deadline: '2025-06-28',
@@ -501,7 +488,6 @@
         }, 500);
       };
 
-      // Initialize data
       onMounted(() => {
         loadPositions();
       });
@@ -541,40 +527,35 @@
     }
   }
 
-  // Apply consistent font size across all components
   .consistent-font {
-    font-size: 0.85rem;
+    font-size: 0.9rem;
   }
 
-  // Match font sizes with the rating form
   :deep(.q-table) {
     th,
     td {
-      font-size: 0.85rem;
+      font-size: 1rem;
     }
 
-    // Force table to respect column widths
     table {
       table-layout: fixed;
       width: 100%;
     }
   }
 
-  // Status badge styling
   .status-badge {
-    font-size: 0.85rem !important;
+    font-size: 0.9rem !important;
     font-weight: normal;
     padding: 2px 8px;
   }
 
-  // Style for filter components to make font size consistent
   .filter-component {
     :deep(.q-field__native),
     :deep(.q-field__prefix),
     :deep(.q-field__suffix),
     :deep(input),
     :deep(.q-field__label) {
-      font-size: 0.85rem !important;
+      font-size: 1rem !important;
     }
 
     :deep(.q-field__marginal) {
@@ -582,31 +563,27 @@
     }
   }
 
-  // Make dropdown options consistent
   :deep(.q-menu) {
     .q-item,
     .q-item__label {
-      font-size: 0.85rem !important;
+      font-size: 1rem !important;
       min-height: 32px;
       padding: 4px 16px;
     }
   }
 
-  // Ensure dropdown option text has consistent size
   :deep(.q-select__dropdown-icon) {
-    font-size: 0.85rem;
+    font-size: 2rem;
   }
 
-  // Specifically target status filter dropdown items
   :deep(.q-select[label='Status']) {
     .q-item,
     .q-item__label {
-      font-size: 0.85rem !important;
+      font-size: 0.9rem !important;
     }
   }
 
-  // Style for notification messages to match
   :deep(.q-notification) {
-    font-size: 0.85rem;
+    font-size: 1rem;
   }
 </style>

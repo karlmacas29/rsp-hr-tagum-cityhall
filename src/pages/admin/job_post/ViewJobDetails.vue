@@ -1,209 +1,187 @@
 <template>
-  <!-- Job Details View -->
-  <div class="q-pa-md">
-    <q-card class="q-mb-lg" flat bordered style="height: 100%; min-height: 300px">
+  <div class="q-pa-md bg-grey-1">
+    <!-- Job Details Card -->
+    <q-card class="q-mb-lg shadow-3" flat bordered style="max-width: 1000px; margin: auto">
       <q-inner-loading :showing="jobPostStore.loading">
-        <q-spinner size="50px" color="primary" />
+        <q-spinner size="32px" color="primary" />
       </q-inner-loading>
 
-      <q-card-section v-if="!jobPostStore.loading">
-        <q-card-section>
-          <div class="grid items-center">
-            <div class="row justify-between items-center">
-              <q-btn icon="arrow_back" round class="q-mr-sm" color="black" @click="goBack" />
-              <q-btn rounded color="black" @click="viewFundedDocument">View Funded</q-btn>
-            </div>
-            <div class="text-h3 q-mt-md">{{ selectedJob?.Position || 'Test' }}</div>
-            <div class="row justify-start items-center q-gutter-x-md">
-              <q-chip dense>
-                Position Level:
-                <q-badge rounded color="green q-ml-sm">{{ selectedJob?.level || 'Test' }}</q-badge>
-              </q-chip>
-              <!--  -->
-              <q-chip dense>
-                Page No.:
-                <q-badge rounded color="green q-ml-sm">{{ selectedJob?.PageNo || '0' }}</q-badge>
-              </q-chip>
-              <!--  -->
-              <q-chip dense>
-                Item No.:
-                <q-badge rounded color="green q-ml-sm">{{ selectedJob?.ItemNo || '0' }}</q-badge>
-              </q-chip>
-              <!--  -->
-              <q-chip dense>
-                Salary Grade:
-                <q-badge rounded color="green q-ml-sm">
-                  {{ selectedJob?.SalaryGrade || '0' }}
-                </q-badge>
-              </q-chip>
-            </div>
-          </div>
-        </q-card-section>
-
-        <q-card-section>
-          <div class="row q-col-gutter-md">
-            <div class="col-12">
-              <div class="text-h6 q-mb-sm">
-                <span class="text-weight-bold">Office:</span>
-                {{ selectedJob?.Office || 'No Office' }}
-              </div>
-              <div class="text-h6 q-mb-sm">
-                <span class="text-weight-bold">Division:</span>
-                {{ selectedJob?.Division || 'No Division' }}
-              </div>
-              <div class="text-h6 q-mb-sm">
-                <span class="text-weight-bold">Section:</span>
-                {{ selectedJob?.Section || 'No Section' }}
-              </div>
-              <div class="text-h6 q-mb-sm">
-                <span class="text-weight-bold">Unit:</span>
-                {{ selectedJob?.Unit || 'No Unit' }}
-              </div>
-              <div class="text-h6 q-mb-sm">
-                <span class="text-weight-bold">Position:</span>
-                {{ selectedJob?.Position || 'No Position' }}
-              </div>
-              <div class="row justify-center items-center q-gutter-x-md">
-                <div class="text-h6 q-mb-sm">
-                  <q-chip>
-                    <span class="text-weight-bold q-mr-sm">Posting Date:</span>
-                    <q-badge dense rounded>
-                      {{ formatDate(selectedJob?.post_date, 'MMM D, YYYY') || 'Test' }}
-                    </q-badge>
-                  </q-chip>
-                </div>
-                <div class="text-h6 q-mb-sm">
-                  <q-chip>
-                    <span class="text-weight-bold q-mr-sm">End Date:</span>
-                    <q-badge dense rounded>
-                      {{ formatDate(selectedJob?.end_date, 'MMM D, YYYY') || 'Test' }}
-                    </q-badge>
-                  </q-chip>
-                </div>
-              </div>
-              <q-separator></q-separator>
-            </div>
-          </div>
-
-          <div class="text-h4 q-mb-md">Qualification Standard/Requirements</div>
-          <div class="q-pl-md">
-            <div class="text-h6 q-mb-sm text-weight-bold">BASIC QUALIFICATIONS:</div>
-
-            <!-- Qualification Standards section -->
-            <q-card-section>
-              <div class="q-gutter-y-md">
-                <!--  -->
-                <div class="row justify-center q-gutter-x-md">
-                  <q-card flat bordered class="col">
-                    <q-card-section>
-                      <q-badge color="primary">Education</q-badge>
-                      <div class="text-body1">{{ selectedCriteria?.Education || 'None' }}</div>
-                    </q-card-section>
-                  </q-card>
-
-                  <q-card flat bordered class="col">
-                    <q-card-section>
-                      <q-badge>Training</q-badge>
-                      <div class="text-body1">{{ selectedCriteria?.Training || 'None' }}</div>
-                    </q-card-section>
-                  </q-card>
-                </div>
-                <!--  -->
-                <div class="row justify-center q-gutter-x-md">
-                  <q-card flat bordered class="col">
-                    <q-card-section>
-                      <q-badge>Experience</q-badge>
-                      <div class="text-body1">{{ selectedCriteria?.Experience || 'None' }}</div>
-                    </q-card-section>
-                  </q-card>
-
-                  <q-card flat bordered class="col">
-                    <q-card-section>
-                      <q-badge>Eligibility</q-badge>
-                      <div class="text-body1">{{ selectedCriteria?.Eligibility || 'None' }}</div>
-                    </q-card-section>
-                  </q-card>
-                </div>
-              </div>
-            </q-card-section>
-            <!-- <ol v-if="selectedCriteria" class="q-pl-md text-body1">
-              <li>Education - {{ selectedCriteria.Education }}</li>
-              <li>Experience - {{ selectedCriteria.Experience }}</li>
-              <li>Training - {{ selectedCriteria.Training }}</li>
-              <li>Eligibility - {{ selectedCriteria.Eligibility }}</li>
-            </ol> -->
-          </div>
-        </q-card-section>
-      </q-card-section>
-    </q-card>
-
-    <!-- Applicants Section -->
-    <q-card flat bordered style="height: 100%; min-height: 300px">
-      <q-inner-loading :showing="jobPostStore.loading">
-        <q-spinner size="50px" color="primary" />
-      </q-inner-loading>
-      <q-card-section v-if="!jobPostStore.loading">
-        <q-card-section class="row items-center q-pb-none">
-          <div class="text-h4">Applicants for {{ selectedJob?.Position || 'Test' }}</div>
-        </q-card-section>
-
-        <q-card-section>
-          <q-table
-            :rows="[]"
-            :columns="applicantColumns"
-            row-key="id"
+      <q-card-section v-if="!jobPostStore.loading" class="q-pa-lg">
+        <div class="row items-center justify-between q-mb-lg">
+          <q-btn icon="arrow_back" round flat color="primary" @click="goBack" size="md" dense />
+          <q-btn
+            rounded
+            color="primary"
+            @click="viewFundedDocument"
+            icon="description"
+            label="View Funded"
+            size="md"
+            no-caps
             flat
-            bordered
-            hide-pagination
-            class="applicants-table"
-          >
-            <!-- <template v-slot:body-cell-status="props">
-              <q-td :props="props">
-                <q-badge :color="getStatusColor(props.row.status)" class="status-badge">
-                  {{ props.row.isSubmitted ? `${props.row.status} ` : props.row.status }}
-                </q-badge>
-              </q-td>
-            </template>
+            dense
+          />
+        </div>
 
-            <template v-slot:body-cell-action="props">
-              <q-td :props="props">
-                <q-btn
-                  flat
-                  color="primary"
-                  :label="props.row.isSubmitted ? 'Edit Evaluation' : 'Evaluate'"
-                  @click="openQualificationModal(props.row)"
-                  size="md"
-                />
-              </q-td>
-            </template> -->
-          </q-table>
-        </q-card-section>
+        <div class="text-h6 text-primary text-weight-bold q-mb-xs">
+          {{ selectedJob?.Position || 'Job Title' }}
+        </div>
+        <div class="chips-row">
+          <q-chip class="chip-padding level-chip" dense>
+            <q-icon name="work" class="q-mr-xs" />
+            <span class="chip-label">
+              Level:
+              <b>A</b>
+            </span>
+          </q-chip>
+          <q-chip class="chip-padding page-chip" dense>
+            <q-icon name="layers" class="q-mr-xs" />
+            <span class="chip-label">
+              Page No:
+              <b>344</b>
+            </span>
+          </q-chip>
+          <q-chip class="chip-padding item-chip" dense>
+            <q-icon name="apps" class="q-mr-xs" />
+            <span class="chip-label">
+              Item No:
+              <b>184</b>
+            </span>
+          </q-chip>
+          <q-chip class="chip-padding salary-chip" dense>
+            <q-icon name="star" class="q-mr-xs" />
+            <span class="chip-label">
+              Salary Grade:
+              <b>22</b>
+            </span>
+          </q-chip>
+        </div>
+
+        <div class="row q-col-gutter-md q-mb-md">
+          <div class="col-12 col-sm-6">
+            <div class="text-subtitle1 text-grey-8">
+              <q-icon name="business" size="1em" class="q-mr-xs" />
+              <b>Office:</b>
+              {{ selectedJob?.Office || '-' }}
+            </div>
+            <div class="text-subtitle1 text-grey-8">
+              <q-icon name="apartment" size="1em" class="q-mr-xs" />
+              <b>Division:</b>
+              {{ selectedJob?.Division || '-' }}
+            </div>
+            <div class="text-subtitle1 text-grey-8">
+              <q-icon name="call_split" size="1em" class="q-mr-xs" />
+              <b>Section:</b>
+              {{ selectedJob?.Section || '-' }}
+            </div>
+            <div class="text-subtitle1 text-grey-8">
+              <q-icon name="group_work" size="1em" class="q-mr-xs" />
+              <b>Unit:</b>
+              {{ selectedJob?.Unit || '-' }}
+            </div>
+          </div>
+          <div class="col-12 col-sm-6">
+            <div class="text-subtitle1 text-grey-8 q-mb-xs">
+              <q-icon name="event" size="1em" class="q-mr-xs" />
+              <b>Posting Date:</b>
+              <span class="q-ml-xs">
+                {{ formatDate(selectedJob?.post_date, 'MMM D, YYYY') || '-' }}
+              </span>
+            </div>
+            <div class="text-subtitle1 text-grey-8">
+              <q-icon name="event_busy" size="1em" class="q-mr-xs" />
+              <b>End Date:</b>
+              <span class="q-ml-xs">
+                {{ formatDate(selectedJob?.end_date, 'MMM D, YYYY') || '-' }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <q-separator spaced />
+
+        <div class="text-h6 text-weight-bold text-primary q-mb-sm">
+          Qualification Standards / Requirements
+        </div>
+        <div>
+          <div class="row q-col-gutter-md q-mb-sm">
+            <div class="col-12 col-md-6">
+              <q-card flat bordered class="q-pa-sm q-mb-xs">
+                <div class="text-caption text-grey-7">Education</div>
+                <div class="text-body1">{{ selectedCriteria?.Education || 'None' }}</div>
+              </q-card>
+              <q-card flat bordered class="q-pa-sm">
+                <div class="text-caption text-grey-7">Training</div>
+                <div class="text-body1">{{ selectedCriteria?.Training || 'None' }}</div>
+              </q-card>
+            </div>
+            <div class="col-12 col-md-6">
+              <q-card flat bordered class="q-pa-sm q-mb-xs">
+                <div class="text-caption text-grey-7">Experience</div>
+                <div class="text-body1">{{ selectedCriteria?.Experience || 'None' }}</div>
+              </q-card>
+              <q-card flat bordered class="q-pa-sm">
+                <div class="text-caption text-grey-7">Eligibility</div>
+                <div class="text-body1">{{ selectedCriteria?.Eligibility || 'None' }}</div>
+              </q-card>
+            </div>
+          </div>
+        </div>
       </q-card-section>
     </q-card>
 
+    <!-- Applicants Table Card -->
+    <q-card flat bordered class="shadow-2" style="max-width: 1000px; margin: auto">
+      <q-inner-loading :showing="jobPostStore.loading">
+        <q-spinner size="32px" color="primary" />
+      </q-inner-loading>
+      <q-card-section v-if="!jobPostStore.loading" class="q-pa-md">
+        <div class="row items-center q-mb-sm">
+          <div class="text-h6 text-primary">
+            Applicants for
+            <span class="text-weight-bold">{{ selectedJob?.Position || 'Test' }}</span>
+          </div>
+        </div>
+        <q-table
+          :rows="[]"
+          :columns="applicantColumns"
+          row-key="id"
+          flat
+          bordered
+          hide-pagination
+          class="applicants-table"
+          dense
+          v-if="applicantColumns.length"
+          separator="cell"
+          color="primary"
+        ></q-table>
+        <div v-else class="text-caption text-grey-6 q-mt-md q-ml-sm">
+          No applicant data available.
+        </div>
+      </q-card-section>
+    </q-card>
+
+    <!-- PDF Dialog -->
     <q-dialog v-model="pdfModalVisible">
-      <q-card style="width: 80vw; max-width: 90vw; height: 90vh">
-        <q-card-section class="row items-center bg-green text-white">
-          <div class="text-h5 text-bold">Funded Plantilla Document</div>
+      <q-card style="width: 85vw; max-width: 1000px; height: 90vh">
+        <q-card-section class="row items-center bg-primary text-white">
+          <div class="text-h6 text-bold">Funded Plantilla Document</div>
           <q-space />
           <q-btn icon="close" flat round dense v-close-popup />
         </q-card-section>
-
         <q-card-section style="height: calc(100% - 80px)">
           <q-inner-loading :showing="isLoadingPdf">
-            <q-spinner size="50px" color="primary" />
+            <q-spinner size="32px" color="primary" />
           </q-inner-loading>
           <template v-if="!isLoadingPdf && pdfFileUrl">
             <iframe
               :src="pdfFileUrl"
-              style="width: 100%; height: 100%; border: 2px dashed black; border-radius: 10px"
+              style="width: 100%; height: 100%; border: 2px solid #aaa; border-radius: 10px"
               title="Funded Plantilla PDF"
             ></iframe>
           </template>
-          <template v-if="!isLoadingPdf && !pdfFileUrl && !isLoadingPdf">
-            <!-- Added !isLoadingPdf here -->
+          <template v-if="!isLoadingPdf && !pdfFileUrl">
             <div class="text-center q-pa-md">
-              <q-icon name="error_outline" size="3em" color="negative" />
+              <q-icon name="error_outline" size="2em" color="negative" />
               <p>Could not load PDF document. The file might be missing or an error occurred.</p>
               <p v-if="pdfErrorMessage">{{ pdfErrorMessage }}</p>
             </div>
@@ -213,12 +191,13 @@
     </q-dialog>
   </div>
 </template>
+
 <script setup>
   import { useRouter, useRoute } from 'vue-router';
   import { useJobPostStore } from 'stores/jobPostStore';
   import { onMounted, ref } from 'vue';
   import { date } from 'quasar';
-  import axios from 'axios'; // Import axios
+  import axios from 'axios';
   import { toast } from 'src/boot/toast';
 
   const router = useRouter();
@@ -232,8 +211,6 @@
 
   const goBack = () => {
     router.push('/job-post');
-    // selectedJob.value = [];
-    // selectedCriteria.value = [];
   };
 
   const pdfModalVisible = ref(false);
@@ -244,36 +221,27 @@
   const viewFundedDocument = async () => {
     if (!selectedJob.value || !selectedJob.value.PositionID || !selectedJob.value.ItemNo) {
       toast.error('PositionID or ItemNo not found for the selected job. Cannot fetch document.');
-
-      console.error('PositionID or ItemNo not found for the selected job.');
       return;
     }
-
     isLoadingPdf.value = true;
     pdfModalVisible.value = true;
     pdfFileUrl.value = '';
     pdfErrorMessage.value = '';
-
     try {
       const apiUrl = process.env.VUE_APP_API_URL;
       const response = await axios.get(
         `${apiUrl}/on-funded-plantilla/by-funded/${selectedJob.value.PositionID}/${selectedJob.value.ItemNo}`,
       );
-
       // Remove '/api' from the apiUrl if present
       let apiPDF = apiUrl.replace(/\/api\/?$/, '');
-
       if (response.data.status === 'success' && response.data.data.fileUpload) {
         pdfFileUrl.value = `${apiPDF}/storage/${response.data.data.fileUpload}`;
       } else {
         pdfErrorMessage.value =
           response.data.message || 'Failed to fetch PDF path or file is missing.';
         toast.error(pdfErrorMessage.value);
-
-        console.error('Failed to fetch PDF path or fileUpload is missing:', response.data.message);
       }
     } catch (error) {
-      console.error('Error fetching PDF path:', error);
       if (error.response && error.response.data && error.response.data.message) {
         pdfErrorMessage.value = error.response.data.message;
       } else {
@@ -292,7 +260,6 @@
       label: 'Applied Date',
       field: 'appliedDate',
       align: 'left',
-      // format: (val) => formatDate(val, 'MMM D, YYYY'),
     },
     {
       name: 'status',
@@ -308,6 +275,7 @@
       sortable: false,
     },
   ];
+
   onMounted(async () => {
     await jobPostStore.fetchJobPostByPositionAndItemNo(P_ID, I_No).then((job) => {
       selectedJob.value = job;
@@ -317,3 +285,52 @@
     });
   });
 </script>
+
+<style scoped>
+  .chips-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  /* Add horizontal padding on both sides */
+  .chip-padding {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  /* Match the chip colors from the image */
+  .level-chip {
+    background: #a8d5a4;
+    color: #161616;
+  }
+  .page-chip {
+    background: #e3f0fc;
+    color: #2156a4;
+  }
+  .item-chip {
+    background: #fff6df;
+    color: #ff9800;
+  }
+  .salary-chip {
+    background: #f3eafd;
+    color: #6626a6;
+  }
+
+  /* Make font a little smaller for a modern, compact look */
+  .chip-label {
+    font-size: 1rem;
+    font-weight: 400;
+    font-family: 'Montserrat', 'Roboto', Arial, sans-serif;
+  }
+  .chip-label b {
+    font-weight: 700;
+  }
+
+  /* Adjust icon size and spacing for compact appearance */
+  .q-chip__icon,
+  .q-icon {
+    font-size: 1.15em;
+    margin-right: 4px;
+  }
+</style>

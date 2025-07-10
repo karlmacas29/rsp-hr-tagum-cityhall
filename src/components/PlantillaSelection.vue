@@ -2,7 +2,7 @@
   <q-card class="q-pa-sm">
     <q-scroll-area class="q-pa-sm" style="height: 80vh">
       <!-- Header -->
-      <div class="text-h4 text-bold q-mb-md">Plantilla</div>
+      <div class="text-h5 text-bold q-mb-md">Plantilla</div>
 
       <!-- Office Selection -->
       <q-select

@@ -1,16 +1,7 @@
 <template>
   <q-page class="q-pa-md">
     <div class="column items-start justify-center q-mb-md">
-      <h5 class="text-h4 q-ma-none"><b>Activity Log</b></h5>
-      <div class="q-pa-md q-gutter-sm">
-        <q-breadcrumbs class="q-ma-none" active-color="green">
-          <template v-slot:separator>
-            <q-icon size="1.2em" name="arrow_forward" />
-          </template>
-          <q-breadcrumbs-el label="Activity Log" icon="history" />
-          <!-- <q-breadcrumbs-el label="Job Posts" icon="home" /> -->
-        </q-breadcrumbs>
-      </div>
+      <h5 class="text-h5 q-ma-none"><b>Activity Log</b></h5>
     </div>
     <q-card>
       <q-card-section>

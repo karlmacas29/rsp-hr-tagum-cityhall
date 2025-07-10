@@ -7,10 +7,6 @@
           <div class="col">
             <h6 class="q-my-none text-weight-bold">Dashboard</h6>
           </div>
-          <div class="col-auto text-caption text-right">
-            <div>Current Date and Time (UTC): {{ currentDateTime }}</div>
-            <div>Current User's Login: {{ currentUser }}</div>
-          </div>
         </div>
       </div>
     </div>
@@ -79,9 +75,7 @@
       </div>
     </div>
 
-    <!-- Main Content Section -->
     <div class="row q-col-gutter-md q-mb-lg">
-      <!-- Upcoming Deadlines Section (with fixed height and scrollable content) -->
       <div class="col-12 col-md-6">
         <q-card class="bg-white content-card">
           <q-card-section class="deadline-header q-pb-xs">
@@ -144,10 +138,6 @@
   import { Chart, registerables } from 'chart.js';
 
   Chart.register(...registerables);
-
-  // Current date/time and user info
-  const currentDateTime = ref('2025-07-08 08:00:48');
-  const currentUser = ref('dsfsgs');
 
   const positionsToRate = ref(16);
   const ratedPositions = ref(3);
@@ -254,19 +244,16 @@
     },
   ]);
 
-  // Sort deadlines by urgency: overdue first, then by proximity to deadline
   const sortedDeadlines = computed(() => {
     return [...upcomingDeadlines.value].sort((a, b) => {
-      // If both are overdue or both are not overdue, sort by days left
       if ((a.daysLeft < 0 && b.daysLeft < 0) || (a.daysLeft >= 0 && b.daysLeft >= 0)) {
         return a.daysLeft - b.daysLeft;
       }
-      // Overdue items come first
+
       return a.daysLeft < 0 ? -1 : 1;
     });
   });
 
-  // Get color for deadline badges
   const getDeadlineColor = (daysLeft) => {
     if (daysLeft < 0) return 'negative';
     if (daysLeft <= 3) return 'negative';
@@ -283,7 +270,6 @@
 
   onMounted(() => {
     if (statusChart.value) {
-      // Create chart with better size settings
       chartInstance = new Chart(statusChart.value.getContext('2d'), {
         type: 'doughnut',
         data: {
@@ -328,12 +314,10 @@
         },
       });
 
-      // Handle window resize to redraw chart
       window.addEventListener('resize', updateChartSize);
     }
   });
 
-  // Clean up event listener on component unmount
   onUnmounted(() => {
     window.removeEventListener('resize', updateChartSize);
     if (chartInstance) {
@@ -341,7 +325,6 @@
     }
   });
 
-  // Function to update chart size on window resize
   const updateChartSize = () => {
     if (chartInstance) {
       chartInstance.resize();
@@ -351,11 +334,11 @@
 
 <style scoped>
   .stat-card {
-    height: 130px;
+    height: 100px;
   }
 
   .content-card {
-    height: 450px;
+    height: 490px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -394,7 +377,6 @@
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
   }
 
-  /* Customize scrollbar for better appearance */
   :deep(.q-scrollarea__thumb) {
     width: 6px;
     opacity: 0.7;

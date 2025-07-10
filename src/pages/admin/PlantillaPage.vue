@@ -17,7 +17,7 @@
               v-if="getStructureTitle() != ''"
               class="row justify-between items-center q-pa-md"
             >
-              <div class="text-h4 text-bold" style="width: 500px">
+              <div class="text-h5 text-bold" style="width: 500px">
                 {{ getStructureTitle() }}
               </div>
               <div>

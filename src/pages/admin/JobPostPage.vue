@@ -1,20 +1,11 @@
 <template>
   <q-page class="q-pa-md">
     <div class="column items-start justify-center q-mb-md">
-      <h5 class="text-h4 q-ma-none"><b>Job Posts</b></h5>
-      <div class="q-pa-sm q-gutter-sm">
-        <q-breadcrumbs class="q-ma-none" active-color="green">
-          <template v-slot:separator>
-            <q-icon size="1.2em" name="arrow_forward" />
-          </template>
-          <q-breadcrumbs-el label="Job Posts" icon="post_add" />
-          <!-- <q-breadcrumbs-el label="Job Posts" icon="home" /> -->
-        </q-breadcrumbs>
-      </div>
+      <h5 class="text-h5 q-ma-none"><b>Job Posts</b></h5>
     </div>
 
     <!-- Job List View -->
-    <div v-if="!showingDetails" class="q-pa-md">
+    <div v-if="!showingDetails" class="q-pa-sm">
       <div class="row justify-between items-center q-mb-md">
         <q-input
           outlined
@@ -22,8 +13,8 @@
           readonly
           v-model="dateRangeText"
           placeholder="Select Date Range"
-          class="col-auto"
-          style="max-width: 300px"
+          class="col-auto q-mr-md"
+          style="max-width: 280px"
         >
           <template v-slot:prepend>
             <q-icon name="event" color="primary" class="cursor-pointer" />
@@ -46,7 +37,7 @@
                       class="bg-negative text-white"
                       rounded
                       flat
-                      size="sm"
+                      dense
                       @click="dateRange = { from: '', to: '' }"
                       v-if="dateRange.from || dateRange.to"
                     />
@@ -55,7 +46,7 @@
                       class="bg-primary text-white"
                       rounded
                       flat
-                      size="sm"
+                      dense
                       v-close-popup
                     />
                   </div>
@@ -71,7 +62,7 @@
           dense
           placeholder="Search jobs..."
           class="col-auto"
-          style="max-width: 250px"
+          style="max-width: 220px"
           clearable
         >
           <template v-slot:prepend>
@@ -85,68 +76,55 @@
         :columns="columns"
         row-key="PositionID"
         :pagination="pagination"
-        class="job-posts-table"
+        class="job-posts-table q-mt-md"
         :loading="jobPostStore.loading"
+        table-style="min-width: 100%"
       >
         <template v-slot:body-cell-Office="props">
-          <q-td :props="props">
-            <div style="width: 180px; white-space: normal">
-              <span class="text-body1 text-weight-medium text-black">
-                {{ props.row.Office }}
-              </span>
+          <q-td :props="props" class="office-column">
+            <div class="text-body2 text-weight-medium text-black">
+              {{ props.row.Office }}
             </div>
           </q-td>
         </template>
         <template v-slot:body-cell-position="props">
-          <q-td :props="props">
-            <div style="width: 80px; white-space: normal">
-              <span class="text-body1 text-weight-medium text-black">
-                {{ props.row.Position }}
-              </span>
+          <q-td :props="props" class="position-column">
+            <div class="text-body2 text-weight-medium text-black">
+              {{ props.row.Position }}
             </div>
           </q-td>
         </template>
         <template v-slot:body-cell-post_date="props">
-          <q-td :props="props">
-            <div style="width: 80px; white-space: normal">
-              <span class="text-body1 text-weight-medium text-black">
-                <q-badge rounded color="green">
-                  {{ formatDate(props.row.post_date, 'MMM D, YYYY') }}
-                </q-badge>
-              </span>
-            </div>
+          <q-td :props="props" class="date-column">
+            <q-badge rounded color="green" class="text-caption q-px-sm">
+              {{ formatDate(props.row.post_date, 'MMM D, YYYY') }}
+            </q-badge>
           </q-td>
         </template>
-        <!--  -->
         <template v-slot:body-cell-applicants="props">
-          <q-td :props="props">
-            <div class="text-center">{{ props.row.applicants }}</div>
+          <q-td :props="props" class="count-column">
+            <div class="text-center text-body2">{{ props.row.applicants }}</div>
           </q-td>
         </template>
-
         <template v-slot:body-cell-pending="props">
-          <q-td :props="props">
-            <div class="text-center">{{ props.row.pending }}</div>
+          <q-td :props="props" class="count-column">
+            <div class="text-center text-body2">{{ props.row.pending }}</div>
           </q-td>
         </template>
-
         <template v-slot:body-cell-qualified="props">
-          <q-td :props="props">
-            <div class="text-center">{{ props.row.qualified }}</div>
+          <q-td :props="props" class="count-column">
+            <div class="text-center text-body2">{{ props.row.qualified }}</div>
           </q-td>
         </template>
-
         <template v-slot:body-cell-unqualified="props">
-          <q-td :props="props">
-            <div class="text-center">{{ props.row.unqualified }}</div>
+          <q-td :props="props" class="count-column">
+            <div class="text-center text-body2">{{ props.row.unqualified }}</div>
           </q-td>
         </template>
-
         <template v-slot:body-cell-action="props">
-          <q-td :props="props">
+          <q-td :props="props" class="action-column">
             <q-btn
               round
-              dense
               flat
               color="blue"
               class="bg-blue-1"
@@ -157,7 +135,6 @@
             </q-btn>
           </q-td>
         </template>
-
         <template v-slot:no-data>
           <div class="full-width row flex-center q-pa-md text-grey">Jobpost is Empty</div>
         </template>
@@ -185,49 +162,47 @@
 
     <!-- Confirmation Dialog -->
     <q-dialog v-model="showConfirmationModal" persistent>
-      <q-card style="min-width: 400px; border-radius: 8px">
-        <q-card-section class="row items-center q-pb-none">
-          <q-icon name="help_outline" color="primary" size="md" class="q-mr-sm" />
-          <span class="text-h5">
+      <q-card style="min-width: 350px; border-radius: 6px">
+        <q-card-section class="row items-center q-pb-md">
+          <q-icon name="help_outline" color="primary" size="sm" class="q-mr-sm" />
+          <span class="text-subtitle1">
             Confirm Evaluation {{ selectedApplicant.isSubmitted ? 'Update' : 'Submission' }}
           </span>
         </q-card-section>
-
         <q-separator />
-
         <q-card-section class="q-pt-md">
-          <div class="text-body1 q-mb-md">
+          <div class="text-body2 q-mb-sm">
             You are about to
             <span class="text-weight-bold">
               {{ selectedApplicant.isSubmitted ? 'update' : 'submit' }}
             </span>
             this evaluation:
           </div>
-
           <div class="q-pa-sm bg-grey-2 rounded-borders">
-            <div class="row q-col-gutter-sm q-mb-xs">
-              <div class="col-4 text-weight-medium">Applicant:</div>
-              <div class="col-8">{{ selectedApplicant.name }}</div>
+            <div class="row q-col-gutter-sm q-mb-sm">
+              <div class="col-4 text-weight-medium text-caption">Applicant:</div>
+              <div class="col-8 text-caption">{{ selectedApplicant.name }}</div>
             </div>
             <div class="row q-col-gutter-sm">
-              <div class="col-4 text-weight-medium">Status:</div>
+              <div class="col-4 text-weight-medium text-caption">Status:</div>
               <div class="col-8">
-                <q-badge :color="getStatusColor(pendingStatus)" class="q-px-sm q-py-xs">
+                <q-badge
+                  :color="getStatusColor(pendingStatus)"
+                  class="q-px-sm q-py-xs text-caption"
+                >
                   {{ pendingStatus }}
                 </q-badge>
               </div>
             </div>
           </div>
         </q-card-section>
-
-        <q-card-actions align="right" class="q-pa-md">
-          <q-btn flat label="Cancel" color="grey-7" v-close-popup size="md" />
+        <q-card-actions align="right" class="q-pa-sm">
+          <q-btn flat label="Cancel" color="grey-7" v-close-popup />
           <q-btn
-            :label="selectedApplicant.isSubmitted ? 'Confirm Update' : 'Confirm Submission'"
+            :label="selectedApplicant.isSubmitted ? 'Confirm Update' : 'Confirm'"
             color="primary"
             @click="submitEvaluation"
             v-close-popup
-            size="md"
           />
         </q-card-actions>
       </q-card>
@@ -252,8 +227,8 @@
   // Page State
   const showingDetails = ref(false);
   const pagination = ref({
-    sortBy: 'post_date', // Changed from 'postingDate' to 'post_date'
-    descending: true, // true for descending order (newest first)
+    sortBy: 'post_date',
+    descending: true,
     page: 1,
     rowsPerPage: 10,
   });
@@ -292,7 +267,6 @@
     dateRange.value = newRange;
   };
 
-  // Job Posts Data
   const columns = [
     {
       name: 'Office',
@@ -300,6 +274,7 @@
       align: 'left',
       field: 'Office',
       sortable: true,
+      style: 'width: 20%',
     },
     {
       name: 'position',
@@ -307,14 +282,15 @@
       align: 'left',
       field: 'Position',
       sortable: true,
+      style: 'width: 25%',
     },
     {
       name: 'post_date',
-      align: 'left',
-      label: 'Posting Date',
+      align: 'center',
+      label: 'Posted Date',
       field: 'post_date',
-
       sortable: true,
+      style: 'width: 12%',
     },
     {
       name: 'applicants',
@@ -322,6 +298,7 @@
       label: 'Applicants',
       field: 'applicants',
       sortable: true,
+      style: 'width: 9%',
     },
     {
       name: 'pending',
@@ -329,6 +306,7 @@
       label: 'Pending',
       field: 'pending',
       sortable: true,
+      style: 'width: 9%',
     },
     {
       name: 'qualified',
@@ -336,6 +314,7 @@
       label: 'Qualified',
       field: 'qualified',
       sortable: true,
+      style: 'width: 9%',
     },
     {
       name: 'unqualified',
@@ -343,6 +322,7 @@
       label: 'Unqualified',
       field: 'unqualified',
       sortable: true,
+      style: 'width: 10%',
     },
     {
       name: 'action',
@@ -350,6 +330,7 @@
       label: 'Actions',
       field: 'action',
       sortable: false,
+      style: 'width: 6%',
     },
   ];
 
@@ -408,44 +389,7 @@
       name: 'JobPost View',
       params: { PositionID: job.PositionID, ItemNo: job.ItemNo },
     });
-    // selectedJob.value = { ...job };
-    // showingDetails.value = true;
-    // applicants.value = applicants.value.map((applicant) => ({
-    //   ...applicant,
-    //   status: 'Pending',
-    //   isSubmitted: false,
-    // }));
   };
-
-  // const goBackToList = () => {
-  //   showingDetails.value = false;
-  // };
-
-  // Applicants View
-  // const loadingApplicants = ref(false);
-  // const applicantColumns = [
-  //   { name: 'name', label: 'Name', field: 'name', align: 'left', sortable: true },
-  //   {
-  //     name: 'appliedDate',
-  //     label: 'Applied Date',
-  //     field: 'appliedDate',
-  //     align: 'left',
-  //     format: (val) => formatDate(val, 'MMM D, YYYY'),
-  //   },
-  //   {
-  //     name: 'status',
-  //     label: 'Status',
-  //     field: 'status',
-  //     align: 'center',
-  //   },
-  //   {
-  //     name: 'action',
-  //     label: 'Action',
-  //     field: 'action',
-  //     align: 'center',
-  //     sortable: false,
-  //   },
-  // ];
 
   const applicants = ref([
     {
@@ -456,12 +400,6 @@
       isSubmitted: false,
     },
   ]);
-
-  // const filteredApplicants = computed(() => {
-  //   return applicants.value.filter(
-  //     (applicant) => applicant.appliedDate >= selectedJob.value.postingDate,
-  //   );
-  // });
 
   // Qualification Standard Modal
   const showQSModal = ref(false);
@@ -501,17 +439,6 @@
 
   // Confirmation Modal
   const showConfirmationModal = ref(false);
-
-  // const openQualificationModal = (applicant) => {
-  //   selectedApplicant.value = {
-  //     ...applicant,
-  //     position: selectedJob.value.position,
-  //     applicationDate: formatDate(applicant.appliedDate, 'MMM D, YYYY'),
-  //   };
-  //   // Reset pending status to current status when opening modal
-  //   pendingStatus.value = applicant.status;
-  //   showQSModal.value = true;
-  // };
 
   const closeQualificationModal = () => {
     // Reset pending status when closing without submitting
@@ -656,48 +583,80 @@
   .text-h3,
   .text-h5,
   .text-h6 {
-    letter-spacing: -0.015em;
+    letter-spacing: -0.01em;
   }
 
   /* Main page title */
   .text-h3 {
-    font-size: 2rem;
-    line-height: 2.5rem;
-    margin-bottom: 1.5rem;
+    font-size: 1.8rem;
+    line-height: 2.2rem;
+    margin-bottom: 1rem;
   }
 
   /* Section headings */
   .text-h5 {
-    font-size: 1.5rem;
-    line-height: 2rem;
+    font-size: 1.3rem;
+    line-height: 1.7rem;
+    margin-bottom: 0.5rem;
   }
 
   /* Subsection headings */
   .text-h6 {
-    font-size: 1.25rem;
-    line-height: 1.75rem;
+    font-size: 1.1rem;
+    line-height: 1.5rem;
   }
 
   /* Table improvements */
-  .job-posts-table,
-  .applicants-table {
-    font-size: 1rem;
+  .job-posts-table {
+    font-size: 0.9rem;
+    table-layout: fixed;
+    width: 100%;
 
     th {
-      font-size: 1.05rem;
+      font-size: 0.95rem;
       font-weight: 600;
-      letter-spacing: 0.5px;
+      padding: 8px 12px;
+      background-color: #f5f5f5;
     }
 
     td {
-      font-size: 1rem;
+      font-size: 0.9rem;
+      padding: 8px 12px;
+      vertical-align: middle;
+    }
+
+    .office-column {
+      width: 20%;
+      white-space: normal;
+      word-break: break-word;
+    }
+
+    .position-column {
+      width: 25%;
+      white-space: normal;
+      word-break: break-word;
+    }
+
+    .date-column {
+      width: 12%;
+      text-align: center;
+    }
+
+    .count-column {
+      width: 9%;
+      text-align: center;
+    }
+
+    .action-column {
+      width: 6%;
+      text-align: center;
     }
   }
 
   /* Status badges */
   .status-badge {
-    font-size: 0.9rem;
-    padding: 4px 8px;
+    font-size: 0.85rem;
+    padding: 3px 8px;
     border-radius: 4px;
   }
 
@@ -717,28 +676,65 @@
     background-color: rgba(25, 118, 210, 0.1);
   }
 
-  /* Spacing improvements */
+  /* Spacing improvements - increased for better readability */
   .q-mb-sm {
-    margin-bottom: 12px;
+    margin-bottom: 10px;
+  }
+
+  .q-mb-md {
+    margin-bottom: 16px;
   }
 
   .q-mb-lg {
-    margin-bottom: 28px;
+    margin-bottom: 24px;
   }
 
-  .q-my-lg {
-    margin-top: 28px;
-    margin-bottom: 28px;
+  .q-my-md {
+    margin-top: 16px;
+    margin-bottom: 16px;
+  }
+
+  /* Add spacing between rows */
+  .q-table tbody tr td {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   }
 
   /* Button sizing */
   .q-btn {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
+    padding: 0.4em 0.8em;
   }
 
   /* Qualification list styling */
   .text-body1 {
-    font-size: 1rem;
-    line-height: 1.5rem;
+    font-size: 0.95rem;
+    line-height: 1.4rem;
+  }
+
+  /* Padding adjustments - more breathing room */
+  .q-pa-md {
+    padding: 12px;
+  }
+
+  .q-pa-sm {
+    padding: 8px;
+  }
+
+  .q-pa-xs {
+    padding: 4px;
+  }
+
+  .q-card-section {
+    padding: 12px;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 1024px) {
+    .job-posts-table {
+      th,
+      td {
+        padding: 6px 8px;
+      }
+    }
   }
 </style>

@@ -4,8 +4,8 @@
       <!-- Welcome Message -->
       <q-img
         src="tgch.png"
-        class="q-pa-lg column justify-center items-start"
-        style="height: 120px; opacity: 1.5"
+        class="q-pa-md column justify-center items-start"
+        style="height: 100px; opacity: 1.5"
       >
         <div
           v-if="authStore.user"
@@ -17,42 +17,42 @@
             background-color: rgba(0, 0, 0, 0.5);
           "
         >
-          <div class="text-h4 text-weight-bolder q-ma-none">
+          <div class="text-h5 text-weight-bolder q-ma-none">
             Welcome to RSP, {{ authStore.user.name }}!
           </div>
-          <div class="text-body1 q-ma-none">
+          <div class="text-body2 q-ma-none">
             Let's take a look at the updated performance of the city hall.
           </div>
         </div>
-        <div v-else class="q-mb-sm q-gutter-xs">
-          <h4 class="text-h4 text-weight-bolder q-my-none"><q-skeleton type="text" /></h4>
+        <div v-else class="q-mb-xs q-gutter-xs">
+          <h4 class="text-h5 text-weight-bolder q-my-none"><q-skeleton type="text" /></h4>
           <p class="text-body2"><q-skeleton type="text" /></p>
         </div>
       </q-img>
 
       <!-- STATISTICS HEADER -->
-      <div class="row justify-start items-start q-my-md">
-        <div class="q-pa-sm">
-          <q-icon name="stacked_line_chart" size="50px" />
+      <div class="row justify-start items-start q-my-sm">
+        <div class="q-pa-xs">
+          <q-icon name="stacked_line_chart" size="40px" />
         </div>
         <div class="column">
-          <h4 class="text-weight-bold q-ma-none">Statistics Overview</h4>
-          <div class="row justify-start items-center q-gutter-x-sm">
-            <q-chip dense class="q-my-sm row justify-start">
+          <h5 class="text-weight-bold q-ma-none">Statistics Overview</h5>
+          <div class="row justify-start items-center q-gutter-x-xs">
+            <q-chip dense class="q-my-xs row justify-start">
               Total Employees:
-              <q-badge rounded dense class="text-bold q-ml-sm">
+              <q-badge rounded dense class="text-bold q-ml-xs">
                 {{ Number(vwActiveStore.countAll).toLocaleString() }}
               </q-badge>
             </q-chip>
-            <q-chip dense class="q-my-sm row justify-start">
-              Total Female Employees:
-              <q-badge rounded dense color="pink" class="text-bold q-ml-sm">
+            <q-chip dense class="q-my-xs row justify-start">
+              Female:
+              <q-badge rounded dense color="pink" class="text-bold q-ml-xs">
                 {{ Number(vwActiveStore.totalFemale).toLocaleString() }}
               </q-badge>
             </q-chip>
-            <q-chip dense class="q-my-sm row justify-start">
-              Total Male Employees:
-              <q-badge rounded dense color="blue" class="text-bold q-ml-sm">
+            <q-chip dense class="q-my-xs row justify-start">
+              Male:
+              <q-badge rounded dense color="blue" class="text-bold q-ml-xs">
                 {{ Number(vwActiveStore.totalMale).toLocaleString() }}
               </q-badge>
             </q-chip>
@@ -64,23 +64,24 @@
       <StatusOverview class="q-mx-auto" />
 
       <!-- Jobpost HEADER -->
-      <div class="row justify-start items-start q-my-md">
-        <div class="q-pa-sm">
-          <q-icon name="work_history" size="50px" />
+      <div class="row justify-start items-start q-mt-sm q-mb-xs">
+        <div class="q-pa-xs">
+          <q-icon name="work_history" size="40px" />
         </div>
         <div class="column">
-          <h4 class="text-weight-bold q-ma-none">Jobs Overview</h4>
-          <q-chip dense class="q-my-sm row justify-start">
+          <h5 class="text-weight-bold q-ma-none">Jobs Overview</h5>
+          <q-chip dense class="q-my-xs row justify-start">
             Total Active Job Posts:
-            <q-badge dense rounded color="green" class="text-bold q-ml-sm">
+            <q-badge dense rounded color="green" class="text-bold q-ml-xs">
               {{ jobs.length }}
             </q-badge>
           </q-chip>
         </div>
       </div>
+
       <!-- MAIN CONTENT -->
       <div class="row justify-between">
-        <q-card class="q-mx-auto" style="width: 70vw">
+        <q-card class="q-mx-auto" style="width: 98%">
           <q-table
             class="applicants-table"
             :rows="jobs"
@@ -88,6 +89,7 @@
             row-key="job"
             :loading="useJobPost.loading"
             :pagination="{ rowsPerPage: 5 }"
+            dense
           >
             <template v-slot:body-cell-jobs="props">
               <q-td :props="props">
@@ -113,41 +115,40 @@
       <q-img src="tagum-city-hall.webp" class="welcome-bg" style="opacity: 0.8">
         <div class="absolute-full flex flex-center">
           <q-card
-            class="welcome-card text-center q-pa-lg"
+            class="welcome-card text-center q-pa-md"
             style="
               background: rgba(255, 255, 255, 0.95);
-              border-radius: 16px;
-              max-width: 500px;
-              box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+              border-radius: 12px;
+              max-width: 450px;
+              box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
             "
           >
             <q-avatar
-              size="100px"
+              size="80px"
               color="primary"
               text-color="white"
               icon="person"
-              class="q-mb-md"
+              class="q-mb-sm"
             />
             <div v-if="authStore.user">
-              <div class="text-h4 text-black text-weight-bold q-mb-sm">
+              <div class="text-h5 text-black text-weight-bold q-mb-xs">
                 Welcome,
                 <span class="text-primary">{{ authStore.user.name }}</span>
                 !
               </div>
-              <div class="text-subtitle1 text-grey-8 q-mb-md">
+              <div class="text-subtitle1 text-grey-8 q-mb-sm">
                 to Recruitment, Selection & Placement Portal
               </div>
-              <q-separator class="q-my-md" />
-              <div class="text-body1 text-grey-7">
-                Explore the portal to manage recruitment and access key features.
-                <br />
-                Navigate using the menu to get started.
+              <q-separator class="q-my-sm" />
+              <div class="text-body2 text-grey-7">
+                Explore the portal to manage recruitment and access key features. Navigate using the
+                menu to get started.
               </div>
             </div>
             <div v-else>
-              <q-skeleton type="text" class="q-mb-sm" style="height: 36px; width: 80%" />
-              <q-skeleton type="text" class="q-mb-md" style="height: 24px; width: 60%" />
-              <q-skeleton type="rect" style="height: 40px; width: 120px" />
+              <q-skeleton type="text" class="q-mb-xs" style="height: 30px; width: 80%" />
+              <q-skeleton type="text" class="q-mb-sm" style="height: 20px; width: 60%" />
+              <q-skeleton type="rect" style="height: 36px; width: 100px" />
             </div>
           </q-card>
         </div>
@@ -215,31 +216,31 @@
 
 <style scoped>
   .stat-card {
-    border-radius: 12px;
+    border-radius: 10px;
     transition:
-      transform 0.3s ease,
-      box-shadow 0.3s ease;
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
   }
 
   .stat-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+    transform: translateY(-3px);
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.15);
   }
 
   .date-filter {
-    max-width: 180px;
+    max-width: 160px;
   }
 
   .table-container {
     flex: 1;
-    min-width: 75%;
-    padding: 5px 16px;
-    border-radius: 8px;
+    min-width: 80%;
+    padding: 3px 8px;
+    border-radius: 6px;
   }
 
   .job-card-container {
-    width: 23%;
-    margin-left: 8px;
+    width: 24%;
+    margin-left: 4px;
   }
 
   .applicants-table {
@@ -248,7 +249,7 @@
 
   .welcome-container {
     position: relative;
-    height: 85vh;
+    height: 80vh;
     overflow: hidden;
   }
 
@@ -262,10 +263,10 @@
   }
 
   .welcome-card {
-    transition: transform 0.3s ease;
+    transition: transform 0.2s ease;
   }
 
   .welcome-card:hover {
-    transform: scale(1.02);
+    transform: scale(1.01);
   }
 </style>

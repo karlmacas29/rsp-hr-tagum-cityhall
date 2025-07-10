@@ -1,7 +1,7 @@
 <template>
   <div class="q-pa-md">
     <div class="column items-start justify-center q-mb-md">
-      <h5 class="text-h4 q-ma-none"><b>Rater Management</b></h5>
+      <h5 class="text-h5 q-ma-none"><b>Rater Management</b></h5>
       <div class="q-pa-md q-gutter-sm">
         <q-breadcrumbs class="q-ma-none">
           <template v-slot:separator>
@@ -13,7 +13,7 @@
       </div>
     </div>
     <div class="row justify-between items-center q-mb-lg">
-      <div class="text-h4 text-weight-bold q-ma-none">Edit Criteria</div>
+      <div class="text-h5 text-weight-bold q-ma-none">Edit Criteria</div>
     </div>
 
     <q-card flat bordered class="q-pa-md q-mb-lg">

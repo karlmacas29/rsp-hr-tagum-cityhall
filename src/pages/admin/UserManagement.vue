@@ -3,7 +3,7 @@
   <q-page>
     <div class="q-pa-md">
       <div class="column items-start justify-center q-mb-md">
-        <h5 class="text-h4 q-ma-none"><b>User Management</b></h5>
+        <h5 class="text-h5 q-ma-none"><b>User Management</b></h5>
         <div class="q-pa-md q-gutter-sm">
           <q-breadcrumbs class="q-ma-none">
             <template v-slot:separator>

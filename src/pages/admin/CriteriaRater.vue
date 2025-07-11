@@ -1,28 +1,30 @@
 <template>
-  <div class="q-pa-md">
-    <div class="column items-start justify-center q-mb-md">
-      <h5 class="text-h5 q-ma-none"><b>Rater Management</b></h5>
-      <div class="q-pa-md q-gutter-sm">
-        <q-breadcrumbs class="q-ma-none">
-          <template v-slot:separator>
-            <q-icon size="1.2em" name="arrow_forward" />
-          </template>
-          <q-breadcrumbs-el icon="assignment_ind" label="Rater Management" />
-          <q-breadcrumbs-el icon="rule" label="Criteria" />
-        </q-breadcrumbs>
+  <q-page class="q-pa-md">
+    <!-- Header area with improved spacing -->
+    <div class="column q-mb-sm">
+      <div class="column items-start justify-center q-mb-md">
+        <h5 class="text-h5 q-ma-none"><b>Rater Management</b></h5>
+        <div class="q-pa-md q-gutter-sm">
+          <q-breadcrumbs class="q-ma-none">
+            <template v-slot:separator>
+              <q-icon size="1.2em" name="arrow_forward" />
+            </template>
+            <q-breadcrumbs-el label="Rater Management" icon="assignment_ind" />
+            <q-breadcrumbs-el label="Criteria" icon="tune" />
+          </q-breadcrumbs>
+        </div>
       </div>
     </div>
-    <div class="row justify-between items-center q-mb-lg">
-      <div class="text-h5 text-weight-bold q-ma-none">Edit Criteria</div>
-    </div>
 
-    <q-card flat bordered class="q-pa-md q-mb-lg">
-      <q-card-section>
-        <div class="row q-col-gutter-md">
-          <div class="col-12 col-md-6">
-            <div class="text-subtitle2 q-mb-xs">Office</div>
+    <!-- Selection form card with optimized layout -->
+    <q-card flat bordered class="selection-card q-mb-sm">
+      <q-card-section class="q-pa-sm">
+        <div class="row q-col-gutter-sm">
+          <div class="col-12 col-md-3">
+            <div class="text-subtitle2 q-mb-xs text-12">Office</div>
             <q-select
               outlined
+              dense
               v-model="formData.office"
               :options="filteredOfficeOptions"
               use-input
@@ -31,24 +33,20 @@
               input-debounce="0"
               @filter="filterOffices"
               @update:model-value="resetPosition"
-              placeholder="Select or search for an office"
-              class="q-mb-sm"
+              placeholder="Select office"
+              class="modern-select text-12"
             >
               <template v-slot:prepend>
-                <q-icon name="business" color="primary" />
-              </template>
-              <template v-slot:no-option>
-                <q-item>
-                  <q-item-section class="text-grey">No results</q-item-section>
-                </q-item>
+                <q-icon name="business" color="primary" size="xs" />
               </template>
             </q-select>
           </div>
 
-          <div class="col-12 col-md-6">
-            <div class="text-subtitle2 q-mb-xs">Position</div>
+          <div class="col-12 col-md-3">
+            <div class="text-subtitle2 q-mb-xs text-12">Position</div>
             <q-select
               outlined
+              dense
               v-model="formData.position"
               :options="filteredPositionOptions"
               use-input
@@ -58,46 +56,45 @@
               @filter="filterPositions"
               :disable="!formData.office"
               @update:model-value="loadPositionDetails"
-              placeholder="Select a position"
-              class="q-mb-sm"
+              placeholder="Select position"
+              class="modern-select text-12"
             >
               <template v-slot:prepend>
-                <q-icon name="work" color="primary" />
-              </template>
-              <template v-slot:no-option>
-                <q-item>
-                  <q-item-section class="text-grey">No results</q-item-section>
-                </q-item>
+                <q-icon name="work" color="primary" size="xs" />
               </template>
             </q-select>
           </div>
 
-          <div class="col-12 col-md-6">
-            <div class="text-subtitle2 q-mb-xs">Salary Grade</div>
+          <div class="col-12 col-md-3">
+            <div class="text-subtitle2 q-mb-xs text-12">Salary Grade</div>
             <q-input
               outlined
+              dense
               v-model="formData.salaryGrade"
               readonly
               disable
-              placeholder="Will be populated after position selection"
+              placeholder="Auto-populated"
+              class="modern-input bg-grey-1 text-12"
             >
               <template v-slot:prepend>
-                <q-icon name="payments" color="grey" />
+                <q-icon name="payments" color="grey-7" size="xs" />
               </template>
             </q-input>
           </div>
 
-          <div class="col-12 col-md-6">
-            <div class="text-subtitle2 q-mb-xs">Plantilla Item No.</div>
+          <div class="col-12 col-md-3">
+            <div class="text-subtitle2 q-mb-xs text-12">Plantilla Item No.</div>
             <q-input
               outlined
+              dense
               v-model="formData.plantillaItemNo"
               readonly
               disable
-              placeholder="Will be populated after position selection"
+              placeholder="Auto-populated"
+              class="modern-input bg-grey-1 text-12"
             >
               <template v-slot:prepend>
-                <q-icon name="tag" color="grey" />
+                <q-icon name="tag" color="grey-7" size="xs" />
               </template>
             </q-input>
           </div>
@@ -105,52 +102,102 @@
       </q-card-section>
     </q-card>
 
-    <div v-if="!showRatingTable" class="text-center q-pa-xl bg-blue-1 rounded-borders">
-      <q-icon name="tune" size="3rem" color="primary" class="q-mb-md" />
-      <p class="text-subtitle1">
+    <!-- Empty state with improved visual design -->
+    <q-card
+      v-if="!showRatingTable"
+      flat
+      bordered
+      class="text-center q-pa-md bg-blue-1 rounded-borders q-mb-sm empty-state-card"
+    >
+      <q-icon name="tune" size="2rem" color="primary" class="q-mb-xs" />
+      <div class="text-h6 q-mb-xs text-12">Position Details Required</div>
+      <p class="text-body2 q-mb-none text-grey-8 text-12">
         Please select both an Office and Position to configure rating criteria.
       </p>
-      <p class="text-caption text-grey-8">
-        This will load the appropriate criteria template for your selected position.
-      </p>
-    </div>
+    </q-card>
 
-    <template v-if="showRatingTable">
-      <div class="text-h6 q-my-md text-primary">Define Rating Criteria</div>
+    <!-- Rating criteria section with improved layout -->
+    <div v-if="showRatingTable" class="criteria-section">
+      <!-- Weight summary bar - moved to the top for better visibility -->
+      <div class="row q-mb-sm">
+        <div class="col-12">
+          <q-btn
+            color="primary"
+            icon="save"
+            label="Save Criteria"
+            :loading="loading"
+            :disable="totalWeight !== 100"
+            @click="confirmSave"
+            unelevated
+            dense
+            class="q-px-md q-py-xs save-btn float-right text-12"
+          />
 
-      <div class="row q-col-gutter-md">
-        <div class="col-12 col-md-6">
+          <q-chip
+            :color="totalWeight !== 100 ? 'warning' : 'positive'"
+            text-color="white"
+            class="text-12"
+          >
+            <q-icon
+              :name="totalWeight !== 100 ? 'warning' : 'check_circle'"
+              size="xs"
+              class="q-mr-xs"
+            />
+            Total Weight: {{ totalWeight }}%
+            <span v-if="totalWeight !== 100" class="q-ml-xs text-12">Must equal 100%</span>
+          </q-chip>
+        </div>
+      </div>
+
+      <!-- Horizontally aligned criteria cards -->
+      <div class="row q-col-gutter-xs">
+        <!-- Education criteria -->
+        <div class="col">
           <q-card flat bordered class="criteria-card">
-            <q-card-section class="bg-blue-1">
+            <q-card-section class="criteria-header bg-blue-1 q-py-xs">
               <div class="row items-center justify-between">
-                <div class="text-subtitle1 text-weight-medium">Education</div>
-                <q-input
-                  v-model.number="editableCriteria.education.weight"
-                  type="number"
-                  min="0"
-                  max="100"
-                  suffix="%"
-                  dense
-                  outlined
-                  style="width: 100px"
-                  @update:model-value="validatePercentage('education')"
-                />
+                <div class="col">
+                  <div class="text-subtitle2 text-weight-medium text-12">
+                    <q-icon name="school" size="xs" class="q-mr-xs" />
+                    Education
+                  </div>
+                </div>
+                <div class="col-auto">
+                  <div class="percentage-wrapper">
+                    <q-input
+                      v-model.number="editableCriteria.education.weight"
+                      type="number"
+                      min="0"
+                      max="100"
+                      dense
+                      outlined
+                      class="weight-input text-10"
+                      @update:model-value="validatePercentage('education')"
+                    >
+                      <template v-slot:append>
+                        <span class="percentage-sign">%</span>
+                      </template>
+                    </q-input>
+                  </div>
+                </div>
               </div>
             </q-card-section>
-            <q-card-section>
+            <q-card-section class="q-pa-xs">
               <q-input
                 v-model="editableCriteria.education.title1"
-                label="Minimum Qualification"
+                label="Min Qualification"
                 dense
                 outlined
-                class="q-mb-sm"
+                autogrow
+                class="q-mb-xs modern-input text-12"
               />
               <q-input
                 v-model="editableCriteria.education.title2"
                 label="Title"
                 dense
                 outlined
-                class="q-mb-sm"
+                autogrow
+                class="q-mb-xs modern-input text-12"
               />
               <q-input
                 v-model="editableCriteria.education.description"
@@ -159,97 +206,127 @@
                 outlined
                 type="textarea"
                 autogrow
-                rows="3"
+                class="modern-input text-12"
               />
             </q-card-section>
           </q-card>
         </div>
 
-        <div class="col-12 col-md-6">
+        <!-- Experience criteria -->
+        <div class="col">
           <q-card flat bordered class="criteria-card">
-            <q-card-section class="bg-blue-1">
+            <q-card-section class="criteria-header bg-blue-1 q-py-xs">
               <div class="row items-center justify-between">
-                <div class="text-subtitle1 text-weight-medium">Experience</div>
-                <q-input
-                  v-model.number="editableCriteria.experience.weight"
-                  type="number"
-                  min="0"
-                  max="100"
-                  suffix="%"
-                  dense
-                  outlined
-                  style="width: 100px"
-                  @update:model-value="validatePercentage('experience')"
-                />
+                <div class="col">
+                  <div class="text-subtitle2 text-weight-medium text-12">
+                    <q-icon name="work_history" size="xs" class="q-mr-xs" />
+                    Experience
+                  </div>
+                </div>
+                <div class="col-auto">
+                  <div class="percentage-wrapper">
+                    <q-input
+                      v-model.number="editableCriteria.experience.weight"
+                      type="number"
+                      min="0"
+                      max="100"
+                      dense
+                      outlined
+                      class="weight-input text-10"
+                      @update:model-value="validatePercentage('experience')"
+                    >
+                      <template v-slot:append>
+                        <span class="percentage-sign">%</span>
+                      </template>
+                    </q-input>
+                  </div>
+                </div>
               </div>
             </q-card-section>
-            <q-card-section>
+            <q-card-section class="q-pa-xs">
               <q-input
                 v-model="editableCriteria.experience.title1"
-                label="Minimum Qualification"
+                label="Min Qualification"
                 dense
                 outlined
-                class="q-mb-sm"
+                autogrow
+                class="q-mb-xs modern-input text-12"
               />
               <q-input
                 v-model="editableCriteria.experience.title2"
                 label="Title"
                 dense
                 outlined
-                class="q-mb-sm"
+                autogrow
+                class="q-mb-xs modern-input text-12"
               />
               <q-input
                 v-model="editableCriteria.experience.description1"
-                label="Description (With Experience)"
+                label="With Experience"
                 dense
                 outlined
-                type="textarea"
                 autogrow
-                rows="2"
-                class="q-mb-sm"
+                class="q-mb-xs modern-input text-12"
               />
               <q-input
                 v-model="editableCriteria.experience.description2"
-                label="Description (Without Experience)"
+                label="Without Experience"
                 dense
                 outlined
+                autogrow
+                class="modern-input text-12"
               />
             </q-card-section>
           </q-card>
         </div>
 
-        <div class="col-12 col-md-6">
+        <!-- Training criteria -->
+        <div class="col">
           <q-card flat bordered class="criteria-card">
-            <q-card-section class="bg-blue-1">
+            <q-card-section class="criteria-header bg-blue-1 q-py-xs">
               <div class="row items-center justify-between">
-                <div class="text-subtitle1 text-weight-medium">Training</div>
-                <q-input
-                  v-model.number="editableCriteria.training.weight"
-                  type="number"
-                  min="0"
-                  max="100"
-                  suffix="%"
-                  dense
-                  outlined
-                  style="width: 100px"
-                  @update:model-value="validatePercentage('training')"
-                />
+                <div class="col">
+                  <div class="text-subtitle2 text-weight-medium text-12">
+                    <q-icon name="card_membership" size="xs" class="q-mr-xs" />
+                    Training
+                  </div>
+                </div>
+                <div class="col-auto">
+                  <div class="percentage-wrapper">
+                    <q-input
+                      v-model.number="editableCriteria.training.weight"
+                      type="number"
+                      min="0"
+                      max="100"
+                      dense
+                      outlined
+                      class="weight-input text-10"
+                      @update:model-value="validatePercentage('training')"
+                    >
+                      <template v-slot:append>
+                        <span class="percentage-sign">%</span>
+                      </template>
+                    </q-input>
+                  </div>
+                </div>
               </div>
             </q-card-section>
-            <q-card-section>
+            <q-card-section class="q-pa-xs">
               <q-input
                 v-model="editableCriteria.training.title1"
-                label="Minimum Qualification"
+                label="Min Qualification"
                 dense
                 outlined
-                class="q-mb-sm"
+                autogrow
+                class="q-mb-xs modern-input text-12"
               />
               <q-input
                 v-model="editableCriteria.training.title2"
                 label="Title"
                 dense
                 outlined
-                class="q-mb-sm"
+                autogrow
+                class="q-mb-xs modern-input text-12"
               />
               <q-input
                 v-model="editableCriteria.training.description"
@@ -258,87 +335,119 @@
                 outlined
                 type="textarea"
                 autogrow
-                rows="3"
+                class="modern-input text-12"
               />
             </q-card-section>
           </q-card>
         </div>
 
-        <div class="col-12 col-md-6">
+        <!-- Performance criteria -->
+        <div class="col">
           <q-card flat bordered class="criteria-card">
-            <q-card-section class="bg-blue-1">
+            <q-card-section class="criteria-header bg-blue-1 q-py-xs">
               <div class="row items-center justify-between">
-                <div class="text-subtitle1 text-weight-medium">Performance</div>
-                <q-input
-                  v-model.number="editableCriteria.performance.weight"
-                  type="number"
-                  min="0"
-                  max="100"
-                  suffix="%"
-                  dense
-                  outlined
-                  style="width: 100px"
-                  @update:model-value="validatePercentage('performance')"
-                />
+                <div class="col">
+                  <div class="text-subtitle2 text-weight-medium text-11">
+                    <q-icon name="leaderboard" size="xs" class="q-mr-xs" />
+                    Performance
+                  </div>
+                </div>
+                <div class="col-auto">
+                  <div class="percentage-wrapper">
+                    <q-input
+                      v-model.number="editableCriteria.performance.weight"
+                      type="number"
+                      min="0"
+                      max="100"
+                      dense
+                      outlined
+                      class="weight-input text-10"
+                      @update:model-value="validatePercentage('performance')"
+                    >
+                      <template v-slot:append>
+                        <span class="percentage-sign">%</span>
+                      </template>
+                    </q-input>
+                  </div>
+                </div>
               </div>
             </q-card-section>
-            <q-card-section>
+            <q-card-section class="q-pa-xs">
               <q-input
                 v-model="editableCriteria.performance.title"
                 label="Title"
                 dense
                 outlined
-                class="q-mb-sm"
+                autogrow
+                class="q-mb-xs modern-input text-12"
               />
               <q-input
                 v-model="editableCriteria.performance.rating1"
                 label="Outstanding Rating"
                 dense
                 outlined
-                class="q-mb-sm"
+                autogrow
+                class="q-mb-xs modern-input text-12"
               />
               <q-input
                 v-model="editableCriteria.performance.rating2"
-                label="Very Satisfactory Rating"
+                label="Very Satisfactory"
                 dense
                 outlined
-                class="q-mb-sm"
+                autogrow
+                class="q-mb-xs modern-input text-12"
               />
               <q-input
                 v-model="editableCriteria.performance.rating3"
                 label="Below VS Rating"
                 dense
                 outlined
+                autogrow
+                class="modern-input text-12"
               />
             </q-card-section>
           </q-card>
         </div>
 
-        <div class="col-12 col-md-6">
+        <!-- BEI criteria -->
+        <div class="col">
           <q-card flat bordered class="criteria-card">
-            <q-card-section class="bg-blue-1">
+            <q-card-section class="criteria-header bg-blue-1 q-py-xs">
               <div class="row items-center justify-between">
-                <div class="text-subtitle1 text-weight-medium">Behavioral Event Interview</div>
-                <q-input
-                  v-model.number="editableCriteria.bei.weight"
-                  type="number"
-                  min="0"
-                  max="100"
-                  suffix="%"
-                  dense
-                  outlined
-                  style="width: 100px"
-                  @update:model-value="validatePercentage('bei')"
-                />
+                <div class="col">
+                  <div class="text-subtitle2 text-weight-medium text-12">
+                    <q-icon name="record_voice_over" size="xs" class="q-mr-xs" />
+                    BEI
+                  </div>
+                </div>
+                <div class="col-auto">
+                  <div class="percentage-wrapper">
+                    <q-input
+                      v-model.number="editableCriteria.bei.weight"
+                      type="number"
+                      min="0"
+                      max="100"
+                      dense
+                      outlined
+                      class="weight-input text-10"
+                      @update:model-value="validatePercentage('bei')"
+                    >
+                      <template v-slot:append>
+                        <span class="percentage-sign">%</span>
+                      </template>
+                    </q-input>
+                  </div>
+                </div>
               </div>
             </q-card-section>
-            <q-card-section>
+            <q-card-section class="q-pa-xs">
               <q-input
                 v-model="editableCriteria.bei.title"
                 label="Title"
                 dense
                 outlined
-                class="q-mb-sm"
+                autogrow
+                class="q-mb-xs modern-input text-12"
               />
               <q-input
                 v-model="editableCriteria.bei.description"
@@ -347,71 +456,80 @@
                 outlined
                 type="textarea"
                 autogrow
-                rows="3"
+                class="modern-input text-12"
               />
             </q-card-section>
           </q-card>
         </div>
       </div>
+    </div>
 
-      <div class="row justify-between items-center q-mt-lg">
-        <q-banner rounded class="bg-grey-3 col-md-6 q-mr-md">
-          <template v-slot:avatar>
-            <q-icon name="info" color="primary" />
-          </template>
-          <div class="text-subtitle2">Total Weight: {{ totalWeight }}%</div>
-          <div v-if="totalWeight !== 100" class="text-negative text-caption">
-            The total weight must equal 100%
+    <!-- Confirmation dialog with improved design -->
+    <q-dialog v-model="confirmDialog" persistent class="modern-dialog">
+      <q-card style="width: 400px" class="no-shadow">
+        <q-card-section class="bg-primary text-white q-pb-sm">
+          <div class="text-subtitle1 q-mb-xs">
+            <q-icon name="save" size="sm" class="q-mr-xs" />
+            Confirm Save
           </div>
-        </q-banner>
-
-        <q-btn
-          color="primary"
-          label="Save Criteria"
-          icon="save"
-          :loading="loading"
-          @click="confirmSave"
-          rounded
-          padding="12px 24px"
-          class="text-weight-bold"
-          :disable="totalWeight !== 100"
-        />
-      </div>
-
-      <RaterPreview
-        :criteria="displayCriteria"
-        :applicants="applicants"
-        @update-rating="handleRatingUpdate"
-      />
-    </template>
-
-    <q-dialog v-model="confirmDialog" persistent>
-      <q-card style="min-width: 350px" class="confirm-dialog">
-        <q-card-section class="bg-primary text-white">
-          <div class="text-h6">Confirm Save</div>
+          <div class="text-caption">Review your changes before saving</div>
         </q-card-section>
 
-        <q-card-section class="row items-center q-py-md">
-          <q-avatar icon="save" color="primary" text-color="white" class="q-mr-md" />
-          <span>Save all ratings for {{ formData.position }} in {{ formData.office }}?</span>
+        <q-card-section class="q-pt-md q-pb-sm">
+          <div class="text-body2 q-mb-sm text-12">
+            Are you sure you want to save the rating criteria for:
+          </div>
+          <q-list dense>
+            <q-item>
+              <q-item-section avatar>
+                <q-icon name="work" color="primary" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label caption class="text-12">Position</q-item-label>
+                <q-item-label class="text-12">{{ formData.position }}</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item>
+              <q-item-section avatar>
+                <q-icon name="business" color="primary" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label caption class="text-12">Office</q-item-label>
+                <q-item-label class="text-12">{{ formData.office }}</q-item-label>
+              </q-item-section>
+            </q-item>
+          </q-list>
         </q-card-section>
 
-        <q-card-actions align="right">
-          <q-btn flat label="Cancel" color="dark" v-close-popup />
-          <q-btn label="Save" color="positive" @click="saveRatings" v-close-popup />
+        <q-separator />
+
+        <q-card-actions align="right" class="q-pa-sm">
+          <q-btn flat dense label="Cancel" color="dark" v-close-popup class="q-mr-sm text-12" />
+          <q-btn
+            unelevated
+            dense
+            label="Save"
+            color="primary"
+            @click="saveRatings"
+            v-close-popup
+            class="text-12"
+          />
         </q-card-actions>
       </q-card>
     </q-dialog>
 
-    <q-inner-loading :showing="loading">
-      <q-spinner-gears size="50px" color="primary" />
-    </q-inner-loading>
-  </div>
+    <!-- Loading overlay with improved visual design -->
+    <!-- <q-inner-loading :showing="loading" class="custom-loader">
+      <div class="column items-center">
+        <q-spinner-dots size="40px" color="primary" />
+        <div class="text-body2 q-mt-sm text-grey-8 text-12">Processing...</div>
+      </div>
+    </q-inner-loading> -->
+  </q-page>
 </template>
 
 <script>
   import { toast } from 'src/boot/toast';
-  import RaterPreview from 'components/RaterPreview.vue';
   import { rankApplicants } from 'src/assets/Utils/RatingCalculations.js';
   import { useRaterStore } from 'src/stores/raterStore';
   import { storeToRefs } from 'pinia';
@@ -419,9 +537,6 @@
 
   export default {
     name: 'CriteriaRater',
-    components: {
-      RaterPreview,
-    },
     data() {
       return {
         loading: false,
@@ -523,9 +638,14 @@
         filteredOfficeOptions: [],
         filteredPositionOptions: [],
         savingAttempts: 0,
+        currentDateTime: '2025-07-11 06:10:49',
+        currentUser: 'dsfsgs',
       };
     },
     computed: {
+      formattedDateTime() {
+        return this.currentDateTime;
+      },
       rankedApplicants() {
         return rankApplicants(this.applicants, this.displayCriteria);
       },
@@ -808,7 +928,7 @@
       loadMockPositionDetails() {
         if (this.formData.position === 'Administrative Officer') {
           this.formData.salaryGrade = 'SG-24';
-          this.formData.plantillaItemNo = 'ADMIN-2024-001　　　　　';
+          this.formData.plantillaItemNo = 'ADMIN-2024-001';
           this.editableCriteria.education.title1 = "Bachelor's Degree";
           this.editableCriteria.experience.title1 = '5 years of relevant experience';
           this.editableCriteria.bei.description =
@@ -882,31 +1002,147 @@
 </script>
 
 <style scoped>
+  /* Base Styles */
+  .text-12 {
+    font-size: 12px !important;
+    line-height: 1.4;
+  }
+
+  .text-10 {
+    font-size: 10px !important;
+    line-height: 1.2;
+  }
+
+  .selection-card,
+  .criteria-card,
+  .empty-state-card {
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  .selection-card:hover,
+  .criteria-card:hover {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+  }
+
+  .criteria-section {
+    animation: fadeIn 0.3s ease;
+  }
+
+  /* Card Styles */
+  .criteria-header {
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+  }
+
   .criteria-card {
     height: 100%;
-    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
   }
 
-  .criteria-card:hover {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  .empty-state-card {
+    border: 1px dashed rgba(0, 0, 0, 0.08);
+    background-color: #f8fbff !important;
   }
 
-  .confirm-dialog {
-    border-radius: 8px;
+  /* Form Element Styles */
+  .modern-select,
+  .modern-input {
+    border-radius: 3px;
+    transition: all 0.2s ease;
   }
 
-  .q-field--disabled {
-    opacity: 0.8;
+  .modern-select .q-field__control,
+  .modern-input .q-field__control {
+    height: 28px;
+    min-height: 28px;
   }
 
-  .q-field--disabled .q-field__control {
-    background-color: #f5f5f5;
-    color: #666;
+  .modern-select:hover .q-field__control,
+  .modern-input:hover .q-field__control {
+    border-color: #1976d2;
   }
 
-  @media (max-width: 768px) {
-    .criteria-card {
-      margin-bottom: 16px;
+  /* Weight input styling */
+  .percentage-wrapper {
+    width: 80px; /* Increased width */
+  }
+
+  .weight-input {
+    width: 100%;
+    border-radius: 3px;
+  }
+
+  .weight-input .q-field__control {
+    height: 22px;
+    min-height: 22px;
+    padding: 0 2px 0 8px; /* Adjusted padding */
+  }
+
+  .weight-input .q-field__native {
+    padding-right: 0;
+    text-align: right;
+  }
+
+  .percentage-sign {
+    font-size: 10px;
+    padding: 0 5px 0 2px;
+    color: rgba(0, 0, 0, 0.7);
+  }
+
+  /* Button Styles */
+  .save-btn {
+    border-radius: 3px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+  }
+
+  .save-btn:not(:disabled):hover {
+    box-shadow: 0 2px 4px rgba(25, 118, 210, 0.3);
+  }
+
+  .float-right {
+    float: right;
+  }
+
+  /* Dialog Styles */
+  .modern-dialog .q-card {
+    border-radius: 6px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  }
+
+  /* Loading Styles */
+  .custom-loader {
+    background-color: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(2px);
+  }
+
+  /* Animations */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Responsive Adjustments */
+  @media (max-width: 1200px) {
+    .col {
+      min-width: 100%;
+      margin-bottom: 8px;
+    }
+  }
+
+  @media (min-width: 1200px) {
+    .col {
+      padding: 0 2px;
     }
   }
 </style>

@@ -318,32 +318,40 @@
       </q-card>
     </q-dialog>
 
-    <!-- View Rater Dialog - Clean Version -->
+    <!-- View Rater Dialog - Updated to show real jobs data -->
     <q-dialog v-model="showViewDialog" persistent>
-      <q-card style="width: 800px; max-width: 95vw">
-        <q-card-section class="row items-center bg-grey-2 q-pb-none">
-          <div class="text-h6">Applicant Ratings</div>
-          <q-space />
-          <q-btn icon="close" flat round dense v-close-popup />
+      <q-card style="width: 800px; max-width: 95vw; display: flex; flex-direction: column">
+        <!-- Header with more padding and better alignment - Sticky -->
+        <q-card-section class="bg-grey-2 q-px-lg q-py-md sticky-header">
+          <div class="text-h6">Jobs to Rate</div>
+          <q-btn
+            icon="close"
+            flat
+            round
+            dense
+            v-close-popup
+            class="absolute-top-right q-mt-sm q-mr-sm"
+          />
         </q-card-section>
 
-        <q-card-section class="q-pt-none">
-          <div class="row q-mb-sm items-center">
+        <!-- Rater Information with better spacing - Sticky -->
+        <q-card-section class="q-px-lg sticky-info">
+          <div class="row q-col-gutter-md">
             <div class="col">
-              <div class="text-subtitle1">
+              <div class="text-subtitle1 q-mb-sm">
                 <strong>Rater:</strong>
                 {{ currentViewRater.Rater }}
               </div>
-              <div class="text-subtitle2">
-                <strong>Position:</strong>
-                {{ currentViewRater.Position }}
+              <div class="text-subtitle1 q-mb-sm">
+                <strong>Office:</strong>
+                {{ currentViewRater.Office }}
               </div>
             </div>
             <div class="col-auto">
               <q-input
                 outlined
-                v-model="applicantSearch"
-                placeholder="Search applicants..."
+                v-model="jobSearch"
+                placeholder="Search jobs..."
                 dense
                 clearable
                 style="width: 250px"
@@ -354,60 +362,92 @@
               </q-input>
             </div>
           </div>
+        </q-card-section>
 
+        <!-- Table Section with proper spacing - Scrollable content -->
+        <q-card-section class="q-pa-md q-mx-md scrollable-content">
           <q-table
             flat
             bordered
-            :rows="filteredApplicants"
-            :columns="applicantColumns"
+            :rows="filteredJobs"
+            :columns="jobColumns"
             row-key="id"
-            :loading="isLoadingApplicants"
-            :pagination="{ rowsPerPage: 10 }"
-            class="sticky-header-table"
+            :loading="isLoadingJobs"
+            :pagination="pagination"
+            class="sticky-header-table no-horizontal-scroll"
+            wrap-cells
+            virtual-scroll
           >
-            <template v-slot:body-cell-status="props">
-              <q-td :props="props">
-                <q-chip
-                  dense
-                  :color="props.row.status === 'done' ? 'green-1' : 'orange-1'"
-                  :text-color="props.row.status === 'done' ? 'green-10' : 'orange-10'"
-                  :icon="props.row.status === 'done' ? 'done' : 'schedule'"
-                  size="sm"
-                >
-                  {{ props.row.status === 'done' ? 'Completed' : 'Pending' }}
-                </q-chip>
+            <!-- Position column with full text display -->
+            <template v-slot:body-cell-position="props">
+              <q-td :props="props" class="position-column">
+                <div class="full-position-text" :title="props.row.position">
+                  {{ props.row.position }}
+                </div>
               </q-td>
             </template>
 
-            <template v-slot:body-cell-rating="props">
-              <q-td :props="props">
-                <div v-if="props.row.status === 'done'" class="text-bold" style="color: #2e7d32">
-                  {{ props.row.rating }}
-                  <q-icon name="star" color="yellow-8" size="xs" class="q-ml-xs" />
+            <template v-slot:body-cell-status="props">
+              <q-td :props="props" class="text-center">
+                <div
+                  v-if="props.row.status === 'completed'"
+                  class="text-green flex items-center justify-center"
+                >
+                  <q-icon name="check_circle" size="xs" class="q-mr-xs" />
+                  Completed
                 </div>
-                <div v-else class="text-grey-6">-</div>
+                <div v-else class="text-orange flex items-center justify-center">
+                  <q-icon name="schedule" size="xs" class="q-mr-xs" />
+                  Pending
+                </div>
               </q-td>
+            </template>
+
+            <template v-slot:body-cell-applicantCount="props">
+              <q-td :props="props" class="text-center">
+                <div class="text-grey-9">
+                  {{ props.row.applicantCount }}
+                  <q-icon name="people" size="xs" class="q-ml-xs" />
+                </div>
+              </q-td>
+            </template>
+
+            <!-- Fixed pagination display -->
+            <template v-slot:bottom="scope">
+              <div class="row items-center justify-between full-width q-px-md">
+                <div>Records per page: {{ scope.pagination.rowsPerPage }}</div>
+                <div>
+                  {{ (scope.pagination.page - 1) * scope.pagination.rowsPerPage + 1 }}-{{
+                    Math.min(
+                      scope.pagination.page * scope.pagination.rowsPerPage,
+                      filteredJobs.length,
+                    )
+                  }}
+                  of {{ filteredJobs.length }}
+                </div>
+              </div>
             </template>
           </q-table>
+        </q-card-section>
 
-          <div class="row justify-between items-center q-mt-sm">
-            <div class="text-caption text-grey-7">
-              Showing {{ filteredApplicants.length }} records
-            </div>
-            <div>
-              <q-chip color="green-1" text-color="green-10" icon="done" dense>
-                Completed: {{ applicants.filter((a) => a.status === 'done').length }}
-              </q-chip>
-              <q-chip color="orange-1" text-color="orange-10" icon="schedule" dense class="q-ml-sm">
-                Pending: {{ applicants.filter((a) => a.status === 'pending').length }}
-              </q-chip>
+        <!-- Summary section with proper spacing -->
+        <q-card-section class="q-pt-md q-px-lg sticky-footer">
+          <div class="row justify-between items-center">
+            <div class="text-caption text-grey-7">Showing {{ filteredJobs.length }} jobs</div>
+            <div class="row q-gutter-md">
+              <div class="text-green flex items-center">
+                <q-icon name="check_circle" size="sm" class="q-mr-xs" />
+                Completed: {{ raterJobs.filter((j) => j.status === 'completed').length }}
+              </div>
+              <div class="text-orange flex items-center">
+                <q-icon name="schedule" size="sm" class="q-mr-xs" />
+                Pending: {{ raterJobs.filter((j) => j.status === 'pending').length }}
+              </div>
             </div>
           </div>
         </q-card-section>
 
-        <q-card-actions align="right" class="bg-grey-1">
-          <q-btn flat label="Close" color="grey-7" v-close-popup />
-        </q-card-actions>
+        <!-- Removed the footer section -->
       </q-card>
     </q-dialog>
   </q-page>
@@ -425,21 +465,15 @@
 
   // Search
   const globalSearch = ref('');
-  const applicantSearch = ref('');
+  const jobSearch = ref('');
 
   // Data
   const raters = ref([]);
 
-  // Applicants data
-  const applicants = ref([
-    { id: 1, name: 'Alice Johnson', position: 'Frontend Developer', status: 'done', rating: '4.5' },
-    { id: 2, name: 'Bob Smith', position: 'Frontend Developer', status: 'pending', rating: '' },
-    { id: 3, name: 'Charlie Brown', position: 'Backend Developer', status: 'done', rating: '3.8' },
-    { id: 4, name: 'Diana Prince', position: 'Backend Developer', status: 'pending', rating: '' },
-    { id: 5, name: 'Ethan Hunt', position: 'Backend Developer', status: 'pending', rating: '' },
-  ]);
+  // Using a separate ref for rater jobs
+  const raterJobs = ref([]);
 
-  const isLoadingApplicants = ref(false);
+  const isLoadingJobs = ref(false);
 
   // Modal state
   const showModal = ref(false);
@@ -457,6 +491,16 @@
   const currentViewRater = ref({
     Rater: '',
     Position: '',
+    Office: '',
+  });
+
+  // Pagination state
+  const pagination = ref({
+    sortBy: 'position',
+    descending: false,
+    page: 1,
+    rowsPerPage: 10,
+    rowsNumber: 0,
   });
 
   // Delete dialog state
@@ -487,13 +531,36 @@
     { name: 'actions', label: 'Actions', align: 'center' },
   ];
 
-  // Applicant columns
-  const applicantColumns = [
-    { name: 'id', label: 'ID', field: 'id', align: 'left' },
-    { name: 'name', label: 'Applicant Name', field: 'name', align: 'left' },
-    { name: 'position', label: 'Position', field: 'position', align: 'left' },
-    { name: 'status', label: 'Status', field: 'status', align: 'center' },
-    { name: 'rating', label: 'Rating', field: 'rating', align: 'center' },
+  // Job columns for the view dialog
+  const jobColumns = [
+    {
+      name: 'position',
+      label: 'Position',
+      field: 'position',
+      align: 'left',
+      style: 'width: 40%', // Fixed width for position column
+    },
+    {
+      name: 'slots',
+      label: 'Slots',
+      field: 'slots',
+      align: 'center',
+      style: 'width: 15%',
+    },
+    {
+      name: 'applicantCount',
+      label: 'Number of Applicants',
+      field: 'applicantCount',
+      align: 'center',
+      style: 'width: 25%',
+    },
+    {
+      name: 'status',
+      label: 'Status',
+      field: 'status',
+      align: 'center',
+      style: 'width: 20%',
+    },
   ];
 
   // Computed properties
@@ -511,16 +578,14 @@
     });
   });
 
-  const filteredApplicants = computed(() => {
-    if (!applicantSearch.value) return applicants.value;
+  const filteredJobs = computed(() => {
+    if (!jobSearch.value) return raterJobs.value;
 
-    const searchTerm = applicantSearch.value.toLowerCase();
-    return applicants.value.filter((applicant) => {
+    const searchTerm = jobSearch.value.toLowerCase();
+    return raterJobs.value.filter((job) => {
       return (
-        applicant.id.toString().includes(searchTerm) ||
-        applicant.name.toLowerCase().includes(searchTerm) ||
-        applicant.position.toLowerCase().includes(searchTerm) ||
-        applicant.status.toLowerCase().includes(searchTerm)
+        job.position.toLowerCase().includes(searchTerm) ||
+        job.status.toLowerCase().includes(searchTerm)
       );
     });
   });
@@ -659,11 +724,39 @@
     currentViewRater.value = {
       Rater: rater.Rater,
       Position: rater.Position,
+      Office: rater.Office,
     };
 
-    isLoadingApplicants.value = true;
+    isLoadingJobs.value = true;
+
+    // Reset pagination
+    pagination.value.page = 1;
+
+    // Get the positions this rater is assigned to
+    const assignedPositions = rater.Position.split(', ');
+
+    // Filter jobPosts to get only the ones this rater is assigned to rate
+    const raterJobsData = jobPostStore.jobPosts
+      .filter((job) => assignedPositions.includes(job.Position))
+      .map((job) => {
+        // For demo purposes, randomly decide if the job is completed or pending
+        // In a real app, you would determine this based on actual data
+        const isCompleted = Math.random() > 0.5;
+
+        return {
+          id: job.id,
+          position: job.Position,
+          slots: job.Plantilla || 1, // Use actual slots from job data if available
+          applicantCount: job.ApplicantCount || Math.floor(Math.random() * 15) + 1, // Use actual count or random for demo
+          status: isCompleted ? 'completed' : 'pending',
+        };
+      });
+
+    // Small delay to simulate loading
     setTimeout(() => {
-      isLoadingApplicants.value = false;
+      raterJobs.value = raterJobsData;
+      pagination.value.rowsNumber = raterJobsData.length;
+      isLoadingJobs.value = false;
       showViewDialog.value = true;
     }, 500);
   };
@@ -795,19 +888,6 @@
           officeId: person.OfficeID, // Used to link rater to an office
         }))
         .filter((person) => person.id && person.name && person.officeId); // Basic validation
-
-      // Optional: Remove duplicate raters if EmployeeID might not be unique across all plantilla entries
-      // but typically plantilla items are unique per employee.
-      // For example, if you only want unique employee IDs:
-      // const uniqueAvailableRaters = [];
-      // const seenIds = new Set();
-      // for (const rater of availableRaters.value) {
-      //   if (!seenIds.has(rater.id)) {
-      //     uniqueAvailableRaters.push(rater);
-      //     seenIds.add(rater.id);
-      //   }
-      // }
-      // availableRaters.value = uniqueAvailableRaters;
     }
 
     positions.value = jobPostStore.jobPosts.map((post) => {
@@ -816,8 +896,6 @@
         name: post.Position, // Extract only the Position field
       };
     });
-
-    //
   });
 </script>
 
@@ -844,5 +922,80 @@
     padding-left: 8px;
     padding-right: 8px;
     box-sizing: border-box;
+  }
+
+  .sticky-header-table .q-table__top,
+  .sticky-header-table .q-table__bottom,
+  .sticky-header-table thead tr:first-child th {
+    background-color: white;
+  }
+
+  .sticky-header-table thead tr th {
+    position: sticky;
+    z-index: 1;
+  }
+
+  .sticky-header-table thead tr:first-child th {
+    top: 0;
+  }
+
+  /* No horizontal scrolling styles */
+  .no-horizontal-scroll {
+    table-layout: fixed;
+    width: 100%;
+  }
+
+  .no-horizontal-scroll th,
+  .no-horizontal-scroll td {
+    overflow: hidden;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  /* Position column styles */
+  .position-column {
+    width: 40%;
+    max-width: 300px;
+  }
+
+  /* Full text display for position */
+  .full-position-text {
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.4;
+    padding: 2px 0;
+    width: 100%;
+  }
+
+  /* Sticky header and info sections */
+  .sticky-header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .sticky-info {
+    position: sticky;
+    top: 65px; /* Adjust based on header height */
+    z-index: 2;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  /* Scrollable content area */
+  .scrollable-content {
+    flex-grow: 1;
+    overflow-y: auto;
+    max-height: calc(80vh - 200px);
+  }
+
+  /* Sticky footer */
+  .sticky-footer {
+    position: sticky;
+    bottom: 0;
+    background: white;
+    z-index: 2;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
   }
 </style>

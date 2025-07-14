@@ -1,10 +1,8 @@
 <template>
   <q-card class="q-pa-sm">
     <q-scroll-area class="q-pa-sm" style="height: 80vh">
-      <!-- Header -->
       <div class="text-h5 text-bold q-mb-md">Plantilla</div>
 
-      <!-- Office Selection -->
       <q-select
         class="q-mb-lg q-mx-auto"
         outlined
@@ -30,7 +28,6 @@
         </template>
       </q-select>
 
-      <!-- Organizational Structure Tree -->
       <div v-if="selectedValue && structureTree.length > 0" class="q-mt-md">
         <div class="text-h6 q-mb-md">Office Structure</div>
 
@@ -44,7 +41,6 @@
               @update:selected="handleNodeSelection"
               class="custom-tree"
             >
-              <!-- Custom node label with icon -->
               <template v-slot:default-header="prop">
                 <div
                   class="row items-center cursor-pointer q-pa-sm"
@@ -68,7 +64,6 @@
         </div>
       </div>
 
-      <!-- No Data Message -->
       <div v-else-if="selectedValue && !usePlantilla.loading" class="text-center q-pa-lg">
         <q-icon name="info" size="2rem" color="grey-7" />
         <div class="text-subtitle1 q-mt-sm">
@@ -76,7 +71,6 @@
         </div>
       </div>
 
-      <!-- Loading Indicator -->
       <div v-else-if="usePlantilla.loading" class="q-pa-md flex flex-center">
         <q-spinner color="primary" size="3em" />
         <span class="q-ml-sm">Getting All Offices...</span>
@@ -98,13 +92,11 @@
 
   const props = defineProps({
     positions: {
-      // Pass the raw positions array as a prop from parent
       type: Array,
       required: true,
     },
   });
 
-  // Helper function to count positions per node, matching the table filtering logic
   function countPositionsForNode(nodeType, nodeData, positionsList) {
     return positionsList.filter((row) => {
       if (!row.office || row.office !== nodeData.office) return false;
@@ -138,11 +130,10 @@
     }).length;
   }
 
-  // In generateTreeStructure, use positions from props
   const generateTreeStructure = (items, officeName) => {
     if (!items.length) return [];
 
-    const positionsList = props.positions; // Get all positions
+    const positionsList = props.positions;
 
     const divisions = new Map();
 
@@ -171,7 +162,6 @@
       }
     });
 
-    // Office node
     const rootNode = {
       id: 'office-' + uid(),
       label: officeName,
@@ -246,15 +236,12 @@
   const selectedNode = ref(null);
   const selectedNodeData = ref(null);
 
-  // Define emits to send selected structure to parent component
   const emit = defineEmits(['structure-selected']);
 
-  // Get options for dropdown
   const getOptions = () => {
     return filteredOptions.value || [];
   };
 
-  // Get unique office values
   const getUniqueValues = () => {
     if (!officeData.value.length) return [];
     const values = new Set();
@@ -266,7 +253,6 @@
     return Array.from(values).sort();
   };
 
-  // Filter options for dropdown
   const filterOptions = (val, update) => {
     if (usePlantilla.loading) return;
 
@@ -276,14 +262,11 @@
     });
   };
 
-  // Computed property for organizational structure tree
   const structureTree = computed(() => {
     if (!selectedValue.value || !officeData.value.length) return [];
 
-    // Filter data for the selected office
     const officeItems = officeData.value.filter((item) => item.office === selectedValue.value);
 
-    // Generate tree structure with office as root
     return generateTreeStructure(officeItems, selectedValue.value);
   });
 
@@ -487,7 +470,7 @@
   //     const typeMap = {
   //       office: 'Office',
   //       division: 'Division',
-  //       section: 'Section',
+  //       section: 'Section',s
   //       unit: 'Unit'
   //     };
 

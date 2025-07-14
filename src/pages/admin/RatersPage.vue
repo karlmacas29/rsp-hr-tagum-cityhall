@@ -43,8 +43,6 @@
       <q-separator />
 
       <q-card-section>
-        <!-- Single powerful search bar -->
-
         <q-table
           flat
           bordered
@@ -53,10 +51,10 @@
           row-key="id"
           :loading="isSubmitting"
         >
-          <!-- Position column with badges -->
+          <!-- Position column: flex wrap badges, fix column width, tooltip full value -->
           <template v-slot:body-cell-Position="props">
             <q-td :props="props">
-              <div class="row q-gutter-xs" style="width: 200px">
+              <div class="position-cell" :title="props.row.Position">
                 <q-badge
                   v-for="(pos, index) in props.row.Position.split(', ')"
                   :key="index"
@@ -90,7 +88,6 @@
               >
                 <q-tooltip>View</q-tooltip>
               </q-btn>
-
               <template
                 v-if="authStore.user.permissions.isRaterM === '1' && props.row.completed == 0"
               >
@@ -829,19 +826,23 @@
     width: 100%;
   }
 
-  .status-badge {
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-weight: 500;
+  .position-cell {
+    max-width: 230px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 4px;
+    align-items: flex-start;
+    word-break: break-word;
+    margin: 2px 0;
   }
 
-  .status-done {
-    background-color: #e8f5e9;
-    color: #2e7d32;
-  }
-
-  .status-pending {
-    background-color: #fff3e0;
-    color: #e65100;
+  .position-cell .q-badge {
+    white-space: normal;
+    max-width: 100%;
+    font-size: 12px;
+    line-height: 1.3;
+    padding-left: 8px;
+    padding-right: 8px;
+    box-sizing: border-box;
   }
 </style>

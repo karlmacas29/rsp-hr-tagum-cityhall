@@ -1066,9 +1066,9 @@
     border-color: #1976d2;
   }
 
-  /* Weight input styling */
+
   .percentage-wrapper {
-    width: 80px; /* Increased width */
+    width: 80px; 
   }
 
   .weight-input {

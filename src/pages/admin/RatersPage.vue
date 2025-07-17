@@ -52,7 +52,7 @@
           :loading="isSubmitting"
         >
           <!-- Position column: flex wrap badges, fix column width, tooltip full value -->
-          <template v-slot:body-cell-Position="props">
+          <!-- <template v-slot:body-cell-job_batches_rsp="props">
             <q-td :props="props">
               <div class="position-cell" :title="props.row.Position">
                 <q-badge
@@ -66,7 +66,22 @@
                 </q-badge>
               </div>
             </q-td>
-          </template>
+          </template> -->
+          <template v-slot:body-cell-job_batches_rsp="props">
+  <q-td :props="props">
+    <div class="position-cell" :title="props.row.job_batches_rsp">
+      <q-badge
+        v-for="(pos, index) in props.row.job_batches_rsp.split(',')"
+        :key="index"
+        color="primary"
+        text-color="white"
+        class="q-pa-xs q-mb-xs badge-block"
+      >
+        {{ pos.trim() }}
+      </q-badge>
+    </div>
+  </q-td>
+</template>
           <template v-slot:body-cell-Office="props">
             <q-td :props="props">
               <div style="white-space: normal; overflow-wrap: break-word">
@@ -458,18 +473,18 @@
   import { useAuthStore } from 'stores/authStore';
   import { useJobPostStore } from 'stores/jobPostStore';
   import { usePlantillaStore } from 'stores/plantillaStore';
+  import { useRaterAuthStore } from 'stores/authStore_raters';
 
   const jobPostStore = useJobPostStore();
   const authStore = useAuthStore();
   const plantillaStore = usePlantillaStore();
-
+ const  raterAuthStore = useRaterAuthStore();
   // Search
   const globalSearch = ref('');
   const jobSearch = ref('');
 
   // Data
   const raters = ref([]);
-
   // Using a separate ref for rater jobs
   const raterJobs = ref([]);
 
@@ -521,16 +536,15 @@
   const filteredRatersByOffice = ref([]);
 
   // Columns definition
-  const columns = [
-    { name: 'ID', label: 'ID', field: 'id', align: 'left' },
-    { name: 'Rater', label: 'Rater Name', field: 'Rater', align: 'left' },
-    { name: 'Position', label: 'Jobs Position to Rate', field: 'Position', align: 'left' },
-    { name: 'Office', label: 'Office', field: 'Office', align: 'left' },
-    { name: 'pending', label: 'Pending', field: 'pending', align: 'center', sortable: false },
-    { name: 'completed', label: 'Completed', field: 'completed', align: 'center', sortable: false },
-    { name: 'actions', label: 'Actions', align: 'center' },
-  ];
-
+const columns = [
+  { name: 'id', label: 'ID', field: 'id', align: 'left' },
+  { name: 'Rater', label: 'Rater Name', field: 'Rater', align: 'left' },
+  { name: 'job_batches_rsp', label: 'Jobs Position to Rate', field: 'job_batches_rsp', align: 'left' },
+  { name: 'Office', label: 'Office', field: 'Office', align: 'left' },
+  { name: 'pending', label: 'Pending', field: 'pending', align: 'center', sortable: false },
+  { name: 'completed', label: 'Completed', field: 'completed', align: 'center', sortable: false },
+  { name: 'actions', label: 'Actions', align: 'center' },
+];
   // Job columns for the view dialog
   const jobColumns = [
     {
@@ -731,10 +745,8 @@
 
     // Reset pagination
     pagination.value.page = 1;
-
     // Get the positions this rater is assigned to
-    const assignedPositions = rater.Position.split(', ');
-
+    const assignedPositions = rater.job_batches_rsp.split(', ');
     // Filter jobPosts to get only the ones this rater is assigned to rate
     const raterJobsData = jobPostStore.jobPosts
       .filter((job) => assignedPositions.includes(job.Position))
@@ -812,36 +824,47 @@
     }, 1000);
   };
 
-  const addRater = () => {
-    if (selectedPositions.value.length === 0 || !selectedOffice.value || !selectedRater.value) {
-      showError.value = true;
-      return;
-    }
-    showError.value = false;
-    isSubmitting.value = true;
+ const addRater = async () => {
+  if (selectedPositions.value.length === 0 || !selectedOffice.value || !selectedRater.value) {
+    showError.value = true;
+    return;
+  }
 
-    setTimeout(() => {
-      const selectedPositionNames = positions.value
-        .filter((pos) => selectedPositions.value.includes(pos.id))
-        .map((pos) => pos.name)
-        .join(', ');
+  showError.value = false;
+  isSubmitting.value = true;
 
-      const raterData = availableRaters.value.find((r) => r.id === selectedRater.value);
-      const officeData = offices.value.find((o) => o.id === selectedOffice.value);
+  try {
+    const raterData = availableRaters.value.find((r) => r.id === selectedRater.value);
+    // eslint-disable-next-line no-unused-vars
+    const officeData = offices.value.find((o) => o.id === selectedOffice.value);
 
-      raters.value.push({
-        id: raters.value.length + 1,
-        Rater: raterData?.name || '',
-        Position: selectedPositionNames,
-        Office: officeData?.name || '',
-        pending: 0,
-        completed: 0,
-      });
+    // Get job batch IDs from selected positions
+    const jobBatchIds = selectedPositions.value.filter(id => id !== 'all');
+
+    // Generate username from the rater's name
+    const username = raterData?.name.replace(/\s+/g, '').toLowerCase() || '';
+
+    const userData = {
+      name: username, // Use username as name
+      controlNo: raterData?.id || '',
+      job_batches_rsp_id: jobBatchIds,
+    };
+
+    const result = await raterAuthStore.Rater_register(userData);
+
+    if (result.success) {
+      // fetch the rater realtime using reactive
+      await raterAuthStore.get_all_raters();
 
       closeModal();
-      isSubmitting.value = false;
-    }, 1000);
-  };
+    }
+  } catch (error) {
+    console.error('Error adding rater:', error);
+    showError.value = true;
+  } finally {
+    isSubmitting.value = false;
+  }
+};
 
   const confirmDeleteRater = (rater) => {
     raterToDelete.value = rater.id;
@@ -856,47 +879,41 @@
 
   onMounted(async () => {
     await jobPostStore.fetchJobPosts();
-    await plantillaStore.fetchPlantilla();
+       await raterAuthStore.get_all_raters();
+    // await plantillaStore.fetchPlantilla();
+    await plantillaStore.fetch_office_rater();
 
+
+     raters.value = raterAuthStore.users;
     // Populate uniqueOffices
-    const uniqueOfficesData = plantillaStore.plantilla.reduce((acc, item) => {
-      if (!acc.some((office) => office.name === item.office)) {
-        acc.push({
-          id: item.OfficeID, // Assuming OfficeID is the ID for the office
-          name: item.office, // Assuming office is the name of the office
-        });
-      }
-      return acc;
-    }, []);
-    offices.value = uniqueOfficesData;
-
-    // Populate positions
-    positions.value = jobPostStore.jobPosts.map((post) => {
-      return {
-        id: post.id,
-        name: post.Position,
-      };
-    });
-
-    // Populate availableRaters from plantillaStore.plantilla
-    // Assuming each item in plantillaStore.plantilla has EmployeeID, Name4, and OfficeID
-    if (plantillaStore.plantilla && plantillaStore.plantilla.length > 0) {
-      availableRaters.value = plantillaStore.plantilla
-        .map((person) => ({
-          id: person.ControlNo, // Or a unique identifier for the person
-          name: person.Name4, // This will be displayed as the rater's name
-          officeId: person.OfficeID, // Used to link rater to an office
-        }))
-        .filter((person) => person.id && person.name && person.officeId); // Basic validation
+   const uniqueOfficesData = plantillaStore.plantilla.reduce((acc, item) => {
+    if (!acc.some((office) => office.name === item.office)) {
+      acc.push({
+        id: item.OfficeID,
+        name: item.office,
+      });
     }
+    return acc;
+  }, []);
+  offices.value = uniqueOfficesData;
 
-    positions.value = jobPostStore.jobPosts.map((post) => {
-      return {
-        id: post.id,
-        name: post.Position, // Extract only the Position field
-      };
-    });
+  positions.value = jobPostStore.jobPosts.map((post) => {
+    return {
+      id: post.id,
+      name: post.Position,
+    };
   });
+
+  if (plantillaStore.plantilla && plantillaStore.plantilla.length > 0) {
+    availableRaters.value = plantillaStore.plantilla
+      .map((person) => ({
+        id: person.ControlNo,
+        name: person.Name4,
+        officeId: person.OfficeID,
+      }))
+      .filter((person) => person.id && person.name && person.officeId);
+  }
+});
 </script>
 
 <style scoped>

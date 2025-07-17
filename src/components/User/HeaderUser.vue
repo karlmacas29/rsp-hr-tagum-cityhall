@@ -20,6 +20,8 @@
           >
             <q-tab name="Homepage" label="Home" @click="navigateTo('Homepage')" />
             <q-tab name="Joblist" label="Job Lists" @click="navigateTo('Joblist')" />
+            <q-tab name="Admin" label="Admin" @click="navigateTo('Admin Login')" />
+            <q-tab name="Rater" label="Rater" @click="navigateTo('Rater Login')" />
           </q-tabs>
         </div>
         <div></div>

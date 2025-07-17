@@ -57,8 +57,8 @@
                     <template v-slot:option="scope">
                       <q-item v-bind="scope.itemProps" :class="{ 'bg-grey-2': scope.selected }">
                         <q-item-section>
-                          <q-item-label>{{ scope.opt.label }}</q-item-label>
-                          <q-item-label caption>{{ scope.opt.role }}</q-item-label>
+                          <q-item-label>{{ scope.opt.label}}</q-item-label>
+                          <q-item-label caption>{{ scope.opt.office }}</q-item-label>
                         </q-item-section>
                       </q-item>
                     </template>
@@ -94,87 +94,86 @@
   </q-layout>
 </template>
 
-<script>
-  import { ref } from 'vue';
-  import { useRouter } from 'vue-router';
-  import { useQuasar } from 'quasar';
+<script setup>
+import { ref, onMounted, computed } from 'vue';
+import { useRouter } from 'vue-router';
+import { useQuasar } from 'quasar';
+import { useRaterAuthStore } from 'stores/authStore_raters';
 
-  export default {
-    setup() {
-      const router = useRouter();
-      const $q = useQuasar();
-      const username = ref('');
-      const password = ref('');
-      const loading = ref(false);
-      const formSubmitted = ref(false);
-      const options = ref([
-        { label: 'User A. User', role: 'HR Manager', value: 'opt1' },
-        { label: 'John Doe', role: 'HR Manager', value: 'opt2' },
-        { label: 'Jane Smith', role: 'HR Officer', value: 'opt3' },
-        { label: 'Robert Johnson', role: 'HR Specialist', value: 'opt4' },
-        { label: 'Emily Davis', role: 'HR Manager', value: 'opt5' },
-      ]);
+const $q = useQuasar();
+const router = useRouter();
+const authRaterStore = useRaterAuthStore();
 
-      const filteredOptions = ref([...options.value]);
+// Refs
+const username = ref(null);
+const password = ref('');
+const loading = ref(false);
+const formSubmitted = ref(false);
+const raters = ref([]);
+const filter = ref('');
 
-      function filterFn(val, update) {
-        if (val === '') {
-          update(() => {
-            filteredOptions.value = options.value;
-          });
-          return;
-        }
+// Computed property for filtered options
+const filteredOptions = computed(() => {
+  if (!filter.value) return raters.value;
+  return raters.value.filter(rater => 
+    rater.name.toLowerCase().includes(filter.value.toLowerCase()) ||
+    (rater.office && rater.office.toLowerCase().includes(filter.value.toLowerCase()))
+  );
+});
 
-        update(() => {
-          const needle = val.toLowerCase();
-          filteredOptions.value = options.value.filter(
-            (v) =>
-              v.label.toLowerCase().indexOf(needle) > -1 ||
-              v.role.toLowerCase().indexOf(needle) > -1,
-          );
-        });
-      }
+// Fetch raters when component mounts
+onMounted(async () => {
+  try {
+    loading.value = true;
+    const fetchedRaters = await authRaterStore.get_rater_usernames();
+    // Transform the raters data for the dropdown
+    raters.value = fetchedRaters.map(rater => ({
+      label: rater.username,
+      value: rater.username || rater.name.toLowerCase().replace(/\s+/g, ''),
+      office: rater.office
+    }));
+    
+  } catch (error) {
+    console.error('Failed to fetch raters:', error);
+    $q.notify({
+      type: 'negative',
+      message: 'Failed to fetch raters. Please try again later.'
+    });
+  } finally {
+    loading.value = false;
+  }
+});
 
-      const login = () => {
-        formSubmitted.value = true;
+function filterFn(val, update) {
+  // Update the filter value
+  filter.value = val;
+  update(() => {
+    // The computed property will handle the filtering
+  });
+}
 
-        if (!username.value || !password.value) {
-          return;
-        }
+const login = async () => {
+  formSubmitted.value = true;
+  if (!username.value || !password.value) return;
 
-        loading.value = true;
-
-        setTimeout(() => {
-          loading.value = false;
-
-          if (password.value === 'password') {
-            $q.notify({
-              type: 'positive',
-              message: 'Login successful',
-            });
-            router.push('/uRater');
-          } else {
-            $q.notify({
-              type: 'negative',
-              message: 'Invalid credentials',
-            });
-            password.value = '';
-          }
-        }, 1000);
-      };
-
-      return {
-        username,
-        password,
-        loading,
-        formSubmitted,
-        options,
-        filteredOptions,
-        filterFn,
-        login,
-      };
-    },
-  };
+  try {
+    loading.value = true;
+    // Use the value property which contains the username
+    await authRaterStore.login(username.value.value, password.value);
+    
+    if (authRaterStore.isAuthenticated) {
+      router.push({ name: 'Rater Dashboard' });
+    }
+  } catch (error) {
+    console.error('Login error:', error);
+    $q.notify({
+      type: 'negative',
+      message: error.message || 'Login failed. Please try again.'
+    });
+  } finally {
+    loading.value = false;
+  }
+};
 </script>
 
 <style scoped>
@@ -182,6 +181,7 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
+
   }
 
   .q-field {

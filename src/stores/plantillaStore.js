@@ -37,6 +37,30 @@ export const usePlantillaStore = defineStore('plantilla', {
         this.loading = false;
       }
     },
+
+     async fetch_office_rater() {
+      this.loading = true;
+      this.error = null;
+      try {
+        const response = await api.get('/plantilla/office/rater');
+
+        // console.log(response.data); // Debugging
+
+        if (Array.isArray(response.data)) {
+          this.plantilla = response.data;
+        } else {
+          console.error('Unexpected response format', response.data);
+          this.plantilla = [];
+        }
+      } catch (error) {
+        this.loading = false;
+        console.error('Fetch error:', error); // Debugging
+        toast.error('Failed to Load Plantilla');
+        this.error = error;
+      } finally {
+        this.loading = false;
+      }
+    },
     async fetchPlantillaData() {
       this.loading = true;
       this.error = null;

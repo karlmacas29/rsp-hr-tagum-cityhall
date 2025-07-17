@@ -14,7 +14,7 @@ export const usexPDS = defineStore('xPDS', {
       try {
         const token = document.cookie
           .split('; ')
-          .find((row) => row.startsWith('auth_token='))
+          .find((row) => row.startsWith('admin_token='))
           ?.split('=')[1];
 
         this.loading = true;

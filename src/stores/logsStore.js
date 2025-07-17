@@ -26,7 +26,7 @@ export const useLogsStore = defineStore('logs', {
     async logAction(actions) {
       const token = document.cookie
         .split('; ')
-        .find((row) => row.startsWith('auth_token='))
+        .find((row) => row.startsWith('admin_token='))
         ?.split('=')[1];
       try {
         await api.post(

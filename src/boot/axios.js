@@ -3,8 +3,13 @@ import axios from 'axios';
 
 const api = axios.create({
   baseURL: process.env.VUE_APP_API_URL,
-  withCredentials: true,
   optionSuccessStatus: 200,
+  headers:{
+    Accept:'application/json',
+  'Content-Type': 'application/json',
+  'X-Requested-With': 'XMLHttpRequest',
+  },
+    withCredentials: true,
 });
 
 // Add a request interceptor to include the token in the Authorization header

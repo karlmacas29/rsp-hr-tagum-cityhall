@@ -275,51 +275,120 @@
       </q-card>
     </div>
 
-    <!-- Application Confirmation Dialog -->
+    <!-- UPDATED: Application Confirmation Dialog -->
     <q-dialog v-model="confirmDialog" persistent>
-      <q-card style="min-width: 350px">
-        <q-card-section class="row items-center">
-          <q-avatar icon="assignment" color="primary" text-color="white" />
-          <span class="q-ml-sm text-h6">Confirm Submission</span>
-        </q-card-section>
-
-        <q-card-section>
-          You are about to submit your application for
-          <strong>Computer Programmer II</strong>
-          .
-          <div class="q-mt-md">
-            <strong>Uploaded file:</strong>
-            {{ uploadedFile?.name }}
+      <q-card class="confirmation-dialog">
+        <!-- Green header with centered icon -->
+        <div class="header-green">
+          <div class="icon-container">
+            <q-icon name="assignment" size="28px" color="green" />
           </div>
-        </q-card-section>
+        </div>
 
-        <q-card-actions align="right">
-          <q-btn flat label="Cancel" color="grey" v-close-popup />
-          <q-btn flat label="Submit" color="primary" @click="processSubmission" />
-        </q-card-actions>
+        <!-- Confirmation title -->
+        <div class="dialog-title">
+          <div class="text-h5 text-green text-center text-weight-bold">Confirm Application</div>
+          <div class="text-subtitle1 text-center text-grey q-mt-sm">
+            Please verify your submission details
+          </div>
+        </div>
+
+        <q-separator />
+
+        <!-- Position info -->
+        <div class="dialog-content">
+          <div class="row items-center q-mb-md">
+            <q-icon name="work" size="16px" class="text-green" />
+            <div class="q-ml-sm">Position:</div>
+            <div class="text-green text-weight-bold q-ml-sm position-text">
+              {{ selectedJob?.Position || 'Computer Programmer II' }}
+            </div>
+          </div>
+
+          <!-- File section -->
+          <div class="row items-start">
+            <q-icon name="upload_file" size="16px" class="text-green q-mt-xs" />
+            <div class="q-ml-sm q-mt-xs">File:</div>
+          </div>
+
+          <!-- Fixed width file card -->
+          <div class="file-card">
+            <div class="row no-wrap">
+              <q-icon name="description" size="18px" class="text-blue q-mt-xs" />
+              <div class="file-details">
+                <div class="file-name">{{ uploadedFile?.name }}</div>
+                <div class="file-size">{{ formatFileSize(uploadedFile?.size || 0) }}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="text-center text-grey-7 q-mt-lg">
+            By clicking Submit, you confirm that all information provided is accurate and complete.
+          </div>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="dialog-actions">
+          <q-btn flat label="CANCEL" color="grey-7" v-close-popup class="q-px-md" />
+          <q-btn
+            unelevated
+            label="SUBMIT APPLICATION"
+            color="green"
+            @click="processSubmission"
+            class="q-px-md"
+            :loading="isSubmitting"
+          />
+        </div>
       </q-card>
     </q-dialog>
 
     <!-- Success Dialog -->
     <q-dialog v-model="successDialog" persistent>
-      <q-card style="min-width: 350px">
-        <q-card-section class="row items-center">
-          <q-avatar icon="check_circle" color="green" text-color="white" />
-          <span class="q-ml-sm text-h6">Application Submitted!</span>
-        </q-card-section>
-
-        <q-card-section>
-          Thank you for applying to the
-          <strong>Computer Programmer II</strong>
-          position.
-          <div class="q-mt-md">
-            We have received your application and will contact you via email for updates.
+      <q-card class="confirmation-dialog">
+        <!-- Green header with centered icon -->
+        <div class="header-green">
+          <div class="icon-container">
+            <q-icon name="check_circle" size="28px" color="green" />
           </div>
-        </q-card-section>
+        </div>
 
-        <q-card-actions align="right">
-          <q-btn flat label="Close" color="primary" to="/jobList" />
-        </q-card-actions>
+        <!-- Success title -->
+        <div class="dialog-title">
+          <div class="text-h5 text-green text-center text-weight-bold">Application Successful!</div>
+          <div class="text-subtitle1 text-center text-grey q-mt-sm">
+            Your application has been submitted
+          </div>
+        </div>
+
+        <q-separator />
+
+        <!-- Success content -->
+        <div class="dialog-content text-center">
+          <div class="q-mb-md">
+            Thank you for applying to the
+            <span class="text-green text-weight-bold">
+              {{ selectedJob?.Position || 'Computer Programmer II' }}
+            </span>
+            position.
+          </div>
+
+          <div class="q-my-md">
+            We have received your application and will contact you via sms or email for updates.
+          </div>
+
+          <div class="text-grey-7 q-mt-lg">Reference #: APP-{{ generateReferenceNumber() }}</div>
+        </div>
+
+        <!-- Action button - Changed to close dialog instead of navigating away -->
+        <div class="dialog-actions">
+          <q-btn
+            unelevated
+            label="CLOSE"
+            color="green"
+            @click="closeSuccessDialog"
+            class="q-px-xl"
+          />
+        </div>
       </q-card>
     </q-dialog>
   </q-page>
@@ -346,6 +415,13 @@
   const successDialog = ref(false);
   const isSubmitting = ref(false);
 
+  // Added function to close success dialog and reset state
+  const closeSuccessDialog = () => {
+    successDialog.value = false;
+    // Optionally reset the form if needed
+    uploadedFile.value = null;
+  };
+
   // Download the Excel template
   const downloadExcelForm = () => {
     const excelFileUrl = '/public/pds.xlsx';
@@ -360,6 +436,24 @@
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+  };
+
+  // Format file size
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  // Generate a random reference number
+  const generateReferenceNumber = () => {
+    const timestamp = Date.now().toString().slice(-6);
+    const random = Math.floor(Math.random() * 10000)
+      .toString()
+      .padStart(4, '0');
+    return `${timestamp}-${random}`;
   };
 
   // Validate and show confirmation
@@ -497,5 +591,84 @@
   .step-description {
     color: #666;
     margin-bottom: 20px;
+  }
+
+  /* Confirmation Dialog Styling */
+  .confirmation-dialog {
+    border-radius: 12px;
+    overflow: hidden;
+    width: 460px;
+    max-width: 95vw;
+  }
+
+  .header-green {
+    background-color: #00c853;
+    height: 100px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .icon-container {
+    width: 56px;
+    height: 56px;
+    background-color: white;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    bottom: -28px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .dialog-title {
+    margin-top: 36px;
+    padding: 0 24px 16px 24px;
+  }
+
+  .dialog-content {
+    padding: 24px;
+  }
+
+  .file-card {
+    margin-top: 8px;
+    margin-left: 8px;
+    background-color: #f5f5f5;
+    border-radius: 8px;
+    padding: 12px;
+    width: 100%;
+    max-width: 390px;
+    border: 1px solid #e0e0e0;
+  }
+
+  .file-details {
+    margin-left: 12px;
+    width: calc(100% - 36px);
+    overflow: hidden;
+  }
+
+  .file-name {
+    font-weight: 500;
+    word-break: break-all;
+    white-space: normal;
+    color: #1976d2;
+  }
+
+  .file-size {
+    color: #757575;
+    font-size: 0.85rem;
+    margin-top: 4px;
+  }
+
+  .dialog-actions {
+    padding: 16px 24px;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .position-text {
+    font-size: 12px;
   }
 </style>

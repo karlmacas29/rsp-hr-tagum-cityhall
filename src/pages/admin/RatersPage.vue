@@ -984,7 +984,6 @@ const columns = [
     width: 100%;
   }
 
-  /* Sticky header and info sections */
   .sticky-header {
     position: sticky;
     top: 0;
@@ -994,20 +993,18 @@ const columns = [
 
   .sticky-info {
     position: sticky;
-    top: 65px; /* Adjust based on header height */
+    top: 65px;
     z-index: 2;
     background: white;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   }
 
-  /* Scrollable content area */
   .scrollable-content {
     flex-grow: 1;
     overflow-y: auto;
     max-height: calc(80vh - 200px);
   }
 
-  /* Sticky footer */
   .sticky-footer {
     position: sticky;
     bottom: 0;

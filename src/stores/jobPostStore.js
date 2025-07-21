@@ -43,6 +43,7 @@ export const useJobPostStore = defineStore('jobPost', {
         this.loading = false;
       }
     },
+    
     async fetchCriteriaByPositionAndItemNo(PositionID, ItemNo) {
       this.loading = true;
 

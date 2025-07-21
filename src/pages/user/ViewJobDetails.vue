@@ -40,6 +40,7 @@
             <div class="column q-ml-md" style="flex-grow: 1">
               <div class="text-green text-h5 text-weight-bold">
                 {{ selectedJob?.Position || 'No Position' }}
+                 {{ selectedJob?.id || 'No Position' }}
               </div>
               <div class="row items-center">
                 <span class="q-ml-xs text-body1 text-grey-8">
@@ -336,7 +337,7 @@
             color="green"
             @click="processSubmission"
             class="q-px-md"
-            :loading="isSubmitting"
+              :loading="uploadStore.isSubmitting"
           />
         </div>
       </q-card>
@@ -396,8 +397,11 @@
 
 <script setup>
   import { useRoute } from 'vue-router';
-  import { onMounted, ref } from 'vue';
+  import { onMounted, ref,computed } from 'vue';
   import { useJobPostStore } from 'stores/jobPostStore';
+  import { useUser_upload } from 'stores/user_upload';
+
+const uploadStore = useUser_upload();
 
   const jobPostStore = useJobPostStore();
 
@@ -410,9 +414,10 @@
   const selectedCriteria = ref([]);
 
   // Application state
-  const uploadedFile = ref(null);
+
   const confirmDialog = ref(false);
-  const successDialog = ref(false);
+
+  // eslint-disable-next-line no-unused-vars
   const isSubmitting = ref(false);
 
   // Added function to close success dialog and reset state
@@ -422,6 +427,10 @@
     uploadedFile.value = null;
   };
 
+  const successDialog = computed({
+  get: () => uploadStore.successDialog,
+  set: (val) => (uploadStore.successDialog = val),
+});
   // Download the Excel template
   const downloadExcelForm = () => {
     const excelFileUrl = '/public/pds.xlsx';
@@ -456,44 +465,65 @@
     return `${timestamp}-${random}`;
   };
 
-  // Validate and show confirmation
-  const submitApplication = () => {
-    if (!uploadedFile.value) return;
-    confirmDialog.value = true;
-  };
+  // Pass file directly to Pinia store
 
-  // Process the submission
-  const processSubmission = async () => {
-    isSubmitting.value = true;
-    confirmDialog.value = false;
+const uploadedFile = computed({
+  get: () => uploadStore.uploadedFile,
+  set: (val) => (uploadStore.uploadedFile = val),
+});
 
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+const submitApplication = async () => {
+  if (!uploadStore.uploadedFile) return;
+  confirmDialog.value = true;
+};
 
-      // In a real app, you would upload the file here:
-      // const formData = new FormData();
-      // formData.append('jobApplication', uploadedFile.value);
-      // formData.append('jobId', jobId);
-      // await api.post('/applications', formData);
 
-      successDialog.value = true;
-    } catch (error) {
-      console.error('Submission error:', error);
-    } finally {
-      isSubmitting.value = false;
+// const processSubmission = async () => {
+//   confirmDialog.value = false;
+//   await uploadStore.processSubmission();
+// };
+
+
+//   onMounted(async () => {
+//     // Fetch job details if needed
+//     await jobPostStore.fetchJobPostByPositionAndItemNo(P_ID, I_No).then((job) => {
+//       selectedJob.value = job;
+//        uploadStore.selectedJob = job;
+//     });
+//     await jobPostStore.fetchCriteriaByPositionAndItemNo(P_ID, I_No).then((criteria) => {
+//       selectedCriteria.value = criteria;
+//     });
+
+//   });
+// In your component's script setup
+const processSubmission = async () => {
+  confirmDialog.value = false;
+  try {
+    console.log('Current selected job:', uploadStore.selectedJob); // Debug log
+    const response = await uploadStore.processSubmission();
+
+    if (response) {
+      console.log('Submission response:', response);
+      if (response.job_batch_rsp_id) {
+        console.log('Job batch response ID:', response.job_batch_rsp_id);
+        // You can now use this ID as needed
+      }
     }
-  };
+  } catch (error) {
+    console.error('Submission process error:', error);
+  }
+};
 
-  onMounted(async () => {
-    // Fetch job details if needed
-    await jobPostStore.fetchJobPostByPositionAndItemNo(P_ID, I_No).then((job) => {
-      selectedJob.value = job;
-    });
-    await jobPostStore.fetchCriteriaByPositionAndItemNo(P_ID, I_No).then((criteria) => {
-      selectedCriteria.value = criteria;
-    });
+onMounted(async () => {
+  await jobPostStore.fetchJobPostByPositionAndItemNo(P_ID, I_No).then((job) => {
+    selectedJob.value = job;
+    uploadStore.setSelectedJob(job); // Properly set the job in the upload store
+    console.log('Job loaded:', job); // Debug log
   });
+  await jobPostStore.fetchCriteriaByPositionAndItemNo(P_ID, I_No).then((criteria) => {
+    selectedCriteria.value = criteria;
+  });
+});
 </script>
 
 <style scoped>

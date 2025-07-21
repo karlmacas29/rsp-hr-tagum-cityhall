@@ -473,12 +473,13 @@
   import { useAuthStore } from 'stores/authStore';
   import { useJobPostStore } from 'stores/jobPostStore';
   import { usePlantillaStore } from 'stores/plantillaStore';
-  import { useRaterAuthStore } from 'stores/authStore_raters';
+  // import { useauthStore } from 'stores/authStore_raters';
+  import { toast } from 'boot/toast';
 
   const jobPostStore = useJobPostStore();
   const authStore = useAuthStore();
   const plantillaStore = usePlantillaStore();
- const  raterAuthStore = useRaterAuthStore();
+//  const  authStore = useauthStore();
   // Search
   const globalSearch = ref('');
   const jobSearch = ref('');
@@ -824,7 +825,49 @@ const columns = [
     }, 1000);
   };
 
- const addRater = async () => {
+//  const addRater = async () => {
+//   if (selectedPositions.value.length === 0 || !selectedOffice.value || !selectedRater.value) {
+//     showError.value = true;
+//     return;
+//   }
+
+//   showError.value = false;
+//   isSubmitting.value = true;
+
+//   try {
+//     const raterData = availableRaters.value.find((r) => r.id === selectedRater.value);
+//     // eslint-disable-next-line no-unused-vars
+//     const officeData = offices.value.find((o) => o.id === selectedOffice.value);
+
+//     // Get job batch IDs from selected positions
+//     const jobBatchIds = selectedPositions.value.filter(id => id !== 'all');
+
+//     // Generate username from the rater's name
+//     const username = raterData?.name.replace(/\s+/g, '').toLowerCase() || '';
+
+//     const userData = {
+//       name: username, // Use username as name
+//       controlNo: raterData?.id || '',
+//       job_batches_rsp_id: jobBatchIds,
+//     };
+
+//     const result = await authStore.Rater_register(userData);
+
+//     if (result.success) {
+//       // fetch the rater realtime using reactive
+//       await authStore.get_all_raters();
+
+//       closeModal();
+//     }
+//   } catch (error) {
+//     console.error('Error adding rater:', error);
+//     showError.value = true;
+//   } finally {
+//     isSubmitting.value = false;
+//   }
+// };
+
+const addRater = async () => {
   if (selectedPositions.value.length === 0 || !selectedOffice.value || !selectedRater.value) {
     showError.value = true;
     return;
@@ -835,31 +878,37 @@ const columns = [
 
   try {
     const raterData = availableRaters.value.find((r) => r.id === selectedRater.value);
-    // eslint-disable-next-line no-unused-vars
     const officeData = offices.value.find((o) => o.id === selectedOffice.value);
 
-    // Get job batch IDs from selected positions
+    if (!raterData || !officeData) {
+      throw new Error('Rater or office data not found');
+    }
+
+    // Filter out 'all' if present and get actual position IDs
     const jobBatchIds = selectedPositions.value.filter(id => id !== 'all');
 
-    // Generate username from the rater's name
-    const username = raterData?.name.replace(/\s+/g, '').toLowerCase() || '';
-
     const userData = {
-      name: username, // Use username as name
-      controlNo: raterData?.id || '',
+      name: raterData.name,
+      controlNo: raterData.id,
       job_batches_rsp_id: jobBatchIds,
+      Office: officeData.name // Include office name
     };
 
-    const result = await raterAuthStore.Rater_register(userData);
+    const result = await authStore.Rater_register(userData);
 
     if (result.success) {
-      // fetch the rater realtime using reactive
-      await raterAuthStore.get_all_raters();
-
+      // Refresh the raters list
+      await authStore.get_all_raters();
+      // Update local raters list
+      raters.value = authStore.users;
       closeModal();
+      toast.success('Rater added successfully');
+    } else {
+      throw new Error(result.message || 'Failed to add rater');
     }
   } catch (error) {
     console.error('Error adding rater:', error);
+    toast.error(error.message || 'Failed to add rater');
     showError.value = true;
   } finally {
     isSubmitting.value = false;
@@ -878,13 +927,21 @@ const columns = [
   };
 
   onMounted(async () => {
-    await jobPostStore.fetchJobPosts();
-       await raterAuthStore.get_all_raters();
-    // await plantillaStore.fetchPlantilla();
-    await plantillaStore.fetch_office_rater();
+   try {
+    await Promise.all([
+      jobPostStore.fetchJobPosts(),
+      authStore.get_all_raters(),
+      plantillaStore.fetch_office_rater()
+    ]);
 
+    raters.value = authStore.users || [];
 
-     raters.value = raterAuthStore.users;
+  } catch (error) {
+    console.error('Initialization error:', error);
+    toast.error('Failed to load initial data');
+  }
+
+    //  raters.value = authStore.users;
     // Populate uniqueOffices
    const uniqueOfficesData = plantillaStore.plantilla.reduce((acc, item) => {
     if (!acc.some((office) => office.name === item.office)) {

@@ -115,7 +115,7 @@ const filter = ref('');
 // Computed property for filtered options
 const filteredOptions = computed(() => {
   if (!filter.value) return raters.value;
-  return raters.value.filter(rater => 
+  return raters.value.filter(rater =>
     rater.name.toLowerCase().includes(filter.value.toLowerCase()) ||
     (rater.office && rater.office.toLowerCase().includes(filter.value.toLowerCase()))
   );
@@ -132,7 +132,7 @@ onMounted(async () => {
       value: rater.username || rater.name.toLowerCase().replace(/\s+/g, ''),
       office: rater.office
     }));
-    
+
   } catch (error) {
     console.error('Failed to fetch raters:', error);
     $q.notify({
@@ -160,9 +160,9 @@ const login = async () => {
     loading.value = true;
     // Use the value property which contains the username
     await authRaterStore.login(username.value.value, password.value);
-    
+
     if (authRaterStore.isAuthenticated) {
-      router.push({ name: 'Rater Dashboard' });
+      router.push({ name: 'Raters Homepage' });
     }
   } catch (error) {
     console.error('Login error:', error);

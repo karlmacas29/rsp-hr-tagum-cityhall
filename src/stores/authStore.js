@@ -3,6 +3,8 @@ import { defineStore } from 'pinia';
 import { api } from 'boot/axios';
 import { toast } from 'src/boot/toast'; // Import toast instance
 import { useLogsStore } from 'stores/logsStore';
+import { usePlantillaStore } from 'stores/plantillaStore';
+
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -15,9 +17,8 @@ export const useAuthStore = defineStore('auth', {
     users: [], // Store list of users for management
     selectedUser: null, // Store selected user details
   }),
-
   actions: {
-   
+
     async login(username, password) {
   this.errors = {}; // Clear previous errors
   this.loading = true; // Set loading state
@@ -102,6 +103,8 @@ export const useAuthStore = defineStore('auth', {
         this.router.push({ name: 'Admin Login' });
       }
     },
+
+
     // checking if the user is authenticated
     async checkAuth() {
       const token = document.cookie
@@ -380,6 +383,132 @@ export const useAuthStore = defineStore('auth', {
         .find((row) => row.startsWith('admin_token='))
         ?.split('=')[1];
     },
+
+
+    async get_all_raters() {
+   this.loadUser= true;
+
+  try {
+    const token = this.getToken();
+    console.log('Auth token:', token);
+
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    const response = await api.get('/rater/list', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    console.log('API response:', response);
+
+    if (response.data.status) {
+      console.log('Response data:', response.data.data);
+
+      // Handle both array and object responses
+      const ratersData = Array.isArray(response.data.data)
+        ? response.data.data
+        : Object.values(response.data.data);
+
+      console.log('Parsed ratersData:', ratersData);
+
+      this.users = ratersData.map(rater => ({
+        id: rater.id,
+        Rater: rater.name,
+        Office: rater.office || 'No office assigned',
+        job_batches_rsp: rater.job_batches_rsp || 'No positions assigned',
+        pending: rater.pending || 0,
+        completed: rater.completed || 0,
+      }));
+      console.log('Final users:', this.users.value);
+      this.loadUser = false;
+      return this.users.value;
+    } else {
+      console.error('Failed response message:', response.data.message);
+      toast.error(response.data.message || 'Failed to retrieve raters');
+      this.loadUser.value = false;
+      return [];
+    }
+  } catch (error) {
+    console.error('Request error:', error);
+    this.handleError(error, 'Failed to retrieve raters');
+    this.loadUser = false;
+    return [];
+  }
+},
+
+  // creating accoun for the rater
+  async  Rater_register(userData) {
+    this.loading= true;
+    this.errors= {};
+    try {
+      const token = this.getToken();
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+      const plantillaStore = usePlantillaStore();
+      await plantillaStore.fetch_office_rater();
+      const raterInfo = plantillaStore.plantilla.find(
+        person => person.ControlNo === userData.controlNo
+      );
+
+      if (!raterInfo) {
+        throw new Error('Rater not found in plantilla data');
+      }
+
+      if (!raterInfo.BirthDate) {
+        throw new Error('Birthdate not available for this rater');
+      }
+      const date = new Date(raterInfo.BirthDate);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const birthdatePassword = `${year}${month}${day}`;
+      const username = userData.name.replace(/\s+/g, '').toLowerCase();
+      const formattedData = {
+        name: username,
+        username: username,
+        job_batches_rsp_id: userData.job_batches_rsp_id || [],
+        position: userData.position || raterInfo.Designation,
+        office: userData.Office || raterInfo.Office,
+        password: birthdatePassword,
+        controlNo: userData.controlNo,
+      };
+      const response = await api.post('rater/register', formattedData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.data.status) {
+        await this.get_all_raters();
+        toast.success('Rater registered successfully');
+        return {
+          success: true,
+          data: response.data.data,
+          message: response.data.message
+        };
+      } else {
+        toast.error(response.data.message || 'Failed to register rater');
+        return {
+          success: false,
+          message: response.data.message || 'Failed to register rater'
+        };
+      }
+    } catch (error) {
+      this.handleError(error, error.message || 'Failed to register rater');
+      return {
+        success: false,
+        message: error.message || 'Failed to register rater'
+      };
+    } finally {
+      this.loading = false;
+      const logsStore = useLogsStore();
+      await logsStore.logAction('Registered New Rater');
+    }
+  },
 
     // Helper function to handle errors
     handleError(error, defaultMessage) {

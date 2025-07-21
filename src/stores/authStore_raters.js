@@ -3,7 +3,7 @@ import { ref } from 'vue';
 import { api } from 'boot/axios';
 import { toast } from 'src/boot/toast';
 import { useLogsStore } from 'stores/logsStore';
-import { usePlantillaStore } from 'stores/plantillaStore';
+// import { usePlantillaStore } from 'stores/plantillaStore';
 
 export const useRaterAuthStore = defineStore('rater_auth', () => {
   // State
@@ -45,88 +45,12 @@ export const useRaterAuthStore = defineStore('rater_auth', () => {
     }
   }
 
-  // Actions
-  async function Rater_register(userData) {
-    loading.value = true;
-    errors.value = {};
 
-    try {
-      const authToken = getToken();
-      if (!authToken) {
-        throw new Error('No authentication token found');
-      }
-      
-      const plantillaStore = usePlantillaStore();
-      await plantillaStore.fetch_office_rater();
-      
-      const raterInfo = plantillaStore.plantilla.find(
-        person => person.ControlNo === userData.controlNo
-      );
-
-      if (!raterInfo) {
-        throw new Error('Rater not found in plantilla data');
-      }
-
-      if (!raterInfo.BirthDate) {
-        throw new Error('Birthdate not available for this rater');
-      }
-
-      const date = new Date(raterInfo.BirthDate);
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      const birthdatePassword = `${year}${month}${day}`;
-
-      const username = userData.name.replace(/\s+/g, '').toLowerCase();
-
-      const formattedData = {
-        name: username,
-        username: username,
-        job_batches_rsp_id: userData.job_batches_rsp_id || [],
-        position: userData.position || raterInfo.Designation,
-        office: userData.Office || raterInfo.Office,
-        password: birthdatePassword,
-        controlNo: userData.controlNo,
-      };
-
-      const response = await api.post('rater/register', formattedData, {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-        },
-      });
-
-      if (response.data.status) {
-        await get_all_raters();
-        toast.success('Rater registered successfully');
-        return {
-          success: true,
-          data: response.data.data,
-          message: response.data.message
-        };
-      } else {
-        toast.error(response.data.message || 'Failed to register rater');
-        return {
-          success: false,
-          message: response.data.message || 'Failed to register rater'
-        };
-      }
-    } catch (error) {
-      handleError(error, error.message || 'Failed to register rater');
-      return {
-        success: false,
-        message: error.message || 'Failed to register rater'
-      };
-    } finally {
-      loading.value = false;
-      const logsStore = useLogsStore();
-      await logsStore.logAction('Registered New Rater');
-    }
-  }
 
   async function login(username, password) {
     errors.value = {};
     loading.value = true;
-    
+
     try {
       const response = await api.post('/rater/login', { username, password });
 
@@ -173,7 +97,7 @@ export const useRaterAuthStore = defineStore('rater_auth', () => {
       .split('; ')
       .find((row) => row.startsWith('rater_token='))
       ?.split('=')[1];
-      
+
     try {
       await api.post('/logout', null, {
         headers: {
@@ -186,7 +110,7 @@ export const useRaterAuthStore = defineStore('rater_auth', () => {
       user.value = null;
       errors.value = {};
       loading.value = false;
-      
+
        const cookieSettings = [
           'rater_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;',
           'rater_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=None; Secure;',
@@ -205,45 +129,7 @@ export const useRaterAuthStore = defineStore('rater_auth', () => {
       }
   }
 
- async function get_all_raters() {
-  loadUser.value = true;
-  try {
-    const authToken = getToken();
-    if (!authToken) {
-      throw new Error('No authentication token found');
-    }
 
-    const response = await api.get('/rater/list', {
-      headers: {
-        Authorization: `Bearer ${authToken}`,
-      },
-    });
-
-    if (response.data.status) {
-      users.value = Object.values(response.data.data).map(rater => ({
-        id: rater.id,
-        name: rater.name,  // Changed from Rater to name for consistency
-        office: rater.office || 'No office assigned',
-        username: rater.username || rater.name.toLowerCase().replace(/\s+/g, ''),
-        job_batches_rsp: rater.job_batches_rsp || 'No positions assigned',
-        pending: 0,
-        completed: 0,
-        actions: '',
-      }));
-
-      loadUser.value = false;
-      return users.value;
-    } else {
-      toast.error('Failed to retrieve raters');
-      loadUser.value = false;
-      return [];
-    }
-  } catch (error) {
-    handleError(error, 'Failed to retrieve raters');
-    loadUser.value = false;
-    return [];
-  }
-}
 
 
 async function get_rater_usernames() {
@@ -285,7 +171,7 @@ async function get_rater_usernames() {
             Authorization: `Bearer ${authToken}`,
           },
         });
-        
+
         token.value = authToken;
         isAuthenticated.value = true;
         user.value = res.data.data;
@@ -298,7 +184,7 @@ async function get_rater_usernames() {
         user.value = null;
         errors.value = {};
         loading.value = false;
-        
+
         const cookieSettings = [
           'rater_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;',
           'rater_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=None; Secure;',
@@ -327,10 +213,10 @@ async function get_rater_usernames() {
     errors,
     users,
     selectedUser,
-    Rater_register,
+    // Rater_register,
     login,
     logout,
-    get_all_raters,
+    // get_all_raters,
     getToken,
     checkAuth,
     handleError,

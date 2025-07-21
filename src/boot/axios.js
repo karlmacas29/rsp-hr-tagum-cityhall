@@ -8,6 +8,7 @@ const api = axios.create({
     Accept:'application/json',
   'Content-Type': 'application/json',
   'X-Requested-With': 'XMLHttpRequest',
+  //  'Accepted':'multipart/form-data'
   },
     withCredentials: true,
 });

@@ -1,240 +1,340 @@
 <template>
   <div class="certification-page">
     <div class="certification-section">
-      <div class="certification-box first-box">
-        <h3 class="certification-title">Certification</h3>
+      <div class="certificates-container">
+        <div class="certificate-box">
+          <h3 class="certification-title">Certification</h3>
 
-        <p class="certification-text">
-          This is to certify that all requirements and supporting papers pursuant to CSC MC No.
-          <span class="underline">24, s. 2017, as amended</span>
-          have been complied with, reviewed and found to be in order.
-        </p>
-        <p class="certification-text">
-          The position was published at
-          <span class="underline">CSC Website</span>
-          from
-          <span class="underline">November 22, 2024</span>
-          to
-          <span class="underline">December 7, 2024</span>
-          and posted in
-          <span class="underline">3 conspicuous places</span>
-          from
-          <span class="underline">November 22, 2024</span>
-          to
-          <span class="underline">December 7, 2024</span>
-          in consonance with RA No. 7041. The assessment by the Human Resource Merit Promotion and
-          Selection Board (HRMP&SB) started on
-          <span class="underline">December 13, 2024</span>
-        </p>
+          <p class="certification-text">
+            This is to certify that all requirements and supporting papers pursuant to CSC MC No.
+            <span class="underline">24, s. 2017, as amended</span>
+            have been complied with, reviewed and found to be in order.
+          </p>
+          <p class="certification-text">
+            The position was published at
+            <span class="underline">CSC Website</span>
+            from
+            <span class="underline">November 22, 2024</span>
+            to
+            <span class="underline">December 7, 2024</span>
+            and posted in
+            <span class="underline">3 conspicuous places</span>
+            from
+            <span class="underline">November 22, 2024</span>
+            to
+            <span class="underline">December 7, 2024</span>
+            in consonance with RA No. 7041. The assessment by the Human Resource Merit Promotion and
+            Selection Board (HRMP&SB) started on
+            <span class="underline">December 13, 2024</span>
+          </p>
 
-        <div class="signature-container">
-          <div class="signature">
-            <div class="signature-line">JANYLENE A. PALERMO, MM</div>
-            <div class="signature-title">City Human Resource Mgt. Officer</div>
+          <div class="signature-container">
+            <div class="signature">
+              <div class="signature-line">JANYLENE A. PALERMO, MM</div>
+              <div class="signature-title">City Human Resource Mgt. Officer</div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="certification-box second-box">
-        <h3 class="certification-title">Certification</h3>
+        <div class="certificate-box">
+          <h3 class="certification-title">Certification</h3>
 
-        <p class="certification-text">
-          This is to certify that the appointee has been screened and found qualified by the
-          majority of the Human Resource Merit Promotion and Selection Board (HRMP&SB) during the
-          deliberation held on
-          <span class="underline">December 27, 2024</span>
-          .
-        </p>
+          <p class="certification-text">
+            This is to certify that the appointee has been screened and found qualified by the
+            majority of the Human Resource Merit Promotion and Selection Board (HRMP&SB) during the
+            deliberation held on
+            <span class="underline">December 27, 2024</span>
+            .
+          </p>
 
-        <div class="signature-container">
-          <div class="signature">
-            <div class="signature-line">EDGAR C. DE GUZMAN</div>
-            <div class="signature-title">
-              City Administrator
-              <br />
-              Authorized Representative of the City Mayor
-              <br />
-              Chairperson
+          <div class="signature-container">
+            <div class="signature">
+              <div class="signature-line">EDGAR C. DE GUZMAN</div>
+              <div class="signature-title">
+                City Administrator
+                <br />
+                Authorized Representative of the City Mayor
+                <br />
+                Chairperson
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="notation-section">
+      <div class="notation-container">
         <h3 class="notation-title">CSC/HRMO Notation</h3>
-
-        <div class="notation-table">
-          <table>
-            <tr>
-              <td colspan="2" class="table-header">ACTION ON APPOINTMENTS</td>
-              <td class="table-header">Recorded by</td>
-            </tr>
-            <tr>
-              <td colspan="2" class="checkbox-row">
-                <input type="checkbox" />
-                Validated per RAI for the month of
-                <span class="form-field"></span>
-              </td>
-              <td rowspan="2"></td>
-            </tr>
-            <tr>
-              <td colspan="2" class="checkbox-row">
-                <input type="checkbox" />
-                Invalidated per CSCRO/FO letter dated
-                <span class="form-field"></span>
-              </td>
-            </tr>
-            <tr>
-              <td class="checkbox-row">
-                <input type="checkbox" />
-                Appeal
-              </td>
-              <td class="table-header">DATE FILED</td>
-              <td class="table-header">STATUS</td>
-            </tr>
-            <tr>
-              <td class="checkbox-indent">
-                <input type="checkbox" />
-                CSCRO/ CSC-Commission
-              </td>
-              <td></td>
-              <td></td>
-            </tr>
-            <tr>
-              <td class="checkbox-row">
-                <input type="checkbox" />
-                Petition for Review
-              </td>
-              <td></td>
-              <td></td>
-            </tr>
-            <tr>
-              <td class="checkbox-indent">
-                <input type="checkbox" />
-                CSC-Commission
-              </td>
-              <td></td>
-              <td></td>
-            </tr>
-            <tr>
-              <td class="checkbox-indent">
-                <input type="checkbox" />
-                Court of Appeals
-              </td>
-              <td></td>
-              <td></td>
-            </tr>
-            <tr>
-              <td class="checkbox-indent">
-                <input type="checkbox" />
-                Supreme Court
-              </td>
-              <td></td>
-              <td></td>
-            </tr>
-          </table>
+        <div class="notation-content">
+          <div class="notation-table">
+            <table>
+              <tbody>
+                <tr>
+                  <td colspan="3" class="table-header">ACTION ON APPOINTMENTS</td>
+                  <td class="table-header">Recorded by</td>
+                </tr>
+                <tr>
+                  <td colspan="3" class="checkbox-row">
+                    <input type="checkbox" class="custom-checkbox" />
+                    Validated per RAI for the month of
+                    <span class="form-field"></span>
+                  </td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td colspan="3" class="checkbox-row">
+                    <input type="checkbox" class="custom-checkbox" />
+                    Invalidated per CSCRO/FO letter dated
+                    <span class="form-field"></span>
+                  </td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td class="checkbox-row">
+                    <input type="checkbox" class="custom-checkbox" />
+                    <span class="bold-text">Appeal</span>
+                  </td>
+                  <td class="table-header">DATE FILED</td>
+                  <td class="table-header">STATUS</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td class="checkbox-deeper-indent">
+                    <div class="indent-wrapper">
+                      <input type="checkbox" class="custom-checkbox" />
+                      CSCRO/ CSC-Commission
+                    </div>
+                  </td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td class="checkbox-row">
+                    <input type="checkbox" class="custom-checkbox" />
+                    <span class="bold-text">Petition for Review</span>
+                  </td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td class="checkbox-deeper-indent">
+                    <div class="indent-wrapper">
+                      <input type="checkbox" class="custom-checkbox" />
+                      CSC-Commission
+                    </div>
+                  </td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td class="checkbox-deeper-indent">
+                    <div class="indent-wrapper">
+                      <input type="checkbox" class="custom-checkbox" />
+                      Court of Appeals
+                    </div>
+                  </td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td class="checkbox-deeper-indent">
+                    <div class="indent-wrapper">
+                      <input type="checkbox" class="custom-checkbox" />
+                      Supreme Court
+                    </div>
+                  </td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
-      <div class="acknowledgement-section">
-        <table>
-          <tr>
-            <td class="copies-column">
+      <div class="acknowledgement-container">
+        <div class="acknowledgement-boxes">
+          <div class="left-box">
+            <p class="copy-text">
               Original Copy - for the Appointee
               <br />
               Original Copy - for the Civil Service Commission
               <br />
               Original Copy - for the Agency
-            </td>
-            <td class="acknowledgement-column">
-              <h3 class="acknowledgement-title">Acknowledgement</h3>
-              <p class="acknowledgement-text">
-                Received original/photocopy of appointment on
-                <span class="form-field"></span>
-              </p>
-              <div class="appointee-signature">
-                <div class="signature-line"></div>
-                <div class="signature-title">Appointee</div>
-              </div>
-            </td>
-          </tr>
-        </table>
+            </p>
+          </div>
+          <div class="right-box">
+            <h3 class="acknowledgement-title">Acknowledgement</h3>
+            <p class="acknowledgement-text">
+              Received original/photocopy of appointment on
+              <span class="form-field"></span>
+            </p>
+            <div class="appointee-signature">
+              <div class="signature-line"></div>
+              <div class="signature-title">Appointee</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-  // No props or data needed for this static certification page
+  // Component script
 </script>
 
 <style scoped>
   .certification-page {
     width: 8.5in;
     min-height: 11in;
-    padding: 0.6in;
-    padding-top: 0.6in;
+    padding: 0.3in;
+    padding-bottom: 0%;
+    padding-top: 0.7in;
     font-family: 'Consolas', 'Courier New', Courier, monospace;
     font-size: 12pt;
     color: black;
     background: white;
     box-sizing: border-box;
+    position: relative;
   }
 
   .certification-section {
     width: 100%;
-    height: 100%;
     padding: 0;
     box-sizing: border-box;
     position: relative;
   }
 
-  .certification-box,
-  .notation-section,
-  .acknowledgement-section {
+  .certificates-container {
     width: 100%;
-    height: 100%;
-    border: 2px solid black;
-    box-shadow:
-      inset 0 0 0 20px #c0c0c0,
-      inset 0 0 0 22px black;
-    padding: 0.5in;
+    background-color: #c0c0c0;
+    padding: 20px;
     box-sizing: border-box;
+    border: 2px solid black;
+    margin-bottom: 20px;
+  }
+
+  .certificate-box {
+    width: 100%;
+    border: 2px solid black;
+    background-color: white;
+    padding: 0.15in;
+    box-sizing: border-box;
+    margin-bottom: 20px;
+  }
+
+  .certificate-box:last-child {
+    margin-bottom: 0;
+  }
+
+  .notation-container {
+    width: 100%;
+    background-color: #c0c0c0;
+    border: 2px solid black;
+    box-sizing: border-box;
+    margin-bottom: 20px;
     position: relative;
-    min-height: calc(auto);
+    padding-top: 35px;
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-bottom: 20px;
   }
 
-  /* Modified styles for certification boxes to create seamless borders */
-  .certification-box.first-box {
-    margin-bottom: 0; /* Remove bottom margin */
-    border-bottom: none; /* Remove bottom border */
-    box-shadow:
-      inset 0 0 0 20px #c0c0c0,
-      inset 0 0 0 22px black,
-      inset 0 -22px 0 0 #c0c0c0; /* Special shadow for bottom */
-  }
-
-  .certification-box.second-box {
-    margin-top: 0; /* Negative margin to overlap borders */
-    border-top: none;
-    box-shadow:
-      inset 0 0 0 20px #c0c0c0,
-      inset 0 0 0 22px black,
-      inset 0 22px 0 0 #c0c0c0; /* Special shadow for top */
-  }
-
-  .notation-section,
-  .acknowledgement-section {
-    margin-top: 15px;
-  }
-
-  .certification-title,
   .notation-title {
     text-align: center;
     font-size: 14pt;
     font-weight: bold;
+    margin: 0;
+    position: absolute;
+    top: 5px;
+    left: 0;
+    right: 0;
+  }
+
+  .notation-content {
+    background-color: #ffff;
+    border: 2px solid black;
+    padding: 0.15in;
+    box-sizing: border-box;
+  }
+
+  .custom-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    border: 1px solid black;
+    background-color: white;
+    margin-right: 5px;
+    position: relative;
+    top: 1px;
+  }
+
+  .custom-checkbox:checked {
+    background-color: white;
+  }
+
+  .custom-checkbox:checked:after {
+    content: '✓';
+    position: absolute;
+    top: -2px;
+    left: 1px;
+    color: black;
+    font-size: 10px;
+  }
+
+  .bold-text {
+    font-weight: bold;
+  }
+
+  .acknowledgement-container {
+    width: 100%;
+    background-color: #c0c0c0;
+    border: 2px solid black;
+    box-sizing: border-box;
+    margin-bottom: 20px;
+    padding: 20px;
+  }
+
+  .acknowledgement-boxes {
+    display: flex;
+    width: 100%;
+  }
+
+  .left-box {
+    width: 50%;
+    background-color: white;
+    border: 2px solid black;
+    padding: 0.15in;
+    padding-top: 40px;
+    box-sizing: border-box;
+    border-right: none;
+  }
+
+  .right-box {
+    width: 50%;
+    background-color: white;
+    border: 2px solid black;
+    padding: 0.15in;
+    box-sizing: border-box;
+  }
+
+  .copy-text {
+    font-size: 8pt;
+    line-height: 1.5;
+  }
+
+  .certification-title {
+    text-align: center;
+    font-size: 14pt;
+    font-weight: bold;
     margin-top: 0;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
   }
 
   .acknowledgement-title {
@@ -242,7 +342,7 @@
     font-size: 13pt;
     font-weight: bold;
     margin-top: 0;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
   }
 
   .certification-text {
@@ -250,13 +350,14 @@
     text-indent: 2em;
     line-height: 1.5;
     font-size: 11pt;
+    margin-bottom: 8px;
   }
 
   .signature-container {
     display: flex;
     justify-content: flex-end;
-    margin-top: 30px;
-    margin-bottom: 10px;
+    margin-top: 20px;
+    margin-bottom: 5px;
   }
 
   .signature {
@@ -269,13 +370,14 @@
     border-top: 1px solid #000;
     display: inline-block;
     min-width: 300px;
-    padding-top: 5px;
+    padding-top: 3px;
     font-weight: bold;
   }
 
   .signature-title {
-    font-size: 10pt;
-    margin-top: 5px;
+    font-size: 11pt;
+    margin-top: 3px;
+    line-height: 1.5;
   }
 
   .underline {
@@ -283,36 +385,49 @@
     font-weight: bold;
   }
 
-  .notation-section,
-  .acknowledgement-section {
-    background-color: #f0f0f0;
-    padding: 15px;
-  }
-
   .notation-table table {
-    width: 90%;
+    width: 100%;
     border-collapse: collapse;
+    margin: 0 auto;
   }
 
   .notation-table td {
     border: 1px solid #000;
-    padding: 8px;
-    height: 30px;
+    padding: 5px;
+    height: 25px;
   }
 
   .table-header {
     text-align: center;
-    font-size: 14pt;
+    font-size: 11pt;
     font-weight: bold;
     background-color: #fff;
   }
 
   .checkbox-row {
-    padding-left: 10px;
+    padding-left: 5px;
+    font-size: 10pt;
   }
 
   .checkbox-indent {
+    padding-left: 25px;
+    font-size: 10pt;
+  }
+
+  .checkbox-deep-indent {
     padding-left: 40px;
+    font-size: 10pt;
+  }
+
+  .indent-wrapper {
+    padding-left: 40px;
+    display: flex;
+    align-items: center;
+  }
+
+  .checkbox-deeper-indent {
+    padding-left: 5px;
+    font-size: 10pt;
   }
 
   .form-field {
@@ -321,37 +436,30 @@
     border-bottom: 1px solid #000;
   }
 
-  .acknowledgement-section table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-
-  .acknowledgement-section td {
-    vertical-align: top;
-    padding: 10px;
-  }
-
-  .copies-column {
-    width: 50%;
-    font-size: 10pt;
-    line-height: 1.8;
-  }
-
-  .acknowledgement-column {
-    width: 50%;
-    text-align: center;
-  }
-
   .acknowledgement-text {
     text-align: left;
-    margin-bottom: 50px;
-    font-size: 10pt;
+    margin-bottom: 30px;
+    font-size: 8pt;
+  }
+
+  .appointee-signature {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
   }
 
   .appointee-signature .signature-line {
     border-top: 1px solid #000;
-    display: inline-block;
-    min-width: 200px;
-    margin-bottom: 5px;
+    display: block;
+    width: 200px;
+    margin: 0 auto 3px auto;
+  }
+
+  .appointee-signature .signature-title {
+    text-align: center;
+    font-size: 10pt;
+    width: 100%;
   }
 </style>

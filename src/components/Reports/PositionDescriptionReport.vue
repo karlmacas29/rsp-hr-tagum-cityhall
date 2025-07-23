@@ -381,18 +381,20 @@
         <tr>
           <td colspan="6" class="no-padding">
             <table class="qualifications-table">
-              <tr>
-                <td class="section-header">21A. EDUCATION</td>
-                <td class="section-header">21B. EXPERIENCE</td>
-                <td class="section-header">21C. TRAINING</td>
-                <td class="section-header">21D. ELIGIBILITY</td>
-              </tr>
-              <tr>
-                <td class="data-cell large-empty-cell"></td>
-                <td class="data-cell large-empty-cell"></td>
-                <td class="data-cell large-empty-cell"></td>
-                <td class="data-cell large-empty-cell"></td>
-              </tr>
+              <tbody>
+                <tr>
+                  <td class="section-header">21A. EDUCATION</td>
+                  <td class="section-header">21B. EXPERIENCE</td>
+                  <td class="section-header">21C. TRAINING</td>
+                  <td class="section-header">21D. ELIGIBILITY</td>
+                </tr>
+                <tr>
+                  <td class="data-cell large-empty-cell"></td>
+                  <td class="data-cell large-empty-cell"></td>
+                  <td class="data-cell large-empty-cell"></td>
+                  <td class="data-cell large-empty-cell"></td>
+                </tr>
+              </tbody>
             </table>
           </td>
         </tr>

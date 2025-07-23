@@ -1,7 +1,9 @@
 <template>
   <div class="certification-page">
     <div class="certification-section">
+      <!-- Single gray container for both certifications -->
       <div class="certificates-container">
+        <!-- First certification with black border -->
         <div class="certificate-box">
           <h3 class="certification-title">Certification</h3>
 
@@ -30,12 +32,15 @@
 
           <div class="signature-container">
             <div class="signature">
-              <div class="signature-line">JANYLENE A. PALERMO, MM</div>
+              <div class="signature-name-container">
+                <strong class="signature-name">JANYLENE A. PALERMO, MM</strong>
+              </div>
               <div class="signature-title">City Human Resource Mgt. Officer</div>
             </div>
           </div>
         </div>
 
+        <!-- Second certification with black border -->
         <div class="certificate-box">
           <h3 class="certification-title">Certification</h3>
 
@@ -49,7 +54,9 @@
 
           <div class="signature-container">
             <div class="signature">
-              <div class="signature-line">EDGAR C. DE GUZMAN</div>
+              <div class="signature-name-container">
+                <strong class="signature-name">EDGAR C. DE GUZMAN</strong>
+              </div>
               <div class="signature-title">
                 City Administrator
                 <br />
@@ -62,6 +69,7 @@
         </div>
       </div>
 
+      <!-- Notation section with title in gray area -->
       <div class="notation-container">
         <h3 class="notation-title">CSC/HRMO Notation</h3>
         <div class="notation-content">
@@ -156,6 +164,7 @@
         </div>
       </div>
 
+      <!-- Acknowledgement section -->
       <div class="acknowledgement-container">
         <div class="acknowledgement-boxes">
           <div class="left-box">
@@ -184,9 +193,7 @@
   </div>
 </template>
 
-<script setup>
-  // Component script
-</script>
+<script setup></script>
 
 <style scoped>
   .certification-page {
@@ -366,12 +373,19 @@
     width: 380px;
   }
 
-  .signature-line {
-    border-top: 1px solid #000;
+  .signature-name-container {
+    position: relative;
     display: inline-block;
     min-width: 300px;
-    padding-top: 3px;
+    border-bottom: 2px solid black;
+    padding-bottom: 3px;
+    margin-bottom: 5px;
+  }
+
+  .signature-name {
     font-weight: bold;
+    text-transform: uppercase;
+    font-size: 11pt;
   }
 
   .signature-title {

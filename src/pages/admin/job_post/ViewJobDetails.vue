@@ -24,34 +24,35 @@
 
         <div class="text-h6 text-primary text-weight-bold q-mb-xs">
           {{ selectedJob?.Position || 'Job Title' }}
+           {{ selectedJob?.id|| 'Job ID' }}
         </div>
         <div class="chips-row">
           <q-chip class="chip-padding level-chip" dense>
             <q-icon name="work" class="q-mr-xs" />
             <span class="chip-label">
               Level:
-              <b>A</b>
+              <b>{{ selectedJob?.level}}</b>
             </span>
           </q-chip>
           <q-chip class="chip-padding page-chip" dense>
             <q-icon name="layers" class="q-mr-xs" />
             <span class="chip-label">
               Page No:
-              <b>344</b>
+              <b>{{selectedJob?.PageNo }}</b>
             </span>
           </q-chip>
           <q-chip class="chip-padding item-chip" dense>
             <q-icon name="apps" class="q-mr-xs" />
             <span class="chip-label">
               Item No:
-              <b>184</b>
+              <b>{{ selectedJob?.ItemNo }}</b>
             </span>
           </q-chip>
           <q-chip class="chip-padding salary-chip" dense>
             <q-icon name="star" class="q-mr-xs" />
             <span class="chip-label">
               Salary Grade:
-              <b>22</b>
+              <b>{{ selectedJob?.SalaryGrade }}</b>
             </span>
           </q-chip>
         </div>
@@ -141,19 +142,19 @@
             <span class="text-weight-bold">{{ selectedJob?.Position || 'Test' }}</span>
           </div>
         </div>
-        <q-table
-          :rows="[]"
-          :columns="applicantColumns"
-          row-key="id"
-          flat
-          bordered
-          hide-pagination
-          class="applicants-table"
-          dense
-          v-if="applicantColumns.length"
-          separator="cell"
-          color="primary"
-        ></q-table>
+    <q-table
+  :rows="jobPostStore.applicant"
+  :columns="applicantColumns"
+  row-key="id"
+  flat
+  bordered
+  hide-pagination
+  class="applicants-table"
+  dense
+  v-if="applicantColumns.length"
+  separator="cell"
+  color="primary"
+/>
         <div v-else class="text-caption text-grey-6 q-mt-md q-ml-sm">
           No applicant data available.
         </div>
@@ -276,14 +277,27 @@
     },
   ];
 
+  // onMounted(async () => {
+  //   await jobPostStore.fetchJobPostByPositionAndItemNo(P_ID, I_No).then((job) => {
+  //     selectedJob.value = job;
+  //   });
+  //   await jobPostStore.fetchCriteriaByPositionAndItemNo(P_ID, I_No).then((criteria) => {
+  //     selectedCriteria.value = criteria;
+  //   });
+  // });
   onMounted(async () => {
-    await jobPostStore.fetchJobPostByPositionAndItemNo(P_ID, I_No).then((job) => {
-      selectedJob.value = job;
-    });
-    await jobPostStore.fetchCriteriaByPositionAndItemNo(P_ID, I_No).then((criteria) => {
-      selectedCriteria.value = criteria;
-    });
+  await jobPostStore.fetchJobPostByPositionAndItemNo(P_ID, I_No).then((job) => {
+    selectedJob.value = job;
+    if (job && job.id) {
+      // Fetch applicants for this job
+      jobPostStore.fetch_applicant(job.id);
+    }
   });
+
+  await jobPostStore.fetchCriteriaByPositionAndItemNo(P_ID, I_No).then((criteria) => {
+    selectedCriteria.value = criteria;
+  });
+});
 </script>
 
 <style scoped>

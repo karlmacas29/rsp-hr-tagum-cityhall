@@ -38,31 +38,34 @@
             <div>
               <form @submit.prevent="login">
                 <div class="login-form-inputs" style="width: 400px">
-                  <q-select
-                    outlined
-                    v-model="username"
-                    :options="filteredOptions"
-                    label="Select Rater"
-                    use-input
-                    input-debounce="0"
-                    @filter="filterFn"
-                    :error="formSubmitted && !username"
-                    error-message="Please select a rater"
-                  >
-                    <template v-slot:no-option>
-                      <q-item>
-                        <q-item-section class="text-grey">No matching raters found</q-item-section>
-                      </q-item>
-                    </template>
-                    <template v-slot:option="scope">
-                      <q-item v-bind="scope.itemProps" :class="{ 'bg-grey-2': scope.selected }">
-                        <q-item-section>
-                          <q-item-label>{{ scope.opt.label}}</q-item-label>
-                          <q-item-label caption>{{ scope.opt.office }}</q-item-label>
-                        </q-item-section>
-                      </q-item>
-                    </template>
-                  </q-select>
+           <q-select
+  outlined
+  v-model="username"
+  :options="filteredOptions"
+  label="Select Rater"
+  use-input
+  input-debounce="0"
+  @filter="filterFn"
+  :error="formSubmitted && !username"
+  error-message="Please select a rater"
+  popup-content-class="custom-dropdown"
+  menu-anchor="bottom left"
+  menu-self="top left"
+>
+  <template v-slot:no-option>
+    <q-item>
+      <q-item-section class="text-grey">No matching raters found</q-item-section>
+    </q-item>
+  </template>
+  <template v-slot:option="scope">
+    <q-item v-bind="scope.itemProps" :class="{ 'bg-grey-2': scope.selected }">
+      <q-item-section>
+        <q-item-label>{{ scope.opt.label }}</q-item-label>
+        <q-item-label caption>{{ scope.opt.office }}</q-item-label>
+      </q-item-section>
+    </q-item>
+  </template>
+</q-select>
 
                   <q-input
                     v-if="username"
@@ -177,22 +180,30 @@ const login = async () => {
 </script>
 
 <style scoped>
-  .login-form-inputs {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+.login-form-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 
-  }
+.q-field {
+  min-height: 56px !important;
+}
 
-  .q-field {
-    min-height: 56px !important;
-  }
+.q-field--with-bottom {
+  padding-bottom: 12px !important;
+}
 
-  .q-field--with-bottom {
-    padding-bottom: 12px !important;
-  }
+.q-field:not(.q-field--with-bottom) {
+  padding-bottom: 0 !important;
+}
 
-  .q-field:not(.q-field--with-bottom) {
-    padding-bottom: 0 !important;
-  }
+.custom-dropdown {
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: white;
+  border-radius: 8px;
+}
 </style>
+
+<!-- 👇 This MUST be outside the scoped block -->

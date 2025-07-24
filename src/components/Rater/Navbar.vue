@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <q-toolbar class="q-mb-none header">
     <div class="row items-center justify-between full-width">
@@ -13,9 +14,9 @@
         <q-btn-dropdown flat :ripple="false">
           <template v-slot:label>
             <div>
-              <div v-if="authStore.user" class="text-bold text-body1" style="font-size: 13px">
+              <div v-if="useRaterStore.user" class="text-bold text-body1" style="font-size: 13px">
                 <q-avatar size="40px" color="black" text-color="white">
-                  {{ authStore.user?.name?.charAt(0).toUpperCase() }}
+                  {{ useRaterStore.user?.name?.charAt(0).toUpperCase() }}
                 </q-avatar>
               </div>
               <div v-else class="text-bold text-body1" style="width: 40px">
@@ -26,8 +27,8 @@
             <div class="q-ml-sm column justify-start items-start">
               <!-- username -->
               <div>
-                <div v-if="authStore.user" class="text-bold text-body1" style="font-size: 13px">
-                  {{ authStore.user?.name || 'Guest' }}
+                <div v-if="useRaterStore.user" class="text-bold text-body1" style="font-size: 13px">
+                  {{ useRaterStore.user?.name || 'Guest' }}
                 </div>
                 <div v-else class="text-bold text-body1" style="width: 100px">
                   <q-skeleton type="text" />
@@ -35,8 +36,8 @@
               </div>
               <!-- roles -->
               <div>
-                <div v-if="authStore.user" class="text-caption" style="font-size: 11px">
-                  {{ authStore.user?.position || 'Guest' }}
+                <div v-if="useRaterStore.user" class="text-caption" style="font-size: 11px">
+                  {{ useRaterStore.user?.position || 'Guest' }}
                 </div>
                 <div v-else class="text-caption" style="width: 100px">
                   <q-skeleton type="text" />
@@ -56,7 +57,7 @@
             </q-item>
 
             <q-item clickable @click.prevent="onLogout">
-              <q-item-section v-if="authStore.loading" avatar>
+              <q-item-section v-if="useRaterStore.loading" avatar>
                 <q-avatar color="negative">
                   <q-spinner color="white" />
                 </q-avatar>
@@ -77,22 +78,22 @@
 
 <script setup>
   import { useRouter } from 'vue-router';
-  import { useAuthStore } from 'src/stores/authStore';
-
+  import { useRaterAuthStore } from 'stores/authStore_raters';
   import { useLogsStore } from 'stores/logsStore';
 
+   const useRaterStore = useRaterAuthStore();
   const logStore = useLogsStore();
 
   const router = useRouter();
-  const authStore = useAuthStore();
+
 
   const onLogout = async () => {
     await logStore.logAction('Logged Out');
-    await authStore.logout(); // Call the logout action from authStore
+    await useRaterStore.logout(); // Call the logout action from useRaterStore
   };
 
   const onSetting = () => {
-    router.push('/settings');
+    router.push('/rater/settings');
   };
 </script>
 

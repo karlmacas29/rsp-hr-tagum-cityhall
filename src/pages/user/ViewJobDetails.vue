@@ -404,6 +404,7 @@
 const uploadStore = useUser_upload();
 
   const jobPostStore = useJobPostStore();
+  
 
   const route = useRoute();
   const P_ID = route.params.PositionID;

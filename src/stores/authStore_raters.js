@@ -45,7 +45,53 @@ export const useRaterAuthStore = defineStore('rater_auth', () => {
     }
   }
 
+async function changePassword({ old_password, new_password, new_password_confirmation }) {
+  errors.value = {};
+  loading.value = true;
 
+  try {
+    const response = await api.post('/rater/changepassword', {
+      old_password,
+      new_password,
+      new_password_confirmation
+    }, {
+      headers: {
+        Authorization: `Bearer ${getToken()}`
+      }
+    });
+
+    if (response.data.status) {
+      if (response.data.token) {
+        token.value = response.data.token;
+        document.cookie = `rater_token=${response.data.token}; path=/; secure; samesite=strict`;
+      }
+
+      if (user.value) {
+        user.value.password_updated_at = new Date().toISOString();
+      }
+      toast.success('Password changed successfully!');
+      return true;
+    } else {
+      if (response.data.errors) {
+        errors.value = response.data.errors;
+        // Show specific error messages if available
+        if (response.data.errors.old_password) {
+          toast.error(response.data.errors.old_password[0] || 'Current password is incorrect');
+        } else {
+          toast.error('Please check the form for errors');
+        }
+      } else {
+        toast.error(response.data.message || 'Failed to change password');
+      }
+      return false;
+    }
+  } catch (error) {
+    handleError(error, 'Failed to change password');
+    return false;
+  } finally {
+    loading.value = false;
+  }
+}
 
   async function login(username, password) {
     errors.value = {};
@@ -158,6 +204,8 @@ async function get_rater_usernames() {
   }
 }
 
+
+
   async function checkAuth() {
     const authToken = document.cookie
       .split('; ')
@@ -203,6 +251,46 @@ async function get_rater_usernames() {
     }
   }
 
+  // Delete a user
+    async function  deleteUser(id) {
+      this.loading = true;
+      this.errors = {};
+
+      try {
+        const token = this.getToken();
+
+        if (!token) {
+          throw new Error('No authentication token found');
+        }
+
+        const response = await api.delete(`/rater/${id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.data.status) {
+          // Remove the user from the users array
+          this.users = this.users.filter((user) => user.id !== id);
+
+          toast.success('Rater deleted successfully');
+          this.loading = false;
+          return true;
+        } else {
+          toast.error('Failed to delete rater');
+          this.loading = false;
+          return false;
+        }
+      } catch (error) {
+        this.handleError(error, 'Failed to delete rater');
+        this.loading = false;
+        return false;
+      } finally {
+        const logsStore = useLogsStore();
+        await logsStore.logAction(`Deleted User ID: ${id}`);
+      }
+    }
+
   // Return all refs and functions
   return {
     token,
@@ -216,10 +304,12 @@ async function get_rater_usernames() {
     // Rater_register,
     login,
     logout,
+    deleteUser,
     // get_all_raters,
     getToken,
     checkAuth,
     handleError,
-    get_rater_usernames
+    get_rater_usernames,
+    changePassword
   };
 });

@@ -5,10 +5,27 @@ import { toast } from 'src/boot/toast'; // Import toast instance
 export const useJobPostStore = defineStore('jobPost', {
   state: () => ({
     jobPosts: [],
+    applicant:[],
     loading: false,
     error: null,
   }),
   actions: {
+
+
+      async fetch_applicant(id) {
+          this.loading = true;
+          try {
+            const { data } = await api.post(`/job-batches-rsp/applicant/view/${id}`);
+            this.applicant = data.applicants; // Make sure your API sends applicants array
+            this.error = null;
+          } catch (error) {
+            this.error = error;
+            toast.error('Failed to fetch applicants.');
+          } finally {
+            this.loading = false;
+          }
+        },
+
     async fetchJobPosts() {
       this.loading = true;
       try {
@@ -43,7 +60,7 @@ export const useJobPostStore = defineStore('jobPost', {
         this.loading = false;
       }
     },
-    
+
     async fetchCriteriaByPositionAndItemNo(PositionID, ItemNo) {
       this.loading = true;
 

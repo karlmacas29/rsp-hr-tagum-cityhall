@@ -235,6 +235,8 @@
                     </q-item-section>
                   </q-item>
                 </template>
+
+
               </q-select>
             </div>
           </template>
@@ -314,6 +316,7 @@
             "
           />
         </q-card-actions>
+
       </q-card>
     </q-dialog>
 
@@ -544,6 +547,7 @@ const columns = [
   { name: 'Office', label: 'Office', field: 'Office', align: 'left' },
   { name: 'pending', label: 'Pending', field: 'pending', align: 'center', sortable: false },
   { name: 'completed', label: 'Completed', field: 'completed', align: 'center', sortable: false },
+  { name: 'active', align: 'left', label: 'Status', field: 'active', sortable: true },
   { name: 'actions', label: 'Actions', align: 'center' },
 ];
   // Job columns for the view dialog
@@ -825,47 +829,6 @@ const columns = [
     }, 1000);
   };
 
-//  const addRater = async () => {
-//   if (selectedPositions.value.length === 0 || !selectedOffice.value || !selectedRater.value) {
-//     showError.value = true;
-//     return;
-//   }
-
-//   showError.value = false;
-//   isSubmitting.value = true;
-
-//   try {
-//     const raterData = availableRaters.value.find((r) => r.id === selectedRater.value);
-//     // eslint-disable-next-line no-unused-vars
-//     const officeData = offices.value.find((o) => o.id === selectedOffice.value);
-
-//     // Get job batch IDs from selected positions
-//     const jobBatchIds = selectedPositions.value.filter(id => id !== 'all');
-
-//     // Generate username from the rater's name
-//     const username = raterData?.name.replace(/\s+/g, '').toLowerCase() || '';
-
-//     const userData = {
-//       name: username, // Use username as name
-//       controlNo: raterData?.id || '',
-//       job_batches_rsp_id: jobBatchIds,
-//     };
-
-//     const result = await authStore.Rater_register(userData);
-
-//     if (result.success) {
-//       // fetch the rater realtime using reactive
-//       await authStore.get_all_raters();
-
-//       closeModal();
-//     }
-//   } catch (error) {
-//     console.error('Error adding rater:', error);
-//     showError.value = true;
-//   } finally {
-//     isSubmitting.value = false;
-//   }
-// };
 
 const addRater = async () => {
   if (selectedPositions.value.length === 0 || !selectedOffice.value || !selectedRater.value) {
@@ -891,7 +854,8 @@ const addRater = async () => {
       name: raterData.name,
       controlNo: raterData.id,
       job_batches_rsp_id: jobBatchIds,
-      Office: officeData.name // Include office name
+      Office: officeData.name, // Include office name
+      active:true,
     };
 
     const result = await authStore.Rater_register(userData);

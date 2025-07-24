@@ -139,6 +139,12 @@ const routes = [
         meta: { auth: true, role: 'rater' },
         component: () => import('pages/rater/RatersCriteria.vue'),
       },
+        {
+        path: '/rater/settings',
+        name: 'rater Settings',
+        component: () => import('../components/Rater/Settings.vue'),
+        meta: { auth: true, role: 'rater' },
+      },
     ],
   },
 

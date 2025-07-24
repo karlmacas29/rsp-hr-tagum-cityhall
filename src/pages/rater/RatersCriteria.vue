@@ -22,11 +22,11 @@
           </div>
           <div class="col-3">
             <q-select
-              v-model="filterByDepartment"
-              :options="departmentOptions"
+              v-model="filterByOffice"
+              :options="OfficeOptions"
               outlined
               dense
-              label="Filter by Department"
+              label="Filter by Office"
               clearable
               emit-value
               map-options
@@ -144,7 +144,7 @@
       const positions = ref([]);
       const loading = ref(true);
       const search = ref('');
-      const filterByDepartment = ref(null);
+      const filterByOffice = ref(null);
       const statusFilter = ref(null);
 
       const showRatingForm = ref(false);
@@ -155,14 +155,15 @@
       });
 
       const columns = [
-        {
-          name: 'slots',
-          label: 'Slots',
-          field: 'slots',
+         {
+          name: 'Office',
+          label: 'Office',
+          field: 'Office',
           sortable: true,
           align: 'left',
-          width: '10%',
+          width: '22%',
         },
+
         {
           name: 'title',
           label: 'Position Title',
@@ -171,14 +172,7 @@
           align: 'left',
           width: '23%',
         },
-        {
-          name: 'department',
-          label: 'Department',
-          field: 'department',
-          sortable: true,
-          align: 'left',
-          width: '22%',
-        },
+
         {
           name: 'applicants',
           label: 'Applicants',
@@ -187,14 +181,7 @@
           align: 'center',
           width: '10%',
         },
-        {
-          name: 'deadline',
-          label: 'Rating Deadline',
-          field: 'deadline',
-          sortable: true,
-          align: 'left',
-          width: '15%',
-        },
+       
         {
           name: 'status',
           label: 'Status',
@@ -222,9 +209,9 @@
       };
 
       // Computed values for filters
-      const departmentOptions = computed(() => {
-        const departments = [...new Set(positions.value.map((p) => p.department))];
-        return departments.map((dept) => ({ label: dept, value: dept }));
+      const OfficeOptions = computed(() => {
+        const Offices = [...new Set(positions.value.map((p) => p.Office))];
+        return Offices.map((dept) => ({ label: dept, value: dept }));
       });
 
       const statusOptions = computed(() => {
@@ -238,14 +225,14 @@
             search.value === '' ||
             position.title.toLowerCase().includes(search.value.toLowerCase()) ||
             position.slots.toLowerCase().includes(search.value.toLowerCase()) ||
-            position.department.toLowerCase().includes(search.value.toLowerCase());
+            position.Office.toLowerCase().includes(search.value.toLowerCase());
 
-          const departmentMatch =
-            !filterByDepartment.value || position.department === filterByDepartment.value;
+          const OfficeMatch =
+            !filterByOffice.value || position.Office === filterByOffice.value;
 
           const statusMatch = !statusFilter.value || position.status === statusFilter.value;
 
-          return searchMatch && departmentMatch && statusMatch;
+          return searchMatch && OfficeMatch && statusMatch;
         });
       });
 
@@ -276,8 +263,8 @@
             {
               id: 1,
               slots: '1',
-              title: 'City Government Department Head',
-              department: 'DRRM Office',
+              title: 'City Government Office Head',
+              Office: 'DRRM Office',
               deadline: '2025-06-30',
               status: 'Overdue',
               applicants: [
@@ -367,7 +354,7 @@
               id: 2,
               slots: '2',
               title: 'Information Technology Officer',
-              department: 'IT Department',
+              Office: 'IT Office',
               deadline: '2025-07-15',
               status: 'In Progress',
               applicants: [
@@ -537,7 +524,7 @@
               id: 3,
               slots: '2',
               title: 'City Planner IV',
-              department: 'Planning and Development',
+              Office: 'Planning and Development',
               deadline: '2025-07-05',
               status: 'Overdue',
               applicants: [
@@ -627,7 +614,7 @@
               id: 4,
               slots: '1',
               title: 'City Health Officer',
-              department: 'Health Department',
+              Office: 'Health Office',
               deadline: '2025-07-15',
               status: 'Overdue',
               applicants: [
@@ -685,7 +672,7 @@
               id: 5,
               slots: '1',
               title: 'Environmental Management Specialist',
-              department: 'Environment and Natural Resources',
+              Office: 'Environment and Natural Resources',
               deadline: '2025-06-28',
               status: 'Completed',
               applicants: [
@@ -743,7 +730,7 @@
               id: 6,
               slots: '2',
               title: 'Budget Officer III',
-              department: 'Finance Department',
+              Office: 'Finance Office',
               deadline: '2025-07-10',
               status: 'Not Started',
               applicants: [
@@ -817,7 +804,7 @@
               id: 7,
               slots: '1',
               title: 'Legal Officer IV',
-              department: 'Legal Department',
+              Office: 'Legal Office',
               deadline: '2025-07-20',
               status: 'Not Started',
               applicants: [
@@ -875,7 +862,7 @@
               id: 8,
               slots: '3',
               title: 'Engineer III',
-              department: 'Engineering Department',
+              Office: 'Engineering Office',
               deadline: '2025-07-12',
               status: 'In Progress',
               applicants: [
@@ -981,7 +968,7 @@
               id: 9,
               slots: '1',
               title: 'Human Resource Management Officer',
-              department: 'Human Resources',
+              Office: 'Human Resources',
               deadline: '2025-06-30',
               status: 'Overdue',
               applicants: [
@@ -1055,7 +1042,7 @@
               id: 10,
               slots: '2',
               title: 'Tourism Officer II',
-              department: 'Tourism Department',
+              Office: 'Tourism Office',
               deadline: '2025-07-08',
               status: 'Not Started',
               applicants: [
@@ -1166,9 +1153,9 @@
         columns,
         pagination,
         search,
-        filterByDepartment,
+        filterByOffice,
         statusFilter,
-        departmentOptions,
+        OfficeOptions,
         statusOptions,
         filteredPositions,
         showRatingForm,

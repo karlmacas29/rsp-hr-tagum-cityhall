@@ -196,6 +196,7 @@
             </div>
           </div>
         </q-card-section>
+
         <q-card-actions align="right" class="q-pa-sm">
           <q-btn flat label="Cancel" color="grey-7" v-close-popup />
           <q-btn
@@ -205,6 +206,7 @@
             v-close-popup
           />
         </q-card-actions>
+
       </q-card>
     </q-dialog>
   </q-page>
@@ -426,16 +428,16 @@
     };
   });
 
-  const positionRequirements = ref({
-    education: "Bachelor's Degree in related field",
-    preferredEducation: "Master's Degree preferred",
-    experience: 'Minimum 3 years relevant experience',
-    preferredExperience: '5+ years in leadership role',
-    training: 'Certification in relevant field',
-    preferredTraining: 'Multiple advanced certifications',
-    eligibility: 'Professional license required',
-    preferredCertification: 'Additional specialized certifications',
-  });
+  // const positionRequirements = ref({
+  //   education: "Bachelor's Degree in related field",
+  //   preferredEducation: "Master's Degree preferred",
+  //   experience: 'Minimum 3 years relevant experience',
+  //   preferredExperience: '5+ years in leadership role',
+  //   training: 'Certification in relevant field',
+  //   preferredTraining: 'Multiple advanced certifications',
+  //   eligibility: 'Professional license required',
+  //   preferredCertification: 'Additional specialized certifications',
+  // });
 
   // Confirmation Modal
   const showConfirmationModal = ref(false);

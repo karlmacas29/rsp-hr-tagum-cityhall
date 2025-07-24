@@ -31,7 +31,7 @@
     <!-- footer -->
 
     <div class="absolute-bottom q-pb-md row justify-center items-center">
-      <q-btn color="negative q-px-xl" rounded @click="onLogout">Logout</q-btn>
+      <!-- <q-btn color="negative q-px-xl" rounded @click="onLogout">Logout</q-btn> -->
     </div>
   </q-drawer>
 </template>
@@ -39,24 +39,24 @@
 <script setup>
   import { onMounted, ref } from 'vue';
   import { useRoute,} from 'vue-router';
-  import { useRaterAuthStore } from 'stores/authStore_raters';
-  import { useLogsStore } from 'stores/logsStore';
+  // import { useRaterAuthStore } from 'stores/authStore_raters';
+  // import { useLogsStore } from 'stores/logsStore';
 
 
 
-  const raterAuthStore = useRaterAuthStore();
+  // const raterAuthStore = useRaterAuthStore();
 
   const route = useRoute();
   const drawer = ref(true);
   const expanded = ref(false);
-  const logStore = useLogsStore();
+  // const logStore = useLogsStore();
 
-  const onLogout = async () => {
-    await logStore.logAction('Logged Out');
-    await raterAuthStore.logout(); // Call the logout action from authStore
+  // const onLogout = async () => {
+  //   await logStore.logAction('Logged Out');
+  //   await raterAuthStore.logout(); // Call the logout action from authStore
 
 
-  };
+  // };
 
   const menuItems = ref([
     { label: 'Dashboard', route: '/uRater', icon: 'dashboard' },

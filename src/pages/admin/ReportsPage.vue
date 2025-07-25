@@ -63,7 +63,6 @@
               @update:model-value="selectedEmployee = null"
             />
           </div>
-
           <div class="q-mb-md">
             <q-select
               v-model="selectedEmployee"
@@ -91,32 +90,37 @@
       </q-card>
     </q-dialog>
 
-    <!-- PDF content container (hidden) -->
-    <div class="pdf-content-wrapper" ref="pdfWrapper" v-show="showPdfContent">
-      <component
-        :is="currentReportComponent"
-        :data="reportData"
-        :currentDateTime="currentDateTime"
-        :currentUser="currentUser"
-        ref="pdfContent"
-      ></component>
-    </div>
+    <!-- PDF content container rendered outside main layout -->
+    <Teleport to="body">
+      <div
+        class="pdf-content-wrapper"
+        :class="pdfPageClass"
+        ref="pdfWrapper"
+        v-show="showPdfContent"
+      >
+        <component
+          :is="currentReportComponent"
+          :data="reportData"
+          :currentDateTime="currentDateTime"
+          :currentUser="currentUser"
+          ref="pdfContent"
+        ></component>
+      </div>
+    </Teleport>
   </q-page>
 </template>
 
 <script>
-  import { ref, computed, onMounted } from 'vue';
+  import { ref, computed, onMounted, nextTick } from 'vue';
   import { useQuasar } from 'quasar';
   import html2pdf from 'html2pdf.js';
 
-  // Import report components
   import AppointmentReport from 'src/components/Reports/AppointmentReport.vue';
   import CertificationReport from 'src/components/Reports/CertificationReport.vue';
   import PositionDescriptionReport from 'src/components/Reports/PositionDescriptionReport.vue';
 
   export default {
     name: 'ReportManagementPage',
-
     setup() {
       const $q = useQuasar();
       const pdfContent = ref(null);
@@ -125,26 +129,12 @@
       const reportData = ref({});
       const currentReportComponent = ref(null);
 
-      // Get current date and user information
       const currentDateTime = ref('2025-07-21 02:39:15');
       const currentUser = ref('dsfsgs');
 
-      // Table columns definition
       const columns = ref([
-        {
-          name: 'id',
-          label: 'ID',
-          align: 'left',
-          field: 'id',
-          sortable: true,
-        },
-        {
-          name: 'name',
-          label: 'Report Name',
-          align: 'left',
-          field: 'name',
-          sortable: true,
-        },
+        { name: 'id', label: 'ID', align: 'left', field: 'id', sortable: true },
+        { name: 'name', label: 'Report Name', align: 'left', field: 'name', sortable: true },
         {
           name: 'description',
           label: 'Description',
@@ -152,44 +142,38 @@
           field: 'description',
           sortable: true,
         },
-        {
-          name: 'actions',
-          label: 'Actions',
-          align: 'center',
-          field: 'actions',
-          sortable: false,
-        },
+        { name: 'actions', label: 'Actions', align: 'center', field: 'actions', sortable: false },
       ]);
 
-      // Available reports
       const reports = ref([
         {
           id: 1,
           name: 'Appointment',
           description: 'Official appointment document for employees',
           component: AppointmentReport,
+          pdfSize: 'legal',
         },
         {
           id: 2,
           name: 'Certification',
           description: 'Certificate of employment and other certifications',
           component: CertificationReport,
+          pdfSize: 'letter',
         },
         {
           id: 3,
           name: 'Position Description Form',
           description: 'Detailed job description and requirements',
           component: PositionDescriptionReport,
+          pdfSize: 'legal',
         },
       ]);
 
-      // Modal state
       const reportModal = ref(false);
       const selectedReport = ref({});
       const selectedOffice = ref(null);
       const selectedEmployee = ref(null);
 
-      // Sample data for offices and employees
       const offices = ref([
         { id: 1, name: 'Office of the City Mayor' },
         { id: 2, name: 'Office of the City Information and Communications Technology' },
@@ -259,13 +243,11 @@
         },
       ]);
 
-      // Compute filtered employees based on selected office
       const filteredEmployees = computed(() => {
         if (!selectedOffice.value) return [];
         return employees.value.filter((emp) => emp.officeId === selectedOffice.value);
       });
 
-      // Open report modal
       function openReportModal(report) {
         selectedReport.value = report;
         selectedOffice.value = null;
@@ -273,10 +255,9 @@
         reportModal.value = true;
       }
 
-      // Generate report data based on selected report type
       function prepareReportData(employee, office) {
         switch (selectedReport.value.id) {
-          case 1: // Appointment report
+          case 1:
             return {
               name: employee.name,
               position: employee.position,
@@ -297,14 +278,14 @@
               vice: employee.id % 2 === 0 ? 'Juan Dela Cruz' : '',
               who: employee.id % 2 === 0 ? 'Transferred' : '',
             };
-          case 2: // Certification report
+          case 2:
             return {
               employeeName: employee.name,
               position: employee.position,
               officeName: office.name,
               hrmoOfficer: 'MARIA P. RODRIGUEZ',
             };
-          case 3: // Position Description Form
+          case 3:
             return {
               employeeName: employee.name,
               position: employee.position,
@@ -319,13 +300,15 @@
         }
       }
 
-      // Generate report
+      const pdfPageClass = computed(() => {
+        if (!selectedReport.value.pdfSize) return '';
+        return selectedReport.value.pdfSize === 'legal' ? 'legal-page' : 'letter-page';
+      });
+
       function generateReport() {
-        // Get office and employee data
         const office = offices.value.find((o) => o.id === selectedOffice.value);
         const employee = employees.value.find((e) => e.id === selectedEmployee.value);
 
-        // Show notification
         $q.notify({
           color: 'positive',
           message: `Generating ${selectedReport.value.name} for ${employee.name} of ${office.name}`,
@@ -333,23 +316,16 @@
           timeout: 2000,
         });
 
-        // Close the modal
         reportModal.value = false;
-
-        // Set the current report component
         currentReportComponent.value = selectedReport.value.component;
-
-        // Prepare report data
         reportData.value = prepareReportData(employee, office);
-
-        // Show the PDF content and generate PDF after it's rendered
         showPdfContent.value = true;
 
-        // Wait for the DOM to update
-        setTimeout(generatePDF, 500);
+        nextTick(() => {
+          setTimeout(generatePDF, 200);
+        });
       }
 
-      // Generate PDF using html2pdf and open in a new tab
       function generatePDF() {
         if (!pdfContent.value) {
           console.error('PDF content element not found');
@@ -359,8 +335,8 @@
         const targetElement = pdfContent.value.$el || pdfContent.value;
         const reportName = selectedReport.value.name;
         const employeeName = reportData.value.name || reportData.value.employeeName;
+        const paperFormat = selectedReport.value.pdfSize || 'legal';
 
-        // PDF options
         const opt = {
           filename: `${reportName}_${employeeName.replace(/\s+/g, '_')}.pdf`,
           image: { type: 'jpeg', quality: 1 },
@@ -372,43 +348,38 @@
           },
           jsPDF: {
             unit: 'in',
-            format: 'legal',
+            format: paperFormat,
             orientation: 'portrait',
             compress: true,
           },
           pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
         };
 
-        // Generate PDF and open in new tab
         html2pdf()
           .set(opt)
           .from(targetElement)
           .toPdf()
           .get('pdf')
           .then((pdf) => {
-            // Add page numbers if needed
             const totalPages = pdf.internal.getNumberOfPages();
             for (let i = 1; i <= totalPages; i++) {
               pdf.setPage(i);
               pdf.setFontSize(10);
               pdf.setTextColor(150);
+              // pdf.text(`Page ${i} of ${totalPages}`, 0.5, paperFormat === 'legal' ? 13.5 : 10.5);
             }
           })
-          .outputPdf('dataurlnewwindow') // Open in new tab instead of downloading
+          .outputPdf('dataurlnewwindow')
           .then(() => {
-            // Hide the content after PDF is generated
             showPdfContent.value = false;
           });
       }
 
-      // Initialize component
       onMounted(() => {
-        // In a real application, you would fetch the current date/time and user
-        // currentDateTime.value = new Date().toISOString().replace('T', ' ').substring(0, 19);
+        // Optionally set currentDateTime if needed
       });
 
       return {
-        // Refs
         pdfContent,
         pdfWrapper,
         showPdfContent,
@@ -425,8 +396,7 @@
         offices,
         employees,
         filteredEmployees,
-
-        // Methods
+        pdfPageClass,
         openReportModal,
         generateReport,
       };
@@ -439,21 +409,27 @@
     width: 100%;
   }
 
+  /* PDF Page wrapper for legal and letter sizes */
   .pdf-content-wrapper {
-    position: fixed;
-    left: -9999px;
-    top: 0;
     width: 8.5in;
     background: white;
-    z-index: -1000;
+    margin: 0 auto;
+    box-sizing: border-box;
+  }
+  .letter-page {
+    width: 8.5in;
+    height: 11in;
+  }
+  .legal-page {
+    width: 8.5in;
+    height: 14in;
   }
 
-  /* Add print-specific styles */
+  /* Print-specific styles */
   @media print {
     body * {
       visibility: hidden;
     }
-
     .pdf-content-wrapper,
     .pdf-content-wrapper * {
       visibility: visible;
@@ -461,14 +437,27 @@
       left: 0;
       top: 0;
     }
-
-    .pdf-content-wrapper {
+    .pdf-content-wrapper.letter-page {
       position: absolute;
       left: 0;
       top: 0;
-      width: 100%;
-      height: 100%;
+      width: 8.5in;
+      height: 11in;
       z-index: 9999;
+      background: white;
+    }
+    .pdf-content-wrapper.legal-page {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 8.5in;
+      height: 14in;
+      z-index: 9999;
+      background: white;
+    }
+    @page {
+      size: 8.5in 14in;
+      margin: 0;
     }
   }
 </style>

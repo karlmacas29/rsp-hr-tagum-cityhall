@@ -1,6 +1,6 @@
 //auth store.js
 import { defineStore } from 'pinia';
-import { api } from 'boot/axios';
+import { adminApi } from 'boot/axios_admin';
 import { toast } from 'src/boot/toast'; // Import toast instance
 import { useLogsStore } from 'stores/logsStore';
 import { usePlantillaStore } from 'stores/plantillaStore';
@@ -18,12 +18,65 @@ export const useAuthStore = defineStore('auth', {
     selectedUser: null, // Store selected user details
   }),
   actions: {
+async rater_edit(id, userData) {
+  this.loading = true;
+  this.errors = {};
+  try {
+    const token = this.getToken();
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    const plantillaStore = usePlantillaStore();
+    await plantillaStore.fetch_office_rater();
+
+    const formattedData = {
+      office: userData.Office,
+    };
+
+    if (Array.isArray(userData.job_batches_rsp_id) && userData.job_batches_rsp_id.length > 0) {
+      formattedData.job_batches_rsp_id = userData.job_batches_rsp_id;
+    }
+
+    const response = await adminApi.post(`rater/edit/${id}`, formattedData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (response.data.status) {
+      await this.get_all_raters();
+      toast.success('Rater updated successfully');
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message
+      };
+    } else {
+      toast.error(response.data.message || 'Failed to update rater');
+      return {
+        success: false,
+        message: response.data.message || 'Failed to update rater'
+      };
+    }
+  } catch (error) {
+    this.handleError(error, error.message || 'Failed to update rater');
+    return {
+      success: false,
+      message: error.message || 'Failed to update rater'
+    };
+  } finally {
+    this.loading = false;
+    const logsStore = useLogsStore();
+    await logsStore.logAction('update New Rater');
+  }
+},
 
     async login(username, password) {
   this.errors = {}; // Clear previous errors
   this.loading = true; // Set loading state
   try {
-    const response = await api.post('/login', { username, password });
+    const response = await adminApi.post('/login', { username, password });
 
     if (response.data.status) {
       this.token = response.data.token;
@@ -73,7 +126,7 @@ export const useAuthStore = defineStore('auth', {
         .find((row) => row.startsWith('admin_token='))
         ?.split('=')[1];
       try {
-        await api.post('/logout', null, {
+        await adminApi.post('/logout', null, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -114,7 +167,7 @@ export const useAuthStore = defineStore('auth', {
 
       if (token) {
         try {
-          const res = await api.get('/user', {
+          const res = await adminApi.get('/user', {
             headers: {
               Authorization: `Bearer ${token}`,
             },
@@ -166,7 +219,7 @@ export const useAuthStore = defineStore('auth', {
           throw new Error('No authentication token found');
         }
 
-        const response = await api.get('/users', {
+        const response = await adminApi.get('/users', {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -205,7 +258,7 @@ export const useAuthStore = defineStore('auth', {
           throw new Error('No authentication token found');
         }
 
-        const response = await api.get(`/users/${id}`, {
+        const response = await adminApi.get(`/users/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -245,7 +298,7 @@ export const useAuthStore = defineStore('auth', {
 
         console.log('AuthStore: Sending update request with data:', userData); // Debug log
 
-        const response = await api.put(`/users/${id}`, userData, {
+        const response = await adminApi.put(`/users/${id}`, userData, {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -289,7 +342,7 @@ export const useAuthStore = defineStore('auth', {
           throw new Error('No authentication token found');
         }
 
-        const response = await api.delete(`/users/${id}`, {
+        const response = await adminApi.delete(`/users/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -344,7 +397,7 @@ export const useAuthStore = defineStore('auth', {
           }),
         };
 
-        const response = await api.post('/registration', formattedData, {
+        const response = await adminApi.post('/registration', formattedData, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -396,7 +449,7 @@ export const useAuthStore = defineStore('auth', {
       throw new Error('No authentication token found');
     }
 
-    const response = await api.get('/rater/list', {
+    const response = await adminApi.get('/rater/list', {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -466,7 +519,8 @@ export const useAuthStore = defineStore('auth', {
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const day = String(date.getDate()).padStart(2, '0');
       const birthdatePassword = `${year}${month}${day}`;
-      const username = userData.name.replace(/\s+/g, '').toLowerCase();
+      const username = userData.name;
+
       const formattedData = {
         name: username,
         username: username,
@@ -476,7 +530,7 @@ export const useAuthStore = defineStore('auth', {
         password: birthdatePassword,
         controlNo: userData.controlNo,
       };
-      const response = await api.post('rater/register', formattedData, {
+      const response = await adminApi.post('rater/register', formattedData, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

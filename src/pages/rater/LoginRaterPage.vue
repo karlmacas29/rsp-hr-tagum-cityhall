@@ -38,34 +38,34 @@
             <div>
               <form @submit.prevent="login">
                 <div class="login-form-inputs" style="width: 400px">
-           <q-select
-  outlined
-  v-model="username"
-  :options="filteredOptions"
-  label="Select Rater"
-  use-input
-  input-debounce="0"
-  @filter="filterFn"
-  :error="formSubmitted && !username"
-  error-message="Please select a rater"
-  popup-content-class="custom-dropdown"
-  menu-anchor="bottom left"
-  menu-self="top left"
->
-  <template v-slot:no-option>
-    <q-item>
-      <q-item-section class="text-grey">No matching raters found</q-item-section>
-    </q-item>
-  </template>
-  <template v-slot:option="scope">
-    <q-item v-bind="scope.itemProps" :class="{ 'bg-grey-2': scope.selected }">
-      <q-item-section>
-        <q-item-label>{{ scope.opt.label }}</q-item-label>
-        <q-item-label caption>{{ scope.opt.office }}</q-item-label>
-      </q-item-section>
-    </q-item>
-  </template>
-</q-select>
+                              <q-select
+                      outlined
+                      v-model="username"
+                      :options="filteredOptions"
+                      label="Select Rater"
+                      use-input
+                      input-debounce="0"
+                      @filter="filterFn"
+                      :error="formSubmitted && !username"
+                      error-message="Please select a rater"
+                      popup-content-class="custom-dropdown"
+                      menu-anchor="bottom left"
+                      menu-self="top left"
+                    >
+                      <template v-slot:no-option>
+                        <q-item>
+                          <q-item-section class="text-grey">No matching raters found</q-item-section>
+                        </q-item>
+                      </template>
+                      <template v-slot:option="scope">
+                        <q-item v-bind="scope.itemProps" :class="{ 'bg-grey-2': scope.selected }">
+                          <q-item-section>
+                            <q-item-label>{{ scope.opt.label }}</q-item-label>
+                            <q-item-label caption>{{ scope.opt.office }}</q-item-label>
+                          </q-item-section>
+                        </q-item>
+                      </template>
+                    </q-select>
 
                   <q-input
                     v-if="username"

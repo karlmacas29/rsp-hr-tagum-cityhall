@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { api } from 'src/boot/axios';
+import { adminApi } from 'src/boot/axios_admin';
 import { toast } from 'src/boot/toast'; // Import toast instance
 
 export const use_vwActiveStore = defineStore('vwactive', {
@@ -18,7 +18,7 @@ export const use_vwActiveStore = defineStore('vwactive', {
       this.loading = true;
       this.error = null;
       try {
-        const response = await api.get('/vw-Active');
+        const response = await adminApi.get('/vw-Active');
         // this.vw_active = response.data
         // console.log(response.data)
         return response.data.data;
@@ -35,7 +35,7 @@ export const use_vwActiveStore = defineStore('vwactive', {
         status: status,
       };
       try {
-        const response = await api.post('/vw-Active/status', jsonEncode);
+        const response = await adminApi.post('/vw-Active/status', jsonEncode);
         this.vw_status = response.data.data;
       } catch (error) {
         this.vw_status = [];
@@ -49,7 +49,7 @@ export const use_vwActiveStore = defineStore('vwactive', {
     async fetchCountAll() {
       this.loading = true;
       try {
-        const response = await api.get('/vw-Active/count');
+        const response = await adminApi.get('/vw-Active/count');
         // console.log(response.data);
         this.countAll = response.data.total;
       } catch (error) {
@@ -67,7 +67,7 @@ export const use_vwActiveStore = defineStore('vwactive', {
         // Assuming the API endpoint is '/vw-Active/sex-count'
         // based on the Laravel controller method name.
         // Ensure this route is defined in your Laravel routes file.
-        const response = await api.get('/vw-Active/Sex');
+        const response = await adminApi.get('/vw-Active/Sex');
         // Assuming you will add totalMale and totalFemale to your state
         this.totalMale = response.data.totalMale;
         this.totalFemale = response.data.totalFemale;

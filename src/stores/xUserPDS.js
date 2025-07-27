@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { api } from 'src/boot/axios';
+import { adminApi } from 'src/boot/axios_admin';
 import { toast } from 'src/boot/toast'; // Import toast instance
 
 export const usexPDS = defineStore('xPDS', {
@@ -18,7 +18,7 @@ export const usexPDS = defineStore('xPDS', {
           ?.split('=')[1];
 
         this.loading = true;
-        const response = await api.post(
+        const response = await adminApi.post(
           '/xPDS',
           {
             controlno,

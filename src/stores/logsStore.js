@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { api } from 'src/boot/axios';
+import { adminApi } from 'src/boot/axios_admin';
 
 export const useLogsStore = defineStore('logs', {
   state: () => ({
@@ -12,7 +12,7 @@ export const useLogsStore = defineStore('logs', {
     async fetchLogs() {
       try {
         this.loading = true;
-        const response = await api.get('/logs');
+        const response = await adminApi.get('/logs');
         this.logs = response.data;
         // console.log(response.data)
         this.error = null;
@@ -26,10 +26,10 @@ export const useLogsStore = defineStore('logs', {
     async logAction(actions) {
       const token = document.cookie
         .split('; ')
-        .find((row) => row.startsWith('admin_token='))
+        .find((row) => row.startsWith('rater_token='))
         ?.split('=')[1];
       try {
-        await api.post(
+        await adminApi.post(
           '/logs/auth',
           { action: actions },
           {

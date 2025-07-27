@@ -106,17 +106,17 @@
               <template
                 v-if="authStore.user.permissions.isRaterM === '1' && props.row.completed == 0"
               >
-                <q-btn
-                  flat
-                  round
-                  dense
-                  icon="edit"
-                  @click="editRater(props.row)"
-                  class="q-ml-sm bg-teal-1"
-                  color="positive"
-                >
-                  <q-tooltip>Edit</q-tooltip>
-                </q-btn>
+               <q-btn
+  flat
+  round
+  dense
+  icon="edit"
+  @click="editRater(props.row)"
+  class="q-ml-sm bg-teal-1"
+  color="positive"
+>
+  <q-tooltip>Edit</q-tooltip>
+</q-btn>
                 <q-btn
                   flat
                   round
@@ -187,8 +187,7 @@
           <template v-if="!isEditMode">
             <!-- Select Office in Add Mode -->
             <div class="q-mb-md">
-              <div class="text-subtitle2 text-weight-medium">Select Office</div>
-              <q-select
+    <q-select
                 v-model="selectedOffice"
                 :options="offices"
                 option-value="id"
@@ -245,29 +244,24 @@
           <template v-else>
             <!-- Select Office in Edit Mode (readonly but visible) -->
             <div class="q-mb-md">
-              <div class="text-subtitle2 text-weight-medium">Office</div>
-              <q-select
-                outlined
-                dense
-                readonly
-                :model-value="currentOfficeId"
-                :options="offices"
-                option-value="id"
-                option-label="name"
-                label="Current Office"
-                map-options
-              >
+              <div class="text-subtitle2 text-weight-medium">Select Office</div>
+    <q-select
+      v-model="selectedOffice"
+      :options="offices"
+      option-value="id"
+      option-label="name"
+      label="Select an office"
+      outlined
+      dense
+      emit-value
+      map-options
+    >
                 <template v-slot:prepend>
                   <q-icon name="business" />
                 </template>
                 <template v-slot:append>
-                  <q-icon name="lock" size="xs" />
                 </template>
               </q-select>
-              <div class="text-caption text-grey q-mt-sm">
-                <q-icon name="info" size="xs" class="q-mr-xs" />
-                Office cannot be changed
-              </div>
             </div>
 
             <q-separator class="q-mt-md q-mb-md" />
@@ -279,7 +273,7 @@
                 outlined
                 dense
                 readonly
-                :model-value="currentRaterId"
+                :model-value="currentRaterName"
                 :options="currentOfficeRaters"
                 option-value="id"
                 option-label="name"
@@ -777,57 +771,98 @@ const columns = [
       showViewDialog.value = true;
     }, 500);
   };
-
-  const editRater = (rater) => {
+const editRater = async (rater) => {
+  try {
     isEditMode.value = true;
+    currentRaterId.value = rater.id;
     currentRaterName.value = rater.Rater;
-    currentRaterOffice.value = rater.Office;
 
-    const office = offices.value.find((o) => o.name === rater.Office);
-    currentOfficeId.value = office?.id || null;
+    // Fetch the latest office data
+    await plantillaStore.fetch_office_rater();
 
-    const raterData = availableRaters.value.find((r) => r.name === rater.Rater);
-    currentRaterId.value = raterData?.id || null;
-
-    currentOfficeRaters.value = availableRaters.value.filter(
-      (r) => r.officeId === currentOfficeId.value,
+    // Set the current office selection
+    const currentOffice = plantillaStore.plantilla.find(
+      person => person.Name4 === rater.Rater
     );
 
-    const positionNames = rater.Position.split(', ');
+    if (currentOffice) {
+      selectedOffice.value = currentOffice.OfficeID;
+
+      // Ensure offices list is up to date
+      const uniqueOfficesData = plantillaStore.plantilla.reduce((acc, item) => {
+        if (!acc.some((office) => office.name === item.office)) {
+          acc.push({
+            id: item.OfficeID,
+            name: item.office,
+          });
+        }
+        return acc;
+      }, []);
+      offices.value = uniqueOfficesData;
+    }
+
+    // Convert job_batches_rsp string to array of position IDs
+    const positionNames = rater.job_batches_rsp.split(',').map(name => name.trim());
     selectedPositions.value = positions.value
       .filter((pos) => positionNames.includes(pos.name))
       .map((pos) => pos.id);
 
     showModal.value = true;
-  };
+  } catch (error) {
+    console.error('Error setting up edit mode:', error);
+    toast.error('Failed to prepare edit form');
+  }
+};
+const updateRater = async () => {
+  if (selectedPositions.value.length === 0 || !selectedOffice.value) {
+    showError.value = true;
+    return;
+  }
 
-  const updateRater = () => {
-    if (selectedPositions.value.length === 0) {
-      showError.value = true;
-      return;
+  showError.value = false;
+  isSubmitting.value = true;
+
+  try {
+    const raterId = currentRaterId.value;
+    if (!raterId) {
+      throw new Error('No rater selected for editing');
     }
 
-    showError.value = false;
-    isSubmitting.value = true;
+    // Get the office name from plantilla data
+    await plantillaStore.fetch_office_rater();
+    const selectedOfficeData = plantillaStore.plantilla.find(
+      person => person.OfficeID === selectedOffice.value
+    );
 
-    setTimeout(() => {
-      const selectedPositionNames = positions.value
-        .filter((pos) => selectedPositions.value.includes(pos.id))
-        .map((pos) => pos.name)
-        .join(', ');
+    if (!selectedOfficeData) {
+      throw new Error('Selected office not found');
+    }
 
-      const index = raters.value.findIndex((r) => r.Rater === currentRaterName.value);
-      if (index !== -1) {
-        raters.value[index] = {
-          ...raters.value[index],
-          Position: selectedPositionNames,
-        };
-      }
+    // Prepare the data for the edit request
+    const userData = {
+      job_batches_rsp_id: selectedPositions.value.filter(id => id !== 'all'),
+      Office: selectedOfficeData.office,
+    };
 
+    // Call the rater_edit action
+    const result = await authStore.rater_edit(raterId, userData);
+
+    if (result.success) {
+      // Refresh the raters list
+      await authStore.get_all_raters();
+      raters.value = authStore.users;
       closeModal();
-      isSubmitting.value = false;
-    }, 1000);
-  };
+      toast.success('Rater updated successfully');
+    } else {
+      throw new Error(result.message || 'Failed to update rater');
+    }
+  } catch (error) {
+    console.error('Error updating rater:', error);
+    toast.error(error.message || 'Failed to update rater');
+  } finally {
+    isSubmitting.value = false;
+  }
+};
 
 
 const addRater = async () => {
@@ -893,7 +928,7 @@ const addRater = async () => {
   onMounted(async () => {
    try {
     await Promise.all([
-      jobPostStore.fetchJobPosts(),
+      jobPostStore.job_post_list(),
       authStore.get_all_raters(),
       plantillaStore.fetch_office_rater()
     ]);

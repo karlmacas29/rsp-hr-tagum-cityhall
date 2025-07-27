@@ -605,7 +605,7 @@
 
       const token = document.cookie
         .split('; ')
-        .find((row) => row.startsWith('auth_token='))
+        .find((row) => row.startsWith('admin_token='))
         ?.split('=')[1];
 
       const requestConfig = {
@@ -722,7 +722,7 @@
 
       const token = document.cookie
         .split('; ')
-        .find((row) => row.startsWith('auth_token='))
+        .find((row) => row.startsWith('admin_token='))
         ?.split('=')[1];
 
       const requestConfig = {
@@ -804,7 +804,7 @@
 
       const token = document.cookie
         .split('; ')
-        .find((row) => row.startsWith('auth_token='))
+        .find((row) => row.startsWith('admin_token='))
         ?.split('=')[1];
 
       const requestConfig = {

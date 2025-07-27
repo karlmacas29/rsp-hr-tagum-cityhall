@@ -571,7 +571,7 @@
 
   onMounted(async () => {
     // Fetch job posts from the store
-    await jobPostStore.fetchJobPosts();
+    await jobPostStore.job_post_list();
     jobs.value = jobPostStore.jobPosts;
     // Set the date range to the last 30 days
     setDateRange();

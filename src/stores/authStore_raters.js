@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
-import { api } from 'boot/axios';
+import { raterApi } from 'boot/axios_rater';
 import { toast } from 'src/boot/toast';
 import { useLogsStore } from 'stores/logsStore';
 // import { usePlantillaStore } from 'stores/plantillaStore';
@@ -28,6 +28,52 @@ export const useRaterAuthStore = defineStore('rater_auth', () => {
       ?.split('=')[1];
   }
 
+
+  async function login(username, password) {
+    errors.value = {};
+    loading.value = true;
+
+    try {
+      const response = await raterApi.post('/rater/login', { username, password });
+
+      if (response.data.status) {
+        token.value = response.data.token;
+        isAuthenticated.value = true;
+        user.value = response.data.user;
+
+        document.cookie = `rater_token=${token.value}; path=/; SameSite=None; Secure`;
+
+        toast.success('You are now logged in!');
+        loading.value = false;
+      } else {
+        loading.value = false;
+        if (response.data.errors?.role_id) {
+          toast.error(response.data.errors.role_id[0] || 'Login Failed!');
+        } else {
+          toast.error(response.data.message || 'Login Failed!');
+        }
+      }
+    } catch (error) {
+      if (error.response?.status === 403) {
+        if (error.response.data.errors?.role_id) {
+          toast.error(error.response.data.errors.role_id[0]);
+        } else {
+          toast.error(error.response.data.message || 'Your account is inactive. Please contact the administrator.');
+        }
+      } else if (error.response?.status === 0 || !error.response) {
+        toast.error(' Please check your internet connection and try again later.');
+      } else {
+        toast.error('Login Failed!');
+      }
+      errors.value = error.response?.data?.errors || {};
+      loading.value = false;
+    } finally {
+      const logsStore = useLogsStore();
+      await logsStore.logAction('Logged In');
+    }
+  }
+
+
   function handleError(error, defaultMessage) {
     if (error.response?.status === 401) {
       toast.error('Your session has expired. Please log in again.');
@@ -50,7 +96,7 @@ async function changePassword({ old_password, new_password, new_password_confirm
   loading.value = true;
 
   try {
-    const response = await api.post('/rater/changepassword', {
+    const response = await raterApi.post('/rater/changepassword', {
       old_password,
       new_password,
       new_password_confirmation
@@ -93,50 +139,6 @@ async function changePassword({ old_password, new_password, new_password_confirm
   }
 }
 
-  async function login(username, password) {
-    errors.value = {};
-    loading.value = true;
-
-    try {
-      const response = await api.post('/rater/login', { username, password });
-
-      if (response.data.status) {
-        token.value = response.data.token;
-        isAuthenticated.value = true;
-        user.value = response.data.user;
-
-        document.cookie = `rater_token=${token.value}; path=/; SameSite=None; Secure`;
-
-        toast.success('You are now logged in!');
-        loading.value = false;
-      } else {
-        loading.value = false;
-        if (response.data.errors?.role_id) {
-          toast.error(response.data.errors.role_id[0] || 'Login Failed!');
-        } else {
-          toast.error(response.data.message || 'Login Failed!');
-        }
-      }
-    } catch (error) {
-      if (error.response?.status === 403) {
-        if (error.response.data.errors?.role_id) {
-          toast.error(error.response.data.errors.role_id[0]);
-        } else {
-          toast.error(error.response.data.message || 'Your account is inactive. Please contact the administrator.');
-        }
-      } else if (error.response?.status === 0 || !error.response) {
-        toast.error(' Please check your internet connection and try again later.');
-      } else {
-        toast.error('Login Failed!');
-      }
-      errors.value = error.response?.data?.errors || {};
-      loading.value = false;
-    } finally {
-      const logsStore = useLogsStore();
-      await logsStore.logAction('Logged In');
-    }
-  }
-
   async function logout() {
     loading.value = true;
     const authToken = document.cookie
@@ -145,7 +147,7 @@ async function changePassword({ old_password, new_password, new_password_confirm
       ?.split('=')[1];
 
     try {
-      await api.post('/logout', null, {
+      await raterApi.post('/logout', null, {
         headers: {
           Authorization: `Bearer ${authToken}`,
         },
@@ -181,7 +183,7 @@ async function changePassword({ old_password, new_password, new_password_confirm
 async function get_rater_usernames() {
   loadUser.value = true;
   try {
-    const response = await api.get('/rater/name');
+    const response = await raterApi.get('/rater/name');
 
     if (response.data.status) {
       users.value = response.data.data.map(rater => ({
@@ -204,9 +206,7 @@ async function get_rater_usernames() {
   }
 }
 
-
-
-  async function checkAuth() {
+  async function checkAuth_rater() {
     const authToken = document.cookie
       .split('; ')
       .find((row) => row.startsWith('rater_token='))
@@ -214,7 +214,7 @@ async function get_rater_usernames() {
 
     if (authToken) {
       try {
-        const res = await api.get('/user', {
+        const res = await raterApi.get('/rater', {
           headers: {
             Authorization: `Bearer ${authToken}`,
           },
@@ -263,7 +263,7 @@ async function get_rater_usernames() {
           throw new Error('No authentication token found');
         }
 
-        const response = await api.delete(`/rater/${id}`, {
+        const response = await raterApi.delete(`/rater/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -307,7 +307,7 @@ async function get_rater_usernames() {
     deleteUser,
     // get_all_raters,
     getToken,
-    checkAuth,
+    checkAuth_rater,
     handleError,
     get_rater_usernames,
     changePassword

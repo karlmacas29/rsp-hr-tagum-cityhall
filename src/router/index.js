@@ -37,7 +37,7 @@ export default defineRouter(function (/* { store, ssrContext } */) {
       }
       // Rater routes
       else if (to.meta.role === 'rater') {
-        await raterAuthStore.checkAuth();
+        await raterAuthStore.checkAuth_rater();
         if (!raterAuthStore.isAuthenticated) {
           return { name: 'Rater Login' };
         }
@@ -55,7 +55,7 @@ export default defineRouter(function (/* { store, ssrContext } */) {
       }
       // Rater login page
       else if (to.meta.role === 'rater') {
-        await raterAuthStore.checkAuth();
+        await raterAuthStore.checkAuth_rater();
         if (raterAuthStore.isAuthenticated) {
           return { name: 'Raters Homepage' };
         }

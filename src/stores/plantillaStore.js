@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { api } from 'src/boot/axios';
+import { adminApi } from 'src/boot/axios_admin';
 import { toast } from 'src/boot/toast'; // Import toast instance
 
 export const usePlantillaStore = defineStore('plantilla', {
@@ -18,7 +18,7 @@ export const usePlantillaStore = defineStore('plantilla', {
       this.loading = true;
       this.error = null;
       try {
-        const response = await api.get('/plantilla');
+        const response = await adminApi.get('/plantilla');
 
         // console.log(response.data); // Debugging
 
@@ -42,7 +42,7 @@ export const usePlantillaStore = defineStore('plantilla', {
       this.loading = true;
       this.error = null;
       try {
-        const response = await api.get('/plantilla/office/rater');
+        const response = await adminApi.get('/plantilla/office/rater');
 
         // console.log(response.data); // Debugging
 
@@ -65,7 +65,7 @@ export const usePlantillaStore = defineStore('plantilla', {
       this.loading = true;
       this.error = null;
       try {
-        const response = await api.get('/plantillaData');
+        const response = await adminApi.get('/plantillaData');
 
         // console.log(response.data) // Debugging
 
@@ -90,7 +90,7 @@ export const usePlantillaStore = defineStore('plantilla', {
       this.qsLoad = true;
       this.error = null;
       try {
-        const response = await api.post('/plantillaData/qs', {
+        const response = await adminApi.post('/plantillaData/qs', {
           PositionID: PoitionID,
         });
         // console.log(response.data) // Debugging

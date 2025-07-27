@@ -1,7 +1,7 @@
 // stores/user_upload.js
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
-import { api } from 'boot/axios';
+import { adminApi } from 'boot/axios_admin';
 
 export const useUser_upload = defineStore('user_upload', () => {
   const isSubmitting = ref(false);
@@ -38,7 +38,7 @@ export const useUser_upload = defineStore('user_upload', () => {
     console.log('Submitting with job ID:', selectedJob.value.id); // Debug log
 
     try {
-      const response = await api.post('/applicant/submissions', formData, {
+      const response = await adminApi.post('/applicant/submissions', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

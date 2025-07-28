@@ -53,29 +53,42 @@
           </q-icon>
         </template>
       </q-input>
-      <q-input
-        v-model="globalSearch"
-        outlined
-        dense
-        placeholder="Search jobs..."
-        class="col-auto"
-        style="max-width: 220px"
-        clearable
-      >
-        <template v-slot:prepend>
-          <q-icon name="search" color="primary" />
-        </template>
-      </q-input>
+
+      <div class="row items-center">
+        <q-input
+          v-model="globalSearch"
+          outlined
+          dense
+          placeholder="Search jobs..."
+          class="col-auto"
+          style="max-width: 220px"
+          clearable
+        >
+          <template v-slot:prepend>
+            <q-icon name="search" color="primary" />
+          </template>
+        </q-input>
+        <q-btn
+          v-if="selectedRows.length > 0"
+          class="q-ml-sm"
+          color="primary"
+          label="Same as"
+          @click="handleSameAs"
+        />
+      </div>
     </div>
+
     <!-- Table -->
     <q-table
       :rows="filteredJobs"
       :columns="columns"
-      row-key="PositionID"
+      row-key="id"
       :pagination="pagination"
       class="job-posts-table q-mt-md"
       :loading="jobPostStore.loading"
       table-style="min-width: 100%"
+      selection="multiple"
+      v-model:selected="selectedRows"
     >
       <template v-slot:body-cell-Office="props">
         <q-td :props="props" class="office-column">
@@ -104,16 +117,7 @@
       <template v-slot:body-cell-action="props">
         <q-td :props="props" class="action-column q-gutter-x-xs">
           <q-btn
-            round
-            flat
-            color="blue"
-            class="bg-blue-1"
-            icon="visibility"
-            @click="viewJobDetails(props.row)"
-          >
-            <q-tooltip>View Job Details</q-tooltip>
-          </q-btn>
-          <q-btn
+            v-if="!criteriaCreatedMap[props.row.PositionID]"
             round
             flat
             color="green"
@@ -123,6 +127,17 @@
           >
             <q-tooltip>Create Criteria</q-tooltip>
           </q-btn>
+          <q-btn
+            v-else
+            round
+            flat
+            color="blue"
+            class="bg-blue-1"
+            icon="visibility"
+            @click="viewJobDetails(props.row)"
+          >
+            <q-tooltip>View Job Details</q-tooltip>
+          </q-btn>
         </q-td>
       </template>
       <template v-slot:no-data>
@@ -130,8 +145,12 @@
       </template>
     </q-table>
 
-    <!-- Criteria Creation Modal -->
-    <criteria-rater-modal v-model="showCriteriaModal" :job="selectedJob" />
+    <criteria-rater-modal
+      v-model="showCriteriaModal"
+      :job="selectedJob"
+      :criteria="selectedCriteria"
+      @criteria-created="onCriteriaCreated"
+    />
   </q-page>
 </template>
 
@@ -140,7 +159,6 @@
   import { date } from 'quasar';
   import { useJobPostStore } from 'stores/jobPostStore';
   import { useRouter } from 'vue-router';
-  // Import your modal component
   import CriteriaRaterModal from 'src/components/CriteriaModal.vue';
 
   const router = useRouter();
@@ -180,6 +198,7 @@
     dateRange.value = newRange;
   };
 
+  const criteriaCreatedMap = ref({});
   const columns = [
     {
       name: 'Office',
@@ -224,11 +243,8 @@
   ];
 
   const jobs = ref([]);
-
   const filteredJobs = computed(() => {
     let filtered = jobs.value;
-
-    // Apply date range filtering
     if (dateRange.value.from && dateRange.value.to) {
       filtered = filtered.filter((job) => {
         const jobDate = new Date(job.post_date);
@@ -238,7 +254,6 @@
         return jobDate >= from && jobDate <= to;
       });
     }
-    // Apply global search filter if needed
     if (globalSearch.value) {
       const searchTerm = globalSearch.value.toLowerCase();
       filtered = filtered.filter((job) => {
@@ -251,26 +266,45 @@
     return filtered;
   });
 
-  const viewJobDetails = (job) => {
+  const selectedRows = ref([]);
+
+  const selectedJob = ref(null);
+  const selectedCriteria = ref(null);
+  const showCriteriaModal = ref(false);
+
+  async function openCriteriaModal(job) {
+    selectedJob.value = job;
+    // Fetch the criteria for the selected job before opening the modal!
+    selectedCriteria.value = await jobPostStore.fetchCriteriaByPositionAndItemNo(
+      job.PositionID,
+      job.ItemNo,
+    );
+    showCriteriaModal.value = true;
+  }
+
+  function viewJobDetails(job) {
     router.push({
       name: 'JobPost View',
       params: { PositionID: job.PositionID, ItemNo: job.ItemNo },
     });
-  };
+  }
 
-  // Modal logic for criteria creation
-  const showCriteriaModal = ref(false);
-  const selectedJob = ref(null);
+  function onCriteriaCreated(job) {
+    criteriaCreatedMap.value = {
+      ...criteriaCreatedMap.value,
+      [job.PositionID]: true,
+    };
+  }
 
-  function openCriteriaModal(job) {
-    selectedJob.value = job;
-    showCriteriaModal.value = true;
+  function handleSameAs() {
+    console.log('Same as clicked for:', selectedRows.value);
   }
 
   onMounted(async () => {
     await jobPostStore.fetchJobPosts();
     jobs.value = jobPostStore.jobPosts;
     setDateRange();
+    criteriaCreatedMap.value = {};
   });
 </script>
 

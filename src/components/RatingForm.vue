@@ -130,41 +130,68 @@
                   <td class="text-left compact-criteria-cell" style="width: 12%">
                     <div class="text-weight-bold text-caption">Criteria</div>
                   </td>
-                  <td class="text-left compact-criteria-cell" style="width: 12%">
+                 <td class="text-left compact-criteria-cell" style="width: 12%">
                     <div class="text-weight-bold text-caption">REQUIRED:</div>
-                    <div class="text-caption">{{ education.Min_qualification }}</div>
                     <br />
-                    <div class="text-weight-bold text-caption">{{ education.Title }}</div>
-                    <div class="text-caption">{{ education.Description }}</div>
+                    <div
+                      v-for="(item, index) in formatDescription(education.description)"
+                      :key="'edu-' + index"
+                      class="text-caption"
+                    >
+                      {{ item }}
+                    </div>
                   </td>
-                  <td class="text-left compact-criteria-cell" style="width: 18%">
-                    <div class="text-weight-bold text-caption">REQUIRED:</div>
-                    <div class="text-caption">{{ experience.Min_qualification }}</div>
-                    <br />
-                    <div class="text-weight-bold text-caption">{{ experience.Title }}</div>
-                    <div class="text-caption">{{ experience.with_Experience }}</div>
-                    <div class="text-caption">{{ experience.without_Experience }}</div>
-                  </td>
+
+                 <td class="text-left compact-criteria-cell" style="width: 18%">
+                  <div class="text-weight-bold text-caption">REQUIRED:</div>
+                  <br />
+                  <div
+                    v-for="(item, index) in formatDescription(experience.description)"
+                    :key="'exp-' + index"
+                    class="text-caption"
+                  >
+                    {{ item }}
+                  </div>
+                </td>
+
                   <td class="text-left compact-criteria-cell" style="width: 16%">
                     <div class="text-weight-bold text-caption">REQUIRED:</div>
-                    <div class="text-caption">{{ training.Min_qualification }}</div>
+                    <!-- <div class="text-caption">{{ training.Min_qualification }}</div> -->
                     <br />
-                    <div class="text-weight-bold text-caption">{{ training.Title }}</div>
-                    <div class="text-caption">{{ training.Description }}</div>
+                    <!-- <div class="text-weight-bold text-caption">{{ training.Title }}</div> -->
+                   <div
+                    v-for="(item, index) in formatDescription(training.description)"
+                    :key="'training-' + index"
+                    class="text-caption"
+                  >
+                    {{ item }}
+                  </div>
                   </td>
                   <td class="text-left compact-criteria-cell" style="width: 18%">
                     <div class="text-weight-bold text-caption">REQUIRED:</div>
-                    <div class="text-caption">{{ performance.Title }}</div>
+                    <!-- <div class="text-caption">{{ performance.Title }}</div> -->
                     <br />
-                    <div class="text-caption">{{ performance.Outstanding_rating }}</div>
-                    <div class="text-caption">{{ performance.Very_satisfactory }}</div>
-                    <div class="text-caption">{{ performance.Below_rating }}</div>
+                <div
+                    v-for="(item, index) in formatDescription(performance.description)"
+                    :key="'performance-' + index"
+                    class="text-caption"
+                  >
+                    {{ item }}
+                  </div>
+                    <!-- <div class="text-caption">{{ performance.Very_satisfactory }}</div>
+                    <div class="text-caption">{{ performance.Below_rating }}</div> -->
                   </td>
                   <td class="text-left compact-criteria-cell" style="width: 18%">
                     <div class="text-weight-bold text-caption">REQUIRED:</div>
-                    <div class="text-caption">{{ behavioral.Title }}</div>
+                    <!-- <div class="text-caption">{{ behavioral.Title }}</div> -->
                     <br />
-                    <div class="text-caption">{{ behavioral.Description }}</div>
+                  <div
+                    v-for="(item, index) in formatDescription(behavioral.description)"
+                    :key="'behavioral-' + index"
+                    class="text-caption"
+                  >
+                    {{ item }}
+                  </div>
                   </td>
                   <td class="text-center compact-criteria-cell" style="width: 6%"></td>
                   <td class="text-center compact-criteria-cell" style="width: 6%"></td>
@@ -185,14 +212,14 @@
   </div>
 
   <!-- Content when not loading -->
-  <RaterPreview
-    v-else
-    :criteria="criteriaForPreview"
-    :applicants="filteredSortedApplicants"
-    mode="input"
-    @update-rating="handleRatingUpdate"
-  />
-</div>
+          <RaterPreview
+            v-else
+            :criteria="criteriaForPreview"
+            :applicants="filteredSortedApplicants"
+            mode="input"
+            @update-rating="handleRatingUpdate"
+          />
+        </div>
 
         <div class="modal-footer">
           <div class="row justify-end">
@@ -221,7 +248,7 @@
 </template>
 
 <script>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch,nextTick} from 'vue';
 import RaterPreview from './RaterPreview.vue';
 import ConfirmationModal from 'components/Rater/ConfirmationModal.vue';
 
@@ -316,15 +343,15 @@ export default {
     const applicants = ref([]);
 
     // Initialize applicants from props
-    const initializeApplicants = () => {
-      if (props.applicants && props.applicants.length > 0) {
-        applicants.value = [...props.applicants];
-        applicants.value.forEach((applicant) => {
-          calculateTotals(applicant);
-        });
-        updateRankingsWithTies();
-      }
-    };
+    // const initializeApplicants = () => {
+    //   if (props.applicants && props.applicants.length > 0) {
+    //     applicants.value = [...props.applicants];
+    //     applicants.value.forEach((applicant) => {
+    //       calculateTotals(applicant);
+    //     });
+    //     updateRankingsWithTies();
+    //   }
+    // };
 
     // Function to calculate QS value
     const calculateQSValue = (applicant) => {
@@ -491,6 +518,94 @@ export default {
       { deep: true }
     );
 
+    watch(
+  [() => props.applicants, () => props.criteria],
+  ([newApplicants, newCriteria]) => {
+    console.log('RatingForm: Props changed', {
+      applicantsCount: newApplicants?.length || 0,
+      hasCriteria: !!newCriteria
+    });
+
+    if (newApplicants && newApplicants.length > 0) {
+      // Reset applicants data completely
+      applicants.value = [];
+
+      // Add a small delay to ensure clean state
+      nextTick(() => {
+        initializeApplicants();
+      });
+    } else {
+      // Clear applicants if no new data
+      applicants.value = [];
+    }
+  },
+  { immediate: true, deep: true }
+);
+
+// Initialize data when form opens - IMPROVED VERSION
+watch(
+  () => props.modelValue,
+  (isOpen) => {
+    if (isOpen) {
+      console.log('RatingForm: Modal opened, initializing...');
+
+      // Clear any previous state
+      applicants.value = [];
+
+      // Initialize with current props
+      if (props.applicants && props.applicants.length > 0) {
+        nextTick(() => {
+          initializeApplicants();
+        });
+      }
+    } else {
+      // Clear data when modal closes
+      applicants.value = [];
+    }
+  },
+  { immediate: true }
+);
+
+// Also update the initializeApplicants function to be more robust
+const initializeApplicants = () => {
+  console.log('Initializing applicants with props:', props.applicants);
+
+  if (props.applicants && props.applicants.length > 0) {
+    // Create a deep copy to avoid reference issues
+    applicants.value = props.applicants.map(applicant => ({
+      ...applicant,
+      // Ensure scores are numbers
+      educationScore: Number(applicant.educationScore) || 0,
+      experienceScore: Number(applicant.experienceScore) || 0,
+      trainingScore: Number(applicant.trainingScore) || 0,
+      performance: Number(applicant.performance) || 0,
+      bei: Number(applicant.bei) || 0,
+      totalQS: 0,
+      grandTotal: 0,
+      ranking: 0
+    }));
+
+    // Calculate totals for each applicant
+    applicants.value.forEach((applicant) => {
+      calculateTotals(applicant);
+    });
+
+    // Update rankings
+    updateRankingsWithTies();
+
+    console.log('Initialized applicants:', applicants.value);
+  } else {
+    console.log('No applicants to initialize');
+    applicants.value = [];
+  }
+};
+
+// Add this inside your setup() function, before the return statement
+const formatDescription = (description) => {
+  if (!description) return [];
+  if (Array.isArray(description)) return description;
+  return description.split(',').map(item => item.trim());
+};
     return {
       isOpen,
       filterText,
@@ -511,6 +626,9 @@ export default {
       showConfirmationModal,
       handleConfirmSubmit,
       handleCancelSubmit,
+
+      formatDescription,
+
     };
   },
 };

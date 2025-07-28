@@ -3,7 +3,9 @@
     <q-card style="max-width: 1200px; width: 95vw">
       <!-- Sticky Header -->
       <q-card-section class="row items-center q-pa-sm bg-primary text-white sticky-header">
-        <div class="text-h6">Set Rating Criteria</div>
+        <div class="text-h6">
+          {{ isEditMode ? 'Edit' : existingCriteria ? 'View' : 'Create' }} Rating Criteria
+        </div>
         <q-space />
         <q-btn icon="close" flat dense @click="closeModal" />
       </q-card-section>
@@ -43,17 +45,31 @@
       <q-card-section v-if="showRatingTable" class="criteria-section">
         <div class="row q-mb-sm">
           <div class="col-12">
-            <q-btn
-              color="primary"
-              icon="save"
-              label="Save Criteria"
-              :loading="loading"
-              :disable="totalWeight !== 100"
-              @click="confirmSave"
-              unelevated
-              dense
-              class="q-px-md q-py-xs save-btn float-right text-12"
-            />
+            <template v-if="isEditMode || !existingCriteria">
+              <q-btn
+                color="primary"
+                icon="save"
+                label="Save Criteria"
+                :loading="loading"
+                :disable="totalWeight !== 100"
+                @click="confirmSave"
+                unelevated
+                dense
+                class="q-px-md q-py-xs save-btn float-right text-12"
+              />
+            </template>
+            <template v-else>
+              <q-btn
+                color="primary"
+                icon="edit"
+                label="Edit Criteria"
+                @click="enableEditMode"
+                unelevated
+                dense
+                class="q-px-md q-py-xs save-btn float-right text-12"
+              />
+            </template>
+
             <q-chip
               :color="totalWeight !== 100 ? 'warning' : 'positive'"
               text-color="white"
@@ -92,6 +108,7 @@
                           outlined
                           class="weight-input text-12"
                           @update:model-value="validatePercentage(section.key)"
+                          :readonly="!isEditMode && existingCriteria"
                         >
                           <template v-slot:append>
                             <span class="percentage-sign">%</span>
@@ -116,14 +133,10 @@
                       section.key === 'training'
                     "
                   />
-                  <q-input
-                    v-model="editableCriteria[section.key].title"
-                    label="Title"
-                    dense
-                    outlined
-                    autogrow
-                    class="modern-input text-12 q-mb-xs"
-                  />
+                  <!-- Title as plain text, NOT an input box -->
+                  <div class="q-mb-xs text-weight-medium text-12 text-bold">
+                    <span class="text-grey-9">Required:</span>
+                  </div>
                   <q-input
                     v-model="editableCriteria[section.key].description"
                     label="Description"
@@ -131,8 +144,16 @@
                     outlined
                     autogrow
                     class="modern-input text-12 q-mb-xs"
+                    :readonly="!isEditMode && existingCriteria"
                   />
-                  <div class="q-mt-sm">
+                  <div
+                    class="q-mt-sm"
+                    v-if="
+                      isEditMode ||
+                      !existingCriteria ||
+                      editableCriteria[section.key].additionalFields.length > 0
+                    "
+                  >
                     <div
                       v-for="(field, idx) in editableCriteria[section.key].additionalFields"
                       :key="section.key + '-add-' + idx"
@@ -146,9 +167,10 @@
                           outlined
                           autogrow
                           class="modern-input text-12"
+                          :readonly="!isEditMode && existingCriteria"
                         />
                       </div>
-                      <div style="width: 36px">
+                      <div style="width: 36px" v-if="isEditMode || !existingCriteria">
                         <q-btn
                           icon="remove"
                           color="negative"
@@ -159,7 +181,7 @@
                         />
                       </div>
                     </div>
-                    <div class="row justify-center">
+                    <div class="row justify-center" v-if="isEditMode || !existingCriteria">
                       <q-btn
                         color="primary"
                         icon="add"
@@ -239,187 +261,225 @@
   </q-dialog>
 </template>
 
-<script>
-  export default {
-    name: 'CriteriaRaterModal',
-    props: {
-      modelValue: { type: Boolean, required: true },
-      job: { type: Object, default: null },
-      criteria: { type: Object, default: null },
-    },
-    data() {
-      return {
-        show: this.modelValue,
-        loading: false,
-        showRatingTable: false,
-        confirmDialog: false,
-        formData: {
-          office: null,
-          position: null,
-          salaryGrade: '',
-          plantillaItemNo: '',
-        },
-        baseCriteria: {
-          education: { weight: 20, title: '', description: '', additionalFields: [] },
-          experience: { weight: 20, title: '', description: '', additionalFields: [] },
-          training: { weight: 15, title: '', description: '', additionalFields: [] },
-          performance: { weight: 15, title: '', description: '', additionalFields: [] },
-          bei: { weight: 10, title: '', description: '', additionalFields: [] },
-        },
-        editableCriteria: null,
-        officeOptions: [
-          'Human Resource Office',
-          'Finance Department',
-          'Legal Department',
-          'Information Technology Department',
-          'Operations Department',
-          'Administrative Services',
-        ],
-        positionOptions: [
-          'Administrative Officer',
-          'Budget Officer',
-          'Accountant',
-          'Planning Officer',
-          'Human Resource Officer',
-          'IT Officer',
-          'Engineer',
-          'Project Development Officer',
-          'Public Information Officer',
-        ],
-        filteredOfficeOptions: [],
-        filteredPositionOptions: [],
-        sections: [
-          { key: 'education', label: 'Education', icon: 'school' },
-          { key: 'experience', label: 'Experience', icon: 'work_history' },
-          { key: 'training', label: 'Training', icon: 'card_membership' },
-          { key: 'performance', label: 'Performance', icon: 'leaderboard' },
-          { key: 'bei', label: 'BEI', icon: 'record_voice_over' },
-        ],
-      };
-    },
-    computed: {
-      totalWeight() {
-        if (!this.editableCriteria) return 0;
-        return (
-          (this.editableCriteria.education.weight || 0) +
-          (this.editableCriteria.experience.weight || 0) +
-          (this.editableCriteria.training.weight || 0) +
-          (this.editableCriteria.performance.weight || 0) +
-          (this.editableCriteria.bei.weight || 0)
-        );
-      },
-      criteriaFields() {
-        return {
-          education:
-            (this.criteria && (this.criteria.Education || this.criteria.education)) ||
-            (this.job && (this.job.Education || this.job.education)) ||
-            '',
-          experience:
-            (this.criteria && (this.criteria.Experience || this.criteria.experience)) ||
-            (this.job && (this.job.Experience || this.job.experience)) ||
-            '',
-          training:
-            (this.criteria && (this.criteria.Training || this.criteria.training)) ||
-            (this.job && (this.job.Training || this.job.training)) ||
-            '',
-        };
-      },
-    },
-    watch: {
-      modelValue(val) {
-        this.show = val;
-      },
-      show(val) {
-        this.$emit('update:modelValue', val);
-      },
-      job: {
-        immediate: true,
-        handler(job) {
-          if (job) {
-            this.formData.office = job.Office || '';
-            this.formData.position = job.Position || '';
-            this.formData.salaryGrade = job.salaryGrade || job.SalaryGrade || '';
-            this.formData.plantillaItemNo = job.ItemNo || job.ItemNo || '';
-            this.showRatingTable = !!(this.formData.office && this.formData.position);
-          } else {
-            this.formData.office = null;
-            this.formData.position = null;
-            this.formData.salaryGrade = '';
-            this.formData.plantillaItemNo = '';
-            this.showRatingTable = false;
-          }
-        },
-      },
-    },
-    created() {
-      this.editableCriteria = JSON.parse(JSON.stringify(this.baseCriteria));
-      this.filteredOfficeOptions = [...this.officeOptions];
-      this.filteredPositionOptions = [...this.positionOptions];
-    },
-    methods: {
-      addField(section) {
-        this.editableCriteria[section].additionalFields.push('');
-      },
-      removeField(section, idx) {
-        this.editableCriteria[section].additionalFields.splice(idx, 1);
-      },
-      closeModal() {
-        this.show = false;
-      },
-      confirmSave() {
-        if (this.totalWeight !== 100) {
-          this.$q.notify({
-            type: 'warning',
-            message: 'The total weight must equal 100% before saving.',
-          });
-          return;
-        }
-        this.confirmDialog = true;
-      },
-      saveRatings() {
-        this.$q.notify({ type: 'positive', message: 'Criteria saved!' });
-        this.closeModal();
-      },
-      filterOffices(val, update) {
-        update(() => {
-          if (val === '') {
-            this.filteredOfficeOptions = this.officeOptions;
-          } else {
-            const needle = val.toLowerCase();
-            this.filteredOfficeOptions = this.officeOptions.filter(
-              (v) => v.toLowerCase().indexOf(needle) > -1,
-            );
-          }
-        });
-      },
-      filterPositions(val, update) {
-        update(() => {
-          if (val === '') {
-            this.filteredPositionOptions = this.positionOptions;
-          } else {
-            const needle = val.toLowerCase();
-            this.filteredPositionOptions = this.positionOptions.filter(
-              (v) => v.toLowerCase().indexOf(needle) > -1,
-            );
-          }
-        });
-      },
-      resetPosition() {
-        this.formData.position = null;
-        this.formData.salaryGrade = '';
-        this.formData.plantillaItemNo = '';
-        this.showRatingTable = false;
-        this.editableCriteria = JSON.parse(JSON.stringify(this.baseCriteria));
-      },
-      validatePercentage(field) {
-        if (this.editableCriteria[field].weight < 0) {
-          this.editableCriteria[field].weight = 0;
-        } else if (this.editableCriteria[field].weight > 100) {
-          this.editableCriteria[field].weight = 100;
-        }
-      },
-    },
+<script setup>
+  import { ref, computed, watch, onMounted } from 'vue';
+  import { useQuasar } from 'quasar';
+  import { useCriteriaStore } from 'stores/criteriaStore';
+
+  // Props
+  const props = defineProps({
+    modelValue: { type: Boolean, required: true },
+    job: { type: Object, default: null },
+    criteria: { type: Object, default: null },
+  });
+
+  // Emits
+  const emit = defineEmits(['update:modelValue', 'saved']);
+
+  // Quasar
+  const $q = useQuasar();
+
+  // Store
+  const criteriaStore = useCriteriaStore();
+
+  // State
+  const show = ref(props.modelValue);
+  const loading = ref(false);
+  const showRatingTable = ref(false);
+  const confirmDialog = ref(false);
+  const isEditMode = ref(false);
+  const formData = ref({
+    office: null,
+    position: null,
+    salaryGrade: '',
+    plantillaItemNo: '',
+  });
+  const baseCriteria = {
+    education: { weight: 20, title: '', description: '', additionalFields: [] },
+    experience: { weight: 20, title: '', description: '', additionalFields: [] },
+    training: { weight: 15, title: '', description: '', additionalFields: [] },
+    performance: { weight: 15, title: '', description: '', additionalFields: [] },
+    bei: { weight: 10, title: '', description: '', additionalFields: [] },
   };
+  const editableCriteria = ref(JSON.parse(JSON.stringify(baseCriteria)));
+  const sections = [
+    { key: 'education', label: 'Education', icon: 'school' },
+    { key: 'experience', label: 'Experience', icon: 'work_history' },
+    { key: 'training', label: 'Training', icon: 'card_membership' },
+    { key: 'performance', label: 'Performance', icon: 'leaderboard' },
+    { key: 'bei', label: 'BEI', icon: 'record_voice_over' },
+  ];
+
+  // Computed
+  const totalWeight = computed(() => {
+    if (!editableCriteria.value) return 0;
+    return (
+      (editableCriteria.value.education.weight || 0) +
+      (editableCriteria.value.experience.weight || 0) +
+      (editableCriteria.value.training.weight || 0) +
+      (editableCriteria.value.performance.weight || 0) +
+      (editableCriteria.value.bei.weight || 0)
+    );
+  });
+
+  const criteriaFields = computed(() => ({
+    education:
+      (props.criteria && (props.criteria.Education || props.criteria.education)) ||
+      (props.job && (props.job.Education || props.job.education)) ||
+      '',
+    experience:
+      (props.criteria && (props.criteria.Experience || props.criteria.experience)) ||
+      (props.job && (props.job.Experience || props.job.experience)) ||
+      '',
+    training:
+      (props.criteria && (props.criteria.Training || props.criteria.training)) ||
+      (props.job && (props.job.Training || props.job.training)) ||
+      '',
+  }));
+
+  const existingCriteria = computed(() => {
+    return props.criteria && Object.keys(props.criteria).length > 0;
+  });
+
+  // Watchers
+  watch(
+    () => props.modelValue,
+    (val) => {
+      show.value = val;
+      if (val) {
+        // Reset edit mode when dialog opens
+        isEditMode.value = false;
+      }
+    },
+  );
+
+  watch(show, (val) => emit('update:modelValue', val));
+
+  watch(
+    () => props.job,
+    (job) => {
+      if (job) {
+        formData.value.office = job.Office || '';
+        formData.value.position = job.Position || '';
+        formData.value.salaryGrade = job.salaryGrade || job.SalaryGrade || '';
+        formData.value.plantillaItemNo = job.ItemNo || job.ItemNo || '';
+        showRatingTable.value = !!(formData.value.office && formData.value.position);
+      } else {
+        formData.value.office = null;
+        formData.value.position = null;
+        formData.value.salaryGrade = '';
+        formData.value.plantillaItemNo = '';
+        showRatingTable.value = false;
+      }
+    },
+    { immediate: true },
+  );
+
+  watch(
+    () => props.criteria,
+    (criteria) => {
+      if (criteria && Object.keys(criteria).length > 0) {
+        // Map the API response to our editableCriteria format
+        editableCriteria.value = {
+          education: {
+            weight: parseFloat(criteria.education?.[0]?.Rate) || 0,
+            title: criteria.education?.[0]?.description?.split('->')[0]?.trim() || '',
+            description: criteria.education?.[0]?.description || '',
+            additionalFields: criteria.education?.[0]?.description?.split('\n').slice(1) || [],
+          },
+          experience: {
+            weight: parseFloat(criteria.experience?.[0]?.Rate) || 0,
+            title: criteria.experience?.[0]?.description?.split('->')[0]?.trim() || '',
+            description: criteria.experience?.[0]?.description || '',
+            additionalFields: criteria.experience?.[0]?.description?.split('\n').slice(1) || [],
+          },
+          training: {
+            weight: parseFloat(criteria.training?.[0]?.Rate) || 0,
+            title: criteria.training?.[0]?.description?.split('->')[0]?.trim() || '',
+            description: criteria.training?.[0]?.description || '',
+            additionalFields: criteria.training?.[0]?.description?.split('\n').slice(1) || [],
+          },
+          performance: {
+            weight: parseFloat(criteria.performance?.[0]?.Rate) || 0,
+            title: criteria.performance?.[0]?.description?.split('->')[0]?.trim() || '',
+            description: criteria.performance?.[0]?.description || '',
+            additionalFields: criteria.performance?.[0]?.description?.split('\n').slice(1) || [],
+          },
+          bei: {
+            weight: parseFloat(criteria.behavioral?.[0]?.Rate) || 0,
+            title: criteria.behavioral?.[0]?.description?.split('->')[0]?.trim() || '',
+            description: criteria.behavioral?.[0]?.description || '',
+            additionalFields: criteria.behavioral?.[0]?.description?.split('\n').slice(1) || [],
+          },
+        };
+      } else {
+        // Reset to base criteria if no existing criteria
+        editableCriteria.value = JSON.parse(JSON.stringify(baseCriteria));
+      }
+    },
+    { immediate: true },
+  );
+
+  // Methods
+  function addField(section) {
+    editableCriteria.value[section].additionalFields.push('');
+  }
+
+  function removeField(section, idx) {
+    editableCriteria.value[section].additionalFields.splice(idx, 1);
+  }
+
+  function closeModal() {
+    show.value = false;
+  }
+
+  function confirmSave() {
+    if (totalWeight.value !== 100) {
+      $q.notify({
+        type: 'warning',
+        message: 'The total weight must equal 100% before saving.',
+      });
+      return;
+    }
+    confirmDialog.value = true;
+  }
+
+  async function saveRatings() {
+    loading.value = true;
+    try {
+      // Use id or JobBatchesRspId for job_batches_rsp_id array
+      const jobBatchesRspIds = [props.job?.id || props.job?.JobBatchesRspId].filter(Boolean);
+      await criteriaStore.saveCriteria({
+        jobBatchesRspIds,
+        criteria: editableCriteria.value,
+      });
+      $q.notify({ type: 'positive', message: 'Criteria saved!' });
+      emit('saved');
+      isEditMode.value = false;
+      closeModal();
+    } catch {
+      // handled by store
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  function validatePercentage(field) {
+    if (editableCriteria.value[field].weight < 0) {
+      editableCriteria.value[field].weight = 0;
+    } else if (editableCriteria.value[field].weight > 100) {
+      editableCriteria.value[field].weight = 100;
+    }
+  }
+
+  function enableEditMode() {
+    isEditMode.value = true;
+  }
+
+  // Lifecycle
+  onMounted(() => {
+    editableCriteria.value = JSON.parse(JSON.stringify(baseCriteria));
+  });
 </script>
 
 <style scoped>

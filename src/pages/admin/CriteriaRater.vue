@@ -117,12 +117,12 @@
       <template v-slot:body-cell-action="props">
         <q-td :props="props" class="action-column q-gutter-x-xs">
           <q-btn
-            v-if="!criteriaCreatedMap[props.row.PositionID]"
+            v-if="!hasCriteria(props.row)"
             round
             flat
             color="green"
             class="bg-green-1"
-            icon="add"
+            icon="notes"
             @click="openCriteriaModal(props.row)"
           >
             <q-tooltip>Create Criteria</q-tooltip>
@@ -134,9 +134,9 @@
             color="blue"
             class="bg-blue-1"
             icon="visibility"
-            @click="viewJobDetails(props.row)"
+            @click="viewCriteria(props.row)"
           >
-            <q-tooltip>View Job Details</q-tooltip>
+            <q-tooltip>View Criteria</q-tooltip>
           </q-btn>
         </q-td>
       </template>
@@ -145,11 +145,13 @@
       </template>
     </q-table>
 
+    <!-- Criteria Modal -->
     <criteria-rater-modal
       v-model="showCriteriaModal"
       :job="selectedJob"
       :criteria="selectedCriteria"
-      @criteria-created="onCriteriaCreated"
+      :is-view-mode="isViewMode"
+      @saved="onCriteriaSaved"
     />
   </q-page>
 </template>
@@ -158,10 +160,8 @@
   import { ref, computed, onMounted } from 'vue';
   import { date } from 'quasar';
   import { useJobPostStore } from 'stores/jobPostStore';
-  import { useRouter } from 'vue-router';
   import CriteriaRaterModal from 'src/components/CriteriaModal.vue';
 
-  const router = useRouter();
   const jobPostStore = useJobPostStore();
   const { formatDate } = date;
 
@@ -173,12 +173,7 @@
   });
 
   const globalSearch = ref('');
-
-  const dateRange = ref({
-    from: '',
-    to: '',
-  });
-
+  const dateRange = ref({ from: '', to: '' });
   const dateRangeText = computed(() => {
     if (!dateRange.value.from && !dateRange.value.to) return '';
     return `${formatDate(dateRange.value.from, 'MMM D, YYYY')} - ${formatDate(dateRange.value.to, 'MMM D, YYYY')}`;
@@ -198,7 +193,37 @@
     dateRange.value = newRange;
   };
 
-  const criteriaCreatedMap = ref({});
+  const jobs = ref([]);
+  const jobCriteriaMap = ref({});
+  const filteredJobs = computed(() => {
+    let filtered = jobs.value;
+    if (dateRange.value.from && dateRange.value.to) {
+      filtered = filtered.filter((job) => {
+        const jobDate = new Date(job.post_date);
+        const from = new Date(dateRange.value.from);
+        const to = new Date(dateRange.value.to);
+        to.setHours(23, 59, 59, 999);
+        return jobDate >= from && jobDate <= to;
+      });
+    }
+    if (globalSearch.value) {
+      const searchTerm = globalSearch.value.toLowerCase();
+      filtered = filtered.filter((job) => {
+        return (
+          (job.Office && job.Office.toLowerCase().includes(searchTerm)) ||
+          (job.Position && job.Position.toLowerCase().includes(searchTerm))
+        );
+      });
+    }
+    return filtered;
+  });
+
+  const selectedRows = ref([]);
+  const selectedJob = ref(null);
+  const selectedCriteria = ref(null);
+  const showCriteriaModal = ref(false);
+  const isViewMode = ref(false);
+
   const columns = [
     {
       name: 'Office',
@@ -242,69 +267,125 @@
     },
   ];
 
-  const jobs = ref([]);
-  const filteredJobs = computed(() => {
-    let filtered = jobs.value;
-    if (dateRange.value.from && dateRange.value.to) {
-      filtered = filtered.filter((job) => {
-        const jobDate = new Date(job.post_date);
-        const from = new Date(dateRange.value.from);
-        const to = new Date(dateRange.value.to);
-        to.setHours(23, 59, 59, 999);
-        return jobDate >= from && jobDate <= to;
-      });
-    }
-    if (globalSearch.value) {
-      const searchTerm = globalSearch.value.toLowerCase();
-      filtered = filtered.filter((job) => {
-        return (
-          (job.Office && job.Office.toLowerCase().includes(searchTerm)) ||
-          (job.Position && job.Position.toLowerCase().includes(searchTerm))
-        );
-      });
-    }
-    return filtered;
-  });
-
-  const selectedRows = ref([]);
-
-  const selectedJob = ref(null);
-  const selectedCriteria = ref(null);
-  const showCriteriaModal = ref(false);
+  function hasCriteria(job) {
+    // Use the job's id or JobBatchesRspId as the key
+    const jobId = job.id || job.JobBatchesRspId;
+    return jobCriteriaMap.value[jobId];
+  }
 
   async function openCriteriaModal(job) {
     selectedJob.value = job;
-    // Fetch the criteria for the selected job before opening the modal!
-    selectedCriteria.value = await jobPostStore.fetchCriteriaByPositionAndItemNo(
-      job.PositionID,
-      job.ItemNo,
-    );
+    isViewMode.value = false;
+
+    // Try to fetch existing criteria for this job
+    try {
+      selectedCriteria.value = await jobPostStore.fetchCriteriaByPositionAndItemNo(
+        job.PositionID,
+        job.ItemNo,
+      );
+    } catch {
+      console.log('No existing criteria found, creating new');
+      selectedCriteria.value = null;
+    }
+
     showCriteriaModal.value = true;
   }
 
-  function viewJobDetails(job) {
-    router.push({
-      name: 'JobPost View',
-      params: { PositionID: job.PositionID, ItemNo: job.ItemNo },
-    });
+  function viewCriteria(job) {
+    const jobId = job.id || job.JobBatchesRspId;
+    const criteria = jobCriteriaMap.value[jobId];
+
+    if (criteria) {
+      selectedJob.value = job;
+      selectedCriteria.value = convertApiCriteriaToModalFormat(criteria);
+      isViewMode.value = true;
+      showCriteriaModal.value = true;
+    }
   }
 
-  function onCriteriaCreated(job) {
-    criteriaCreatedMap.value = {
-      ...criteriaCreatedMap.value,
-      [job.PositionID]: true,
+  // Convert API criteria format to modal format
+  function convertApiCriteriaToModalFormat(apiCriteria) {
+    return {
+      education: {
+        weight: parseInt(apiCriteria.education?.Rate || 0),
+        title: apiCriteria.education?.description?.[0] || '',
+        description: apiCriteria.education?.description?.[1] || '',
+        additionalFields: apiCriteria.education?.description?.slice(2) || [],
+      },
+      experience: {
+        weight: parseInt(apiCriteria.experience?.Rate || 0),
+        title: apiCriteria.experience?.description?.[0] || '',
+        description: apiCriteria.experience?.description?.[1] || '',
+        additionalFields: apiCriteria.experience?.description?.slice(2) || [],
+      },
+      training: {
+        weight: parseInt(apiCriteria.training?.Rate || 0),
+        title: apiCriteria.training?.description?.[0] || '',
+        description: apiCriteria.training?.description?.[1] || '',
+        additionalFields: apiCriteria.training?.description?.slice(2) || [],
+      },
+      performance: {
+        weight: parseInt(apiCriteria.performance?.Rate || 0),
+        title: apiCriteria.performance?.description?.[0] || '',
+        description: apiCriteria.performance?.description?.[1] || '',
+        additionalFields: apiCriteria.performance?.description?.slice(2) || [],
+      },
+      bei: {
+        weight: parseInt(apiCriteria.behavioral?.Rate || apiCriteria.bei?.Rate || 0),
+        title: apiCriteria.behavioral?.description?.[0] || apiCriteria.bei?.description?.[0] || '',
+        description:
+          apiCriteria.behavioral?.description?.[1] || apiCriteria.bei?.description?.[1] || '',
+        additionalFields:
+          apiCriteria.behavioral?.description?.slice(2) ||
+          apiCriteria.bei?.description?.slice(2) ||
+          [],
+      },
     };
+  }
+
+  function onCriteriaSaved() {
+    // Refresh the criteria data after saving
+    loadCriteria();
+    showCriteriaModal.value = false;
   }
 
   function handleSameAs() {
     console.log('Same as clicked for:', selectedRows.value);
   }
 
+  async function loadCriteria() {
+    try {
+      const allCriteria = await jobPostStore.fetchAllCriteria();
+
+      // Clear existing criteria map
+      jobCriteriaMap.value = {};
+
+      allCriteria.forEach((criteria) => {
+        // Map criteria using job_batches_rsp_id
+        if (Array.isArray(criteria.job_batches_rsp_id)) {
+          criteria.job_batches_rsp_id.forEach((jobId) => {
+            jobCriteriaMap.value[jobId] = criteria;
+          });
+        } else if (criteria.job_batches_rsp_id) {
+          jobCriteriaMap.value[criteria.job_batches_rsp_id] = criteria;
+        }
+
+        // Also map by positionId-plantillaItemNo for backward compatibility
+        if (criteria.positionId && criteria.plantillaItemNo) {
+          const key = `${criteria.positionId}-${criteria.plantillaItemNo}`;
+          jobCriteriaMap.value[key] = criteria;
+        }
+      });
+    } catch (error) {
+      console.error('Error loading criteria:', error);
+    }
+  }
+
   onMounted(async () => {
     await jobPostStore.fetchJobPosts();
     jobs.value = jobPostStore.jobPosts;
     setDateRange();
-    criteriaCreatedMap.value = {};
+    await loadCriteria();
   });
 </script>
 
@@ -314,53 +395,57 @@
     line-height: 1.7rem;
     margin-bottom: 0.5rem;
   }
+
   .job-posts-table {
     font-size: 0.9rem;
     table-layout: fixed;
     width: 100%;
+
     th {
       font-size: 0.95rem;
       font-weight: 600;
       padding: 8px 12px;
       background-color: #f5f5f5;
     }
+
     td {
       font-size: 0.9rem;
       padding: 8px 12px;
       vertical-align: middle;
     }
+
     .office-column {
       width: 25%;
       white-space: normal;
       word-break: break-word;
     }
+
     .position-column {
       width: 35%;
       white-space: normal;
       word-break: break-word;
     }
+
     .status-column,
     .rater-column {
       width: 13%;
       text-align: center;
     }
+
     .action-column {
       width: 14%;
       text-align: center;
     }
   }
-  .q-mb-md {
-    margin-bottom: 16px;
+
+  .sticky-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
   }
-  .q-pa-md {
-    padding: 12px;
-  }
-  .q-pa-sm {
-    padding: 8px;
-  }
-  .q-card-section {
-    padding: 12px;
-  }
+
   @media (max-width: 1024px) {
     .job-posts-table {
       th,

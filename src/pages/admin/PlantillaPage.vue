@@ -1,23 +1,25 @@
 <template>
   <q-page>
     <div class="row justify-center items-center" style="height: 89vh">
-      <!--  -->
+      <!-- Structure Selection Sidebar -->
       <div class="col-3 q-pa-sm">
         <PlantillaSelection
           :positions="positions"
           @structure-selected="handleStructureSelection"
         ></PlantillaSelection>
       </div>
-      <!--  -->
+
+      <!-- Main Content Area -->
       <div class="col-9 q-gutter-md">
         <q-card>
           <q-scroll-area class="q-pa-sm" style="height: 82vh">
+            <!-- Structure Title and Clear Button -->
             <q-card
               flat
               v-if="getStructureTitle() != ''"
-              class="row justify-between items-center q-pa-md"
+              class="row justify-between items-center q-pa-sm"
             >
-              <div class="text-h5 text-bold" style="width: 500px">
+              <div class="text-h6 text-bold q-mb-md" style="width: 500px">
                 {{ getStructureTitle() }}
               </div>
               <div>
@@ -26,6 +28,8 @@
                 </q-btn>
               </div>
             </q-card>
+
+            <!-- Positions Table -->
             <q-card flat v-if="currentStructure">
               <q-separator />
               <q-card-section>
@@ -36,13 +40,12 @@
                   :columns="columns"
                   row-key="id"
                   :filter="filter"
-                  :q-pagination="pagination"
+                  :pagination="pagination"
                   v-model:pagination="pagination"
                   :rows-per-page-options="[]"
                   :loading="usePlantilla.loading"
                 >
                   <!-- Header with search boxes -->
-
                   <template v-slot:header="props">
                     <q-tr :props="props">
                       <q-th
@@ -72,41 +75,38 @@
                       </q-th>
                     </q-tr>
                   </template>
-                  <!-- Add body cell template for PageNo -->
+
+                  <!-- Table Body Cells -->
                   <template v-slot:body-cell-PageNo="props">
                     <q-td :props="props" style="width: 80px; white-space: normal">
                       {{ props.value }}
                     </q-td>
                   </template>
 
-                  <!-- Add body cell template for ItemNo -->
                   <template v-slot:body-cell-ItemNo="props">
                     <q-td :props="props" style="width: 80px; white-space: normal">
                       {{ props.value }}
                     </q-td>
                   </template>
 
-                  <!-- Add body cell template for Salary Grade -->
                   <template v-slot:body-cell-SG="props">
                     <q-td :props="props" style="width: 80px; white-space: normal">
                       {{ props.value }}
                     </q-td>
                   </template>
 
-                  <!-- Add body cell template for position -->
                   <template v-slot:body-cell-position="props">
                     <q-td :props="props" style="width: 230px; white-space: normal">
                       {{ props.value }}
                     </q-td>
                   </template>
 
-                  <!-- Add body cell template for position -->
                   <template v-slot:body-cell-Name1="props">
                     <q-td :props="props" style="width: 230px; white-space: normal">
                       {{ props.value }}
                     </q-td>
                   </template>
-                  <!-- for switch -->
+
                   <template v-slot:body-cell-fd="props">
                     <q-td :props="props">
                       <template v-if="authStore.user.permissions.isFunded == '1'">
@@ -130,7 +130,7 @@
                       </template>
                     </q-td>
                   </template>
-                  <!-- Add body cell template for position -->
+
                   <template v-slot:body-cell-Status="props">
                     <q-td :props="props" style="width: 70px; white-space: normal">
                       <q-badge
@@ -162,6 +162,7 @@
                     </q-td>
                   </template>
 
+                  <!-- Action Buttons -->
                   <template v-slot:body-cell-action="props">
                     <q-td :props="props" class="q-gutter-x-sm">
                       <q-btn
@@ -210,7 +211,8 @@
                       </q-btn>
                     </q-td>
                   </template>
-                  <!-- button next page -->
+
+                  <!-- Pagination Controls -->
                   <template v-slot:bottom>
                     <div class="q-pa-sm row justify-end items-center" style="width: 100%">
                       <q-btn
@@ -241,6 +243,7 @@
               </q-card-section>
             </q-card>
 
+            <!-- Empty State -->
             <div v-else class="text-center q-pa-xl">
               <q-icon name="info" size="3em" color="grey-7" />
               <p class="text-h6 text-grey-8 q-mt-md">
@@ -252,7 +255,10 @@
       </div>
     </div>
 
-    <!-- separate for modal -->
+    <!-- Reports Modal -->
+    <q-dialog v-model="showReportModal" persistent>
+      <Reports v-model="showReportModal" :employee="reportRow" @close="showReportModal = false" />
+    </q-dialog>
 
     <!-- Upload File Modal -->
     <q-dialog persistent v-model="showModal">
@@ -271,7 +277,7 @@
             @rejected="onFileRejected"
             label="Upload PDF file (Max 5MB)"
             style="
-              width: 350px; /* Adjust width as needed */
+              width: 350px;
               padding: 20px;
               border: 2px dashed #ccc;
               border-radius: 8px;
@@ -288,7 +294,6 @@
             </template>
           </q-file>
 
-          <!-- Add progress indicator -->
           <div class="q-mt-md full-width">
             <q-linear-progress
               rounded
@@ -303,12 +308,10 @@
             </div>
           </div>
 
-          <!-- Display error message if any -->
           <div v-if="uploadStatus.error" class="text-negative q-mt-sm text-center">
             {{ uploadStatus.error }}
           </div>
 
-          <!-- Show success message when upload is complete -->
           <div v-if="isUploadComplete" class="text-positive q-mt-sm text-center">
             Upload completed successfully!
           </div>
@@ -339,7 +342,6 @@
           flex-direction: column;
         "
       >
-        <!-- Sticky Header -->
         <q-card-section
           class="q-pa-md"
           style="position: sticky; top: 0; z-index: 2; background: white"
@@ -368,10 +370,8 @@
           </div>
         </q-card-section>
 
-        <!-- Scrollable Body -->
         <q-scroll-area class="q-px-md" style="height: 1000px">
           <q-card-section class="q-py-none">
-            <!--  -->
             <div class="row q-col-gutter-md">
               <div class="col-6">
                 <q-input v-model="postJobDetails.office" label="Office" outlined dense disable />
@@ -405,7 +405,6 @@
                 />
               </div>
             </div>
-            <!--  -->
 
             <div class="row q-col-gutter-md q-mt-sm">
               <div class="col-6">
@@ -497,7 +496,6 @@
           </q-card-section>
         </q-scroll-area>
 
-        <!-- Sticky Footer -->
         <q-card-actions
           align="center"
           class="q-pa-md row justify-between items-center"
@@ -525,7 +523,7 @@
       </q-card>
     </q-dialog>
 
-    <!-- Quality Standard Modal (now a separate component) -->
+    <!-- Quality Standard Modal -->
     <QualityStandardModal
       v-model:show="showFilledPositionModal"
       variant="employee"
@@ -535,6 +533,8 @@
       @close="closeQualificationModal"
       :isPlantilla="true"
     />
+
+    <!-- PDS Modal -->
     <q-dialog v-model="showPDSModal" backdrop-opacity="0.7">
       <PDSModal v-model="showPDSModal" :applicant="selectedApplicant" @close="closePDSModal" />
     </q-dialog>
@@ -547,6 +547,7 @@
   import PlantillaSelection from 'components/PlantillaSelection.vue';
   import { usePlantillaStore } from 'stores/plantillaStore';
   import PDSModal from 'components/PDSModal.vue';
+  import Reports from 'src/components/Reports/TabModal.vue';
   import { useAuthStore } from 'stores/authStore';
   import { useJobPostStore } from 'stores/jobPostStore';
   import { toast } from 'src/boot/toast';
@@ -556,11 +557,39 @@
   const authStore = useAuthStore();
   const usePlantilla = usePlantillaStore();
   const logStore = useLogsStore();
+  const jobPostStore = useJobPostStore();
 
-  //
+  // Refs
+  const showReportModal = ref(false);
+  const reportRow = ref(null);
   const currentRow = ref(null);
   const showModal = ref(false);
-  const selectedFile = ref(null); // Used with q-file v-model
+  const selectedFile = ref(null);
+  const showVacantPositionModal = ref(false);
+  const showFilledPositionModal = ref(false);
+  const showPDSModal = ref(false);
+  const selectedPosition = ref(null);
+  const filter = ref('');
+  const qsDataLoad = ref([]);
+  const currentStructure = ref(null);
+  const selectedApplicant = ref({
+    id: null,
+    level: '',
+    PositionID: '',
+    controlno: '',
+    name: '',
+    photo: '',
+    position: '',
+    status: 'Pending',
+    isSubmitted: false,
+    applicationDate: '',
+    education: [],
+    experience: [],
+    training: [],
+    eligibility: [],
+    personalInfo: {},
+  });
+
   const uploadStatus = ref({
     isUploaded: false,
     isUploading: false,
@@ -568,7 +597,257 @@
     error: null,
   });
 
-  // New function to handle the actual upload
+  const postJobDetails = ref({
+    office: '',
+    division: '',
+    section: '',
+    unit: '',
+    position: '',
+    startingDate: '',
+    endedDate: '',
+    PositionID: '',
+    PageNo: '',
+    ItemNo: '',
+    SG: '',
+    level: '',
+  });
+
+  const qsCriteria = ref({
+    PositionID: '',
+    Education: '',
+    Eligibility: '',
+    Experience: '',
+    Training: '',
+  });
+
+  const positionRequirements = ref({
+    education: "Bachelor's Degree in related field",
+    preferredEducation: "Master's Degree preferred",
+    experience: 'Minimum 3 years relevant experience',
+    preferredExperience: '5+ years in leadership role',
+    training: 'Certification in relevant field',
+    preferredTraining: 'Multiple advanced certifications',
+    eligibility: 'Professional license required',
+    preferredCertification: 'Additional specialized certifications',
+  });
+
+  const pagination = ref({
+    page: 1,
+    rowsPerPage: 7,
+  });
+
+  const positions = ref([]);
+
+  const filters = ref({
+    PageNo: '',
+    ItemNo: '',
+    SG: '',
+    position: '',
+    Name2: '',
+    fd: 'All',
+    Status: '',
+  });
+
+  const columns = [
+    { name: 'PageNo', label: 'Page No', field: 'PageNo', align: 'left', sortable: false },
+    { name: 'ItemNo', label: 'Item No', field: 'ItemNo', align: 'left', sortable: false },
+    { name: 'SG', label: 'Salary Grade', field: 'SG', align: 'left', sortable: false },
+    { name: 'position', label: 'Position', field: 'position', align: 'left', sortable: false },
+    { name: 'Name1', label: 'Employee', field: 'Name1', align: 'left', sortable: false },
+    { name: 'fd', label: 'Funded', field: 'Funded', align: 'left', sortable: false },
+    { name: 'Status', label: 'Status', field: 'Status', align: 'left', sortable: false },
+    { name: 'action', label: 'Action', field: 'action', align: 'center' },
+  ];
+
+  // Computed
+  const filteredPositions = computed(() => {
+    if (!currentStructure.value) {
+      return [];
+    }
+
+    let filtered = positions.value.filter((row) => {
+      const s = currentStructure.value;
+
+      if (!row.office || row.office !== s.office) return false;
+
+      if (s.unit) {
+        return row.division === s.division && row.section === s.section && row.unit === s.unit;
+      } else if (s.section) {
+        return (
+          row.division === s.division && row.section === s.section && (!row.unit || row.unit === '')
+        );
+      } else if (s.division) {
+        return (
+          row.division === s.division &&
+          (!row.section || row.section === '') &&
+          (!row.unit || row.unit === '')
+        );
+      } else {
+        return (
+          (!row.division || row.division === '') &&
+          (!row.section || row.section === '') &&
+          (!row.unit || row.unit === '')
+        );
+      }
+    });
+
+    return filtered.filter((row) => {
+      for (const key in filters.value) {
+        if (filters.value[key]) {
+          if (key === 'fd') {
+            if (filters.value[key] !== 'All') {
+              const isYes = filters.value[key] === 'Yes';
+              const rowFunded = row.Funded === '1' || row.Funded === true;
+              if (isYes !== rowFunded) return false;
+            }
+          } else {
+            const filterValue = String(filters.value[key]).toLowerCase();
+            const rowValue = String(row[key] || '').toLowerCase();
+            if (!rowValue.includes(filterValue)) return false;
+          }
+        }
+      }
+      return true;
+    });
+  });
+
+  const isUploadComplete = computed(() => {
+    return uploadStatus.value.isUploaded && !uploadStatus.value.isUploading;
+  });
+
+  // Methods
+  const handleStructureSelection = (selectedData) => {
+    currentStructure.value = selectedData;
+    clearSearchFilters();
+  };
+
+  const getStructureTitle = () => {
+    if (!currentStructure.value) return '';
+    return currentStructure.value.office || '';
+  };
+
+  const viewPosition = async (row) => {
+    selectedPosition.value = row;
+    if (row.Name1) {
+      selectedApplicant.value.controlno = row.ControlNo;
+      selectedApplicant.value.PositionID = row.PositionID;
+      selectedApplicant.value.name = row.Name4;
+      selectedApplicant.value.position = row.position;
+      selectedApplicant.value.status = row.Status;
+      selectedApplicant.value.level = row.level;
+      showFilledPositionModal.value = true;
+    } else {
+      showVacantPositionModal.value = true;
+      postJobDetails.value = {
+        office: row.office,
+        division: row.division,
+        section: row.section,
+        unit: row.unit,
+        position: row.position,
+        PositionID: row.PositionID,
+        PageNo: row.PageNo,
+        ItemNo: row.ItemNo,
+        SG: row.SG,
+        startingDate: new Date().toISOString().split('T')[0].replace(/-/g, '/'),
+        endedDate: new Date().toISOString().split('T')[0].replace(/-/g, '/'),
+        level: row.level,
+      };
+      await usePlantilla.fetchQsData(row.PositionID);
+      qsDataLoad.value = usePlantilla.qsData;
+      if (usePlantilla.qsData && usePlantilla.qsData.length > 0) {
+        qsCriteria.value = {
+          Education: usePlantilla.qsData[0].Education,
+          Experience: usePlantilla.qsData[0].Experience,
+          Eligibility: usePlantilla.qsData[0].Eligibility,
+          Training: usePlantilla.qsData[0].Training,
+          PositionID: row.PositionID,
+        };
+      }
+    }
+  };
+
+  const printPosition = (row) => {
+    console.log('Printing position:', row); // Debug log
+    reportRow.value = row;
+    showReportModal.value = true;
+    console.log('Modal state:', showReportModal.value); // Debug log
+  };
+
+  const submitJobPost = async () => {
+    const jobBatch = {
+      PositionID: parseInt(postJobDetails.value.PositionID),
+      Office: postJobDetails.value.office,
+      Office2: null,
+      Group: null,
+      Division: postJobDetails.value.division,
+      Section: postJobDetails.value.section,
+      Unit: postJobDetails.value.unit,
+      Position: postJobDetails.value.position,
+      post_date: postJobDetails.value.startingDate.replace(/\//g, '-'),
+      end_date: postJobDetails.value.endedDate.replace(/\//g, '-'),
+      PageNo: postJobDetails.value.PageNo,
+      ItemNo: postJobDetails.value.ItemNo,
+      SalaryGrade: postJobDetails.value.SG,
+      level: postJobDetails.value.level,
+      salaryMin: null,
+      salaryMax: null,
+    };
+
+    const jobCriteria = {
+      ItemNo: parseInt(postJobDetails.value.ItemNo),
+      PositionID: parseInt(qsCriteria.value.PositionID),
+      EduPercent: '0',
+      EliPercent: '0',
+      TrainPercent: '0',
+      ExperiencePercent: '0',
+      Education: qsCriteria.value.Education,
+      Eligibility: qsCriteria.value.Eligibility,
+      Training: qsCriteria.value.Training,
+      Experience: qsCriteria.value.Experience,
+    };
+
+    await jobPostStore.insertJobPost({
+      jobBatch: jobBatch,
+      criteria: jobCriteria,
+    });
+    await updatePageNoAPI(
+      postJobDetails.value.PositionID,
+      postJobDetails.value.PageNo,
+      postJobDetails.value.ItemNo,
+    );
+    showVacantPositionModal.value = false;
+
+    logStore.logAction(
+      `${authStore.user.name} created a job post for ${postJobDetails.value.position}. PositionID: ${postJobDetails.value.PositionID}, ItemNo: ${postJobDetails.value.ItemNo}`,
+    );
+  };
+
+  const clearSearchFilters = () => {
+    Object.keys(filters.value).forEach((key) => {
+      if (key === 'fd') {
+        filters.value[key] = 'All';
+      } else {
+        filters.value[key] = '';
+      }
+    });
+  };
+
+  const clearFilters = () => {
+    clearSearchFilters();
+  };
+
+  const closeQualificationModal = () => {
+    showFilledPositionModal.value = false;
+  };
+
+  const closePDSModal = () => {
+    showPDSModal.value = false;
+  };
+
+  const viewApplicantPDS = () => {
+    showPDSModal.value = true;
+  };
+
   const uploadFileToServer = (fileToUpload) => {
     return new Promise((resolve, reject) => {
       const progressHandler = (progressEvent) => {
@@ -591,7 +870,7 @@
       const formData = new FormData();
       formData.append('fileUpload', fileToUpload);
       formData.append('PositionID', currentRow.value.PositionID);
-      formData.append('ItemNo', currentRow.value.ItemNo); // Include ItemNo in the form data
+      formData.append('ItemNo', currentRow.value.ItemNo);
 
       console.log('Uploading with PositionID:', currentRow.value.PositionID);
       console.log('Uploading with ItemNo:', currentRow.value.ItemNo);
@@ -645,6 +924,105 @@
     });
   };
 
+  const updateFundedStatusAPI = (positionId, isFunded, itemNo) => {
+    return new Promise((resolve, reject) => {
+      if (!positionId || !itemNo) {
+        const errorMessage = 'PositionID or ItemNo is required for updating funded status.';
+        console.error(errorMessage);
+        toast.error(errorMessage);
+        return reject(new Error(errorMessage));
+      }
+
+      const token = document.cookie
+        .split('; ')
+        .find((row) => row.startsWith('admin_token='))
+        ?.split('=')[1];
+
+      const requestConfig = {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+      };
+
+      const payload = {
+        PositionID: positionId,
+        Funded: !!isFunded,
+        ItemNo: itemNo,
+      };
+
+      axios
+        .post(
+          `${process.env.VUE_APP_API_URL}/structure-details/update-funded`,
+          payload,
+          requestConfig,
+        )
+        .then((response) => {
+          toast.success(response.data?.message || 'Funded status updated successfully!');
+          resolve(response.data);
+        })
+        .catch((error) => {
+          const errorMessage =
+            error.response?.data?.message || error.message || 'Failed to update funded status.';
+          console.error('Update funded status error:', errorMessage, error.response?.data);
+          toast.error('Error -> ' + errorMessage);
+          reject(new Error(errorMessage));
+        });
+    });
+  };
+
+  const updatePageNoAPI = (positionId, pageNo, itemNo) => {
+    return new Promise((resolve, reject) => {
+      if (!positionId || !itemNo) {
+        const errorMessage = 'PositionID or ItemNo is required for updating PageNo.';
+        console.error(errorMessage);
+        toast.error(errorMessage);
+        return reject(new Error(errorMessage));
+      }
+
+      const token = document.cookie
+        .split('; ')
+        .find((row) => row.startsWith('admin_token='))
+        ?.split('=')[1];
+
+      const requestConfig = {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+      };
+
+      const payload = {
+        PositionID: String(positionId),
+        PageNo: String(pageNo),
+        ItemNo: String(itemNo),
+      };
+
+      axios
+        .post(
+          `${process.env.VUE_APP_API_URL}/structure-details/update-pageno`,
+          payload,
+          requestConfig,
+        )
+        .then((response) => {
+          toast.success(response.data?.message || 'PageNo updated successfully!');
+          resolve(response.data);
+        })
+        .catch((error) => {
+          let errorMessage;
+          if (error.response?.data?.errors) {
+            errorMessage = Object.values(error.response.data.errors).flat().join('; ');
+          } else {
+            errorMessage =
+              error.response?.data?.message || error.message || 'Failed to update PageNo.';
+          }
+          console.error('Update PageNo error:', errorMessage, error.response?.data);
+          toast.error('Error -> ' + errorMessage);
+          reject(new Error(errorMessage));
+        });
+    });
+  };
+
   const onFileRejected = (rejectedEntries) => {
     let message = 'File rejected.';
     if (rejectedEntries && rejectedEntries.length > 0) {
@@ -661,12 +1039,6 @@
     uploadStatus.value.error = message;
   };
 
-  // Computed property to check if upload is complete
-  const isUploadComplete = computed(() => {
-    return uploadStatus.value.isUploaded && !uploadStatus.value.isUploading;
-  });
-
-  // Function to reset upload status
   const resetUploadStatus = () => {
     uploadStatus.value = {
       isUploaded: false,
@@ -693,7 +1065,6 @@
 
     try {
       await uploadFileToServer(selectedFile.value);
-      // Success:
       if (currentRow.value) {
         await updateFundedStatusAPI(currentRow.value.PositionID, true, currentRow.value.ItemNo);
         currentRow.value.Funded = '1';
@@ -702,442 +1073,36 @@
       logStore.logAction(
         `${authStore.user.name} uploaded a Plantilla Funded for ${currentRow.value.position}. PositionID: ${currentRow.value.PositionID}, ItemNo: ${currentRow.value.ItemNo}`,
       );
-      selectedFile.value = null; // Clear the file input
-      resetUploadStatus(); // Reset status for next upload
+      selectedFile.value = null;
+      resetUploadStatus();
     } catch (error) {
-      // Error is already handled in uploadFileToServer (sets uploadStatus.error, shows toast)
       console.error('Upload failed in confirmUpload:', error.message);
     }
-  };
-
-  // New Axios function to update funded status
-  const updateFundedStatusAPI = (positionId, isFunded, itemNo) => {
-    return new Promise((resolve, reject) => {
-      if (!positionId || !itemNo) {
-        const errorMessage = 'PositionID or ItemNo is required for updating funded status.';
-        console.error(errorMessage);
-        toast.error(errorMessage);
-        return reject(new Error(errorMessage));
-      }
-
-      const token = document.cookie
-        .split('; ')
-        .find((row) => row.startsWith('admin_token='))
-        ?.split('=')[1];
-
-      const requestConfig = {
-        headers: {
-          'Content-Type': 'application/json', // Sending JSON data
-          ...(token && { Authorization: `Bearer ${token}` }),
-        },
-      };
-
-      // Backend expects 'PositionID' and 'Funded' (boolean)
-      const payload = {
-        PositionID: positionId,
-        Funded: !!isFunded, // Ensure boolean value
-        ItemNo: itemNo, // Include ItemNo in the payload
-      };
-
-      axios
-        .post(
-          `${process.env.VUE_APP_API_URL}/structure-details/update-funded`,
-          payload,
-          requestConfig,
-        )
-        .then((response) => {
-          toast.success(response.data?.message || 'Funded status updated successfully!');
-          resolve(response.data);
-        })
-        .catch((error) => {
-          const errorMessage =
-            error.response?.data?.message || error.message || 'Failed to update funded status.';
-          console.error('Update funded status error:', errorMessage, error.response?.data);
-          toast.error('Error -> ' + errorMessage);
-          reject(new Error(errorMessage));
-        });
-    });
   };
 
   const cancelUpload = () => {
     showModal.value = false;
     selectedFile.value = null;
     resetUploadStatus();
-    currentRow.value = null; // Assuming you want to clear the current row context on cancel
+    currentRow.value = null;
   };
 
   const handleToggle = (row, val) => {
     if (val) {
-      // Toggle ON
       currentRow.value = row;
-      resetUploadStatus(); // Reset status before opening modal
-      selectedFile.value = null; // Clear any previously selected file
+      resetUploadStatus();
+      selectedFile.value = null;
       showModal.value = true;
       console.log('Toggled ON for PositionID:', currentRow.value.PositionID);
       console.log('Toggled ON for ItemNo:', currentRow.value.ItemNo);
     } else {
-      // Toggle OFF
       row.Funded = '0';
-      // Optionally, call backend to mark as unfunded/delete file
       console.log('Toggled OFF for PositionID:', row.PositionID);
       toast.info('File removed successfully');
     }
   };
 
-  // New Axios function to update PageNo for tblStructureDetails
-  const updatePageNoAPI = (positionId, pageNo, itemNo) => {
-    return new Promise((resolve, reject) => {
-      if (!positionId || !itemNo) {
-        const errorMessage = 'PositionID or ItemNo is required for updating PageNo.';
-        console.error(errorMessage);
-        toast.error(errorMessage);
-        return reject(new Error(errorMessage));
-      }
-
-      // The backend validates 'PageNo' as 'required|string'.
-      // We will cast pageNo to string. If pageNo is null or undefined,
-      // String(pageNo) will become "null" or "undefined".
-      // If the input field is empty, postJobDetails.PageNo might be null or an empty string.
-      // An empty string "" is a valid string for the backend.
-      // "null" as a string might also be accepted by the backend if it expects any string.
-      // The 'required' rule means the key must be present and not PHP null.
-
-      const token = document.cookie
-        .split('; ')
-        .find((row) => row.startsWith('admin_token='))
-        ?.split('=')[1];
-
-      const requestConfig = {
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { Authorization: `Bearer ${token}` }),
-        },
-      };
-
-      const payload = {
-        PositionID: String(positionId), // Ensure string as per backend 'string' validation
-        PageNo: String(pageNo), // Ensure string as per backend 'string' validation
-        ItemNo: String(itemNo), // Include ItemNo in the payload
-      };
-
-      axios
-        .post(
-          `${process.env.VUE_APP_API_URL}/structure-details/update-pageno`,
-          payload,
-          requestConfig,
-        )
-        .then((response) => {
-          toast.success(response.data?.message || 'PageNo updated successfully!');
-          resolve(response.data);
-        })
-        .catch((error) => {
-          let errorMessage;
-          if (error.response?.data?.errors) {
-            // Concatenate all validation error messages
-            errorMessage = Object.values(error.response.data.errors).flat().join('; ');
-          } else {
-            errorMessage =
-              error.response?.data?.message || error.message || 'Failed to update PageNo.';
-          }
-          console.error('Update PageNo error:', errorMessage, error.response?.data);
-          toast.error('Error -> ' + errorMessage);
-          reject(new Error(errorMessage));
-        });
-    });
-  };
-
-  const showVacantPositionModal = ref(false);
-
-  // Watch for modal close and emit event to clear qsDataLoad
-  watch(showVacantPositionModal, (val) => {
-    if (!val) {
-      qsDataLoad.value = [];
-      // Optionally emit an event if needed, e.g.:
-      // emit('modal-closed', []);
-    }
-  });
-
-  const closeQualificationModal = () => {
-    showFilledPositionModal.value = false;
-  };
-  const showFilledPositionModal = ref(false);
-
-  const selectedPosition = ref(null);
-  const filter = ref('');
-
-  const closePDSModal = () => {
-    showPDSModal.value = false;
-  };
-  const showPDSModal = ref(false);
-
-  const qsDataLoad = ref([]);
-
-  // Add filter object to store search values for each column
-  const filters = ref({
-    PageNo: '',
-    ItemNo: '',
-    SG: '',
-    position: '',
-    Name2: '', // Assuming Name1 was intended here based on table columns
-    fd: 'All',
-    Status: '',
-  });
-
-  const viewApplicantPDS = () => {
-    showPDSModal.value = true;
-  };
-
-  const positionRequirements = ref({
-    education: "Bachelor's Degree in related field",
-    preferredEducation: "Master's Degree preferred",
-    experience: 'Minimum 3 years relevant experience',
-    preferredExperience: '5+ years in leadership role',
-    training: 'Certification in relevant field',
-    preferredTraining: 'Multiple advanced certifications',
-    eligibility: 'Professional license required',
-    preferredCertification: 'Additional specialized certifications',
-  });
-
-  const selectedApplicant = ref({
-    id: null,
-    level: '',
-    PositionID: '',
-    controlno: '',
-    name: '',
-    photo: '',
-    position: '',
-    status: 'Pending',
-    isSubmitted: false,
-    applicationDate: '',
-    education: [],
-    experience: [],
-    training: [],
-    eligibility: [],
-    personalInfo: {},
-  });
-
-  const postJobDetails = ref({
-    office: '',
-    division: '',
-    section: '',
-    unit: '',
-    position: '',
-    startingDate: '',
-    endedDate: '',
-    PositionID: '',
-    PageNo: '',
-    ItemNo: '',
-    SG: '',
-    level: '',
-  });
-
-  const qsCriteria = ref({
-    PositionID: '',
-    Education: '',
-    Eligibility: '',
-    Experience: '',
-    Training: '',
-  });
-
-  // Add current structure selection
-  const currentStructure = ref(null);
-
-  const pagination = ref({
-    page: 1,
-    rowsPerPage: 7,
-  });
-
-  const positions = ref([]);
-
-  const columns = [
-    { name: 'PageNo', label: 'Page No', field: 'PageNo', align: 'left', sortable: false },
-    { name: 'ItemNo', label: 'Item No', field: 'ItemNo', align: 'left', sortable: false },
-    { name: 'SG', label: 'Salary Grade', field: 'SG', align: 'left', sortable: false },
-    { name: 'position', label: 'Position', field: 'position', align: 'left', sortable: false },
-    { name: 'Name1', label: 'Employee', field: 'Name1', align: 'left', sortable: false },
-    {
-      name: 'fd',
-      label: 'Funded',
-      field: 'Funded',
-      align: 'left',
-      sortable: false,
-    },
-    { name: 'Status', label: 'Status', field: 'Status', align: 'left', sortable: false },
-    { name: 'action', label: 'Action', field: 'action', align: 'center' },
-  ];
-
-  const filteredPositions = computed(() => {
-    if (!currentStructure.value) {
-      return [];
-    }
-
-    let filtered = positions.value.filter((row) => {
-      const s = currentStructure.value;
-
-      if (!row.office || row.office !== s.office) return false;
-
-      if (s.unit) {
-        return row.division === s.division && row.section === s.section && row.unit === s.unit;
-      } else if (s.section) {
-        return (
-          row.division === s.division && row.section === s.section && (!row.unit || row.unit === '')
-        );
-      } else if (s.division) {
-        return (
-          row.division === s.division &&
-          (!row.section || row.section === '') &&
-          (!row.unit || row.unit === '')
-        );
-      } else {
-        return (
-          (!row.division || row.division === '') &&
-          (!row.section || row.section === '') &&
-          (!row.unit || row.unit === '')
-        );
-      }
-    });
-
-    return filtered.filter((row) => {
-      for (const key in filters.value) {
-        if (filters.value[key]) {
-          if (key === 'fd') {
-            if (filters.value[key] !== 'All') {
-              const isYes = filters.value[key] === 'Yes';
-              const rowFunded = row.Funded === '1' || row.Funded === true;
-              if (isYes !== rowFunded) return false;
-            }
-          } else {
-            const filterValue = String(filters.value[key]).toLowerCase();
-            const rowValue = String(row[key] || '').toLowerCase();
-            if (!rowValue.includes(filterValue)) return false;
-          }
-        }
-      }
-      return true;
-    });
-  });
-
-  const handleStructureSelection = (selectedData) => {
-    currentStructure.value = selectedData;
-    clearSearchFilters();
-  };
-
-  const getStructureTitle = () => {
-    if (!currentStructure.value) return '';
-    return currentStructure.value.office || '';
-  };
-
-  const viewPosition = async (row) => {
-    selectedPosition.value = row;
-    if (row.Name1) {
-      selectedApplicant.value.controlno = row.ControlNo;
-      selectedApplicant.value.PositionID = row.PositionID;
-      selectedApplicant.value.name = row.Name4; // Assuming Name4 is correct for applicant name
-      selectedApplicant.value.position = row.position;
-      selectedApplicant.value.status = row.Status;
-      selectedApplicant.value.level = row.level;
-      showFilledPositionModal.value = true;
-    } else {
-      showVacantPositionModal.value = true;
-      postJobDetails.value = {
-        office: row.office,
-        division: row.division,
-        section: row.section,
-        unit: row.unit,
-        position: row.position,
-        PositionID: row.PositionID,
-        PageNo: row.PageNo,
-        ItemNo: row.ItemNo,
-        SG: row.SG,
-        startingDate: new Date().toISOString().split('T')[0].replace(/-/g, '/'), // Default date
-        endedDate: new Date().toISOString().split('T')[0].replace(/-/g, '/'), // Default date
-        level: row.level,
-      };
-      await usePlantilla.fetchQsData(row.PositionID);
-      qsDataLoad.value = usePlantilla.qsData;
-      if (usePlantilla.qsData && usePlantilla.qsData.length > 0) {
-        qsCriteria.value = {
-          Education: usePlantilla.qsData[0].Education,
-          Experience: usePlantilla.qsData[0].Experience,
-          Eligibility: usePlantilla.qsData[0].Eligibility,
-          Training: usePlantilla.qsData[0].Training,
-          PositionID: row.PositionID,
-        };
-      }
-    }
-  };
-
-  const printPosition = (row) => {
-    console.log('Printing:', row);
-    // Implement actual print logic here
-    toast.info(`Printing PDS for ${row.Name1 || 'selected position'}`);
-  };
-
-  const jobPostStore = useJobPostStore();
-
-  const submitJobPost = async () => {
-    const jobBatch = {
-      PositionID: parseInt(postJobDetails.value.PositionID),
-      Office: postJobDetails.value.office,
-      Office2: null,
-      Group: null,
-      Division: postJobDetails.value.division,
-      Section: postJobDetails.value.section,
-      Unit: postJobDetails.value.unit,
-      Position: postJobDetails.value.position,
-      post_date: postJobDetails.value.startingDate.replace(/\//g, '-'), // Ensure YYYY-MM-DD
-      end_date: postJobDetails.value.endedDate.replace(/\//g, '-'), // Ensure YYYY-MM-DD
-      PageNo: postJobDetails.value.PageNo,
-      ItemNo: postJobDetails.value.ItemNo,
-      SalaryGrade: postJobDetails.value.SG,
-      level: postJobDetails.value.level,
-      salaryMin: null,
-      salaryMax: null,
-    };
-
-    const jobCriteria = {
-      ItemNo: parseInt(postJobDetails.value.ItemNo),
-      PositionID: parseInt(qsCriteria.value.PositionID),
-      EduPercent: '0', // These seem to be default values
-      EliPercent: '0',
-      TrainPercent: '0',
-      ExperiencePercent: '0',
-      Education: qsCriteria.value.Education,
-      Eligibility: qsCriteria.value.Eligibility,
-      Training: qsCriteria.value.Training,
-      Experience: qsCriteria.value.Experience,
-    };
-    await jobPostStore.insertJobPost({
-      jobBatch: jobBatch,
-      criteria: jobCriteria,
-    });
-    await updatePageNoAPI(
-      postJobDetails.value.PositionID,
-      postJobDetails.value.PageNo,
-      postJobDetails.value.ItemNo,
-    );
-    showVacantPositionModal.value = false;
-
-    logStore.logAction(
-      `${authStore.user.name} created a job post for ${postJobDetails.value.position}. PositionID: ${postJobDetails.value.PositionID}, ItemNo: ${postJobDetails.value.ItemNo}`,
-    );
-  };
-
-  const clearSearchFilters = () => {
-    Object.keys(filters.value).forEach((key) => {
-      if (key === 'fd') {
-        filters.value[key] = 'All';
-      } else {
-        filters.value[key] = '';
-      }
-    });
-  };
-
-  const clearFilters = () => {
-    clearSearchFilters(); // Clears individual column filters
-    // currentStructure.value = null; // Uncomment if you want to clear office selection too
-  };
-
+  // Lifecycle Hooks
   onMounted(async () => {
     const today = new Date().toISOString().split('T')[0].replace(/-/g, '/');
     postJobDetails.value.startingDate = today;
@@ -1146,8 +1111,15 @@
     await usePlantilla.fetchPlantilla();
     positions.value = usePlantilla.plantilla.map((item) => ({
       ...item,
-      Status: item.Status || 'VACANT', // Default status if not provided
+      Status: item.Status || 'VACANT',
     }));
+  });
+
+  // Watchers
+  watch(showVacantPositionModal, (val) => {
+    if (!val) {
+      qsDataLoad.value = [];
+    }
   });
 </script>
 

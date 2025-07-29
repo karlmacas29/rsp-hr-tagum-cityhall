@@ -24,21 +24,21 @@
 
         <div class="text-h6 text-primary text-weight-bold q-mb-xs">
           {{ selectedJob?.Position || 'Job Title' }}
-           {{ selectedJob?.id|| 'Job ID' }}
+          {{ selectedJob?.id || 'Job ID' }}
         </div>
         <div class="chips-row">
           <q-chip class="chip-padding level-chip" dense>
             <q-icon name="work" class="q-mr-xs" />
             <span class="chip-label">
               Level:
-              <b>{{ selectedJob?.level}}</b>
+              <b>{{ selectedJob?.level }}</b>
             </span>
           </q-chip>
           <q-chip class="chip-padding page-chip" dense>
             <q-icon name="layers" class="q-mr-xs" />
             <span class="chip-label">
               Page No:
-              <b>{{selectedJob?.PageNo }}</b>
+              <b>{{ selectedJob?.PageNo }}</b>
             </span>
           </q-chip>
           <q-chip class="chip-padding item-chip" dense>
@@ -142,19 +142,48 @@
             <span class="text-weight-bold">{{ selectedJob?.Position || 'Test' }}</span>
           </div>
         </div>
-    <q-table
-  :rows="jobPostStore.applicant"
-  :columns="applicantColumns"
-  row-key="id"
-  flat
-  bordered
-  hide-pagination
-  class="applicants-table"
-  dense
-  v-if="applicantColumns.length"
-  separator="cell"
-  color="primary"
-/>
+        <q-table
+          :rows="formattedApplicants"
+          :columns="applicantColumns"
+          row-key="id"
+          flat
+          bordered
+          hide-pagination
+          class="applicants-table"
+          dense
+          v-if="applicantColumns.length"
+          separator="cell"
+          color="primary"
+        >
+          <template #body-cell-name="props">
+            <q-td :props="props">
+              {{ props.row.firstname }}{{ props.row.middlename ? ' ' + props.row.middlename : '' }}
+              {{ props.row.lastname }}
+              <span v-if="props.row.name_extension">&nbsp;{{ props.row.name_extension }}</span>
+            </q-td>
+          </template>
+          <template #body-cell-appliedDate="props">
+            <q-td :props="props">
+              {{ props.row.appliedDate || '-' }}
+            </q-td>
+          </template>
+          <template #body-cell-status="props">
+            <q-td :props="props">
+              {{ props.row.status || '-' }}
+            </q-td>
+          </template>
+          <template #body-cell-action="props">
+            <q-td :props="props">
+              <q-btn
+                size="sm"
+                flat
+                icon="visibility"
+                color="primary"
+                @click="viewApplicantDetails(props.row)"
+              />
+            </q-td>
+          </template>
+        </q-table>
         <div v-else class="text-caption text-grey-6 q-mt-md q-ml-sm">
           No applicant data available.
         </div>
@@ -190,16 +219,31 @@
         </q-card-section>
       </q-card>
     </q-dialog>
+
+    <!-- Qualification Modal -->
+    <QualificationModal
+      v-if="qualificationModalVisible"
+      :show="qualificationModalVisible"
+      :applicant-data="selectedApplicantData"
+      :position-requirements="selectedCriteria"
+      :is-submitted="false"
+      @update:show="qualificationModalVisible = $event"
+      @view-pds="onViewPDS"
+      @toggle-qualification="onToggleQualification"
+      @submit="onSubmitEvaluation"
+      @close="onCloseQualificationModal"
+    />
   </div>
 </template>
 
 <script setup>
   import { useRouter, useRoute } from 'vue-router';
   import { useJobPostStore } from 'stores/jobPostStore';
-  import { onMounted, ref } from 'vue';
+  import { onMounted, ref, computed } from 'vue';
   import { date } from 'quasar';
   import axios from 'axios';
   import { toast } from 'src/boot/toast';
+  import QualificationModal from 'src/components/QualityStandardModalApplicant.vue';
 
   const router = useRouter();
   const route = useRoute();
@@ -209,6 +253,10 @@
   const selectedJob = ref([]);
   const { formatDate } = date;
   const selectedCriteria = ref([]);
+
+  // Modal state
+  const qualificationModalVisible = ref(false);
+  const selectedApplicantData = ref({});
 
   const goBack = () => {
     router.push('/job-post');
@@ -277,27 +325,98 @@
     },
   ];
 
-  // onMounted(async () => {
-  //   await jobPostStore.fetchJobPostByPositionAndItemNo(P_ID, I_No).then((job) => {
-  //     selectedJob.value = job;
-  //   });
-  //   await jobPostStore.fetchCriteriaByPositionAndItemNo(P_ID, I_No).then((criteria) => {
-  //     selectedCriteria.value = criteria;
-  //   });
-  // });
-  onMounted(async () => {
-  await jobPostStore.fetchJobPostByPositionAndItemNo(P_ID, I_No).then((job) => {
-    selectedJob.value = job;
-    if (job && job.id) {
-      // Fetch applicants for this job
-      jobPostStore.fetch_applicant(job.id);
-    }
+  // Format applicants data for the table
+  const formattedApplicants = computed(() => {
+    if (!jobPostStore.applicant) return [];
+    return jobPostStore.applicant.map((a) => {
+      // fallback for API structure: applicant.n_personal_info
+      const info = a.n_personal_info || {};
+      return {
+        id: a.id,
+        firstname: info.firstname || '',
+        middlename: info.middlename || '',
+        lastname: info.lastname || '',
+        name_extension: info.name_extension || '',
+        appliedDate:
+          a.appliedDate || (info.created_at ? formatDate(info.created_at, 'MMM D, YYYY') : '-'),
+        status: a.status || '-',
+        // Add any other fields you want to render or use in action column
+        raw: a, // for details action
+      };
+    });
   });
 
-  await jobPostStore.fetchCriteriaByPositionAndItemNo(P_ID, I_No).then((criteria) => {
-    selectedCriteria.value = criteria;
+  // Updated viewApplicantDetails function to open the modal
+  function viewApplicantDetails(row) {
+    // Prepare applicant data for the modal
+    const applicantInfo = row.raw.n_personal_info || {};
+
+    selectedApplicantData.value = {
+      id: row.raw.id,
+      controlno: row.raw.controlno || applicantInfo.controlno,
+      name: `${row.firstname} ${row.middlename ? row.middlename + ' ' : ''}${row.lastname}${row.name_extension ? ' ' + row.name_extension : ''}`,
+      position: selectedJob.value?.Position || 'N/A',
+      level: selectedJob.value?.level || 'N/A',
+      status: row.status || 'Pending',
+      applicationDate: row.appliedDate,
+      Pics: applicantInfo.profile_picture || null,
+      PositionID: selectedJob.value?.PositionID,
+      ItemNo: selectedJob.value?.ItemNo,
+      // Add any other fields needed by the modal
+    };
+
+    // Show the qualification modal
+    qualificationModalVisible.value = true;
+  }
+
+  // Modal event handlers
+  const onViewPDS = () => {
+    toast.info('View PDS functionality to be implemented');
+    // Implement PDS viewing logic here
+  };
+
+  const onToggleQualification = (status) => {
+    // Update the applicant's qualification status
+    selectedApplicantData.value.status = status;
+    toast.info(`Qualification status changed to: ${status}`);
+  };
+
+  const onSubmitEvaluation = async () => {
+    try {
+      // Implement evaluation submission logic here
+      // This would typically involve an API call to save the evaluation
+
+      toast.positive('Evaluation submitted successfully');
+      qualificationModalVisible.value = false;
+
+      // Optionally refresh the applicants list
+      if (selectedJob.value && selectedJob.value.id) {
+        await jobPostStore.fetch_applicant(selectedJob.value.id);
+      }
+    } catch (error) {
+      toast.error('Failed to submit evaluation');
+      console.error('Evaluation submission error:', error);
+    }
+  };
+
+  const onCloseQualificationModal = () => {
+    qualificationModalVisible.value = false;
+    selectedApplicantData.value = {};
+  };
+
+  onMounted(async () => {
+    await jobPostStore.fetchJobPostByPositionAndItemNo(P_ID, I_No).then((job) => {
+      selectedJob.value = job;
+      if (job && job.id) {
+        // Fetch applicants for this job
+        jobPostStore.fetch_applicant(job.id);
+      }
+    });
+
+    await jobPostStore.fetchCriteriaByPositionAndItemNo(P_ID, I_No).then((criteria) => {
+      selectedCriteria.value = criteria;
+    });
   });
-});
 </script>
 
 <style scoped>

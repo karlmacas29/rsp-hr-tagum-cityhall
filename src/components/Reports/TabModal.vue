@@ -1,42 +1,67 @@
 <template>
-  <q-dialog v-model="show" maximized persistent>
-    <q-card class="bg-grey-2">
-      <q-card-section class="row items-center justify-between">
+  <q-dialog v-model="show" persistent>
+    <q-card class="bg-white modal-card column no-wrap">
+      <!-- Header -->
+      <q-card-section class="row items-center justify-between q-pa-md bg-grey-2">
         <div class="text-h6">Employee Reports</div>
-        <q-btn flat dense icon="close" @click="close" />
+        <q-btn flat dense icon="close" @click="close" aria-label="Close dialog" />
       </q-card-section>
+
       <q-separator />
-      <q-tabs v-model="tab" class="bg-white" align="left" dense>
+
+      <!-- Tabs -->
+      <q-tabs v-model="tab" class="bg-white text-primary" align="left" dense>
         <q-tab name="appointment" label="Appointment Report" />
         <q-tab name="certification" label="Certification" />
         <q-tab name="position" label="Position Description" />
       </q-tabs>
+
       <q-separator />
-      <div ref="printArea" class="q-pa-md bg-white">
-        <div v-show="tab === 'appointment'">
-          <AppointmentReport :data="employee" />
+
+      <!-- Content (Scrollable Preview Only) -->
+      <div class="q-pa-md overflow-auto" style="flex: 1; min-height: 0">
+        <div v-if="pdfUrls[tab]" class="full-height">
+          <iframe
+            :src="pdfUrls[tab]"
+            style="width: 100%; height: 100%; border: none"
+            title="PDF Viewer"
+          ></iframe>
         </div>
-        <div v-show="tab === 'certification'">
-          <CertificationPage :data="employee" />
-        </div>
-        <div v-show="tab === 'position'">
-          <PositionDescriptionForm :data="employee" />
+        <div
+          v-else
+          class="column items-center justify-center text-grey q-gutter-sm"
+          style="height: 100%"
+        >
+          <q-spinner color="primary" size="32px" />
+          <div>Generating PDF, please wait...</div>
         </div>
       </div>
+
       <q-separator />
-      <q-card-actions align="right">
-        <q-btn color="primary" icon="print" label="Print" @click="printTab" />
-        <q-btn flat label="Close" color="grey-7" @click="close" />
+
+      <!-- Footer -->
+      <q-card-actions align="right" class="q-pa-sm">
+        <q-btn
+          color="primary"
+          icon="print"
+          label="Print"
+          unelevated
+          :disable="!pdfUrls[tab]"
+          @click="printPdf"
+        />
+        <q-btn flat label="Close" color="primary" @click="close" />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
 <script setup>
-  import { ref, watch, nextTick } from 'vue';
+  import { ref, watch } from 'vue';
   import AppointmentReport from 'src/components/Reports/AppointmentReport.vue';
   import CertificationPage from 'src/components/Reports/CertificationReport.vue';
   import PositionDescriptionForm from 'src/components/Reports/PositionDescriptionReport.vue';
+  import html2pdf from 'html2pdf.js';
+  import { createApp } from 'vue';
 
   const props = defineProps({
     modelValue: { type: Boolean, required: true },
@@ -57,22 +82,91 @@
   }
 
   const tab = ref('appointment');
-  const printArea = ref(null);
+  const pdfUrls = ref({});
 
-  async function printTab() {
-    await nextTick();
-    const content = printArea.value.innerHTML;
-    const win = window.open('', '', 'width=900,height=1200');
-    win.document.write('<html><head><title>Print</title>');
-    [...document.head.children].forEach((e) => win.document.write(e.outerHTML));
-    win.document.write('<style>@media print{body{background:white;}}</style>');
-    win.document.write('</head><body>');
-    win.document.write(content);
-    win.document.write('</body></html>');
-    win.document.close();
+  async function generatePdf(tabName) {
+    let component;
+    switch (tabName) {
+      case 'appointment':
+        component = AppointmentReport;
+        break;
+      case 'certification':
+        component = CertificationPage;
+        break;
+      case 'position':
+        component = PositionDescriptionForm;
+        break;
+    }
+
+    const div = document.createElement('div');
+    div.style.width = '816px';
+    div.style.minHeight = '1344px';
+    document.body.appendChild(div);
+
+    const app = createApp(component, { data: () => props.employee });
+    app.mount(div);
+
+    const pdfBlob = await html2pdf()
+      .set({
+        margin: 0,
+        filename: `${tabName}.pdf`,
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'in', format: 'legal', orientation: 'portrait' },
+      })
+      .from(div)
+      .outputPdf('blob');
+
+    app.unmount();
+    document.body.removeChild(div);
+
+    return URL.createObjectURL(pdfBlob);
+  }
+
+  async function updatePdf(tabName) {
+    pdfUrls.value[tabName] = '';
+    pdfUrls.value[tabName] = await generatePdf(tabName);
+  }
+
+  watch(
+    [tab, () => props.employee],
+    async ([newTab]) => {
+      if (!pdfUrls.value[newTab]) {
+        await updatePdf(newTab);
+      }
+    },
+    { immediate: true },
+  );
+
+  function printPdf() {
+    const url = pdfUrls.value[tab.value];
+    if (!url) return;
+    const win = window.open(url, '_blank');
     setTimeout(() => {
       win.print();
-      win.close();
     }, 500);
   }
+
+  watch(show, async (val, oldVal) => {
+    if (val && !oldVal) {
+      await updatePdf(tab.value);
+    }
+  });
 </script>
+
+<style scoped>
+  .modal-card {
+    width: 100%;
+    max-width: 900px;
+    height: 90vh;
+    display: flex;
+    flex-direction: column;
+    border-radius: 12px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
+  }
+
+  @media (max-width: 850px) {
+    .modal-card {
+      width: 95vw;
+    }
+  }
+</style>

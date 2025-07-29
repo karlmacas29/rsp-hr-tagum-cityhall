@@ -144,10 +144,10 @@ export const useCriteriaStore = defineStore('criteria', {
       }
     },
 
-    async fetchCriteriaById(id) {
+    async fetchCriteriaById(jobBatchesRspId) {
       this.loading = true;
       try {
-        const response = await adminApi.get(`criteria/${id}`);
+        const response = await adminApi.get(`view/criteria/${jobBatchesRspId}`);
         return response.data;
       } catch (err) {
         this.error = err.response?.data?.message || err.message;

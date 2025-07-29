@@ -30,7 +30,7 @@ export const useJobPostStore = defineStore('jobPost', {
     async fetch_applicant(id) {
       this.loading = true;
       try {
-        const { data } = await adminApi.post(`/job-batches-rsp/applicant/view/${id}`);
+        const { data } = await adminApi.get(`/job-batches-rsp/applicant/view/${id}`);
         this.applicant = data.applicants; // Make sure your API sends applicants array
         this.error = null;
       } catch (error) {

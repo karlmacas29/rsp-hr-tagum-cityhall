@@ -260,71 +260,46 @@
       <Reports v-model="showReportModal" :employee="reportRow" @close="showReportModal = false" />
     </q-dialog>
 
-    <!-- Upload File Modal -->
-    <q-dialog persistent v-model="showModal">
-      <q-card class="q-pa-none" style="width: 500px; max-width: 90vw">
-        <q-card-section class="q-pa-md bg-green text-white">
-          <div class="text-h4 text-bold">Upload a Plantilla Funded</div>
-        </q-card-section>
-
-        <q-card-section class="q-pa-md grid justify-center items-center">
-          <q-file
-            v-model="selectedFile"
-            borderless
-            clearable
-            accept=".pdf"
-            :max-files="1"
-            @rejected="onFileRejected"
-            label="Upload PDF file (Max 5MB)"
-            style="
-              width: 350px;
-              padding: 20px;
-              border: 2px dashed #ccc;
-              border-radius: 8px;
-              display: flex;
-              flex-direction: column;
-              justify-content: center;
-              align-items: center;
-              cursor: pointer;
-            "
-            class="q-mx-auto"
-          >
-            <template v-slot:prepend>
-              <q-icon name="upload_file" size="2em" color="grey-7" />
-            </template>
-          </q-file>
-
-          <div class="q-mt-md full-width">
-            <q-linear-progress
-              rounded
-              stripe
-              size="10px"
-              :value="uploadStatus.progress / 100"
-              color="blue"
-              class="q-mt-sm"
+    <!-- Funded Toggle Confirmation Modal -->
+    <q-dialog v-model="showFundedConfirmModal" persistent>
+      <q-card style="width: 400px; max-width: 90vw">
+        <q-card-section class="q-pa-md">
+          <div class="row items-center q-mb-sm">
+            <q-icon
+              :name="fundedToggleValue === '1' ? 'check_circle' : 'highlight_off'"
+              :color="fundedToggleValue === '1' ? 'positive' : 'negative'"
+              size="36px"
+              class="q-mr-md"
             />
-            <div class="text-caption q-mt-xs text-center">
-              Uploading: {{ uploadStatus.progress }}%
+            <div class="text-h6">
+              Confirm {{ fundedToggleValue === '1' ? 'Funded' : 'Unfunded' }} Status
             </div>
           </div>
-
-          <div v-if="uploadStatus.error" class="text-negative q-mt-sm text-center">
-            {{ uploadStatus.error }}
-          </div>
-
-          <div v-if="isUploadComplete" class="text-positive q-mt-sm text-center">
-            Upload completed successfully!
+          <div class="q-mt-md text-subtitle1">
+            Are you sure you want to set this position as
+            <span
+              class="text-bold"
+              :class="fundedToggleValue === '1' ? 'text-positive' : 'text-negative'"
+            >
+              {{ fundedToggleValue === '1' ? 'Funded' : 'Unfunded' }}
+            </span>
+            ?
           </div>
         </q-card-section>
-
-        <q-card-actions align="right">
-          <q-btn label="Cancel" color="red" flat @click="cancelUpload" />
+        <q-separator />
+        <q-card-actions align="right" class="q-pa-md">
           <q-btn
-            rounded
-            label="Confirm"
-            color="green"
-            :disabled="!selectedFile || uploadStatus.isUploading"
-            @click="confirmUpload"
+            flat
+            label="Cancel"
+            color="grey-8"
+            @click="showFundedConfirmModal = false"
+            class="q-mr-sm"
+          />
+          <q-btn
+            :color="fundedToggleValue === '1' ? 'primary' : 'negative'"
+            :label="fundedToggleValue === '1' ? 'Confirm Funded' : 'Confirm Unfunded'"
+            @click="confirmSetFunded"
+            unelevated
           />
         </q-card-actions>
       </q-card>
@@ -494,6 +469,25 @@
               </template>
             </q-table>
           </q-card-section>
+
+          <!-- Upload Funded File Section -->
+          <q-card-section>
+            <div class="text-h6 q-mb-sm">Upload Plantilla Funded PDF</div>
+            <q-file
+              v-model="postJobDetails.selectedFile"
+              borderless
+              clearable
+              accept=".pdf"
+              :max-files="1"
+              label="Upload PDF file (Max 5MB)"
+              style="width: 350px; border: 2px dashed #ccc; border-radius: 8px"
+              class="q-mx-auto q-mb-md"
+            >
+              <template v-slot:prepend>
+                <q-icon name="upload_file" size="2em" color="grey-7" />
+              </template>
+            </q-file>
+          </q-card-section>
         </q-scroll-area>
 
         <q-card-actions
@@ -562,9 +556,8 @@
   // Refs
   const showReportModal = ref(false);
   const reportRow = ref(null);
-  const currentRow = ref(null);
-  const showModal = ref(false);
-  const selectedFile = ref(null);
+  const showFundedConfirmModal = ref(false);
+  const fundedToggleRow = ref(null);
   const showVacantPositionModal = ref(false);
   const showFilledPositionModal = ref(false);
   const showPDSModal = ref(false);
@@ -590,13 +583,6 @@
     personalInfo: {},
   });
 
-  const uploadStatus = ref({
-    isUploaded: false,
-    isUploading: false,
-    progress: 0,
-    error: null,
-  });
-
   const postJobDetails = ref({
     office: '',
     division: '',
@@ -610,6 +596,7 @@
     ItemNo: '',
     SG: '',
     level: '',
+    selectedFile: null,
   });
 
   const qsCriteria = ref({
@@ -658,6 +645,8 @@
     { name: 'Status', label: 'Status', field: 'Status', align: 'left', sortable: false },
     { name: 'action', label: 'Action', field: 'action', align: 'center' },
   ];
+
+  const fundedToggleValue = ref('1');
 
   // Computed
   const filteredPositions = computed(() => {
@@ -711,10 +700,6 @@
     });
   });
 
-  const isUploadComplete = computed(() => {
-    return uploadStatus.value.isUploaded && !uploadStatus.value.isUploading;
-  });
-
   // Methods
   const handleStructureSelection = (selectedData) => {
     currentStructure.value = selectedData;
@@ -751,6 +736,7 @@
         startingDate: new Date().toISOString().split('T')[0].replace(/-/g, '/'),
         endedDate: new Date().toISOString().split('T')[0].replace(/-/g, '/'),
         level: row.level,
+        selectedFile: null,
       };
       await usePlantilla.fetchQsData(row.PositionID);
       qsDataLoad.value = usePlantilla.qsData;
@@ -767,10 +753,8 @@
   };
 
   const printPosition = (row) => {
-    console.log('Printing position:', row); // Debug log
     reportRow.value = row;
     showReportModal.value = true;
-    console.log('Modal state:', showReportModal.value); // Debug log
   };
 
   const submitJobPost = async () => {
@@ -810,6 +794,22 @@
       jobBatch: jobBatch,
       criteria: jobCriteria,
     });
+
+    // Upload funded file if provided
+    if (postJobDetails.value.selectedFile) {
+      await uploadFileToServer(
+        postJobDetails.value.selectedFile,
+        postJobDetails.value.PositionID,
+        postJobDetails.value.ItemNo,
+      );
+      // Mark as funded on upload success
+      await updateFundedStatusAPI(
+        postJobDetails.value.PositionID,
+        true,
+        postJobDetails.value.ItemNo,
+      );
+    }
+
     await updatePageNoAPI(
       postJobDetails.value.PositionID,
       postJobDetails.value.PageNo,
@@ -848,39 +848,13 @@
     showPDSModal.value = true;
   };
 
-  const uploadFileToServer = (fileToUpload) => {
+  // Upload funded file for Post a Job
+  const uploadFileToServer = (fileToUpload, positionId, itemNo) => {
     return new Promise((resolve, reject) => {
-      const progressHandler = (progressEvent) => {
-        const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-        uploadStatus.value.progress = percentCompleted;
-      };
-
-      if (!currentRow.value || !currentRow.value.PositionID) {
-        const errorMessage = 'PositionID is required but not set. Please select a valid row.';
-        uploadStatus.value = {
-          isUploading: false,
-          isUploaded: false,
-          progress: 0,
-          error: errorMessage,
-        };
-        console.error(errorMessage);
-        return reject(new Error(errorMessage));
-      }
-
       const formData = new FormData();
       formData.append('fileUpload', fileToUpload);
-      formData.append('PositionID', currentRow.value.PositionID);
-      formData.append('ItemNo', currentRow.value.ItemNo);
-
-      console.log('Uploading with PositionID:', currentRow.value.PositionID);
-      console.log('Uploading with ItemNo:', currentRow.value.ItemNo);
-
-      uploadStatus.value = {
-        isUploading: true,
-        progress: 0,
-        error: null,
-        isUploaded: false,
-      };
+      formData.append('PositionID', positionId);
+      formData.append('ItemNo', itemNo);
 
       const token = document.cookie
         .split('; ')
@@ -888,7 +862,6 @@
         ?.split('=')[1];
 
       const requestConfig = {
-        onUploadProgress: progressHandler,
         headers: {
           'Content-Type': 'multipart/form-data',
           ...(token && { Authorization: `Bearer ${token}` }),
@@ -898,12 +871,6 @@
       axios
         .post(`${process.env.VUE_APP_API_URL}/plantilla/funded`, formData, requestConfig)
         .then((response) => {
-          uploadStatus.value = {
-            isUploading: false,
-            isUploaded: true,
-            progress: 100,
-            error: null,
-          };
           toast.success('File uploaded successfully');
           resolve({
             url: response.data?.data?.fileUpload ?? '',
@@ -911,13 +878,6 @@
         })
         .catch((error) => {
           const errorMessage = error.response?.data?.message || error.message || 'Upload failed';
-          uploadStatus.value = {
-            isUploading: false,
-            isUploaded: false,
-            progress: 0,
-            error: errorMessage,
-          };
-          console.error('Upload error:', errorMessage);
           toast.error('Error -> ' + errorMessage);
           reject(new Error(errorMessage));
         });
@@ -928,7 +888,6 @@
     return new Promise((resolve, reject) => {
       if (!positionId || !itemNo) {
         const errorMessage = 'PositionID or ItemNo is required for updating funded status.';
-        console.error(errorMessage);
         toast.error(errorMessage);
         return reject(new Error(errorMessage));
       }
@@ -957,14 +916,10 @@
           payload,
           requestConfig,
         )
-        .then((response) => {
-          toast.success(response.data?.message || 'Funded status updated successfully!');
-          resolve(response.data);
-        })
+
         .catch((error) => {
           const errorMessage =
             error.response?.data?.message || error.message || 'Failed to update funded status.';
-          console.error('Update funded status error:', errorMessage, error.response?.data);
           toast.error('Error -> ' + errorMessage);
           reject(new Error(errorMessage));
         });
@@ -975,7 +930,6 @@
     return new Promise((resolve, reject) => {
       if (!positionId || !itemNo) {
         const errorMessage = 'PositionID or ItemNo is required for updating PageNo.';
-        console.error(errorMessage);
         toast.error(errorMessage);
         return reject(new Error(errorMessage));
       }
@@ -1016,90 +970,30 @@
             errorMessage =
               error.response?.data?.message || error.message || 'Failed to update PageNo.';
           }
-          console.error('Update PageNo error:', errorMessage, error.response?.data);
           toast.error('Error -> ' + errorMessage);
           reject(new Error(errorMessage));
         });
     });
   };
 
-  const onFileRejected = (rejectedEntries) => {
-    let message = 'File rejected.';
-    if (rejectedEntries && rejectedEntries.length > 0) {
-      const entry = rejectedEntries[0];
-      if (entry.failedPropValidation === 'accept') {
-        message = 'Invalid file type. Please upload a PDF.';
-      } else if (entry.failedPropValidation === 'max-files') {
-        message = 'You can only upload one file.';
-      } else if (entry.failedPropValidation === 'max-file-size') {
-        message = `File is too large. Maximum size is ${entry.maxFileSize}.`;
-      }
-    }
-    toast.error(message);
-    uploadStatus.value.error = message;
-  };
-
-  const resetUploadStatus = () => {
-    uploadStatus.value = {
-      isUploaded: false,
-      isUploading: false,
-      progress: 0,
-      error: null,
-    };
-  };
-
-  const confirmUpload = async () => {
-    if (!selectedFile.value) {
-      const msg = 'Please select a file first.';
-      uploadStatus.value.error = msg;
-      toast.error(msg);
-      return;
-    }
-    if (!currentRow.value || !currentRow.value.PositionID || !currentRow.value.ItemNo) {
-      const msg = 'PositionID or ItemNo is not set. Cannot start upload.';
-      uploadStatus.value.error = msg;
-      console.error(msg);
-      toast.error(msg);
-      return;
-    }
-
-    try {
-      await uploadFileToServer(selectedFile.value);
-      if (currentRow.value) {
-        await updateFundedStatusAPI(currentRow.value.PositionID, true, currentRow.value.ItemNo);
-        currentRow.value.Funded = '1';
-      }
-      showModal.value = false;
-      logStore.logAction(
-        `${authStore.user.name} uploaded a Plantilla Funded for ${currentRow.value.position}. PositionID: ${currentRow.value.PositionID}, ItemNo: ${currentRow.value.ItemNo}`,
-      );
-      selectedFile.value = null;
-      resetUploadStatus();
-    } catch (error) {
-      console.error('Upload failed in confirmUpload:', error.message);
-    }
-  };
-
-  const cancelUpload = () => {
-    showModal.value = false;
-    selectedFile.value = null;
-    resetUploadStatus();
-    currentRow.value = null;
-  };
-
+  // Toggle funded status with confirmation modal
   const handleToggle = (row, val) => {
-    if (val) {
-      currentRow.value = row;
-      resetUploadStatus();
-      selectedFile.value = null;
-      showModal.value = true;
-      console.log('Toggled ON for PositionID:', currentRow.value.PositionID);
-      console.log('Toggled ON for ItemNo:', currentRow.value.ItemNo);
-    } else {
-      row.Funded = '0';
-      console.log('Toggled OFF for PositionID:', row.PositionID);
-      toast.info('File removed successfully');
+    fundedToggleRow.value = row;
+    fundedToggleValue.value = val;
+    showFundedConfirmModal.value = true;
+  };
+
+  const confirmSetFunded = async () => {
+    if (fundedToggleRow.value) {
+      await updateFundedStatusAPI(
+        fundedToggleRow.value.PositionID,
+        fundedToggleValue.value === '1',
+        fundedToggleRow.value.ItemNo,
+      );
+      fundedToggleRow.value.Funded = fundedToggleValue.value;
+      toast.success(`Position set as ${fundedToggleValue.value === '1' ? 'Funded' : 'Unfunded'}`);
     }
+    showFundedConfirmModal.value = false;
   };
 
   // Lifecycle Hooks

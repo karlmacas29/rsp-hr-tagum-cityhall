@@ -126,6 +126,7 @@
                 <div class="col q-pa-sm" style="border-right: 1px solid #e0e0e0">
                   <q-scroll-area style="height: 100%">
                     <div class="text-h6 q-mb-md">Applicant Education</div>
+                    <div class="text-caption q-mb-sm">Records found: {{ xEdu.length }}</div>
                     <q-card class="q-ma-sm">
                       <q-table
                         :rows="xEdu"
@@ -134,11 +135,12 @@
                         :pagination="{ rowsPerPage: 10 }"
                         :loading="xPDS.loading"
                       >
-                        <!-- <template v-slot:loading>
-                          <q-inner-loading showing color="primary">
-                            <q-linear-progress indeterminate color="primary" class="q-mt-sm" />
-                          </q-inner-loading>
-                        </template> -->
+                        <template v-slot:no-data>
+                          <div class="full-width row flex-center q-pa-md text-grey">
+                            <q-icon name="info" size="24px" class="q-mr-sm" />
+                            No education records found
+                          </div>
+                        </template>
                       </q-table>
                     </q-card>
                   </q-scroll-area>
@@ -154,11 +156,6 @@
                         hide-bottom
                         :loading="usePlantilla.qsLoad"
                       >
-                        <!-- <template v-slot:loading>
-                          <q-inner-loading showing color="primary">
-                            <q-linear-progress indeterminate color="primary" class="q-mt-sm" />
-                          </q-inner-loading>
-                        </template> -->
                         <template v-slot:body-cell-Education="props">
                           <q-td
                             :props="props"
@@ -184,13 +181,21 @@
                 <div class="col q-pa-sm" style="border-right: 1px solid #e0e0e0">
                   <q-scroll-area style="height: 100%">
                     <div class="text-h6 q-mb-md">Applicant Experience</div>
+                    <div class="text-caption q-mb-sm">Records found: {{ xExperience.length }}</div>
                     <q-card class="q-ma-sm">
                       <q-table
                         :rows="xExperience"
                         :columns="xExperienceCol"
                         row-key="id"
                         :pagination="{ rowsPerPage: 10 }"
-                      ></q-table>
+                      >
+                        <template v-slot:no-data>
+                          <div class="full-width row flex-center q-pa-md text-grey">
+                            <q-icon name="info" size="24px" class="q-mr-sm" />
+                            No experience records found
+                          </div>
+                        </template>
+                      </q-table>
                     </q-card>
                   </q-scroll-area>
                 </div>
@@ -368,22 +373,23 @@
 <script setup>
   import { ref, computed, watch } from 'vue';
   import { usePlantillaStore } from 'stores/plantillaStore';
-  import { usexPDS } from 'stores/xUserPDS';
+  import { useJobPostStore } from 'stores/jobPostStore';
 
-  const xPDS = usexPDS();
+  const xPDS = useJobPostStore();
 
   const xEdu = ref([]);
   const xEligibility = ref([]);
   const xExperience = ref([]);
   const xTraining = ref([]);
 
+  // Updated column definitions to match the JSON structure
   const xEduCol = [
     {
       name: 'level',
       required: true,
       label: 'Level',
       align: 'left',
-      field: 'Education',
+      field: 'level',
       sortable: true,
     },
     {
@@ -391,7 +397,7 @@
       required: true,
       label: 'Name of School',
       align: 'left',
-      field: 'School',
+      field: 'school_name',
       sortable: true,
     },
     {
@@ -399,7 +405,7 @@
       required: true,
       label: 'Basic Education/Degree/Course',
       align: 'left',
-      field: 'Degree',
+      field: 'degree',
       sortable: true,
     },
     {
@@ -407,9 +413,7 @@
       required: true,
       label: 'From',
       align: 'left',
-      field: (row) =>
-        row.DateAttend.includes('-') ? row.DateAttend.split('-')[0].trim() : row.DateAttend,
-      // field: 'DateAttend',
+      field: 'attendance_from',
       sortable: true,
     },
     {
@@ -417,9 +421,7 @@
       required: true,
       label: 'To',
       align: 'left',
-      field: (row) =>
-        row.DateAttend.includes('-') ? row.DateAttend.split('-')[1].trim() : row.DateAttend,
-      // field: 'DateAttend',
+      field: 'attendance_to',
       sortable: true,
     },
     {
@@ -427,7 +429,7 @@
       required: true,
       label: 'Highest Level/Units Earned',
       align: 'left',
-      field: (row) => row?.YearLevel || 'None' + '/' + row.NumUnits,
+      field: 'highest_units',
       sortable: true,
     },
     {
@@ -435,9 +437,7 @@
       required: true,
       label: 'Year Graduated',
       align: 'left',
-      field: (row) =>
-        row.DateAttend.includes('-') ? row.DateAttend.split('-')[1].trim() : row.DateAttend,
-      // field: 'DateAttend',
+      field: 'year_graduated',
       sortable: true,
     },
     {
@@ -445,7 +445,7 @@
       required: true,
       label: 'Scholarship/Academic Honors Received',
       align: 'left',
-      field: (row) => row?.Honors || 'None',
+      field: 'scholarship',
       sortable: true,
     },
   ];
@@ -454,42 +454,42 @@
     {
       name: 'eligibility',
       label: 'Eligibility',
-      field: 'CivilServe',
+      field: 'eligibility',
       sortable: true,
       align: 'left',
     },
     {
       name: 'rating',
       label: 'Rating (If Applicable)',
-      field: 'Rates',
+      field: 'rating',
       sortable: true,
       align: 'left',
     },
     {
       name: 'examDate',
       label: 'Date of Examination',
-      field: 'Dates',
+      field: 'date_of_examination',
       sortable: true,
       align: 'left',
     },
     {
       name: 'examPlace',
       label: 'Place of Examination',
-      field: 'Place',
+      field: 'place_of_examination',
       sortable: true,
       align: 'left',
     },
     {
       name: 'licenseNumber',
       label: 'License Number',
-      field: 'LNumber',
+      field: 'license_number',
       sortable: true,
       align: 'left',
     },
     {
       name: 'validityDate',
       label: 'Date of Validity',
-      field: 'LDate',
+      field: 'date_of_validity',
       sortable: true,
       align: 'left',
     },
@@ -499,52 +499,51 @@
     {
       name: 'fromDate',
       label: 'From',
-      field: 'WFrom',
+      field: 'work_date_from',
       align: 'left',
-      // format: (val) => new Date(val).toLocaleDateString('en-PH')
     },
     {
       name: 'toDate',
       label: 'To',
-      field: 'WTo',
+      field: 'work_date_to',
       align: 'left',
-      // format: (val) => new Date(val).toLocaleDateString('en-PH')
     },
     {
       name: 'positionTitle',
       label: 'Position Title',
-      field: 'WPosition',
+      field: 'position_title',
       align: 'left',
     },
     {
       name: 'department',
       label: 'Department',
-      field: 'WCompany',
+      field: 'department',
       align: 'left',
     },
     {
       name: 'monthlySalary',
       label: 'Monthly Salary',
-      field: 'WSalary',
+      field: 'monthly_salary',
       align: 'right',
-      format: (val) => val.toLocaleString('en-PH', { style: 'currency', currency: 'PHP' }),
+      format: (val) =>
+        parseFloat(val).toLocaleString('en-PH', { style: 'currency', currency: 'PHP' }),
     },
     {
       name: 'salaryGrade',
       label: 'Salary Grade',
-      field: 'WGrade',
+      field: 'salary_grade',
       align: 'left',
     },
     {
       name: 'appointmentStatus',
       label: 'Status of Appointment',
-      field: 'Status',
+      field: 'status_of_appointment',
       align: 'left',
     },
     {
       name: 'govtService',
       label: "Gov't Service",
-      field: 'WGov',
+      field: 'government_service',
       align: 'left',
     },
   ];
@@ -553,27 +552,25 @@
     {
       name: 'title',
       label: 'Title',
-      field: 'Training',
+      field: 'training_title',
       align: 'left',
     },
     {
       name: 'fromDate',
       label: 'From',
-      field: 'DateFrom',
-      // format: (val) => new Date(val).toLocaleDateString(),
+      field: 'inclusive_date_from',
       align: 'left',
     },
     {
       name: 'toDate',
       label: 'To',
-      field: 'DateTo',
-      // format: (val) => new Date(val).toLocaleDateString(),
+      field: 'inclusive_date_to',
       align: 'left',
     },
     {
       name: 'hours',
       label: 'Number of Hours',
-      field: 'NumHours',
+      field: 'number_of_hours',
       align: 'left',
     },
     {
@@ -585,7 +582,7 @@
     {
       name: 'conductor',
       label: 'Conducted/Sponsored By',
-      field: 'Conductor',
+      field: 'conducted_by',
       align: 'left',
     },
   ];
@@ -691,16 +688,74 @@
   const onModalShow = async () => {
     tab.value = 'education';
 
+    console.log('Modal showing, applicantData:', props.applicantData);
+
     // Fetch QS data when modal shows
     if (props.applicantData?.PositionID) {
       await usePlantilla.fetchQsData(props.applicantData.PositionID);
       positionQS.value = usePlantilla.qsData;
+    }
 
-      await xPDS.fetchxPDS(props.applicantData.controlno);
-      xEdu.value = xPDS.xPDS.Education;
-      xEligibility.value = xPDS.xPDS.Eligibility;
-      xExperience.value = xPDS.xPDS.Experience;
-      xTraining.value = xPDS.xPDS.Training;
+    // Check if applicant data is already passed in props with nested structure
+    if (props.applicantData?.n_personal_info) {
+      console.log('Using applicant data from props');
+      const personalInfo = props.applicantData.n_personal_info;
+
+      xEdu.value = personalInfo.education || [];
+      xEligibility.value = personalInfo.eligibity || []; // Note: API typo
+      xExperience.value = personalInfo.work_experience || [];
+      xTraining.value = personalInfo.training || [];
+
+      console.log('Education data:', xEdu.value);
+      console.log('Experience data:', xExperience.value);
+      console.log('Training data:', xTraining.value);
+      console.log('Eligibility data:', xEligibility.value);
+    }
+    // If not in props, fetch using job_batches_rsp_id
+    else if (props.applicantData?.job_batches_rsp_id) {
+      try {
+        console.log(
+          'Fetching applicant data using job_batches_rsp_id:',
+          props.applicantData.job_batches_rsp_id,
+        );
+
+        // Use the existing method from your store
+        await xPDS.fetch_applicant(props.applicantData.job_batches_rsp_id);
+
+        console.log('Fetched applicants:', xPDS.applicant);
+
+        // Find the current applicant from the fetched applicants array
+        const currentApplicant = xPDS.applicant.find((app) => app.id === props.applicantData.id);
+
+        console.log('Current applicant found:', currentApplicant);
+
+        if (currentApplicant?.n_personal_info) {
+          const personalInfo = currentApplicant.n_personal_info;
+
+          xEdu.value = personalInfo.education || [];
+          xEligibility.value = personalInfo.eligibity || []; // Note: API typo
+          xExperience.value = personalInfo.work_experience || [];
+          xTraining.value = personalInfo.training || [];
+
+          console.log('Data loaded from fetched applicant');
+        } else {
+          console.log('No personal info found for current applicant');
+        }
+      } catch (error) {
+        console.error('Error fetching applicant data:', error);
+        // Set empty arrays as fallback
+        xEdu.value = [];
+        xEligibility.value = [];
+        xExperience.value = [];
+        xTraining.value = [];
+      }
+    } else {
+      console.log('No applicant data source available');
+      // Set empty arrays as fallback
+      xEdu.value = [];
+      xEligibility.value = [];
+      xExperience.value = [];
+      xTraining.value = [];
     }
   };
 
@@ -712,7 +767,9 @@
     xExperience.value = [];
     xTraining.value = [];
   };
+
   const onViewPDS = () => emit('view-pds');
+
   const onSubmit = () => {
     if (!props.isSubmitted && qualificationStatus.value !== 'Pending') {
       emit('submit');
@@ -785,35 +842,36 @@
 
   .q-markup-table thead tr {
     background-color: #f5f5f5;
-    .radio-button {
-      padding: 8px 12px;
+  }
+
+  .radio-button {
+    padding: 8px 12px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
       border-radius: 4px;
+      border: 1px solid transparent;
       transition: all 0.3s ease;
-
-      &:hover {
-        background-color: rgba(0, 0, 0, 0.05);
-      }
-
-      &::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        border-radius: 4px;
-        border: 1px solid transparent;
-        transition: all 0.3s ease;
-      }
-
-      &.q-radio--active::before {
-        border-color: currentColor;
-      }
     }
 
-    .q-radio__label {
-      margin-left: 8px;
-      font-weight: 500;
+    &.q-radio--active::before {
+      border-color: currentColor;
     }
+  }
+
+  .q-radio__label {
+    margin-left: 8px;
+    font-weight: 500;
   }
 </style>

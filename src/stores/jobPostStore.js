@@ -5,14 +5,13 @@ import { toast } from 'src/boot/toast'; // Import toast instance
 export const useJobPostStore = defineStore('jobPost', {
   state: () => ({
     jobPosts: [],
-    applicant:[],
+    applicant: [],
 
     loading: false,
     error: null,
   }),
   actions: {
-
-        // criteria
+    // criteria
     //  async fetch_office_position() {
     //   this.loading = true;
     //   try {
@@ -27,22 +26,22 @@ export const useJobPostStore = defineStore('jobPost', {
     //   }
     // },
 
-      //fetch the applicant base on the job post he apply
-      async fetch_applicant(id) {
-          this.loading = true;
-          try {
-            const { data } = await adminApi.post(`/job-batches-rsp/applicant/view/${id}`);
-            this.applicant = data.applicants; // Make sure your API sends applicants array
-            this.error = null;
-          } catch (error) {
-            this.error = error;
-            toast.error('Failed to fetch applicants.');
-          } finally {
-            this.loading = false;
-          }
-        },
+    //fetch the applicant base on the job post he apply
+    async fetch_applicant(id) {
+      this.loading = true;
+      try {
+        const { data } = await adminApi.post(`/job-batches-rsp/applicant/view/${id}`);
+        this.applicant = data.applicants; // Make sure your API sends applicants array
+        this.error = null;
+      } catch (error) {
+        this.error = error;
+        toast.error('Failed to fetch applicants.');
+      } finally {
+        this.loading = false;
+      }
+    },
 
-        //fetch job post
+    //fetch job post
     async fetchJobPosts() {
       this.loading = true;
       try {
@@ -57,7 +56,7 @@ export const useJobPostStore = defineStore('jobPost', {
       }
     },
 
-     async job_post_list() {
+    async job_post_list() {
       this.loading = true;
       try {
         // Adjust the endpoint as needed to join or fetch both details

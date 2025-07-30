@@ -34,11 +34,12 @@
               <q-separator />
               <q-card-section>
                 <q-table
+                  :key="tableKey"
                   flat
                   bordered
                   :rows="filteredPositions"
                   :columns="columns"
-                  row-key="id"
+                  :row-key="rowKey"
                   :filter="filter"
                   :pagination="pagination"
                   v-model:pagination="pagination"
@@ -110,15 +111,32 @@
                   <template v-slot:body-cell-fd="props">
                     <q-td :props="props">
                       <template v-if="authStore.user.permissions.isFunded == '1'">
-                        <q-toggle
-                          :model-value="props.row.Funded"
-                          color="green"
-                          true-value="1"
-                          false-value="0"
-                          checked-icon="check"
-                          unchecked-icon="clear"
-                          @update:model-value="(val) => handleToggle(props.row, val)"
-                        />
+                        <template v-if="props.row.Name1 && props.row.Name1 !== ''">
+                          <q-toggle
+                            :model-value="props.row.Funded"
+                            color="green"
+                            true-value="1"
+                            false-value="0"
+                            checked-icon="check"
+                            unchecked-icon="clear"
+                            :disable="true"
+                          >
+                            <template v-slot:label>
+                              <q-tooltip>Position is locked because it has an employee.</q-tooltip>
+                            </template>
+                          </q-toggle>
+                        </template>
+                        <template v-else>
+                          <q-toggle
+                            :model-value="props.row.Funded"
+                            color="green"
+                            true-value="1"
+                            false-value="0"
+                            checked-icon="check"
+                            unchecked-icon="clear"
+                            @update:model-value="(val) => handleToggle(props.row, val)"
+                          />
+                        </template>
                       </template>
                       <template v-else>
                         <q-badge
@@ -165,40 +183,57 @@
                   <!-- Action Buttons -->
                   <template v-slot:body-cell-action="props">
                     <q-td :props="props" class="q-gutter-x-sm">
+                      <!-- Show job post button only if Funded==1, Name1 is null, and there is no existing job post for this funded position -->
                       <q-btn
-                        v-if="props.row.Funded != '0'"
+                        v-if="props.row.Funded == '1' && !props.row.Name1 && !hasJobPost(props.row)"
                         flat
                         dense
                         round
-                        :color="
-                          props.row.Funded == '1' && props.row.Name1 != null ? 'blue' : 'green'
-                        "
-                        :class="
-                          props.row.Funded == '1' && props.row.Name1 != null
-                            ? 'bg-blue-1'
-                            : 'bg-green-1'
-                        "
-                        :icon="
-                          props.row.Funded == '1' && props.row.Name1 != null
-                            ? 'visibility'
-                            : 'post_add'
-                        "
+                        color="green"
+                        class="bg-green-1"
+                        icon="post_add"
                         @click="
                           authStore.user.permissions.isFunded == '1'
                             ? viewPosition(props.row)
                             : null
                         "
                       >
-                        <q-tooltip>
-                          {{
-                            props.row.Funded == '1' && props.row.Name1 != null
-                              ? 'View Qualification Standard'
-                              : 'Create Job Post'
-                          }}
-                        </q-tooltip>
+                        <q-tooltip>Create Job Post</q-tooltip>
+                      </q-btn>
+
+                      <!-- Show view job post icon if job post exists -->
+                      <q-btn
+                        v-if="props.row.Funded == '1' && hasJobPost(props.row)"
+                        flat
+                        dense
+                        round
+                        color="green"
+                        class="bg-green-1"
+                        icon="work"
+                        @click="viewJobPost(props.row)"
+                      >
+                        <q-tooltip>View Job Post</q-tooltip>
+                      </q-btn>
+
+                      <!-- Show qualification/view if Funded==1 and Name1 exists -->
+                      <q-btn
+                        v-if="props.row.Funded == '1' && props.row.Name1"
+                        flat
+                        dense
+                        round
+                        color="blue"
+                        class="bg-blue-1"
+                        icon="visibility"
+                        @click="
+                          authStore.user.permissions.isFunded == '1'
+                            ? viewPosition(props.row)
+                            : null
+                        "
+                      >
+                        <q-tooltip>View Qualification Standard</q-tooltip>
                       </q-btn>
                       <q-btn
-                        v-if="props.row.Name1 != null"
+                        v-if="props.row.Name1"
                         flat
                         dense
                         round
@@ -323,8 +358,8 @@
         >
           <div class="row justify-between">
             <div>
-              <div class="text-h4 text-bold">Post A Job</div>
-              <div class="text-body text-grey">
+              <div class="text-h5 text-bold">Post A Job</div>
+              <div class="text-body text-grey-8 text-bold">
                 {{ postJobDetails.position }}
               </div>
               <q-chip dense>
@@ -367,17 +402,6 @@
               </div>
               <div class="col-6">
                 <q-input v-model="postJobDetails.unit" label="Unit" outlined dense disable />
-              </div>
-            </div>
-            <div class="row justify-center q-col-gutter-md">
-              <div class="col-6">
-                <q-input
-                  v-model="postJobDetails.position"
-                  label="Position"
-                  outlined
-                  dense
-                  disable
-                />
               </div>
             </div>
 
@@ -472,7 +496,10 @@
 
           <!-- Upload Funded File Section -->
           <q-card-section>
-            <div class="text-h6 q-mb-sm">Upload Plantilla Funded PDF</div>
+            <div class="text-h6 q-mb-sm">
+              Upload Plantilla Funded PDF
+              <span class="text-negative">*</span>
+            </div>
             <q-file
               v-model="postJobDetails.selectedFile"
               borderless
@@ -480,8 +507,9 @@
               accept=".pdf"
               :max-files="1"
               label="Upload PDF file (Max 5MB)"
-              style="width: 350px; border: 2px dashed #ccc; border-radius: 8px"
+              style="width: 330px; border: 2px dashed #ccc; border-radius: 8px"
               class="q-mx-auto q-mb-md"
+              :rules="[(val) => !!val || 'Please upload funded plantilla PDF.']"
             >
               <template v-slot:prepend>
                 <q-icon name="upload_file" size="2em" color="grey-7" />
@@ -506,7 +534,7 @@
           <q-btn
             color="primary"
             :loading="usePlantilla.qsLoad"
-            :disabled="jobPostStore.loading"
+            :disabled="jobPostStore.loading || !postJobDetails.selectedFile"
             label="Create Post"
             @click="submitJobPost"
             size="md"
@@ -537,6 +565,7 @@
 
 <script setup>
   import { ref, onMounted, computed, watch } from 'vue';
+  import { useRouter } from 'vue-router';
   import QualityStandardModal from 'components/QualityStandardModal.vue';
   import PlantillaSelection from 'components/PlantillaSelection.vue';
   import { usePlantillaStore } from 'stores/plantillaStore';
@@ -548,12 +577,12 @@
   import axios from 'axios';
   import { useLogsStore } from 'stores/logsStore';
 
+  const router = useRouter();
   const authStore = useAuthStore();
   const usePlantilla = usePlantillaStore();
   const logStore = useLogsStore();
   const jobPostStore = useJobPostStore();
 
-  // Refs
   const showReportModal = ref(false);
   const reportRow = ref(null);
   const showFundedConfirmModal = ref(false);
@@ -635,6 +664,70 @@
     Status: '',
   });
 
+  const jobPosts = ref([]);
+  const tableKey = ref(0);
+
+  // Fetch job posts from the correct endpoint
+  const fetchJobPosts = async () => {
+    try {
+      // Use the correct endpoint for job batches RSP list
+      const response = await axios.get(`${process.env.VUE_APP_API_URL}/job-batches-rsp/list`, {
+        headers: {
+          Authorization: `Bearer ${
+            document.cookie
+              .split('; ')
+              .find((row) => row.startsWith('admin_token='))
+              ?.split('=')[1]
+          }`,
+        },
+      });
+
+      jobPosts.value = Array.isArray(response.data?.data)
+        ? response.data.data
+        : Array.isArray(response.data)
+          ? response.data
+          : [];
+
+      console.log('Fetched job posts:', jobPosts.value.length);
+    } catch (error) {
+      console.error('Error fetching job posts:', error);
+      jobPosts.value = [];
+    }
+  };
+
+  // Check if job post exists for a position
+  const hasJobPost = (row) => {
+    const exists = jobPosts.value.some(
+      (jp) =>
+        String(jp.PositionID) === String(row.PositionID) &&
+        String(jp.ItemNo) === String(row.ItemNo),
+    );
+    return exists;
+  };
+
+  // Navigate to job post details page
+  const viewJobPost = (row) => {
+    // Find the specific job post to get its ID or any other required parameter
+    const jobPost = jobPosts.value.find(
+      (jp) =>
+        String(jp.PositionID) === String(row.PositionID) &&
+        String(jp.ItemNo) === String(row.ItemNo),
+    );
+
+    if (jobPost) {
+      // Navigate to the job post view page using router
+      router.push({
+        name: 'JobPost View',
+        params: {
+          PositionID: row.PositionID,
+          ItemNo: row.ItemNo,
+        },
+      });
+    } else {
+      toast.error('Job post not found');
+    }
+  };
+
   const columns = [
     { name: 'PageNo', label: 'Page No', field: 'PageNo', align: 'left', sortable: false },
     { name: 'ItemNo', label: 'Item No', field: 'ItemNo', align: 'left', sortable: false },
@@ -648,7 +741,6 @@
 
   const fundedToggleValue = ref('1');
 
-  // Computed
   const filteredPositions = computed(() => {
     if (!currentStructure.value) {
       return [];
@@ -700,7 +792,6 @@
     });
   });
 
-  // Methods
   const handleStructureSelection = (selectedData) => {
     currentStructure.value = selectedData;
     clearSearchFilters();
@@ -710,6 +801,8 @@
     if (!currentStructure.value) return '';
     return currentStructure.value.office || '';
   };
+
+  const rowKey = (row) => `${row.PositionID}-${row.ItemNo}`;
 
   const viewPosition = async (row) => {
     selectedPosition.value = row;
@@ -757,69 +850,98 @@
     showReportModal.value = true;
   };
 
+  // Submit job post with proper state management
   const submitJobPost = async () => {
-    const jobBatch = {
-      PositionID: parseInt(postJobDetails.value.PositionID),
-      Office: postJobDetails.value.office,
-      Office2: null,
-      Group: null,
-      Division: postJobDetails.value.division,
-      Section: postJobDetails.value.section,
-      Unit: postJobDetails.value.unit,
-      Position: postJobDetails.value.position,
-      post_date: postJobDetails.value.startingDate.replace(/\//g, '-'),
-      end_date: postJobDetails.value.endedDate.replace(/\//g, '-'),
-      PageNo: postJobDetails.value.PageNo,
-      ItemNo: postJobDetails.value.ItemNo,
-      SalaryGrade: postJobDetails.value.SG,
-      level: postJobDetails.value.level,
-      salaryMin: null,
-      salaryMax: null,
-    };
+    if (!postJobDetails.value.selectedFile) {
+      toast.error('Please upload funded plantilla PDF.');
+      return;
+    }
 
-    const jobCriteria = {
-      ItemNo: parseInt(postJobDetails.value.ItemNo),
-      PositionID: parseInt(qsCriteria.value.PositionID),
-      EduPercent: '0',
-      EliPercent: '0',
-      TrainPercent: '0',
-      ExperiencePercent: '0',
-      Education: qsCriteria.value.Education,
-      Eligibility: qsCriteria.value.Eligibility,
-      Training: qsCriteria.value.Training,
-      Experience: qsCriteria.value.Experience,
-    };
-
-    await jobPostStore.insertJobPost({
-      jobBatch: jobBatch,
-      criteria: jobCriteria,
-    });
-
-    // Upload funded file if provided
-    if (postJobDetails.value.selectedFile) {
+    try {
+      // Upload funded file first
       await uploadFileToServer(
         postJobDetails.value.selectedFile,
         postJobDetails.value.PositionID,
         postJobDetails.value.ItemNo,
       );
-      // Mark as funded on upload success
+
       await updateFundedStatusAPI(
         postJobDetails.value.PositionID,
         true,
         postJobDetails.value.ItemNo,
       );
+
+      // Then create job post
+      const jobBatch = {
+        PositionID: parseInt(postJobDetails.value.PositionID),
+        Office: postJobDetails.value.office,
+        Office2: null,
+        Group: null,
+        Division: postJobDetails.value.division,
+        Section: postJobDetails.value.section,
+        Unit: postJobDetails.value.unit,
+        Position: postJobDetails.value.position,
+        post_date: postJobDetails.value.startingDate.replace(/\//g, '-'),
+        end_date: postJobDetails.value.endedDate.replace(/\//g, '-'),
+        PageNo: postJobDetails.value.PageNo,
+        ItemNo: postJobDetails.value.ItemNo,
+        SalaryGrade: postJobDetails.value.SG,
+        level: postJobDetails.value.level,
+        salaryMin: null,
+        salaryMax: null,
+      };
+
+      const jobCriteria = {
+        ItemNo: parseInt(postJobDetails.value.ItemNo),
+        PositionID: parseInt(qsCriteria.value.PositionID),
+        EduPercent: '0',
+        EliPercent: '0',
+        TrainPercent: '0',
+        ExperiencePercent: '0',
+        Education: qsCriteria.value.Education,
+        Eligibility: qsCriteria.value.Eligibility,
+        Training: qsCriteria.value.Training,
+        Experience: qsCriteria.value.Experience,
+      };
+
+      await jobPostStore.insertJobPost({
+        jobBatch: jobBatch,
+        criteria: jobCriteria,
+      });
+
+      await updatePageNoAPI(
+        postJobDetails.value.PositionID,
+        postJobDetails.value.PageNo,
+        postJobDetails.value.ItemNo,
+      );
+
+      showVacantPositionModal.value = false;
+
+      logStore.logAction(
+        `${authStore.user.name} created a job post for ${postJobDetails.value.position}. PositionID: ${postJobDetails.value.PositionID}, ItemNo: ${postJobDetails.value.ItemNo}`,
+      );
+
+      // Update Funded status in positions list for immediate UI feedback
+      const idx = positions.value.findIndex(
+        (p) =>
+          String(p.PositionID) === String(postJobDetails.value.PositionID) &&
+          String(p.ItemNo) === String(postJobDetails.value.ItemNo),
+      );
+      if (idx !== -1) {
+        positions.value[idx].Funded = '1';
+      }
+
+      // Refetch job posts to update the UI immediately
+      await fetchJobPosts();
+
+      // Force table to re-render
+      tableKey.value++;
+
+      toast.success('Job post created and funded plantilla uploaded!');
+    } catch (error) {
+      console.error('Error creating job post:', error);
+      toast.error('Failed to create job post. Please try again.');
     }
-
-    await updatePageNoAPI(
-      postJobDetails.value.PositionID,
-      postJobDetails.value.PageNo,
-      postJobDetails.value.ItemNo,
-    );
-    showVacantPositionModal.value = false;
-
-    logStore.logAction(
-      `${authStore.user.name} created a job post for ${postJobDetails.value.position}. PositionID: ${postJobDetails.value.PositionID}, ItemNo: ${postJobDetails.value.ItemNo}`,
-    );
   };
 
   const clearSearchFilters = () => {
@@ -848,7 +970,6 @@
     showPDSModal.value = true;
   };
 
-  // Upload funded file for Post a Job
   const uploadFileToServer = (fileToUpload, positionId, itemNo) => {
     return new Promise((resolve, reject) => {
       const formData = new FormData();
@@ -916,7 +1037,9 @@
           payload,
           requestConfig,
         )
-
+        .then((response) => {
+          resolve(response.data);
+        })
         .catch((error) => {
           const errorMessage =
             error.response?.data?.message || error.message || 'Failed to update funded status.';
@@ -976,7 +1099,6 @@
     });
   };
 
-  // Toggle funded status with confirmation modal
   const handleToggle = (row, val) => {
     fundedToggleRow.value = row;
     fundedToggleValue.value = val;
@@ -985,31 +1107,56 @@
 
   const confirmSetFunded = async () => {
     if (fundedToggleRow.value) {
-      await updateFundedStatusAPI(
-        fundedToggleRow.value.PositionID,
-        fundedToggleValue.value === '1',
-        fundedToggleRow.value.ItemNo,
-      );
-      fundedToggleRow.value.Funded = fundedToggleValue.value;
-      toast.success(`Position set as ${fundedToggleValue.value === '1' ? 'Funded' : 'Unfunded'}`);
+      try {
+        await updateFundedStatusAPI(
+          fundedToggleRow.value.PositionID,
+          fundedToggleValue.value === '1',
+          fundedToggleRow.value.ItemNo,
+        );
+
+        fundedToggleRow.value.Funded = fundedToggleValue.value;
+
+        // If position is being unfunded, refetch job posts to update UI
+        if (fundedToggleValue.value === '0') {
+          await fetchJobPosts();
+          tableKey.value++;
+        }
+
+        if (fundedToggleValue.value === '1') {
+          toast.success('Position set as Funded');
+        } else {
+          toast.error('Position set as Unfunded');
+        }
+      } catch (error) {
+        console.error('Error updating funded status:', error);
+        toast.error('Failed to update funded status.');
+      } finally {
+        showFundedConfirmModal.value = false;
+      }
     }
-    showFundedConfirmModal.value = false;
   };
 
-  // Lifecycle Hooks
+  // Initialize component
   onMounted(async () => {
     const today = new Date().toISOString().split('T')[0].replace(/-/g, '/');
     postJobDetails.value.startingDate = today;
     postJobDetails.value.endedDate = today;
 
-    await usePlantilla.fetchPlantilla();
-    positions.value = usePlantilla.plantilla.map((item) => ({
-      ...item,
-      Status: item.Status || 'VACANT',
-    }));
+    try {
+      await usePlantilla.fetchPlantilla();
+      positions.value = usePlantilla.plantilla.map((item) => ({
+        ...item,
+        Status: item.Status || 'VACANT',
+      }));
+
+      await fetchJobPosts();
+    } catch (error) {
+      console.error('Error initializing component:', error);
+      toast.error('Failed to load data. Please refresh the page.');
+    }
   });
 
-  // Watchers
+  // Watch for modal close to clean up data
   watch(showVacantPositionModal, (val) => {
     if (!val) {
       qsDataLoad.value = [];

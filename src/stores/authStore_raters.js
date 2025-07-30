@@ -28,7 +28,6 @@ export const useRaterAuthStore = defineStore('rater_auth', () => {
       ?.split('=')[1];
   }
 
-
   async function login(username, password) {
     errors.value = {};
     loading.value = true;
@@ -58,7 +57,10 @@ export const useRaterAuthStore = defineStore('rater_auth', () => {
         if (error.response.data.errors?.role_id) {
           toast.error(error.response.data.errors.role_id[0]);
         } else {
-          toast.error(error.response.data.message || 'Your account is inactive. Please contact the administrator.');
+          toast.error(
+            error.response.data.message ||
+              'Your account is inactive. Please contact the administrator.',
+          );
         }
       } else if (error.response?.status === 0 || !error.response) {
         toast.error(' Please check your internet connection and try again later.');
@@ -72,7 +74,6 @@ export const useRaterAuthStore = defineStore('rater_auth', () => {
       await logsStore.logAction('Logged In');
     }
   }
-
 
   function handleError(error, defaultMessage) {
     if (error.response?.status === 401) {
@@ -91,53 +92,57 @@ export const useRaterAuthStore = defineStore('rater_auth', () => {
     }
   }
 
-async function changePassword({ old_password, new_password, new_password_confirmation }) {
-  errors.value = {};
-  loading.value = true;
+  async function changePassword({ old_password, new_password, new_password_confirmation }) {
+    errors.value = {};
+    loading.value = true;
 
-  try {
-    const response = await raterApi.post('/rater/changepassword', {
-      old_password,
-      new_password,
-      new_password_confirmation
-    }, {
-      headers: {
-        Authorization: `Bearer ${getToken()}`
-      }
-    });
+    try {
+      const response = await raterApi.post(
+        '/rater/changepassword',
+        {
+          old_password,
+          new_password,
+          new_password_confirmation,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${getToken()}`,
+          },
+        },
+      );
 
-    if (response.data.status) {
-      if (response.data.token) {
-        token.value = response.data.token;
-        document.cookie = `rater_token=${response.data.token}; path=/; secure; samesite=strict`;
-      }
-
-      if (user.value) {
-        user.value.password_updated_at = new Date().toISOString();
-      }
-      toast.success('Password changed successfully!');
-      return true;
-    } else {
-      if (response.data.errors) {
-        errors.value = response.data.errors;
-        // Show specific error messages if available
-        if (response.data.errors.old_password) {
-          toast.error(response.data.errors.old_password[0] || 'Current password is incorrect');
-        } else {
-          toast.error('Please check the form for errors');
+      if (response.data.status) {
+        if (response.data.token) {
+          token.value = response.data.token;
+          document.cookie = `rater_token=${response.data.token}; path=/; secure; samesite=strict`;
         }
+
+        if (user.value) {
+          user.value.password_updated_at = new Date().toISOString();
+        }
+        toast.success('Password changed successfully!');
+        return true;
       } else {
-        toast.error(response.data.message || 'Failed to change password');
+        if (response.data.errors) {
+          errors.value = response.data.errors;
+          // Show specific error messages if available
+          if (response.data.errors.old_password) {
+            toast.error(response.data.errors.old_password[0] || 'Current password is incorrect');
+          } else {
+            toast.error('Please check the form for errors');
+          }
+        } else {
+          toast.error(response.data.message || 'Failed to change password');
+        }
+        return false;
       }
+    } catch (error) {
+      handleError(error, 'Failed to change password');
       return false;
+    } finally {
+      loading.value = false;
     }
-  } catch (error) {
-    handleError(error, 'Failed to change password');
-    return false;
-  } finally {
-    loading.value = false;
   }
-}
 
   async function logout() {
     loading.value = true;
@@ -147,7 +152,7 @@ async function changePassword({ old_password, new_password, new_password_confirm
       ?.split('=')[1];
 
     try {
-      await raterApi.post('/logout', null, {
+      await raterApi.post('/rater/logout', null, {
         headers: {
           Authorization: `Bearer ${authToken}`,
         },
@@ -159,52 +164,49 @@ async function changePassword({ old_password, new_password, new_password_confirm
       errors.value = {};
       loading.value = false;
 
-       const cookieSettings = [
-          'rater_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;',
-          'rater_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=None; Secure;',
-          'rater_token=; path=/; domain=' +
-            window.location.hostname +
-            '; expires=Thu, 01 Jan 1970 00:00:00 GMT;',
-        ];
-        cookieSettings.forEach((setting) => (document.cookie = setting));
+      const cookieSettings = [
+        'rater_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;',
+        'rater_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=None; Secure;',
+        'rater_token=; path=/; domain=' +
+          window.location.hostname +
+          '; expires=Thu, 01 Jan 1970 00:00:00 GMT;',
+      ];
+      cookieSettings.forEach((setting) => (document.cookie = setting));
 
-        toast.success('Logout Success!');
-        this.router.push({ name: 'Rater Login' });
-      } catch (error) {
-        toast.error('An error occurred during logout or token error');
-        console.log(error);
-        this.router.push({ name: 'Rater Login' });
-      }
-  }
-
-
-
-
-async function get_rater_usernames() {
-  loadUser.value = true;
-  try {
-    const response = await raterApi.get('/rater/name');
-
-    if (response.data.status) {
-      users.value = response.data.data.map(rater => ({
-        id: rater.id,
-        name: rater.name,
-        office: rater.office || 'No office assigned',
-        username: rater.username || rater.name.toLowerCase().replace(/\s+/g, '')
-      }));
-
-      return users.value;
-    } else {
-      toast.error('Failed to retrieve raters');
-      return [];
+      toast.success('Logout Success!');
+      this.router.push({ name: 'Rater Login' });
+    } catch (error) {
+      toast.error('An error occurred during logout or token error');
+      console.log(error);
+      this.router.push({ name: 'Rater Login' });
     }
-  } catch (error) {
-    handleError(error, 'Failed to retrieve raters');
-    return [];
-  } finally {
-    loadUser.value = false;
   }
-}
+
+  async function get_rater_usernames() {
+    loadUser.value = true;
+    try {
+      const response = await raterApi.get('/rater/name');
+
+      if (response.data.status) {
+        users.value = response.data.data.map((rater) => ({
+          id: rater.id,
+          name: rater.name,
+          office: rater.office || 'No office assigned',
+          username: rater.username || rater.name.toLowerCase().replace(/\s+/g, ''),
+        }));
+
+        return users.value;
+      } else {
+        toast.error('Failed to retrieve raters');
+        return [];
+      }
+    } catch (error) {
+      handleError(error, 'Failed to retrieve raters');
+      return [];
+    } finally {
+      loadUser.value = false;
+    }
+  }
 
   async function checkAuth_rater() {
     const authToken = document.cookie
@@ -252,44 +254,44 @@ async function get_rater_usernames() {
   }
 
   // Delete a user
-    async function  deleteUser(id) {
-      this.loading = true;
-      this.errors = {};
+  async function deleteUser(id) {
+    this.loading = true;
+    this.errors = {};
 
-      try {
-        const token = this.getToken();
+    try {
+      const token = this.getToken();
 
-        if (!token) {
-          throw new Error('No authentication token found');
-        }
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
 
-        const response = await raterApi.delete(`/rater/${id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+      const response = await raterApi.delete(`/rater/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-        if (response.data.status) {
-          // Remove the user from the users array
-          this.users = this.users.filter((user) => user.id !== id);
+      if (response.data.status) {
+        // Remove the user from the users array
+        this.users = this.users.filter((user) => user.id !== id);
 
-          toast.success('Rater deleted successfully');
-          this.loading = false;
-          return true;
-        } else {
-          toast.error('Failed to delete rater');
-          this.loading = false;
-          return false;
-        }
-      } catch (error) {
-        this.handleError(error, 'Failed to delete rater');
+        toast.success('Rater deleted successfully');
+        this.loading = false;
+        return true;
+      } else {
+        toast.error('Failed to delete rater');
         this.loading = false;
         return false;
-      } finally {
-        const logsStore = useLogsStore();
-        await logsStore.logAction(`Deleted User ID: ${id}`);
       }
+    } catch (error) {
+      this.handleError(error, 'Failed to delete rater');
+      this.loading = false;
+      return false;
+    } finally {
+      const logsStore = useLogsStore();
+      await logsStore.logAction(`Deleted User ID: ${id}`);
     }
+  }
 
   // Return all refs and functions
   return {
@@ -310,6 +312,6 @@ async function get_rater_usernames() {
     checkAuth_rater,
     handleError,
     get_rater_usernames,
-    changePassword
+    changePassword,
   };
 });

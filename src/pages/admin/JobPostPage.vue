@@ -122,7 +122,7 @@
           </q-td>
         </template>
         <template v-slot:body-cell-action="props">
-          <q-td :props="props" class="action-column">
+          <q-td :props="props" class="action-column q-gutter-x-xs">
             <q-btn
               round
               flat
@@ -133,6 +133,30 @@
             >
               <q-tooltip>View Job Details</q-tooltip>
             </q-btn>
+            <!-- Edit button -->
+            <q-btn
+              round
+              flat
+              color="orange"
+              class="bg-orange-1"
+              icon="edit"
+              @click="editJobPost(props.row)"
+            >
+              <q-tooltip>Edit Job Post</q-tooltip>
+            </q-btn>
+            <!-- Delete icon only if applicants is 0 or falsy -->
+            <q-btn
+              v-if="canDeleteJob(props.row)"
+              round
+              flat
+              color="negative"
+              class="bg-red-1"
+              icon="delete"
+              @click="confirmDeleteJob(props.row)"
+              :loading="deletingJobId === props.row.PositionID"
+            >
+              <q-tooltip>Delete Job Post</q-tooltip>
+            </q-btn>
           </q-td>
         </template>
         <template v-slot:no-data>
@@ -140,6 +164,274 @@
         </template>
       </q-table>
     </div>
+
+    <!-- Edit Job Post Modal -->
+    <q-dialog v-model="showEditModal">
+      <q-card
+        class="q-pa-none"
+        style="
+          width: 900px;
+          max-width: 90vw;
+          max-height: 90vh;
+          display: flex;
+          flex-direction: column;
+        "
+      >
+        <q-card-section
+          class="q-pa-md"
+          style="position: sticky; top: 0; z-index: 2; background: white"
+        >
+          <div class="row justify-between">
+            <div>
+              <div class="text-h5 text-bold">Edit Job Post</div>
+              <div class="text-body text-grey-8 text-bold">
+                {{ editJobDetails.position }}
+              </div>
+              <q-chip dense>
+                Position Level:
+                <q-badge rounded dense color="green" class="text-white q-ml-sm">
+                  {{ editJobDetails.level }}
+                </q-badge>
+              </q-chip>
+            </div>
+            <div>
+              <q-btn icon="close" rounded flat @click="closeEditModal" />
+            </div>
+          </div>
+        </q-card-section>
+
+        <q-scroll-area class="q-px-md" style="height: 1000px">
+          <q-card-section class="q-py-none">
+            <div class="row q-col-gutter-md">
+              <div class="col-6">
+                <q-input v-model="editJobDetails.office" label="Office" outlined dense disable />
+              </div>
+              <div class="col-6">
+                <q-input
+                  v-model="editJobDetails.division"
+                  label="Division"
+                  outlined
+                  dense
+                  disable
+                />
+              </div>
+            </div>
+            <div class="row q-col-gutter-md">
+              <div class="col-6">
+                <q-input v-model="editJobDetails.section" label="Section" outlined dense disable />
+              </div>
+              <div class="col-6">
+                <q-input v-model="editJobDetails.unit" label="Unit" outlined dense disable />
+              </div>
+            </div>
+
+            <div class="row q-col-gutter-md q-mt-sm">
+              <div class="col-6">
+                <q-input
+                  v-model="editJobDetails.startingDate"
+                  label="Starting Date"
+                  outlined
+                  dense
+                  mask="date"
+                  disable
+                />
+              </div>
+              <div class="col-6">
+                <q-input
+                  v-model="editJobDetails.endedDate"
+                  label="Ended Date"
+                  outlined
+                  dense
+                  mask="date"
+                  :rules="[
+                    (date) =>
+                      date >= editJobDetails.startingDate || 'End date cannot be before start date',
+                  ]"
+                >
+                  <template v-slot:append>
+                    <q-icon name="event" class="cursor-pointer">
+                      <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                        <q-date
+                          v-model="editJobDetails.endedDate"
+                          :options="(date) => date >= editJobDetails.startingDate"
+                        >
+                          <div class="row items-center justify-end">
+                            <q-btn v-close-popup label="Close" color="primary" flat />
+                          </div>
+                        </q-date>
+                      </q-popup-proxy>
+                    </q-icon>
+                  </template>
+                </q-input>
+              </div>
+            </div>
+          </q-card-section>
+
+          <q-card-section>
+            <div class="text-h5 q-mb-sm text-bold">Qualification Standard</div>
+            <q-table
+              :rows="qsDataLoad"
+              :columns="[
+                { name: 'education', label: 'Education', field: 'Education', align: 'left' },
+                { name: 'experience', label: 'Experience', field: 'Experience', align: 'left' },
+                { name: 'training', label: 'Training', field: 'Training', align: 'left' },
+                { name: 'eligibility', label: 'Eligibility', field: 'Eligibility', align: 'left' },
+              ]"
+              row-key="id"
+              :loading="usePlantilla.qsLoad"
+              hide-bottom
+            >
+              <template v-slot:body="props">
+                <q-tr :props="props">
+                  <q-td style="width: 100px; white-space: pre-line; word-break: break-word">
+                    {{ props.row.Education }}
+                  </q-td>
+                  <q-td style="width: 100px; white-space: pre-line; word-break: break-word">
+                    {{ props.row.Experience }}
+                  </q-td>
+                  <q-td style="width: 100px; white-space: pre-line; word-break: break-word">
+                    {{ props.row.Training }}
+                  </q-td>
+                  <q-td style="width: 120px; white-space: pre-line; word-break: break-word">
+                    {{ props.row.Eligibility }}
+                  </q-td>
+                </q-tr>
+              </template>
+            </q-table>
+          </q-card-section>
+
+          <!-- Current Document Display -->
+          <q-card-section v-if="editJobDetails.currentDocument">
+            <div class="text-h6 q-mb-sm">Current Document</div>
+            <div class="row items-center q-gutter-md">
+              <q-icon name="picture_as_pdf" size="md" color="red" />
+              <div class="column">
+                <div class="text-body2 text-weight-medium">
+                  {{ editJobDetails.currentDocument.name }}
+                </div>
+                <div class="text-caption text-grey-6">
+                  Uploaded on
+                  {{ formatDate(editJobDetails.currentDocument.uploadDate, 'MMM D, YYYY') }}
+                </div>
+              </div>
+              <q-btn
+                flat
+                color="primary"
+                icon="download"
+                label="Download"
+                @click="downloadCurrentDocument"
+              />
+            </div>
+          </q-card-section>
+
+          <!-- Upload New Document Section -->
+          <q-card-section>
+            <div class="text-h6 q-mb-sm">
+              Update Plantilla Funded PDF
+              <span class="text-caption text-grey-6">
+                (Optional - leave empty to keep current document)
+              </span>
+            </div>
+            <q-file
+              v-model="editJobDetails.newFile"
+              borderless
+              clearable
+              accept=".pdf"
+              :max-files="1"
+              label="Upload new PDF file (Max 5MB)"
+              style="width: 330px; border: 2px dashed #ccc; border-radius: 8px"
+              class="q-mx-auto q-mb-md"
+            >
+              <template v-slot:prepend>
+                <q-icon name="upload_file" size="2em" color="grey-7" />
+              </template>
+            </q-file>
+            <div class="text-caption text-grey-6 text-center" v-if="!editJobDetails.newFile">
+              No new file selected. Current document will be retained.
+            </div>
+          </q-card-section>
+        </q-scroll-area>
+
+        <q-card-actions
+          align="center"
+          class="q-pa-md row justify-between items-center"
+          style="position: sticky; bottom: 0; z-index: 2; background: white"
+        >
+          <q-input
+            outlined
+            dense
+            label="Set Page No."
+            type="number"
+            v-model="editJobDetails.PageNo"
+          />
+
+          <div class="q-gutter-sm">
+            <q-btn
+              color="grey"
+              label="Cancel"
+              @click="closeEditModal"
+              size="md"
+              style="width: 120px"
+              rounded
+              flat
+            />
+            <q-btn
+              color="primary"
+              :loading="jobPostStore.loading"
+              label="Update Post"
+              @click="updateJobPost"
+              size="md"
+              style="width: 200px"
+              rounded
+            />
+          </div>
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <!-- Delete Confirmation Dialog -->
+    <q-dialog v-model="showDeleteConfirmation" persistent>
+      <q-card style="min-width: 350px; border-radius: 6px">
+        <q-card-section class="row items-center q-pb-md">
+          <q-icon name="warning" color="negative" size="sm" class="q-mr-sm" />
+          <span class="text-subtitle">Confirm Deletion</span>
+        </q-card-section>
+        <q-separator />
+        <q-card-section class="q-pt-md">
+          <div class="text-subtitle q-mb-sm">Are you sure you want to delete this job post?</div>
+          <div class="q-pa-sm bg-grey-2 rounded-borders" v-if="jobToDelete">
+            <div class="row q-col-gutter-sm q-mb-sm">
+              <div class="col-4 text-weight-medium text-body1">Office:</div>
+              <div class="col-8 text-body1">{{ jobToDelete.Office }}</div>
+            </div>
+            <div class="row q-col-gutter-sm q-mb-sm">
+              <div class="col-4 text-weight-medium text-body1">Position:</div>
+              <div class="col-8 text-body1">{{ jobToDelete.Position }}</div>
+            </div>
+            <div class="row q-col-gutter-sm">
+              <div class="col-4 text-weight-medium text-body1">Posted:</div>
+              <div class="col-8 text-body1">
+                {{ formatDate(jobToDelete.post_date, 'MMM D, YYYY') }}
+              </div>
+            </div>
+          </div>
+          <div class="text-body1 text-negative q-mt-sm">
+            <q-icon name="info" class="q-mr-xs" />
+            This action cannot be undone.
+          </div>
+        </q-card-section>
+
+        <q-card-actions align="right" class="q-pa-sm">
+          <q-btn flat label="Cancel" color="grey-7" v-close-popup />
+          <q-btn
+            label="Delete"
+            color="negative"
+            @click="deleteJob"
+            :loading="jobPostStore.loading"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
 
     <!-- Quality Standard Modal -->
     <QualityStandardModal
@@ -206,7 +498,6 @@
             v-close-popup
           />
         </q-card-actions>
-
       </q-card>
     </q-dialog>
   </q-page>
@@ -218,14 +509,15 @@
   import QualityStandardModal from 'components/QualityStandardModal.vue';
   import PDSModal from 'components/PDSModal.vue';
   import { useJobPostStore } from 'stores/jobPostStore';
-  import { useRouter, useRoute } from 'vue-router';
+  import { useRouter } from 'vue-router';
+  import { useQuasar } from 'quasar';
 
   const router = useRouter();
-  // eslint-disable-next-line no-unused-vars
-  const route = useRoute();
   const jobPostStore = useJobPostStore();
+  const $q = useQuasar();
 
   const { formatDate } = date;
+
   // Page State
   const showingDetails = ref(false);
   const pagination = ref({
@@ -233,6 +525,28 @@
     descending: true,
     page: 1,
     rowsPerPage: 10,
+  });
+
+  // Delete related state
+  const showDeleteConfirmation = ref(false);
+  const jobToDelete = ref(null);
+  const deletingJobId = ref(null);
+
+  // Edit related state
+  const showEditModal = ref(false);
+  const editJobDetails = ref({
+    id: null,
+    office: '',
+    division: '',
+    section: '',
+    unit: '',
+    position: '',
+    level: '',
+    startingDate: '',
+    endedDate: '',
+    PageNo: 1,
+    currentDocument: null,
+    newFile: null,
   });
 
   // Track the pending status separately from the actual status
@@ -276,7 +590,7 @@
       align: 'left',
       field: 'Office',
       sortable: true,
-      style: 'width: 20%',
+      style: 'width: 18%',
     },
     {
       name: 'position',
@@ -284,7 +598,7 @@
       align: 'left',
       field: 'Position',
       sortable: true,
-      style: 'width: 25%',
+      style: 'width: 22%',
     },
     {
       name: 'post_date',
@@ -332,11 +646,13 @@
       label: 'Actions',
       field: 'action',
       sortable: false,
-      style: 'width: 6%',
+      style: 'width: 11%',
     },
   ];
 
   const jobs = ref([]);
+  const qsDataLoad = ref([]);
+  const usePlantilla = ref({ qsLoad: false });
 
   // Add this computed property to filter jobs by date range
   const filteredJobs = computed(() => {
@@ -386,11 +702,203 @@
     qualifications: [],
   });
 
+  // Helper function to determine if a job can be deleted
+  const canDeleteJob = (job) => {
+    // Job can be deleted only if it has no applicants
+    return !job.applicants || job.applicants === 0;
+  };
+
   const viewJobDetails = (job) => {
     router.push({
       name: 'JobPost View',
       params: { PositionID: job.PositionID, ItemNo: job.ItemNo },
     });
+  };
+
+  // Edit job post functions
+  const editJobPost = async (job) => {
+    try {
+      // Populate edit form with job data
+      editJobDetails.value = {
+        id: job.PositionID || job.id,
+        office: job.Office,
+        division: job.Division || '',
+        section: job.Section || '',
+        unit: job.Unit || '',
+        position: job.Position,
+        level: job.Level || '',
+        startingDate: job.starting_date || job.startingDate || '',
+        endedDate: job.ended_date || job.endedDate || '',
+        PageNo: job.PageNo || 1,
+        currentDocument: job.document
+          ? {
+              name: job.document.name || 'Current Document.pdf',
+              uploadDate: job.document.uploadDate || job.post_date,
+            }
+          : null,
+        newFile: null,
+      };
+
+      // Load qualification standards if needed
+      if (job.PositionID) {
+        await loadQualificationStandards(job.PositionID);
+      }
+
+      showEditModal.value = true;
+    } catch (error) {
+      console.error('Error loading job data for edit:', error);
+      $q.notify({
+        type: 'negative',
+        message: 'Failed to load job data for editing',
+        position: 'top',
+      });
+    }
+  };
+
+  const closeEditModal = () => {
+    showEditModal.value = false;
+    editJobDetails.value = {
+      id: null,
+      office: '',
+      division: '',
+      section: '',
+      unit: '',
+      position: '',
+      level: '',
+      startingDate: '',
+      endedDate: '',
+      PageNo: 1,
+      currentDocument: null,
+      newFile: null,
+    };
+  };
+
+  const updateJobPost = async () => {
+    try {
+      // Validate required fields
+      if (!editJobDetails.value.endedDate) {
+        $q.notify({
+          type: 'negative',
+          message: 'Please select an end date',
+          position: 'top',
+        });
+        return;
+      }
+
+      // Prepare update data
+      const updateData = {
+        id: editJobDetails.value.id,
+        endedDate: editJobDetails.value.endedDate,
+        PageNo: editJobDetails.value.PageNo,
+      };
+
+      // Add file if a new one was selected
+      if (editJobDetails.value.newFile) {
+        updateData.document = editJobDetails.value.newFile;
+      }
+
+      // Call the store's update method
+      await jobPostStore.updateJobPost(updateData);
+
+      // Refresh the job list
+      await jobPostStore.job_post_list();
+      jobs.value = jobPostStore.jobPosts;
+
+      // Show success notification
+      $q.notify({
+        type: 'positive',
+        message: 'Job post updated successfully',
+        position: 'top',
+      });
+
+      // Close the modal
+      closeEditModal();
+    } catch (error) {
+      console.error('Error updating job post:', error);
+      $q.notify({
+        type: 'negative',
+        message: 'Failed to update job post. Please try again.',
+        position: 'top',
+      });
+    }
+  };
+
+  const downloadCurrentDocument = () => {
+    // Implement document download functionality
+    // This would typically call an API endpoint to download the current document
+    console.log('Downloading current document for job:', editJobDetails.value.id);
+    $q.notify({
+      type: 'info',
+      message: 'Document download initiated',
+      position: 'top',
+    });
+  };
+
+  const loadQualificationStandards = async () => {
+    try {
+      usePlantilla.value.qsLoad = true;
+      // Call your API to load qualification standards for the position
+      // This should be replaced with your actual API call
+      // const response = await jobPostStore.getQualificationStandards();
+      // qsDataLoad.value = response.data;
+
+      // Mock data for demonstration
+      qsDataLoad.value = [
+        {
+          id: 1,
+          Education: "Bachelor's degree relevant to the job",
+          Experience: 'At least 1 year of relevant experience',
+          Training: '4 hours of relevant training',
+          Eligibility: 'Career Service (Professional) Second Level Eligibility',
+        },
+      ];
+    } catch (error) {
+      console.error('Error loading qualification standards:', error);
+    } finally {
+      usePlantilla.value.qsLoad = false;
+    }
+  };
+
+  // Updated delete functions to use the store
+  const confirmDeleteJob = (job) => {
+    jobToDelete.value = job;
+    showDeleteConfirmation.value = true;
+  };
+
+  // Updated deleteJob function to refresh the table after deletion
+  const deleteJob = async () => {
+    if (!jobToDelete.value) return;
+
+    try {
+      deletingJobId.value = jobToDelete.value.id;
+
+      // Call the store's deleteJobPost method
+      await jobPostStore.deleteJobPost({ id: jobToDelete.value.id });
+
+      // Refresh the job list from the store to ensure consistency
+      await jobPostStore.job_post_list();
+      jobs.value = jobPostStore.jobPosts;
+
+      // Show success notification
+      $q.notify({
+        type: 'negative',
+        message: 'Job post deleted successfully',
+        position: 'top',
+      });
+
+      // Close the dialog and reset state
+      showDeleteConfirmation.value = false;
+      jobToDelete.value = null;
+    } catch (error) {
+      console.error('Error deleting job post:', error);
+      $q.notify({
+        type: 'negative',
+        message: 'Failed to delete job post. Please try again.',
+        position: 'top',
+      });
+    } finally {
+      deletingJobId.value = null;
+    }
   };
 
   const applicants = ref([
@@ -428,16 +936,7 @@
     };
   });
 
-  // const positionRequirements = ref({
-  //   education: "Bachelor's Degree in related field",
-  //   preferredEducation: "Master's Degree preferred",
-  //   experience: 'Minimum 3 years relevant experience',
-  //   preferredExperience: '5+ years in leadership role',
-  //   training: 'Certification in relevant field',
-  //   preferredTraining: 'Multiple advanced certifications',
-  //   eligibility: 'Professional license required',
-  //   preferredCertification: 'Additional specialized certifications',
-  // });
+  const positionRequirements = ref({});
 
   // Confirmation Modal
   const showConfirmationModal = ref(false);
@@ -628,13 +1127,13 @@
     }
 
     .office-column {
-      width: 20%;
+      width: 18%;
       white-space: normal;
       word-break: break-word;
     }
 
     .position-column {
-      width: 25%;
+      width: 22%;
       white-space: normal;
       word-break: break-word;
     }
@@ -650,7 +1149,7 @@
     }
 
     .action-column {
-      width: 6%;
+      width: 11%;
       text-align: center;
     }
   }
@@ -719,7 +1218,7 @@
   }
 
   .q-pa-sm {
-    padding: 8px;
+    padding: 10px;
   }
 
   .q-pa-xs {
@@ -728,6 +1227,18 @@
 
   .q-card-section {
     padding: 12px;
+  }
+
+  /* Edit button styling */
+  .bg-orange-1 {
+    background-color: rgba(255, 152, 0, 0.1);
+  }
+
+  /* Current document section styling */
+  .current-document-section {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 16px;
   }
 
   /* Responsive adjustments */

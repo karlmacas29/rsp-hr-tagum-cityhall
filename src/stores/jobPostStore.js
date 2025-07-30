@@ -41,6 +41,22 @@ export const useJobPostStore = defineStore('jobPost', {
       }
     },
 
+    async checkJobHasApplicants(id) {
+      try {
+        await this.fetch_applicant(id);
+        // Return true if there are applicants, false otherwise
+        return this.applicant && this.applicant.length > 0;
+      } catch (error) {
+        // If there's an error (like 404), assume no applicants
+        if (error.response && error.response.status === 404) {
+          return false;
+        }
+        // For other errors, assume there might be applicants (safer approach)
+        console.error('Error checking applicants:', error);
+        return true;
+      }
+    },
+
     //fetch job post
     async fetchJobPosts() {
       this.loading = true;
@@ -155,11 +171,11 @@ export const useJobPostStore = defineStore('jobPost', {
       }
     },
 
-    async deleteJobPost({ id, criteriaId }) {
+    async deleteJobPost({ id }) {
       this.loading = true;
       try {
-        await adminApi.delete(`/job-batches-rsp/${id}`);
-        await adminApi.delete(`/on-criteria-job/${criteriaId}`);
+        await adminApi.delete(`/job/delete/${id}`);
+        // await adminApi.delete(`/on-criteria-job/${criteriaId}`);
         this.error = null;
       } catch (err) {
         this.error = err;

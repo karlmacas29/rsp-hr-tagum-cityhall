@@ -801,7 +801,7 @@
       await jobPostStore.updateJobPost(updateData);
 
       // Refresh the job list
-      await jobPostStore.job_post_list();
+      await jobPostStore.job_post();
       jobs.value = jobPostStore.jobPosts;
 
       // Show success notification
@@ -876,7 +876,7 @@
       await jobPostStore.deleteJobPost({ id: jobToDelete.value.id });
 
       // Refresh the job list from the store to ensure consistency
-      await jobPostStore.job_post_list();
+      await jobPostStore.job_post();
       jobs.value = jobPostStore.jobPosts;
 
       // Show success notification
@@ -1070,7 +1070,7 @@
 
   onMounted(async () => {
     // Fetch job posts from the store
-    await jobPostStore.job_post_list();
+    await jobPostStore.job_post();
     jobs.value = jobPostStore.jobPosts;
     // Set the date range to the last 30 days
     setDateRange();

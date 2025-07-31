@@ -6,7 +6,7 @@ export const useJobPostStore = defineStore('jobPost', {
   state: () => ({
     jobPosts: [],
     applicant: [],
-
+    jobPostsrater: [],
     loading: false,
     error: null,
   }),
@@ -85,6 +85,21 @@ export const useJobPostStore = defineStore('jobPost', {
         this.loading = false;
       }
     },
+
+    async job_post() {
+      this.loading = true;
+      try {
+        // Adjust the endpoint as needed to join or fetch both details
+        const { data } = await adminApi.get('/job-post');
+        this.jobPosts = data;
+        this.error = null;
+      } catch (err) {
+        this.error = err;
+      } finally {
+        this.loading = false;
+      }
+    },
+
     async fetchJobPostByPositionAndItemNo(PositionID, ItemNo) {
       this.loading = true;
 

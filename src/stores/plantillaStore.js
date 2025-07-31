@@ -38,7 +38,7 @@ export const usePlantillaStore = defineStore('plantilla', {
       }
     },
 
-     async fetch_office_rater() {
+    async fetch_office_rater() {
       this.loading = true;
       this.error = null;
       try {

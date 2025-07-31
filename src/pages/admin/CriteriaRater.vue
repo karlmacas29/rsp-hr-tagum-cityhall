@@ -1,10 +1,13 @@
 <template>
   <q-page class="q-pa-md">
+    <!-- Header -->
     <div class="column items-start justify-center q-mb-md">
       <h5 class="text-h5 q-ma-none"><b>Criteria</b></h5>
     </div>
+
     <!-- Filters -->
     <div class="row justify-between items-center q-mb-md">
+      <!-- Date Range Picker -->
       <q-input
         outlined
         dense
@@ -54,6 +57,7 @@
         </template>
       </q-input>
 
+      <!-- Search and Actions -->
       <div class="row items-center">
         <q-input
           v-model="globalSearch"
@@ -85,18 +89,21 @@
       row-key="id"
       :pagination="pagination"
       class="job-posts-table q-mt-md"
-      :loading="jobPostStore.loading"
+      :loading="loading"
       table-style="min-width: 100%"
       selection="multiple"
       v-model:selected="selectedRows"
     >
-      <template v-slot:body-cell-Office="props">
+      <!-- Office Column -->
+      <template v-slot:body-cell-office="props">
         <q-td :props="props" class="office-column">
           <div class="text-body2 text-weight-medium text-black">
-            {{ props.row.Office }}
+            {{ props.row.office }}
           </div>
         </q-td>
       </template>
+
+      <!-- Position Column -->
       <template v-slot:body-cell-Position="props">
         <q-td :props="props" class="position-column">
           <div class="text-body2 text-weight-medium text-black">
@@ -104,16 +111,32 @@
           </div>
         </q-td>
       </template>
-      <template v-slot:body-cell-Status="props">
+
+      <!-- Status Column -->
+      <template v-slot:body-cell-status="props">
         <q-td :props="props" class="status-column">
-          <span class="text-grey">N/A</span>
+          <q-chip
+            :color="getStatusColor(props.row.status)"
+            text-color="white"
+            dense
+            class="text-body2"
+          >
+            {{ formatStatus(props.row.status) }}
+          </q-chip>
         </q-td>
       </template>
-      <template v-slot:body-cell-Rater="props">
+
+      <!-- Rater Column -->
+      <template v-slot:body-cell-raters="props">
         <q-td :props="props" class="rater-column">
-          <span class="text-grey">N/A</span>
+          <div v-if="props.row.assigned_raters.length > 0" class="text-body2">
+            {{ formatRaters(props.row.assigned_raters) }}
+          </div>
+          <span v-else class="text-grey">Not Assigned</span>
         </q-td>
       </template>
+
+      <!-- Action Column -->
       <template v-slot:body-cell-action="props">
         <q-td :props="props" class="action-column q-gutter-x-xs">
           <q-btn
@@ -122,26 +145,38 @@
             flat
             color="green"
             class="bg-green-1"
-            icon="notes"
-            @click="openCriteriaModal(props.row)"
+            icon="add"
+            @click="openCriteriaModal(props.row, 'create')"
           >
             <q-tooltip>Create Criteria</q-tooltip>
           </q-btn>
-          <q-btn
-            v-else
-            round
-            flat
-            color="blue"
-            class="bg-blue-1"
-            icon="visibility"
-            @click="viewCriteria(props.row)"
-          >
-            <q-tooltip>View Criteria</q-tooltip>
-          </q-btn>
+          <template v-else>
+            <q-btn
+              round
+              flat
+              color="blue"
+              class="bg-blue-1"
+              icon="visibility"
+              @click="openCriteriaModal(props.row, 'view')"
+            >
+              <q-tooltip>View Criteria</q-tooltip>
+            </q-btn>
+            <q-btn
+              round
+              flat
+              color="orange"
+              class="bg-orange-1"
+              icon="edit"
+              @click="openCriteriaModal(props.row, 'edit')"
+            >
+              <q-tooltip>Edit Criteria</q-tooltip>
+            </q-btn>
+          </template>
         </q-td>
       </template>
+
       <template v-slot:no-data>
-        <div class="full-width row flex-center q-pa-md text-grey">Jobpost is Empty</div>
+        <div class="full-width row flex-center q-pa-md text-grey">No job posts found</div>
       </template>
     </q-table>
 
@@ -150,86 +185,31 @@
       v-model="showCriteriaModal"
       :job="selectedJob"
       :criteria="selectedCriteria"
-      :is-view-mode="isViewMode"
+      :mode="modalMode"
       @saved="onCriteriaSaved"
+      @switch-to-edit="handleSwitchToEdit"
     />
   </q-page>
 </template>
 
 <script setup>
-  import { ref, computed, onMounted } from 'vue';
+  import { ref, computed, onMounted, nextTick } from 'vue';
   import { date } from 'quasar';
   import { useJobPostStore } from 'stores/jobPostStore';
+  import { useCriteriaStore } from 'stores/criteriaStore';
   import CriteriaRaterModal from 'src/components/CriteriaModal.vue';
 
   const jobPostStore = useJobPostStore();
+  const criteriaStore = useCriteriaStore();
   const { formatDate } = date;
 
-  const pagination = ref({
-    sortBy: 'post_date',
-    descending: true,
-    page: 1,
-    rowsPerPage: 7,
-  });
-
-  const globalSearch = ref('');
-  const dateRange = ref({ from: '', to: '' });
-  const dateRangeText = computed(() => {
-    if (!dateRange.value.from && !dateRange.value.to) return '';
-    return `${formatDate(dateRange.value.from, 'MMM D, YYYY')} - ${formatDate(dateRange.value.to, 'MMM D, YYYY')}`;
-  });
-
-  const setDateRange = () => {
-    const currentYear = new Date().getFullYear();
-    const fromDate = new Date(currentYear, 0, 1);
-    const toDate = new Date(currentYear, 11, 31);
-    dateRange.value = {
-      from: formatDate(fromDate, 'YYYY/MM/DD'),
-      to: formatDate(toDate, 'YYYY/MM/DD'),
-    };
-  };
-
-  const onDateRangeChange = (newRange) => {
-    dateRange.value = newRange;
-  };
-
-  const jobs = ref([]);
-  const jobCriteriaMap = ref({});
-  const filteredJobs = computed(() => {
-    let filtered = jobs.value;
-    if (dateRange.value.from && dateRange.value.to) {
-      filtered = filtered.filter((job) => {
-        const jobDate = new Date(job.post_date);
-        const from = new Date(dateRange.value.from);
-        const to = new Date(dateRange.value.to);
-        to.setHours(23, 59, 59, 999);
-        return jobDate >= from && jobDate <= to;
-      });
-    }
-    if (globalSearch.value) {
-      const searchTerm = globalSearch.value.toLowerCase();
-      filtered = filtered.filter((job) => {
-        return (
-          (job.Office && job.Office.toLowerCase().includes(searchTerm)) ||
-          (job.Position && job.Position.toLowerCase().includes(searchTerm))
-        );
-      });
-    }
-    return filtered;
-  });
-
-  const selectedRows = ref([]);
-  const selectedJob = ref(null);
-  const selectedCriteria = ref(null);
-  const showCriteriaModal = ref(false);
-  const isViewMode = ref(false);
-
+  // Table configuration
   const columns = [
     {
-      name: 'Office',
+      name: 'office',
       label: 'Office',
       align: 'left',
-      field: 'Office',
+      field: 'office',
       sortable: true,
       style: 'width: 25%',
     },
@@ -239,153 +219,201 @@
       align: 'left',
       field: 'Position',
       sortable: true,
-      style: 'width: 35%',
+      style: 'width: 30%',
     },
     {
-      name: 'Status',
+      name: 'status',
       label: 'Status',
       align: 'center',
-      field: 'Status',
+      field: 'status',
       sortable: false,
       style: 'width: 13%',
     },
     {
-      name: 'Rater',
-      label: 'Rater',
+      name: 'raters',
+      label: 'Raters',
       align: 'center',
-      field: 'Rater',
+      field: (row) => row.assigned_raters.length,
       sortable: false,
-      style: 'width: 13%',
+      style: 'width: 15%',
     },
     {
       name: 'action',
       align: 'center',
       label: 'Actions',
-      field: 'action',
+      field: (row) => row.criteria_ratings.length,
       sortable: false,
-      style: 'width: 14%',
+      style: 'width: 17%',
     },
   ];
 
-  function hasCriteria(job) {
-    // Use the job's id or JobBatchesRspId as the key
-    const jobId = job.id || job.JobBatchesRspId;
-    return jobCriteriaMap.value[jobId];
-  }
+  // Reactive data
+  const loading = ref(false);
+  const jobs = ref([]);
+  const selectedRows = ref([]);
+  const selectedJob = ref(null);
+  const selectedCriteria = ref(null);
+  const showCriteriaModal = ref(false);
+  const modalMode = ref('create');
+  const globalSearch = ref('');
+  const dateRange = ref({ from: '', to: '' });
 
-  async function openCriteriaModal(job) {
-    selectedJob.value = job;
-    isViewMode.value = false;
+  // Pagination
+  const pagination = ref({
+    sortBy: 'created_at',
+    descending: true,
+    page: 1,
+    rowsPerPage: 7,
+  });
 
-    // Try to fetch existing criteria for this job
-    try {
-      selectedCriteria.value = await jobPostStore.fetchCriteriaByPositionAndItemNo(
-        job.PositionID,
-        job.ItemNo,
-      );
-    } catch {
-      console.log('No existing criteria found, creating new');
-      selectedCriteria.value = null;
+  // Computed properties
+  const dateRangeText = computed(() => {
+    if (!dateRange.value.from && !dateRange.value.to) return '';
+    return `${formatDate(dateRange.value.from, 'MMM D, YYYY')} - ${formatDate(dateRange.value.to, 'MMM D, YYYY')}`;
+  });
+
+  const filteredJobs = computed(() => {
+    let filtered = jobs.value;
+
+    // Date range filter
+    if (dateRange.value.from && dateRange.value.to) {
+      filtered = filtered.filter((job) => {
+        if (!job.created_at) return true;
+        const jobDate = new Date(job.created_at);
+        const from = new Date(dateRange.value.from);
+        const to = new Date(dateRange.value.to);
+        to.setHours(23, 59, 59, 999);
+        return jobDate >= from && jobDate <= to;
+      });
     }
 
-    showCriteriaModal.value = true;
-  }
-
-  function viewCriteria(job) {
-    const jobId = job.id || job.JobBatchesRspId;
-    const criteria = jobCriteriaMap.value[jobId];
-
-    if (criteria) {
-      selectedJob.value = job;
-      selectedCriteria.value = convertApiCriteriaToModalFormat(criteria);
-      isViewMode.value = true;
-      showCriteriaModal.value = true;
+    // Global search filter
+    if (globalSearch.value) {
+      const searchTerm = globalSearch.value.toLowerCase();
+      filtered = filtered.filter((job) => {
+        return (
+          (job.office && job.office.toLowerCase().includes(searchTerm)) ||
+          (job.Position && job.Position.toLowerCase().includes(searchTerm))
+        );
+      });
     }
-  }
 
-  // Convert API criteria format to modal format
-  function convertApiCriteriaToModalFormat(apiCriteria) {
-    return {
-      education: {
-        weight: parseInt(apiCriteria.education?.Rate || 0),
-        title: apiCriteria.education?.description?.[0] || '',
-        description: apiCriteria.education?.description?.[1] || '',
-        additionalFields: apiCriteria.education?.description?.slice(2) || [],
-      },
-      experience: {
-        weight: parseInt(apiCriteria.experience?.Rate || 0),
-        title: apiCriteria.experience?.description?.[0] || '',
-        description: apiCriteria.experience?.description?.[1] || '',
-        additionalFields: apiCriteria.experience?.description?.slice(2) || [],
-      },
-      training: {
-        weight: parseInt(apiCriteria.training?.Rate || 0),
-        title: apiCriteria.training?.description?.[0] || '',
-        description: apiCriteria.training?.description?.[1] || '',
-        additionalFields: apiCriteria.training?.description?.slice(2) || [],
-      },
-      performance: {
-        weight: parseInt(apiCriteria.performance?.Rate || 0),
-        title: apiCriteria.performance?.description?.[0] || '',
-        description: apiCriteria.performance?.description?.[1] || '',
-        additionalFields: apiCriteria.performance?.description?.slice(2) || [],
-      },
-      bei: {
-        weight: parseInt(apiCriteria.behavioral?.Rate || apiCriteria.bei?.Rate || 0),
-        title: apiCriteria.behavioral?.description?.[0] || apiCriteria.bei?.description?.[0] || '',
-        description:
-          apiCriteria.behavioral?.description?.[1] || apiCriteria.bei?.description?.[1] || '',
-        additionalFields:
-          apiCriteria.behavioral?.description?.slice(2) ||
-          apiCriteria.bei?.description?.slice(2) ||
-          [],
-      },
+    return filtered;
+  });
+
+  // Methods
+  function setDateRange() {
+    const currentYear = new Date().getFullYear();
+    const fromDate = new Date(currentYear, 0, 1);
+    const toDate = new Date(currentYear, 11, 31);
+    dateRange.value = {
+      from: formatDate(fromDate, 'YYYY/MM/DD'),
+      to: formatDate(toDate, 'YYYY/MM/DD'),
     };
   }
 
-  function onCriteriaSaved() {
-    // Refresh the criteria data after saving
-    loadCriteria();
-    showCriteriaModal.value = false;
+  function onDateRangeChange(newRange) {
+    dateRange.value = newRange;
   }
 
-  function handleSameAs() {
-    console.log('Same as clicked for:', selectedRows.value);
+  function formatStatus(status) {
+    if (!status) return 'No Criteria';
+    return status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ');
   }
 
-  async function loadCriteria() {
-    try {
-      const allCriteria = await jobPostStore.fetchAllCriteria();
-
-      // Clear existing criteria map
-      jobCriteriaMap.value = {};
-
-      allCriteria.forEach((criteria) => {
-        // Map criteria using job_batches_rsp_id
-        if (Array.isArray(criteria.job_batches_rsp_id)) {
-          criteria.job_batches_rsp_id.forEach((jobId) => {
-            jobCriteriaMap.value[jobId] = criteria;
-          });
-        } else if (criteria.job_batches_rsp_id) {
-          jobCriteriaMap.value[criteria.job_batches_rsp_id] = criteria;
-        }
-
-        // Also map by positionId-plantillaItemNo for backward compatibility
-        if (criteria.positionId && criteria.plantillaItemNo) {
-          const key = `${criteria.positionId}-${criteria.plantillaItemNo}`;
-          jobCriteriaMap.value[key] = criteria;
-        }
-      });
-    } catch (error) {
-      console.error('Error loading criteria:', error);
+  function getStatusColor(status) {
+    if (!status) return 'grey';
+    switch (status.toLowerCase()) {
+      case 'created':
+        return 'positive';
+      case 'no criteria':
+        return 'negative';
+      default:
+        return 'info';
     }
   }
 
-  onMounted(async () => {
-    await jobPostStore.fetchJobPosts();
-    jobs.value = jobPostStore.jobPosts;
-    setDateRange();
-    await loadCriteria();
+  function formatRaters(raters) {
+    return raters.map((r) => r.name).join(', ');
+  }
+
+  function hasCriteria(job) {
+    return job.criteria_ratings && job.criteria_ratings.length > 0;
+  }
+
+  async function openCriteriaModal(job, mode) {
+    console.log('Opening criteria modal:', { job, mode });
+
+    selectedJob.value = job;
+    modalMode.value = mode;
+
+    if (mode === 'create') {
+      selectedCriteria.value = null;
+      criteriaStore.clearCurrentCriteria();
+      console.log('Create mode: cleared criteria');
+    } else if (mode === 'view' || mode === 'edit') {
+      try {
+        console.log('Fetching criteria for job:', job.id);
+        await criteriaStore.viewCriteria(job.id);
+        selectedCriteria.value = criteriaStore.currentCriteria;
+        console.log('Fetched criteria:', selectedCriteria.value);
+      } catch (error) {
+        console.error('Error fetching criteria:', error);
+        selectedCriteria.value = null;
+        // If we can't fetch criteria for edit mode, switch to create mode
+        if (mode === 'edit') {
+          modalMode.value = 'create';
+          console.log('Switched to create mode due to missing criteria');
+        }
+      }
+    }
+
+    showCriteriaModal.value = true;
+    console.log('Modal opened with mode:', modalMode.value);
+  }
+
+  function onCriteriaSaved() {
+    console.log('Criteria saved, refreshing job posts');
+    loadJobPosts();
+    showCriteriaModal.value = false;
+    criteriaStore.clearCurrentCriteria();
+    // Reset selections
+    selectedJob.value = null;
+    selectedCriteria.value = null;
+  }
+
+  function handleSwitchToEdit(job) {
+    console.log('Switching to edit mode for job:', job);
+    // Close current modal and reopen in edit mode
+    showCriteriaModal.value = false;
+
+    // Use nextTick to ensure modal is fully closed
+    nextTick(() => {
+      openCriteriaModal(job, 'edit');
+    });
+  }
+
+  function handleSameAs() {
+    // Implement your "Same As" functionality here
+    console.log('Same as clicked for:', selectedRows.value);
+  }
+
+  async function loadJobPosts() {
+    loading.value = true;
+    try {
+      await jobPostStore.job_post_list();
+      jobs.value = jobPostStore.jobPosts;
+      setDateRange();
+    } catch (error) {
+      console.error('Error loading job posts:', error);
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  // Lifecycle hooks
+  onMounted(() => {
+    loadJobPosts();
   });
 </script>
 
@@ -421,19 +449,23 @@
     }
 
     .position-column {
-      width: 35%;
+      width: 30%;
       white-space: normal;
       word-break: break-word;
     }
 
-    .status-column,
+    .status-column {
+      width: 15%;
+      text-align: center;
+    }
+
     .rater-column {
-      width: 13%;
+      width: 15%;
       text-align: center;
     }
 
     .action-column {
-      width: 14%;
+      width: 17%;
       text-align: center;
     }
   }

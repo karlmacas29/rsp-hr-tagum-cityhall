@@ -23,6 +23,7 @@ export const useLogsStore = defineStore('logs', {
         this.loading = false;
       }
     },
+    
     async logAction(actions) {
       const token = document.cookie
         .split('; ')

@@ -11,20 +11,6 @@ export const useJobPostStore = defineStore('jobPost', {
     error: null,
   }),
   actions: {
-    // criteria
-    //  async fetch_office_position() {
-    //   this.loading = true;
-    //   try {
-    //     // Adjust the endpoint as needed to join or fetch both details
-    //     const { data } = await adminApi.get('/job-batches-rsp/office');
-    //     this.office_position = data;
-    //     this.error = null;
-    //   } catch (err) {
-    //     this.error = err;
-    //   } finally {
-    //     this.loading = false;
-    //   }
-    // },
 
     //fetch the applicant base on the job post he apply
     async fetch_applicant(id) {
@@ -156,7 +142,7 @@ export const useJobPostStore = defineStore('jobPost', {
         await adminApi.post('/on-criteria-job', criteria);
 
         this.error = null;
-        toast.success('Job post created successfully!');
+        // toast.success('Job post created successfully!');
         return batch;
       } catch (err) {
         this.error = err;

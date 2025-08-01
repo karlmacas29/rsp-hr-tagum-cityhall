@@ -316,6 +316,12 @@
       field: 'status',
       align: 'center',
     },
+       {
+      name: 'rank',
+      label: 'Rank',
+      field: 'ranking',
+      align: 'center',
+    },
     {
       name: 'action',
       label: 'Action',

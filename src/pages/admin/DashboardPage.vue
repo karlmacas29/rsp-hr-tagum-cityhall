@@ -41,19 +41,19 @@
             <q-chip dense class="q-my-xs row justify-start">
               Total Employees:
               <q-badge rounded dense class="text-bold q-ml-xs">
-                {{ Number(vwActiveStore.countAll).toLocaleString() }}
+                {{ Number(dashboardStore.countAll).toLocaleString() }}
               </q-badge>
             </q-chip>
             <q-chip dense class="q-my-xs row justify-start">
               Female:
               <q-badge rounded dense color="pink" class="text-bold q-ml-xs">
-                {{ Number(vwActiveStore.totalFemale).toLocaleString() }}
+                {{ Number(dashboardStore.totalFemale).toLocaleString() }}
               </q-badge>
             </q-chip>
             <q-chip dense class="q-my-xs row justify-start">
               Male:
               <q-badge rounded dense color="blue" class="text-bold q-ml-xs">
-                {{ Number(vwActiveStore.totalMale).toLocaleString() }}
+                {{ Number(dashboardStore.totalMale).toLocaleString() }}
               </q-badge>
             </q-chip>
           </div>
@@ -161,14 +161,15 @@
   import { onMounted, ref } from 'vue';
   import { useAuthStore } from 'src/stores/authStore';
   import StatusOverview from 'src/components/Dashboard/StatusOverview.vue';
-  import { use_vwActiveStore } from 'src/stores/vwActiveStore';
+
+  import { DashboardStore } from 'src/stores/dashboardStore';
   import { useJobPostStore } from 'src/stores/jobPostStore';
   import { useRouter } from 'vue-router';
 
   const router = useRouter();
 
   const useJobPost = useJobPostStore();
-  const vwActiveStore = use_vwActiveStore();
+  const dashboardStore = DashboardStore();
   const authStore = useAuthStore();
 
   const jobs = ref([]);
@@ -176,19 +177,19 @@
   const columns = [
     { name: 'jobs', label: 'Position', align: 'left', field: 'Position', sortable: true },
     {
-      name: 'applicants',
+      name: 'total_applicants',
       label: 'No. of Applicants',
       align: 'center',
-      field: 'applicants',
+      field: 'total_applicants',
       sortable: true,
     },
-    { name: 'pending', label: 'Pending', align: 'center', field: 'pending', sortable: true },
-    { name: 'qualified', label: 'Qualified', align: 'center', field: 'qualified', sortable: true },
+    { name: 'pending_count', label: 'Pending', align: 'center', field: 'pending_count', sortable: true },
+    { name: 'qualified_count', label: 'Qualified', align: 'center', field: 'qualified_count', sortable: true },
     {
-      name: 'unqualified',
+      name: 'unqualified_count',
       label: 'Unqualified',
       align: 'center',
-      field: 'unqualified',
+      field: 'unqualified_count',
       sortable: true,
     },
     {
@@ -208,8 +209,12 @@
   };
 
   onMounted(async () => {
-    await Promise.all([vwActiveStore.fetchCountAll(), vwActiveStore.getSexCount()]);
-    await useJobPost.fetchJobPosts();
+    await Promise.all([
+    dashboardStore.fetchCountAll(),
+    dashboardStore.getSexCount(),
+
+  ]);
+    await useJobPost.job_post();
     jobs.value = useJobPost.jobPosts;
   });
 </script>

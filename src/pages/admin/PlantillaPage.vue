@@ -509,7 +509,7 @@
               label="Upload PDF file (Max 5MB)"
               style="width: 330px; border: 2px dashed #ccc; border-radius: 8px"
               class="q-mx-auto q-mb-md"
-              :rules="[(val) => !!val || 'Please upload funded plantilla PDF.']"
+              :rules="[(val) => !!val || 'Please upload the  PDF file .']"
             >
               <template v-slot:prepend>
                 <q-icon name="upload_file" size="2em" color="grey-7" />
@@ -636,16 +636,16 @@
     Training: '',
   });
 
-  const positionRequirements = ref({
-    education: "Bachelor's Degree in related field",
-    preferredEducation: "Master's Degree preferred",
-    experience: 'Minimum 3 years relevant experience',
-    preferredExperience: '5+ years in leadership role',
-    training: 'Certification in relevant field',
-    preferredTraining: 'Multiple advanced certifications',
-    eligibility: 'Professional license required',
-    preferredCertification: 'Additional specialized certifications',
-  });
+  // const positionRequirements = ref({
+  //   education: "Bachelor's Degree in related field",
+  //   preferredEducation: "Master's Degree preferred",
+  //   experience: 'Minimum 3 years relevant experience',
+  //   preferredExperience: '5+ years in leadership role',
+  //   training: 'Certification in relevant field',
+  //   preferredTraining: 'Multiple advanced certifications',
+  //   eligibility: 'Professional license required',
+  //   preferredCertification: 'Additional specialized certifications',
+  // });
 
   const pagination = ref({
     page: 1,
@@ -937,7 +937,8 @@
       // Force table to re-render
       tableKey.value++;
 
-      toast.success('Job post created and funded plantilla uploaded!');
+      // toast.success('Job post created and funded plantilla uploaded!');
+      toast.success('Job post successfully created, file uploaded, and details updated!');
     } catch (error) {
       console.error('Error creating job post:', error);
       toast.error('Failed to create job post. Please try again.');
@@ -992,7 +993,7 @@
       axios
         .post(`${process.env.VUE_APP_API_URL}/plantilla/funded`, formData, requestConfig)
         .then((response) => {
-          toast.success('File uploaded successfully');
+          // toast.success('File uploaded successfully');
           resolve({
             url: response.data?.data?.fileUpload ?? '',
           });
@@ -1082,7 +1083,7 @@
           requestConfig,
         )
         .then((response) => {
-          toast.success(response.data?.message || 'PageNo updated successfully!');
+          // toast.success(response.data?.message || 'PageNo updated successfully!');
           resolve(response.data);
         })
         .catch((error) => {

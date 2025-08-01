@@ -8,7 +8,7 @@
             <div class="row items-center no-wrap full-width">
               <div class="col stats-text">
                 <div class="label-text">Total Applicants</div>
-                <div class="value-text text-primary">{{ totalApplicants }}</div>
+                <div class="value-text text-primary">{{ dashboardStore.total}}</div>
               </div>
               <div class="col-auto icon-container">
                 <q-icon name="groups" size="40px" color="primary" />
@@ -23,7 +23,7 @@
             <div class="row items-center no-wrap full-width">
               <div class="col stats-text">
                 <div class="label-text">Pendings</div>
-                <div class="value-text text-orange">{{ pendingApplicants }}</div>
+                <div class="value-text text-orange">{{dashboardStore.pending }}</div>
               </div>
               <div class="col-auto icon-container">
                 <q-icon name="pending_actions" size="40px" color="orange" />
@@ -38,7 +38,7 @@
             <div class="row items-center no-wrap full-width">
               <div class="col stats-text">
                 <div class="label-text">Qualified</div>
-                <div class="value-text text-positive">{{ qualifiedApplicants }}</div>
+                <div class="value-text text-positive">{{ dashboardStore.qualified }}</div>
               </div>
               <div class="col-auto icon-container">
                 <q-icon name="verified_user" size="40px" color="positive" />
@@ -53,7 +53,7 @@
             <div class="row items-center no-wrap full-width">
               <div class="col stats-text">
                 <div class="label-text">Unqualified</div>
-                <div class="value-text text-negative">{{ unqualifiedApplicants }}</div>
+                <div class="value-text text-negative">{{ dashboardStore.unqualified }}</div>
               </div>
               <div class="col-auto icon-container">
                 <q-icon name="cancel" size="40px" color="negative" />
@@ -67,37 +67,20 @@
 </template>
 
 <script setup>
-  import { ref, onMounted } from 'vue';
-  import { useJobPostStore } from 'src/stores/jobPostStore';
+  import {onMounted } from 'vue';
 
-  const jobPostStore = useJobPostStore();
+
+  import { DashboardStore } from 'src/stores/dashboardStore';
+
+  const dashboardStore = DashboardStore();
 
   // Variable names updated to match labels
-  const totalApplicants = ref(0);
-  const pendingApplicants = ref(0);
-  const qualifiedApplicants = ref(0);
-  const unqualifiedApplicants = ref(0);
+
 
   onMounted(async () => {
     try {
-      await jobPostStore.fetchJobPosts();
+      await dashboardStore.status();
 
-      let applicantsTotal = 0;
-      let qualified = 0;
-      let pending = 0;
-      let unqualified = 0;
-
-      jobPostStore.jobPosts.forEach((job) => {
-        applicantsTotal += job.applicants || 0;
-        qualified += job.qualified || 0;
-        pending += job.pending || 0;
-        unqualified += job.unqualified || 0;
-      });
-
-      totalApplicants.value = applicantsTotal;
-      pendingApplicants.value = pending;
-      qualifiedApplicants.value = qualified;
-      unqualifiedApplicants.value = unqualified;
     } catch (error) {
       console.error('Failed to fetch job data:', error);
     }

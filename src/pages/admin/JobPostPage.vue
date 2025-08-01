@@ -609,34 +609,34 @@
       style: 'width: 12%',
     },
     {
-      name: 'applicants',
+      name: 'total_applicants',
       align: 'center',
-      label: 'Applicants',
-      field: 'applicants',
+      label: 'Applicant',
+      field: 'total_applicants',
       sortable: true,
       style: 'width: 9%',
     },
     {
-      name: 'pending',
+      name: 'pending_count',
       align: 'center',
       label: 'Pending',
-      field: 'pending',
+      field: 'pending_count',
       sortable: true,
       style: 'width: 9%',
     },
     {
-      name: 'qualified',
+      name: 'qualified_count',
       align: 'center',
       label: 'Qualified',
-      field: 'qualified',
+      field: 'qualified_count',
       sortable: true,
       style: 'width: 9%',
     },
     {
-      name: 'unqualified',
+      name: 'unqualified_count',
       align: 'center',
       label: 'Unqualified',
-      field: 'unqualified',
+      field: 'unqualified_count',
       sortable: true,
       style: 'width: 10%',
     },
@@ -677,9 +677,8 @@
         return (
           (job.Office && job.Office.toLowerCase().includes(searchTerm)) ||
           (job.Position && job.Position.toLowerCase().includes(searchTerm)) ||
-          (job.post_date &&
-            formatDate(job.post_date, 'MMM D, YYYY').toLowerCase().includes(searchTerm)) ||
-          (job.applicants !== undefined && job.applicants.toString().includes(searchTerm)) ||
+          (job.post_date && formatDate(job.post_date, 'MMM D, YYYY').toLowerCase().includes(searchTerm)) ||
+          (job.total_applicants !== undefined && job.total_applicants.toString().includes(searchTerm)) ||
           (job.pending !== undefined && job.pending.toString().includes(searchTerm)) ||
           (job.qualified !== undefined && job.qualified.toString().includes(searchTerm)) ||
           (job.unqualified !== undefined && job.unqualified.toString().includes(searchTerm))

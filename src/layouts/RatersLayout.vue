@@ -1,7 +1,10 @@
 <template>
-  <q-layout view="hHh LpR fFf">
+  <q-layout view="lHh Lpr lFf">
+    <!-- Sidebar -->
     <SideBar />
-         <NavBarPage />
+    <q-header class="text-black">
+      <NavBarPage />
+    </q-header>
     <q-page-container>
       <router-view />
     </q-page-container>
@@ -11,4 +14,7 @@
 <script setup>
   import SideBar from '../components/Rater/SideBar.vue';
   import NavBarPage from 'components/Rater/Navbar.vue';
+  import { onMounted } from 'vue';
+
+  onMounted(async () => {});
 </script>

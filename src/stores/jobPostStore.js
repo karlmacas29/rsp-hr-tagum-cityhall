@@ -11,28 +11,29 @@ export const useJobPostStore = defineStore('jobPost', {
     error: null,
   }),
   actions: {
+    // In your store (useJobPostStore)
+    async evaluation(applicantId, qualificationStatus) {
+      this.error = null;
+      try {
+        console.log('Calling evaluation API with:', { applicantId, status: qualificationStatus });
 
-      // In your store (useJobPostStore)
-      async evaluation(applicantId, qualificationStatus) {
-        this.error = null;
-        try {
-          console.log('Calling evaluation API with:', { applicantId, status: qualificationStatus });
+        const response = await adminApi.post(
+          `/job-batches-rsp/applicant/evaluation/${applicantId}`,
+          {
+            status: qualificationStatus,
+          },
+        );
 
-          const response = await adminApi.post(`/job-batches-rsp/applicant/evaluation/${applicantId}`, {
-            status: qualificationStatus
-          });
-
-          console.log('Evaluation response:', response.data);
-          toast.success('Evaluation submitted successfully!');
-          return response.data;
-        } catch (error) {
-          console.error('Evaluation API error:', error);
-          this.error = error;
-          toast.error('Error submitting evaluation.');
-          throw error;
-        }
-      },
-
+        console.log('Evaluation response:', response.data);
+        toast.success('Evaluation submitted successfully!');
+        return response.data;
+      } catch (error) {
+        console.error('Evaluation API error:', error);
+        this.error = error;
+        toast.error('Error submitting evaluation.');
+        throw error;
+      }
+    },
 
     //fetch the applicant base on the job post he apply
     async fetch_applicant(id) {
@@ -110,7 +111,7 @@ export const useJobPostStore = defineStore('jobPost', {
 
     async fetchJobPostByPositionAndItemNo(PositionID, ItemNo) {
       this.loading = true;
-            this.error = null;
+      this.error = null;
       try {
         // Assuming the API endpoint is structured to accept PositionID and ItemNo as path parameters
         // e.g., /adminApi/job-batches-rsp/{PositionID}/{ItemNo}

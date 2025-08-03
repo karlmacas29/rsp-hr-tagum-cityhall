@@ -134,8 +134,18 @@
                             false-value="0"
                             checked-icon="check"
                             unchecked-icon="clear"
+                            :disable="hasJobPost(props.row) && props.row.Funded === '1'"
                             @update:model-value="(val) => handleToggle(props.row, val)"
-                          />
+                          >
+                            <template
+                              v-if="hasJobPost(props.row) && props.row.Funded === '1'"
+                              v-slot:label
+                            >
+                              <q-tooltip>
+                                Position cannot be unfunded because it has an active job post.
+                              </q-tooltip>
+                            </template>
+                          </q-toggle>
                         </template>
                       </template>
                       <template v-else>
@@ -203,7 +213,7 @@
 
                       <!-- Show view job post icon if job post exists -->
                       <q-btn
-                        v-if="props.row.Funded == '1' && hasJobPost(props.row)"
+                        v-if="hasJobPost(props.row)"
                         flat
                         dense
                         round
@@ -320,6 +330,13 @@
             </span>
             ?
           </div>
+          <div
+            v-if="fundedToggleValue === '0' && hasJobPost(fundedToggleRow)"
+            class="text-negative q-mt-md"
+          >
+            <q-icon name="warning" class="q-mr-xs" />
+            This position cannot be unfunded because it has an active job post.
+          </div>
         </q-card-section>
         <q-separator />
         <q-card-actions align="right" class="q-pa-md">
@@ -334,6 +351,7 @@
             :color="fundedToggleValue === '1' ? 'primary' : 'negative'"
             :label="fundedToggleValue === '1' ? 'Confirm Funded' : 'Confirm Unfunded'"
             @click="confirmSetFunded"
+            :disable="fundedToggleValue === '0' && hasJobPost(fundedToggleRow)"
             unelevated
           />
         </q-card-actions>
@@ -587,6 +605,7 @@
   const reportRow = ref(null);
   const showFundedConfirmModal = ref(false);
   const fundedToggleRow = ref(null);
+  const fundedToggleValue = ref('1');
   const showVacantPositionModal = ref(false);
   const showFilledPositionModal = ref(false);
   const showPDSModal = ref(false);
@@ -636,16 +655,7 @@
     Training: '',
   });
 
-  // const positionRequirements = ref({
-  //   education: "Bachelor's Degree in related field",
-  //   preferredEducation: "Master's Degree preferred",
-  //   experience: 'Minimum 3 years relevant experience',
-  //   preferredExperience: '5+ years in leadership role',
-  //   training: 'Certification in relevant field',
-  //   preferredTraining: 'Multiple advanced certifications',
-  //   eligibility: 'Professional license required',
-  //   preferredCertification: 'Additional specialized certifications',
-  // });
+  const positionRequirements = ref([]);
 
   const pagination = ref({
     page: 1,
@@ -664,68 +674,30 @@
     Status: '',
   });
 
-  const jobPosts = ref([]);
   const tableKey = ref(0);
 
-  // Fetch job posts from the correct endpoint
-  const fetchJobPosts = async () => {
-    try {
-      // Use the correct endpoint for job batches RSP list
-      const response = await axios.get(`${process.env.VUE_APP_API_URL}/job-batches-rsp/list`, {
-        headers: {
-          Authorization: `Bearer ${
-            document.cookie
-              .split('; ')
-              .find((row) => row.startsWith('admin_token='))
-              ?.split('=')[1]
-          }`,
-        },
-      });
-
-      jobPosts.value = Array.isArray(response.data?.data)
-        ? response.data.data
-        : Array.isArray(response.data)
-          ? response.data
-          : [];
-
-      console.log('Fetched job posts:', jobPosts.value.length);
-    } catch (error) {
-      console.error('Error fetching job posts:', error);
-      jobPosts.value = [];
-    }
-  };
-
-  // Check if job post exists for a position
+  // Check if job post exists for a position by comparing with jobPostStore.jobPosts
   const hasJobPost = (row) => {
-    const exists = jobPosts.value.some(
+    if (!row || !jobPostStore.jobPosts) return false;
+
+    const exists = jobPostStore.jobPosts.some(
       (jp) =>
         String(jp.PositionID) === String(row.PositionID) &&
         String(jp.ItemNo) === String(row.ItemNo),
     );
+
     return exists;
   };
 
   // Navigate to job post details page
   const viewJobPost = (row) => {
-    // Find the specific job post to get its ID or any other required parameter
-    const jobPost = jobPosts.value.find(
-      (jp) =>
-        String(jp.PositionID) === String(row.PositionID) &&
-        String(jp.ItemNo) === String(row.ItemNo),
-    );
-
-    if (jobPost) {
-      // Navigate to the job post view page using router
-      router.push({
-        name: 'JobPost View',
-        params: {
-          PositionID: row.PositionID,
-          ItemNo: row.ItemNo,
-        },
-      });
-    } else {
-      toast.error('Job post not found');
-    }
+    router.push({
+      name: 'JobPost View',
+      params: {
+        PositionID: row.PositionID,
+        ItemNo: row.ItemNo,
+      },
+    });
   };
 
   const columns = [
@@ -738,8 +710,6 @@
     { name: 'Status', label: 'Status', field: 'Status', align: 'left', sortable: false },
     { name: 'action', label: 'Action', field: 'action', align: 'center' },
   ];
-
-  const fundedToggleValue = ref('1');
 
   const filteredPositions = computed(() => {
     if (!currentStructure.value) {
@@ -894,6 +864,10 @@
       const jobCriteria = {
         ItemNo: parseInt(postJobDetails.value.ItemNo),
         PositionID: parseInt(qsCriteria.value.PositionID),
+        EduPercent: '0',
+        EliPercent: '0',
+        TrainPercent: '0',
+        ExperiencePercent: '0',
         // EduPercent: '0',
         // EliPercent: '0',
         // TrainPercent: '0',
@@ -901,7 +875,6 @@
         Education: qsCriteria.value.Education,
         Eligibility: qsCriteria.value.Eligibility,
         Training: qsCriteria.value.Training,
-        Experience: qsCriteria.value.Experience,
       };
 
       await jobPostStore.insertJobPost({
@@ -931,13 +904,12 @@
         positions.value[idx].Funded = '1';
       }
 
-      // Refetch job posts to update the UI immediately
-      await fetchJobPosts();
+      // Fetch job posts from jobPostStore to update the UI
+      await jobPostStore.job_post();
 
       // Force table to re-render
       tableKey.value++;
 
-      // toast.success('Job post created and funded plantilla uploaded!');
       toast.success('Job post successfully created, file uploaded, and details updated!');
     } catch (error) {
       console.error('Error creating job post:', error);
@@ -993,7 +965,6 @@
       axios
         .post(`${process.env.VUE_APP_API_URL}/plantilla/funded`, formData, requestConfig)
         .then((response) => {
-          // toast.success('File uploaded successfully');
           resolve({
             url: response.data?.data?.fileUpload ?? '',
           });
@@ -1083,7 +1054,6 @@
           requestConfig,
         )
         .then((response) => {
-          // toast.success(response.data?.message || 'PageNo updated successfully!');
           resolve(response.data);
         })
         .catch((error) => {
@@ -1101,6 +1071,12 @@
   };
 
   const handleToggle = (row, val) => {
+    // Don't allow toggle to unfunded if there's an active job post
+    if (val === '0' && hasJobPost(row)) {
+      toast.warning('Cannot unfund a position with an active job post.');
+      return;
+    }
+
     fundedToggleRow.value = row;
     fundedToggleValue.value = val;
     showFundedConfirmModal.value = true;
@@ -1109,6 +1085,15 @@
   const confirmSetFunded = async () => {
     if (fundedToggleRow.value) {
       try {
+        // Double-check to prevent unfunding a position with a job post
+        if (fundedToggleValue.value === '0' && hasJobPost(fundedToggleRow.value)) {
+          toast.error(
+            'Cannot unfund a position with an active job post. Please remove the job post first.',
+          );
+          showFundedConfirmModal.value = false;
+          return;
+        }
+
         await updateFundedStatusAPI(
           fundedToggleRow.value.PositionID,
           fundedToggleValue.value === '1',
@@ -1117,11 +1102,9 @@
 
         fundedToggleRow.value.Funded = fundedToggleValue.value;
 
-        // If position is being unfunded, refetch job posts to update UI
-        if (fundedToggleValue.value === '0') {
-          await fetchJobPosts();
-          tableKey.value++;
-        }
+        // Refresh job posts data if needed
+        await jobPostStore.job_post(); // <- Make sure this is a function returning a Promise
+        tableKey.value++; // <- Triggers table re-render if used as :key
 
         if (fundedToggleValue.value === '1') {
           toast.success('Position set as Funded');
@@ -1150,7 +1133,8 @@
         Status: item.Status || 'VACANT',
       }));
 
-      await fetchJobPosts();
+      // Fetch job posts from jobPostStore on mount
+      await jobPostStore.job_post();
     } catch (error) {
       console.error('Error initializing component:', error);
       toast.error('Failed to load data. Please refresh the page.');

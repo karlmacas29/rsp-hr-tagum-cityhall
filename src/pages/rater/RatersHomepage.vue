@@ -338,7 +338,7 @@
   }
 
   .content-card {
-    height: 490px;
+    height: 450px;
     overflow: hidden;
     display: flex;
     flex-direction: column;

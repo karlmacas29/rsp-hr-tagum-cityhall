@@ -596,17 +596,17 @@
   const positionQS = ref([]);
 
   const educationCol = ref([
-    { name: 'Education', label: 'Education', align: 'left', field: 'Education' },
+    { name: 'Education', label: 'Education3', align: 'left', field: 'Education' },
   ]);
 
   const ExperienceCol = ref([
-    { name: 'Experience', label: 'Experience', align: 'left', field: 'Experience' },
+    { name: 'Experience', label: 'Experience3', align: 'left', field: 'Experience' },
   ]);
   const trainingCol = ref([
-    { name: 'Training', label: 'Training', align: 'left', field: 'Training' },
+    { name: 'Training', label: 'Training3', align: 'left', field: 'Training' },
   ]);
   const eligibilityCol = ref([
-    { name: 'Eligibility', label: 'Eligibility', align: 'left', field: 'Eligibility' },
+    { name: 'Eligibility', label: 'Eligibility3', align: 'left', field: 'Eligibility' },
   ]);
 
   const props = defineProps({

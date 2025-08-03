@@ -12,6 +12,28 @@ export const useJobPostStore = defineStore('jobPost', {
   }),
   actions: {
 
+      // In your store (useJobPostStore)
+      async evaluation(applicantId, qualificationStatus) {
+        this.error = null;
+        try {
+          console.log('Calling evaluation API with:', { applicantId, status: qualificationStatus });
+
+          const response = await adminApi.post(`/job-batches-rsp/applicant/evaluation/${applicantId}`, {
+            status: qualificationStatus
+          });
+
+          console.log('Evaluation response:', response.data);
+          toast.success('Evaluation submitted successfully!');
+          return response.data;
+        } catch (error) {
+          console.error('Evaluation API error:', error);
+          this.error = error;
+          toast.error('Error submitting evaluation.');
+          throw error;
+        }
+      },
+
+
     //fetch the applicant base on the job post he apply
     async fetch_applicant(id) {
       this.loading = true;
@@ -88,17 +110,17 @@ export const useJobPostStore = defineStore('jobPost', {
 
     async fetchJobPostByPositionAndItemNo(PositionID, ItemNo) {
       this.loading = true;
-
+            this.error = null;
       try {
         // Assuming the API endpoint is structured to accept PositionID and ItemNo as path parameters
         // e.g., /adminApi/job-batches-rsp/{PositionID}/{ItemNo}
         // Or as query parameters: /adminApi/job-batches-rsp?PositionID={PositionID}&ItemNo={ItemNo}
         // Adjust the URL formatting as per your API's actual route definition.
         // Using path parameters as it's common for 'show' methods with multiple identifiers.
-        const { data } = await adminApi.get(`/job-batches-rsp/${PositionID}/${ItemNo}`);
-        this.error = null;
-        console.log(data);
-        return data;
+        // const { data } = await adminApi.get(`/job-batches-rsp/${PositionID}/${ItemNo}`);
+        const response = await adminApi.get(`/job-batches-rsp/${PositionID}/${ItemNo}`);
+        this.jobPosts = response.data;
+        return response.data;
       } catch (err) {
         this.error = err;
         toast.error('Failed to fetch job post: ' + (err.response?.data?.message || err.message));

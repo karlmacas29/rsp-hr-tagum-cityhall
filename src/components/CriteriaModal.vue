@@ -40,19 +40,6 @@
 
       <q-separator></q-separator>
 
-      <!-- Debug Info (remove in production) -->
-      <q-card-section class="q-pa-sm bg-grey-1" v-if="debugMode">
-        <div class="text-caption">
-          Debug: showRatingTable={{ showRatingTable }}, mode={{ mode }}, hasJobData={{
-            !!(formData.office && formData.position)
-          }}, criteriaCount={{ Object.keys(editableCriteria).length }}
-        </div>
-        <div class="text-caption q-mt-xs">
-          Additional Fields Debug:
-          <pre class="text-10">{{ JSON.stringify(editableCriteria, null, 2) }}</pre>
-        </div>
-      </q-card-section>
-
       <!-- Criteria -->
       <q-card-section v-if="showRatingTable" class="criteria-section">
         <div class="row q-mb-sm">
@@ -329,7 +316,6 @@
   const show = ref(props.modelValue);
   const confirmDialog = ref(false);
   const showRatingTable = ref(false);
-  const debugMode = ref(true); // Set to true for debugging
   const formData = ref({
     office: null,
     position: null,
@@ -395,22 +381,15 @@
   watch(
     () => props.job,
     async (job) => {
-      console.log('Job prop changed:', job);
       if (job) {
-        // Handle different possible field names - be more flexible
         formData.value.office = job.office || job.Office || '';
         formData.value.position = job.Position || job.position || '';
         formData.value.salaryGrade = job.salaryGrade || job.SalaryGrade || job.salary_grade || '';
         formData.value.plantillaItemNo = job.ItemNo || job.plantillaItemNo || job.item_no || '';
 
-        // Wait for next tick to ensure DOM updates
         await nextTick();
 
-        // Always show rating table if we have office and position
         showRatingTable.value = !!(formData.value.office && formData.value.position);
-
-        console.log('Form data updated:', formData.value);
-        console.log('Show rating table:', showRatingTable.value);
       } else {
         formData.value.office = null;
         formData.value.position = null;
@@ -425,18 +404,12 @@
   watch(
     () => props.criteria,
     (criteria) => {
-      console.log('Criteria prop changed:', criteria);
-      console.log('Current mode:', props.mode);
-
       if (criteria && Object.keys(criteria).length > 0) {
-        console.log('Converting API criteria to modal format');
         editableCriteria.value = convertApiCriteriaToModalFormat(criteria);
       } else {
-        console.log('Using base criteria');
         editableCriteria.value = JSON.parse(JSON.stringify(baseCriteria));
       }
 
-      // Post-process to split comma-separated descriptions
       Object.keys(editableCriteria.value).forEach((key) => {
         const section = editableCriteria.value[key];
         if (
@@ -454,26 +427,18 @@
           }
         }
       });
-
-      console.log('Final editable criteria:', editableCriteria.value);
     },
     { immediate: true, deep: true },
   );
 
-  // Watch mode changes
   watch(
     () => props.mode,
-    (newMode) => {
-      console.log('Mode changed to:', newMode);
-      // Force reactivity update
-      nextTick(() => {
-        // This will trigger re-render
-      });
+    () => {
+      nextTick(() => {});
     },
     { immediate: true },
   );
 
-  // Methods
   // Methods
   function getFilteredAdditionalFields(sectionKey) {
     const fields = editableCriteria.value[sectionKey]?.additionalFields || [];
@@ -491,44 +456,35 @@
         return 'Create';
     }
   }
-  function convertApiCriteriaToModalFormat(apiCriteria) {
-    console.log('Converting API criteria:', apiCriteria);
-    const result = JSON.parse(JSON.stringify(baseCriteria));
 
-    // Handle each criteria section
+  function convertApiCriteriaToModalFormat(apiCriteria) {
+    const result = JSON.parse(JSON.stringify(baseCriteria));
     const criteriaKeys = ['education', 'experience', 'training', 'performance'];
 
     criteriaKeys.forEach((key) => {
-      // Try different possible structures
       let criteriaSection =
         apiCriteria[key] || apiCriteria[key.charAt(0).toUpperCase() + key.slice(1)];
 
       if (criteriaSection) {
         if (Array.isArray(criteriaSection) && criteriaSection.length > 0) {
-          const criteriaItem = criteriaSection[0]; // Get first item from array
+          const criteriaItem = criteriaSection[0];
           result[key].weight = parseInt(
             criteriaItem.Rate || criteriaItem.weight || result[key].weight,
           );
           result[key].description = criteriaItem.description || '';
           result[key].title = criteriaItem.Title || criteriaItem.title || '';
-
-          // For additional fields, check if there are more items in the array
           if (criteriaSection.length > 1) {
             result[key].additionalFields = criteriaSection
               .slice(1)
               .map((item) => item.description || '')
-              .filter((desc) => desc.trim() !== ''); // Filter out empty descriptions
+              .filter((desc) => desc.trim() !== '');
           }
         } else if (typeof criteriaSection === 'object') {
-          // Handle direct object format
           result[key].weight = parseInt(
             criteriaSection.Rate || criteriaSection.weight || result[key].weight,
           );
-
-          // Check if description contains multiple items separated by commas
           const description = criteriaSection.description || '';
           if (description.includes(',')) {
-            // Split by comma and treat first as main description, rest as additional fields
             const parts = description
               .split(',')
               .map((part) => part.trim())
@@ -538,13 +494,11 @@
           } else {
             result[key].description = description;
           }
-
           result[key].title = criteriaSection.Title || criteriaSection.title || '';
         }
       }
     });
 
-    // Handle behavioral/bei (special case)
     let beiSection =
       apiCriteria.behavioral || apiCriteria.Behavioral || apiCriteria.bei || apiCriteria.BEI;
 
@@ -556,7 +510,6 @@
         );
         result.bei.description = behavioralItem.description || '';
         result.bei.title = behavioralItem.Title || behavioralItem.title || '';
-
         if (beiSection.length > 1) {
           result.bei.additionalFields = beiSection
             .slice(1)
@@ -565,11 +518,8 @@
         }
       } else if (typeof beiSection === 'object') {
         result.bei.weight = parseInt(beiSection.Rate || beiSection.weight || result.bei.weight);
-
-        // Check if description contains multiple items separated by commas
         const description = beiSection.description || '';
         if (description.includes(',')) {
-          // Split by comma and treat first as main description, rest as additional fields
           const parts = description
             .split(',')
             .map((part) => part.trim())
@@ -579,12 +529,10 @@
         } else {
           result.bei.description = description;
         }
-
         result.bei.title = beiSection.Title || beiSection.title || '';
       }
     }
 
-    console.log('Converted result:', result);
     return result;
   }
 
@@ -601,9 +549,7 @@
   }
 
   function switchToEditMode() {
-    // Close current modal and emit to parent to reopen in edit mode
     closeModal();
-    // Use nextTick to ensure modal is fully closed before reopening
     nextTick(() => {
       emit('switch-to-edit', props.job);
     });
@@ -622,7 +568,6 @@
 
   async function saveRatings() {
     try {
-      // Use id or JobBatchesRspId for job_batches_rsp_id array
       const jobBatchesRspIds = [props.job?.id || props.job?.JobBatchesRspId].filter(Boolean);
 
       if (jobBatchesRspIds.length === 0) {
@@ -638,7 +583,6 @@
       emit('saved');
       closeModal();
     } catch (error) {
-      console.error('Error saving criteria:', error);
       $q.notify({
         type: 'negative',
         message: error.message || 'Failed to save criteria. Please try again.',
@@ -654,11 +598,7 @@
     }
   }
 
-  // Initialize data when modal opens
   function initializeModalData() {
-    console.log('Initializing modal data...');
-
-    // Set form data from job
     if (props.job) {
       formData.value.office = props.job.office || props.job.Office || '';
       formData.value.position = props.job.Position || props.job.position || '';
@@ -668,14 +608,12 @@
         props.job.ItemNo || props.job.plantillaItemNo || props.job.item_no || '';
     }
 
-    // Set criteria data
     if (props.criteria && Object.keys(props.criteria).length > 0) {
       editableCriteria.value = convertApiCriteriaToModalFormat(props.criteria);
     } else {
       editableCriteria.value = JSON.parse(JSON.stringify(baseCriteria));
     }
 
-    // Post-process to split comma-separated descriptions
     Object.keys(editableCriteria.value).forEach((key) => {
       const section = editableCriteria.value[key];
       if (
@@ -694,32 +632,15 @@
       }
     });
 
-    // Determine if we should show the rating table
     showRatingTable.value = !!(formData.value.office && formData.value.position);
-
-    console.log('Modal initialized:', {
-      formData: formData.value,
-      showRatingTable: showRatingTable.value,
-      editableCriteria: editableCriteria.value,
-      mode: props.mode,
-    });
   }
 
-  // Lifecycle
   onMounted(() => {
-    console.log('Modal mounted with props:', {
-      job: props.job,
-      criteria: props.criteria,
-      mode: props.mode,
-    });
-
     initializeModalData();
   });
 
-  // Watch for when modal is opened
   watch(show, (isOpen) => {
     if (isOpen) {
-      console.log('Modal opened, reinitializing data...');
       nextTick(() => {
         initializeModalData();
       });

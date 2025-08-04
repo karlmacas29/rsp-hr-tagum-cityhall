@@ -11,6 +11,44 @@ export const use_rater_store = defineStore('rater', () => {
     criteria: [],
     applicants: []
   });
+const submitRatings = async (applicantsData, jobId) => {
+  loading.value = true;
+  error.value = null;
+
+  const payload = applicantsData.map(applicant => ({
+    nPersonalInfo_id: applicant.id,
+    job_batches_rsp_id: jobId,
+    education_score: parseFloat(applicant.educationScore) || 0,
+    experience_score: parseFloat(applicant.experienceScore) || 0,
+    training_score: parseFloat(applicant.trainingScore) || 0,
+    performance_score: parseFloat(applicant.performance) || 0,
+    behavioral_score: parseFloat(applicant.bei) || 0,
+    total_qs: parseFloat(applicant.totalQS) || 0,
+    grand_total: parseFloat(applicant.grandTotal) || 0,
+    ranking: parseInt(applicant.ranking) || 0,
+  }));
+
+  try {
+    const response = await raterApi.post('/rating/score', payload);
+    console.log('Ratings submitted:', response.data);
+
+    if (response.data.success) {
+      return response.data; // ✅ RETURN the response to the caller
+    } else {
+      error.value = response.data.message || 'Something went wrong.';
+      return { success: false, error: error.value }; // ✅ Return error to caller
+    }
+
+  } catch (err) {
+    error.value = err.response?.data?.message || 'An unexpected error occurred. Please try again.';
+    console.error('Submit Ratings Error:', err);
+    return { success: false, error: error.value }; // ✅ Catch block returns error too
+  } finally {
+    loading.value = false;
+  }
+};
+
+
 
   const fetch_criteria_applicant = async (id) => {
     loading.value = true;
@@ -111,6 +149,7 @@ export const use_rater_store = defineStore('rater', () => {
     fetch_assigned_jobs,
     criteria_applicant,
     fetch_criteria_applicant,
-    clearCriteriaApplicant
+    clearCriteriaApplicant,
+    submitRatings
   };
 });

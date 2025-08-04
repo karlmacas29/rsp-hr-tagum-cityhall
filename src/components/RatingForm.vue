@@ -205,11 +205,11 @@
 
         <!-- Scrollable Content Area -->
       <div class="scrollable-content">
-  <!-- Loading spinner -->
-  <div v-if="loading" class="text-center q-pa-lg">
-    <q-spinner color="primary" size="3em" />
-    <div class="q-mt-md">Loading criteria and applicants...</div>
-  </div>
+    <!-- Loading spinner -->
+    <div v-if="loading" class="text-center q-pa-lg">
+      <q-spinner color="primary" size="3em" />
+      <div class="q-mt-md">Loading criteria and applicants...</div>
+    </div>
 
   <!-- Content when not loading -->
           <RaterPreview
@@ -258,6 +258,7 @@ export default {
     RaterPreview,
     ConfirmationModal,
   },
+
 
   props: {
     modelValue: {
@@ -342,16 +343,6 @@ export default {
     // Use applicants from props
     const applicants = ref([]);
 
-    // Initialize applicants from props
-    // const initializeApplicants = () => {
-    //   if (props.applicants && props.applicants.length > 0) {
-    //     applicants.value = [...props.applicants];
-    //     applicants.value.forEach((applicant) => {
-    //       calculateTotals(applicant);
-    //     });
-    //     updateRankingsWithTies();
-    //   }
-    // };
 
     // Function to calculate QS value
     const calculateQSValue = (applicant) => {

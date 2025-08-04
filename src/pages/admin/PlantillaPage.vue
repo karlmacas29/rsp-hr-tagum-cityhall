@@ -594,6 +594,7 @@
   import { toast } from 'src/boot/toast';
   import axios from 'axios';
   import { useLogsStore } from 'stores/logsStore';
+  // import Experience from '@/components/Applicant_pds/experience.vue';
 
   const router = useRouter();
   const authStore = useAuthStore();
@@ -864,15 +865,16 @@
       const jobCriteria = {
         ItemNo: parseInt(postJobDetails.value.ItemNo),
         PositionID: parseInt(qsCriteria.value.PositionID),
-        EduPercent: '0',
-        EliPercent: '0',
-        TrainPercent: '0',
-        ExperiencePercent: '0',
+        // EduPercent: '0',
+        // EliPercent: '0',
+        // TrainPercent: '0',
+        // ExperiencePercent: '0',
         // EduPercent: '0',
         // EliPercent: '0',
         // TrainPercent: '0',
         // ExperiencePercent: '0',
         Education: qsCriteria.value.Education,
+        Experience: qsCriteria.value.Experience,
         Eligibility: qsCriteria.value.Eligibility,
         Training: qsCriteria.value.Training,
       };

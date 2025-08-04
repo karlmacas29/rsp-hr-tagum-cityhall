@@ -1,5 +1,5 @@
 <template>
-  <q-page padding>
+  <q-page>
     <div class="positions-container">
       <div class="q-pa-md">
         <h6 class="q-my-md text-weight-bold">Positions to Rate</h6>

@@ -168,7 +168,19 @@
           </template>
           <template #body-cell-status="props">
             <q-td :props="props">
-              {{ props.row.status || '-' }}
+              <q-badge
+                rounded
+                :color="
+                  props.row.status === 'Qualified'
+                    ? 'green'
+                    : props.row.status === 'Unqualified'
+                      ? 'red'
+                      : 'grey'
+                "
+                class="text-caption q-px-sm"
+              >
+                {{ props.row.status || '-' }}
+              </q-badge>
             </q-td>
           </template>
           <template #body-cell-action="props">
@@ -178,7 +190,7 @@
                 flat
                 icon="visibility"
                 color="primary"
-              @click="viewApplicantDetails(props.row)"
+                @click="viewApplicantDetails(props.row)"
               />
             </q-td>
           </template>
@@ -234,7 +246,7 @@
     /> -->
 
     <!-- Qualification Modal -->
-<!-- <QualificationModal
+    <!-- <QualificationModal
   v-if="qualificationModalVisible"
   :show="qualificationModalVisible"
   :applicant-data="selectedApplicantData"
@@ -247,20 +259,20 @@
   @submit="submitEvaluation"
   @close="onCloseQualificationModal"
 /> -->
-<!-- Qualification Modal -->
-<QualificationModal
-  v-if="qualificationModalVisible"
-  :show="qualificationModalVisible"
-  :applicant-data="selectedApplicantData"
-  :education="selectedApplicantData.education"
-  :position-requirements="selectedCriteria"
-  :is-submitted="false"
-  @update:show="qualificationModalVisible = $event"
-  @view-pds="onViewPDS"
-  @toggle-qualification="onToggleQualification"
-  @submit="submitEvaluation"
-  @close="onCloseQualificationModal"
-/>
+    <!-- Qualification Modal -->
+    <QualificationModal
+      v-if="qualificationModalVisible"
+      :show="qualificationModalVisible"
+      :applicant-data="selectedApplicantData"
+      :education="selectedApplicantData.education"
+      :position-requirements="selectedCriteria"
+      :is-submitted="false"
+      @update:show="qualificationModalVisible = $event"
+      @view-pds="onViewPDS"
+      @toggle-qualification="onToggleQualification"
+      @submit="submitEvaluation"
+      @close="onCloseQualificationModal"
+    />
   </div>
 </template>
 
@@ -346,7 +358,7 @@
       field: 'status',
       align: 'center',
     },
-       {
+    {
       name: 'rank',
       label: 'Rank',
       field: 'ranking',
@@ -361,7 +373,6 @@
     },
   ];
 
-
   // Format applicants data for the table
   const formattedApplicants = computed(() => {
     if (!jobPostStore.applicant) return [];
@@ -369,55 +380,63 @@
     return jobPostStore.applicant.map((a) => {
       // fallback for API structure: applicant.n_personal_info
       return {
-      id: a.id,
-      firstname: a.firstname || '',
-      lastname: a.lastname || '',
-      name_extension: a.name_extension || '',
-      appliedDate: a.appliedDate || (a.application_date ? formatDate(a.application_date, 'MMM D, YYYY') : '-'),
-      status: a.status || '-',
-           education: a.education || [],
-      raw: a, // for details action
+        id: a.id,
+        firstname: a.firstname || '',
+        lastname: a.lastname || '',
+        name_extension: a.name_extension || '',
+        appliedDate:
+          a.appliedDate ||
+          (a.application_date ? formatDate(a.application_date, 'MMM D, YYYY') : '-'),
+        status: a.status || '-',
+        ranking: a.ranking,
+        education: a.education || [],
+        raw: a, // for details action
+        education_remark: a.education_remark,
+        experience_remark: a.experience_remark,
+        training_remark: a.training_remark,
+        eligibility_remark: a.eligibility_remark,
       };
     });
   });
 
   // Updated viewApplicantDetails function to open the modal
-function viewApplicantDetails(row) {
-  console.log('Full row data:', row);
-  console.log('Raw data:', row.raw);
-  selectedApplicantData.value = {
-   id: row.raw?.id || row.id,
-    // nPersonalInfo_id: row.raw?.nPersonalInfo_id,
-    job_batches_rsp_id: row.raw?.job_batches_rsp_id,
-    status: row.status || 'Pending',
-    name: `${row.firstname}${row.lastname}${
-      row.name_extension ? ' ' + row.name_extension : ''
-    }`,
-    position: selectedJob.value?.Position || 'N/A',
-    level: selectedJob.value?.level || 'N/A',
-    appliedDate: row.appliedDate,
-    PositionID: selectedJob.value?.PositionID,
-    ItemNo: selectedJob.value?.ItemNo,
+  function viewApplicantDetails(row) {
+    console.log('Full row data:', row);
+    console.log('Raw data:', row.raw);
+    selectedApplicantData.value = {
+      id: row.raw?.id || row.id,
+      // nPersonalInfo_id: row.raw?.nPersonalInfo_id,
+      job_batches_rsp_id: row.raw?.job_batches_rsp_id,
+      status: row.status || 'Pending',
+      name: `${row.firstname}${row.lastname}${row.name_extension ? ' ' + row.name_extension : ''}`,
+      position: selectedJob.value?.Position || 'N/A',
+      level: selectedJob.value?.level || 'N/A',
+      appliedDate: row.appliedDate,
+      PositionID: selectedJob.value?.PositionID,
+      ItemNo: selectedJob.value?.ItemNo,
+      education_remark: row.education_remark,
+      experience_remark: row.experience_remark,
+      training_remark: row.training_remark,
+      eligibility_remark: row.eligibility_remark,
 
-    // Use the education data from the formatted row first, then fallback to raw
-    education: row.education || row.raw?.education || [],
-
-    // Pass complete personal info structure
-    n_personal_info: {
+      // Use the education data from the formatted row first, then fallback to raw
       education: row.education || row.raw?.education || [],
-      work_experience: row.work_experience || row.raw?.work_experience || [],
-      training: row.training || row.raw?.training || [],
-      eligibity: row.eligibity || row.raw?.eligibity || [],
-    },
 
-    raw: row.raw // Include the full raw data
-  };
-console.log('Selected applicant data:', selectedApplicantData.value);
-  console.log('Applicant ID:', selectedApplicantData.value.id); // Log the id we'll
-  console.log('Selected applicant data:', selectedApplicantData.value); // Debug log
-  qualificationModalVisible.value = true;
-}
+      // Pass complete personal info structure
+      n_personal_info: {
+        education: row.education || row.raw?.education || [],
+        work_experience: row.work_experience || row.raw?.work_experience || [],
+        training: row.training || row.raw?.training || [],
+        eligibity: row.eligibity || row.raw?.eligibity || [],
+      },
 
+      raw: row.raw, // Include the full raw data
+    };
+    console.log('Selected applicant data:', selectedApplicantData.value);
+    console.log('Applicant ID:', selectedApplicantData.value.id); // Log the id we'll
+    console.log('Selected applicant data:', selectedApplicantData.value); // Debug log
+    qualificationModalVisible.value = true;
+  }
 
   // Modal event handlers
   const onViewPDS = () => {
@@ -425,47 +444,47 @@ console.log('Selected applicant data:', selectedApplicantData.value);
     // Implement PDS viewing logic here
   };
 
- // Update the onToggleQualification function
-const onToggleQualification = (status) => {
-  // Update the applicant's qualification status locally
-  selectedApplicantData.value.status = status;
-  console.log(`Qualification status changed to: ${status}`);
-};
-// Update the submitEvaluation function to use id
-const submitEvaluation = async (evaluationData) => {
-  try {
-    console.log('Submitting evaluation:', evaluationData);
+  // Update the onToggleQualification function
+  const onToggleQualification = (status) => {
+    // Update the applicant's qualification status locally
+    selectedApplicantData.value.status = status;
+    console.log(`Qualification status changed to: ${status}`);
+  };
+  // Update the submitEvaluation function to use id
+  const submitEvaluation = async (evaluationData) => {
+    try {
+      console.log('Submitting evaluation:', evaluationData);
 
-    if (!evaluationData.id) {
-      toast.error('Missing applicant ID for evaluation submission');
-      return;
+      if (!evaluationData.id) {
+        toast.error('Missing applicant ID for evaluation submission');
+        return;
+      }
+
+      if (!evaluationData.status || evaluationData.status === 'Pending') {
+        toast.warning('Please select a qualification status before submitting.');
+        return;
+      }
+
+      // Call the store method with the applicant id instead of nPersonalInfo_id
+      await jobPostStore.evaluation(evaluationData);
+
+      // Update the local status
+      selectedApplicantData.value.status = evaluationData.status;
+
+      // Close the modal
+      qualificationModalVisible.value = false;
+
+      // Refresh the applicants list to show updated status
+      if (selectedJob.value && selectedJob.value.id) {
+        await jobPostStore.fetch_applicant(selectedJob.value.id);
+      }
+
+      toast.success('Evaluation submitted successfully!');
+    } catch (error) {
+      console.error('Evaluation submission error:', error);
+      toast.error('Failed to submit evaluation');
     }
-
-    if (!evaluationData.status || evaluationData.status === 'Pending') {
-      toast.warning('Please select a qualification status before submitting.');
-      return;
-    }
-
-    // Call the store method with the applicant id instead of nPersonalInfo_id
-    await jobPostStore.evaluation(evaluationData.id, evaluationData.status);
-
-    // Update the local status
-    selectedApplicantData.value.status = evaluationData.status;
-
-    // Close the modal
-    qualificationModalVisible.value = false;
-
-    // Refresh the applicants list to show updated status
-    if (selectedJob.value && selectedJob.value.id) {
-      await jobPostStore.fetch_applicant(selectedJob.value.id);
-    }
-
-    toast.success('Evaluation submitted successfully!');
-  } catch (error) {
-    console.error('Evaluation submission error:', error);
-    toast.error('Failed to submit evaluation');
-  }
-};
+  };
 
   const onCloseQualificationModal = () => {
     qualificationModalVisible.value = false;

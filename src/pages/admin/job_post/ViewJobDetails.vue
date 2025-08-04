@@ -419,7 +419,16 @@
       training_remark: row.training_remark,
       eligibility_remark: row.eligibility_remark,
 
+<<<<<<< Updated upstream
       // Use the education data from the formatted row first, then fallback to raw
+=======
+
+    // Use the education data from the formatted row first, then fallback to raw
+    education: row.education || row.raw?.education || [],
+
+    // Pass complete personal info structure
+    n_personal_info: {
+>>>>>>> Stashed changes
       education: row.education || row.raw?.education || [],
 
       // Pass complete personal info structure

@@ -148,7 +148,7 @@
           row-key="id"
           flat
           bordered
-          hide-pagination
+
           class="applicants-table"
           dense
           v-if="applicantColumns.length"
@@ -343,7 +343,7 @@
   };
 
   const applicantColumns = [
-    //  { name: 'id', label: 'id', field: 'id', align: 'left', sortable: true },
+     { name: 'id', label: 'id', field: 'id', align: 'left', sortable: true },
 
     { name: 'name', label: 'Name', field: 'name', align: 'left', sortable: true },
     {
@@ -390,6 +390,7 @@
         status: a.status || '-',
         ranking: a.ranking,
         education: a.education || [],
+
         raw: a, // for details action
         education_remark: a.education_remark,
         experience_remark: a.experience_remark,
@@ -419,33 +420,35 @@
       training_remark: row.training_remark,
       eligibility_remark: row.eligibility_remark,
 
-<<<<<<< Updated upstream
       // Use the education data from the formatted row first, then fallback to raw
-=======
 
     // Use the education data from the formatted row first, then fallback to raw
     education: row.education || row.raw?.education || [],
 
     // Pass complete personal info structure
     n_personal_info: {
->>>>>>> Stashed changes
-      education: row.education || row.raw?.education || [],
-
-      // Pass complete personal info structure
-      n_personal_info: {
         education: row.education || row.raw?.education || [],
         work_experience: row.work_experience || row.raw?.work_experience || [],
         training: row.training || row.raw?.training || [],
         eligibity: row.eligibity || row.raw?.eligibity || [],
-      },
+
+      // Pass complete personal info structure
+      // n_personal_info: {
+      //   education: row.education || row.raw?.education || [],
+      //   work_experience: row.work_experience || row.raw?.work_experience || [],
+      //   training: row.training || row.raw?.training || [],
+      //   eligibity: row.eligibity || row.raw?.eligibity || [],
+      // },
 
       raw: row.raw, // Include the full raw data
+    }
     };
     console.log('Selected applicant data:', selectedApplicantData.value);
     console.log('Applicant ID:', selectedApplicantData.value.id); // Log the id we'll
     console.log('Selected applicant data:', selectedApplicantData.value); // Debug log
     qualificationModalVisible.value = true;
   }
+
 
   // Modal event handlers
   const onViewPDS = () => {

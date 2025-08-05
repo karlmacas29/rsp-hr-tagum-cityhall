@@ -55,7 +55,7 @@
                 <div v-if="currentTab === 'personal'" class="q-pa-md">
                   <Personal_Information :personal="xPersonal" />
                 </div>
-                <!-- <div v-else-if="currentTab === 'family'" class="q-pa-md">
+                <div v-else-if="currentTab === 'family'" class="q-pa-md">
                   <Family_Background :family="xPersonal" />
                 </div>
                 <div v-else-if="currentTab === 'education'" class="q-pa-md">
@@ -87,7 +87,7 @@
                 </div>
                 <div v-else-if="currentTab === 'references'" class="q-pa-md">
                   <References :references="xReferences" />
-                </div> -->
+                </div>
                 <!-- Placeholder for other tabs -->
                 <div v-else class="q-pa-md">
                   <div class="text-h6 q-mb-md">
@@ -111,21 +111,21 @@
 
 <script setup>
   import { onMounted, ref, watch } from 'vue';
-// import education from './education.vue';
-// import eligibility from './eligibility.vue';
-// import experience from './experience.vue';
-// import other_infomation from './other_infomation.vue';
-// import organization from './organization.vue';
-// import non_academic from './non_academic.vue';
-// import personal from './personal.vue';
-// import skill from './skill.vue';
-// import voluntary from './voluntary.vue';
-// import family from './family.vue';
-// import learning from './learning.vue';
+  import Personal_Information from './Applicant_pds/Personal_Information.vue';
+  import Family_Background from './Applicant_pds/Family_Background.vue';
+  import Educational_Background from './Applicant_pds/Educational_Background.vue';
+  import Civil_Service_Eligibility from './Applicant_pds/Civil_Service_Eligibility.vue';
+  import Work_Experience from './Applicant_pds/Work_Experience.vue';
+  import Voluntary_Work from './Applicant_pds/Voluntary_Work.vue';
+  import Training_Interventions from './Applicant_pds/L_D_Interventions.vue';
+  import Special_Skills_Hobbies from './Applicant_pds/Special_Skills_Hobbies.vue';
+  import Non_Academic from './Applicant_pds/Non_Academic.vue';
+  import Membership_Association from './Applicant_pds/Membership_Association.vue';
+  import Other_Information from './Applicant_pds/Other_Information.vue';
+  import References from './Applicant_pds/References_User.vue';
+  import { usexPDS } from 'stores/xUserPDS';
 
-  import { useJobPostStore } from 'stores/jobPostStore';
-
-  const applicant_pds = useJobPostStore();
+  const xPDS = usexPDS();
 
   const xPersonal = ref({});
   const xEdu = ref({});
@@ -223,16 +223,16 @@
   };
 
   onMounted(async () => {
-    await applicant_pds.fetchxPDS(props.applicant.id);
-    xPersonal.value = applicant_pds.User[0];
-    xEdu.value = applicant_pds.Education;
-    xEligibility.value = applicant_pds.Eligibility;
-    xExperience.value = applicant_pds.Experience;
-    xVoluntary.value = applicant_pds.Voluntary;
-    xTraining.value = applicant_pds.Training;
-    xSkills.value =applicant_pds.Skills;
-    xAcademic.value = applicant_pds.Academic;
-    xReferences.value = applicant_pds.Reference;
+    await xPDS.fetchxPDS(props.applicant.controlno);
+    xPersonal.value = xPDS.xPDS.User[0];
+    xEdu.value = xPDS.xPDS.Education;
+    xEligibility.value = xPDS.xPDS.Eligibility;
+    xExperience.value = xPDS.xPDS.Experience;
+    xVoluntary.value = xPDS.xPDS.Voluntary;
+    xTraining.value = xPDS.xPDS.Training;
+    xSkills.value = xPDS.xPDS.Skills;
+    xAcademic.value = xPDS.xPDS.Academic;
+    xReferences.value = xPDS.xPDS.Reference;
   });
 </script>
 

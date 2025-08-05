@@ -2,354 +2,508 @@
   <q-dialog v-model="localShow" persistent @show="onModalShow">
     <q-card
       class="qualification-modal"
-      style="
-        width: 1500px;
-        max-width: 95vw;
-        height: 90vh;
-        max-height: 95vh;
-        display: flex;
-        flex-direction: column;
-      "
+      style="width: 1200px; max-width: 98vw; max-height: 98vh; overflow: auto"
     >
-      <!-- Header Section -->
-      <q-card-section class="row justify-between header text-black q-px-md q-py-sm">
-        <div>
-          <div class="text-h5 text-bold">Qualification Standard (QS)</div>
-          <div class="text-subtitle1">Application Information</div>
-        </div>
-        <q-btn icon="close" flat round dense class="close-btn" @click="onClose" />
-      </q-card-section>
-
-      <!-- Applicant View - Main Content Area -->
-      <q-card-section class="main-content-section" style="flex: 1; overflow: hidden">
-        <div class="row no-wrap full-height">
-          <!-- Left Card (Applicant Info) -->
-          <q-card class="col-3 q-mr-md qs-panel">
-            <q-card-section class="column justify-between items-center q-pa-md">
-              <q-img
-                :src="applicantData?.Pics || 'https://placehold.co/100'"
-                class="bg-grey-4"
-                style="width: 100px; height: 100px; border-radius: 10px"
-                alt="Applicant Photo"
-              />
-              <div class="text-body text-bold text-center q-mb-sm">
-                {{ applicantData?.name || 'Please wait' }}
-              </div>
-              <q-badge
+      <!-- Sticky Applicant Header -->
+      <q-card-section class="row items-center header q-px-md q-py-sm">
+        <q-img
+          :src="applicantData?.Pics || 'https://placehold.co/100'"
+          class="bg-grey-4"
+          style="width: 90px; height: 90px; border-radius: 10px; margin-right: 24px"
+          alt="Applicant Photo"
+        />
+        <div class="col">
+          <div class="applicant-name">
+            {{ applicantData?.name || 'Please wait' }}
+            <span>
+              <q-btn
+                label="VIEW PDS"
+                color="primary"
                 rounded
-                class="q-pa-xs"
-                :class="
-                  applicantData.status == 'ELECTIVE'
-                    ? 'bg-blue'
-                    : applicantData.status == 'APPOINTED'
-                      ? 'bg-purple'
-                      : applicantData.status == 'CO-TERMINOUS'
-                        ? 'bg-brown'
-                        : applicantData.status == 'REGULAR'
-                          ? 'bg-green'
-                          : applicantData.status == 'TEMPORARY'
-                            ? 'bg-yellow text-black'
-                            : applicantData.status == 'CASUAL'
-                              ? 'bg-grey-4'
-                              : applicantData.status == 'CONTRACTUAL'
-                                ? 'bg-light-blue'
-                                : applicantData.status == 'HONORARIUM'
-                                  ? 'bg-black'
-                                  : 'bg-grey'
-                "
-              >
-                {{ applicantData?.status || 'NA' }}
-                <q-icon v-if="evaluationLocked" name="lock" class="q-ml-xs" />
-              </q-badge>
-
-              <div class="full-width">
-                <div class="text-center q-mb-sm">
-                  <div v-if="applicantData.status != null">
-                    <div class="text-caption text-grey-7">Position</div>
-                  </div>
-                  <div v-else>
-                    <div class="text-caption text-grey-7">Applied Position</div>
-                  </div>
-                  <div class="text-body2 text-bold">
-                    {{ applicantData?.position || 'Office of the ...' }}
-                  </div>
-                  <q-chip dense>
-                    Position Level:
-                    <q-badge rounded dense color="green" class="text-white q-ml-sm">
-                      {{ applicantData?.level || 'A' }}
-                    </q-badge>
-                  </q-chip>
-                </div>
-
-                <div v-if="applicantData.appliedDate" class="text-center q-mb-sm">
-                  <div class="text-caption text-grey-7">Application Date</div>
-                  <div class="text-weight-medium">
-                    {{ applicantData?.appliedDate || '#### ##, ####' }}
-                  </div>
-                </div>
-              </div>
-            </q-card-section>
-          </q-card>
-
-          <!-- Right Card (Tabs) -->
-          <q-card class="col" style="display: flex; flex-direction: column">
-            <div class="row justify-between items-center q-px-md" style="min-height: 40px">
-              <q-tabs
-                v-model="tab"
-                dense
-                class="text-grey-8"
-                active-color="primary"
-                indicator-color="primary"
-                align="left"
-                style="min-height: 40px"
-              >
-                <q-tab name="education" label="EDUCATION" class="text-weight-medium" />
-                <q-tab name="experience" label="EXPERIENCE" class="text-weight-medium" />
-                <q-tab name="training" label="TRAINING" class="text-weight-medium" />
-                <q-tab name="eligibility" label="ELIGIBILITY" class="text-weight-medium" />
-              </q-tabs>
-              <q-btn label="VIEW PDS" color="primary" rounded @click="onViewPDS" />
-            </div>
-
-            <q-separator />
-
-            <q-tab-panels v-model="tab" class="q-pa-none" style="flex: 1; overflow: auto">
-              <!-- Education Panel -->
-              <q-tab-panel name="education" class="row q-pa-none">
-                <div class="col q-pa-sm" style="border-right: 1px solid #e0e0e0">
-                  <q-scroll-area style="height: 100%">
-                    <div class="text-h6 q-mb-md">Applicant Education</div>
-                    <div class="text-caption q-mb-sm">Records found: {{ xEdu.length }}</div>
-                    <q-card class="q-ma-sm">
-                      <q-table
-                        :rows="formattedEducation"
-                        :columns="xEduCol"
-                        row-key="id"
-                        :pagination="{ rowsPerPage: 10 }"
-                        :loading="xPDS.loading"
-                      >
-                        <template v-slot:no-data>
-                          <div class="full-width row flex-center q-pa-md text-grey">
-                            <q-icon name="info" size="24px" class="q-mr-sm" />
-                            No education records found
-                          </div>
-                        </template>
-                      </q-table>
-                    </q-card>
-                  </q-scroll-area>
-                </div>
-
-                <div class="col q-pa-sm qs-panel">
-                  <q-scroll-area style="height: 100%">
-                    <div class="text-h6 q-mb-md">Position Qualification Standard</div>
-                    <q-card class="q-ma-sm">
-                      <q-table
-                        :columns="educationCol"
-                        :rows="positionQS"
-                        hide-bottom
-                        :loading="usePlantilla.qsLoad"
-                      >
-                        <template v-slot:body-cell-Education="props">
-                          <q-td
-                            :props="props"
-                            style="width: 300px; white-space: normal; word-wrap: break-word"
-                          >
-                            {{ props.row.Education }}
-                          </q-td>
-                        </template>
-                        <template v-slot:no-data>
-                          <div class="full-width row flex-center q-pa-md text-grey">
-                            <q-icon name="info" size="24px" class="q-mr-sm" />
-                            No qualification standards available
-                          </div>
-                        </template>
-                      </q-table>
-                    </q-card>
-
-                    <q-separator></q-separator>
-                    <q-card class="q-ma-sm">
-                      <q-input
-                        v-model="education_remark"
-                        label="Remarks"
-                        autogrow
-                        border
-                        dense
-                        style="padding: 10px"
-                      ></q-input>
-                    </q-card>
-                  </q-scroll-area>
-                </div>
-              </q-tab-panel>
-
-              <!-- Experience Panel -->
-              <q-tab-panel name="experience" class="row q-pa-none">
-                <div class="col q-pa-sm" style="border-right: 1px solid #e0e0e0">
-                  <q-scroll-area style="height: 100%">
-                    <div class="text-h6 q-mb-md">Applicant Experience</div>
-                    <div class="text-caption q-mb-sm">Records found: {{ xExperience.length }}</div>
-                    <q-card class="q-ma-sm">
-                      <q-table
-                        :rows="xExperience"
-                        :columns="xExperienceCol"
-                        row-key="id"
-                        :pagination="{ rowsPerPage: 10 }"
-                      >
-                        <template v-slot:no-data>
-                          <div class="full-width row flex-center q-pa-md text-grey">
-                            <q-icon name="info" size="24px" class="q-mr-sm" />
-                            No experience records found
-                          </div>
-                        </template>
-                      </q-table>
-                    </q-card>
-                  </q-scroll-area>
-                </div>
-
-                <div class="col q-pa-sm qs-panel">
-                  <q-scroll-area style="height: 100%">
-                    <div class="text-h6 q-mb-md">Position Qualification Standard</div>
-                    <q-card class="q-ma-sm">
-                      <q-table :columns="ExperienceCol" :rows="positionQS" hide-bottom>
-                        <template v-slot:body-cell-Experience="props">
-                          <q-td
-                            :props="props"
-                            style="width: 300px; white-space: normal; word-wrap: break-word"
-                          >
-                            {{ props.row.Experience }}
-                          </q-td>
-                        </template>
-                        <template v-slot:no-data>
-                          <div class="full-width row flex-center q-pa-md text-grey">
-                            <q-icon name="info" size="24px" class="q-mr-sm" />
-                            No qualification standards available
-                          </div>
-                        </template>
-                      </q-table>
-                    </q-card>
-                    <q-separator></q-separator>
-                    <q-card class="q-ma-sm">
-                      <q-input
-                        v-model="experience_remark"
-                        label="Remarks"
-                        autogrow
-                        border
-                        dense
-                        style="padding: 10px"
-                      ></q-input>
-                    </q-card>
-                  </q-scroll-area>
-                </div>
-              </q-tab-panel>
-
-              <!-- Training Panel -->
-              <q-tab-panel name="training" class="row q-pa-none">
-                <div class="col q-pa-sm" style="border-right: 1px solid #e0e0e0">
-                  <q-scroll-area style="height: 100%">
-                    <div class="text-h6 q-mb-md">Applicant Training</div>
-                    <q-card class="q-ma-sm">
-                      <q-table
-                        :rows="xTraining"
-                        :columns="xTrainingCol"
-                        row-key="id"
-                        :pagination="{ rowsPerPage: 10 }"
-                      ></q-table>
-                    </q-card>
-                  </q-scroll-area>
-                </div>
-
-                <div class="col q-pa-sm qs-panel">
-                  <q-scroll-area style="height: 100%">
-                    <div class="text-h6 q-mb-md">Position Qualification Standard</div>
-                    <q-card class="q-ma-sm">
-                      <q-table :columns="trainingCol" :rows="positionQS" hide-bottom>
-                        <template v-slot:body-cell-Training="props">
-                          <q-td
-                            :props="props"
-                            style="width: 300px; white-space: normal; word-wrap: break-word"
-                          >
-                            {{ props.row.Training }}
-                          </q-td>
-                        </template>
-                        <template v-slot:no-data>
-                          <div class="full-width row flex-center q-pa-md text-grey">
-                            <q-icon name="info" size="24px" class="q-mr-sm" />
-                            No qualification standards available
-                          </div>
-                        </template>
-                      </q-table>
-                    </q-card>
-                    <q-separator></q-separator>
-                    <q-card class="q-ma-sm">
-                      <q-input
-                        v-model="training_remark"
-                        label="Remarks"
-                        autogrow
-                        border
-                        dense
-                        style="padding: 10px"
-                      ></q-input>
-                    </q-card>
-                  </q-scroll-area>
-                </div>
-              </q-tab-panel>
-
-              <!-- Eligibility Panel -->
-              <q-tab-panel name="eligibility" class="row q-pa-none">
-                <div class="col q-pa-sm" style="border-right: 1px solid #e0e0e0">
-                  <q-scroll-area style="height: 100%">
-                    <div class="text-h6 q-mb-md">Applicant Eligibility</div>
-                    <q-card class="q-ma-sm">
-                      <q-table
-                        :rows="xEligibility"
-                        :columns="xEligibilityCol"
-                        row-key="id"
-                        :pagination="{ rowsPerPage: 10 }"
-                      ></q-table>
-                    </q-card>
-                  </q-scroll-area>
-                </div>
-
-                <div class="col q-pa-sm qs-panel">
-                  <q-scroll-area style="height: 100%">
-                    <div class="text-h6 q-mb-md">Position Qualification Standard</div>
-                    <q-card class="q-ma-sm">
-                      <q-table :columns="eligibilityCol" :rows="positionQS" hide-bottom>
-                        <template v-slot:body-cell-Eligibility="props">
-                          <q-td
-                            :props="props"
-                            style="width: 300px; white-space: normal; word-wrap: break-word"
-                          >
-                            {{ props.row.Eligibility }}
-                          </q-td>
-                        </template>
-                        <template v-slot:no-data>
-                          <div class="full-width row flex-center q-pa-md text-grey">
-                            <q-icon name="info" size="24px" class="q-mr-sm" />
-                            No qualification standards available
-                          </div>
-                        </template>
-                      </q-table>
-                    </q-card>
-                    <q-separator></q-separator>
-                    <q-card class="q-ma-sm">
-                      <q-input
-                        v-model="eligibility_remark"
-                        label="Remarks"
-                        autogrow
-                        border
-                        dense
-                        style="padding: 10px"
-                      ></q-input>
-                    </q-card>
-                  </q-scroll-area>
-                </div>
-              </q-tab-panel>
-            </q-tab-panels>
-          </q-card>
+                @click="onViewPDS"
+                class="view-pds-btn"
+                v-if="true"
+              />
+            </span>
+          </div>
+          <div class="applicant-info">
+            {{ applicantData?.position || 'Office of the ...' }} (Level:
+            <q-badge rounded dense color="green" class="text-white q-ml-xs">
+              {{ applicantData?.level || 'A' }}
+            </q-badge>
+            )
+          </div>
+          <div class="applicant-info">
+            Applied: {{ applicantData?.appliedDate || '#### ##, ####' }}
+          </div>
+          <q-badge
+            rounded
+            class="q-pa-xs status-badge"
+            :class="{
+              'bg-blue': applicantData.status == 'ELECTIVE',
+              'bg-purple': applicantData.status == 'APPOINTED',
+              'bg-brown': applicantData.status == 'CO-TERMINOUS',
+              'bg-green': applicantData.status == 'REGULAR',
+              'bg-yellow text-black': applicantData.status == 'TEMPORARY',
+              'bg-grey-4': applicantData.status == 'CASUAL',
+              'bg-light-blue': applicantData.status == 'CONTRACTUAL',
+              'bg-black': applicantData.status == 'HONORARIUM',
+              'bg-grey': ![
+                'ELECTIVE',
+                'APPOINTED',
+                'CO-TERMINOUS',
+                'REGULAR',
+                'TEMPORARY',
+                'CASUAL',
+                'CONTRACTUAL',
+                'HONORARIUM',
+              ].includes(applicantData.status),
+            }"
+          >
+            {{ applicantData?.status || 'NA' }}
+            <q-icon v-if="evaluationLocked" name="lock" class="q-ml-xs" />
+          </q-badge>
+        </div>
+        <div class="col-auto">
+          <q-btn icon="close" flat round dense class="close-btn q-ml-md" @click="onClose" />
         </div>
       </q-card-section>
 
-      <!-- Footer Actions - SIMPLE LOGIC -->
+      <q-separator />
+
+      <!-- Tabs for each QS area -->
+      <q-card-section class="main-content-section q-pa-none">
+        <div>
+          <div class="modern-tabs">
+            <div
+              v-for="tabName in ['education', 'experience', 'training', 'eligibility']"
+              :key="tabName"
+              @click="tab = tabName"
+              class="modern-tab"
+              :class="{ 'active-tab': tab === tabName }"
+            >
+              {{ tabName.toUpperCase() }}
+            </div>
+          </div>
+
+          <q-separator />
+
+          <q-tab-panels v-model="tab" animated class="q-pa-md" style="min-height: 400px">
+            <!-- Education Tab -->
+            <q-tab-panel name="education" class="q-pa-none">
+              <div class="row q-col-gutter-md">
+                <!-- Applicant Data -->
+                <div class="col-9">
+                  <div class="section-title">Applicant Education</div>
+                  <q-card flat class="modern-table-card">
+                    <q-table
+                      :rows="formattedEducation"
+                      :columns="xEduCol"
+                      dense
+                      flat
+                      hide-bottom
+                      row-key="id"
+                      class="modern-table"
+                      :pagination="{ rowsPerPage: 5 }"
+                      wrap-cells
+                      :hide-header="false"
+                    >
+                      <template v-slot:header="props">
+                        <q-tr :props="props">
+                          <q-th
+                            v-for="col in props.cols"
+                            :key="col.name"
+                            :props="props"
+                            class="modern-table-header"
+                          >
+                            {{ col.label }}
+                          </q-th>
+                        </q-tr>
+                      </template>
+                      <template v-slot:body="props">
+                        <q-tr :props="props" class="modern-table-row">
+                          <q-td
+                            v-for="col in props.cols"
+                            :key="col.name"
+                            :props="props"
+                            class="modern-table-cell"
+                          >
+                            {{ props.row[col.field] }}
+                          </q-td>
+                        </q-tr>
+                      </template>
+                      <template v-slot:no-data>
+                        <div class="full-width row flex-center q-pa-md text-grey-7">
+                          <q-icon name="info" size="18px" class="q-mr-sm" />
+                          No education records found
+                        </div>
+                      </template>
+                    </q-table>
+                  </q-card>
+                </div>
+                <!-- QS Data -->
+                <div class="col-3">
+                  <div class="section-title">Position Qualification Standard</div>
+                  <q-card flat class="modern-table-card">
+                    <q-table
+                      :rows="positionQS"
+                      :columns="educationCol"
+                      dense
+                      flat
+                      hide-bottom
+                      :loading="usePlantilla.qsLoad"
+                      row-key="id"
+                      class="modern-table"
+                      wrap-cells
+                      :hide-header="false"
+                    >
+                      <template v-slot:header="props">
+                        <q-tr :props="props">
+                          <q-th
+                            v-for="col in props.cols"
+                            :key="col.name"
+                            :props="props"
+                            class="modern-table-header"
+                          >
+                            {{ col.label }}
+                          </q-th>
+                        </q-tr>
+                      </template>
+                      <template v-slot:body-cell-Education="props">
+                        <q-td :props="props" class="standard-cell">
+                          {{ props.row.Education }}
+                        </q-td>
+                      </template>
+                      <template v-slot:no-data>
+                        <div class="full-width row flex-center q-pa-md text-grey-7">
+                          <q-icon name="info" size="18px" class="q-mr-sm" />
+                          No qualification standards available
+                        </div>
+                      </template>
+                    </q-table>
+                  </q-card>
+                  <q-input
+                    v-model="education_remark"
+                    label="Remarks"
+                    autogrow
+                    outlined
+                    dense
+                    class="q-mt-md modern-input"
+                  />
+                </div>
+              </div>
+            </q-tab-panel>
+
+            <!-- Experience Tab -->
+            <q-tab-panel name="experience" class="q-pa-none">
+              <div class="row q-col-gutter-md">
+                <div class="col-9">
+                  <div class="section-title">Applicant Experience</div>
+                  <q-card flat class="modern-table-card">
+                    <q-table
+                      :rows="xExperience"
+                      :columns="xExperienceCol"
+                      dense
+                      flat
+                      hide-bottom
+                      row-key="id"
+                      class="modern-table"
+                      :pagination="{ rowsPerPage: 5 }"
+                      wrap-cells
+                    >
+                      <template v-slot:header="props">
+                        <q-tr :props="props">
+                          <q-th
+                            v-for="col in props.cols"
+                            :key="col.name"
+                            :props="props"
+                            class="modern-table-header"
+                          >
+                            {{ col.label }}
+                          </q-th>
+                        </q-tr>
+                      </template>
+                      <template v-slot:body="props">
+                        <q-tr :props="props" class="modern-table-row">
+                          <q-td
+                            v-for="col in props.cols"
+                            :key="col.name"
+                            :props="props"
+                            class="modern-table-cell"
+                          >
+                            <template v-if="col.name === 'monthlySalary'">
+                              {{ formatSalary(props.row[col.field]) }}
+                            </template>
+                            <template v-else>
+                              {{ props.row[col.field] }}
+                            </template>
+                          </q-td>
+                        </q-tr>
+                      </template>
+                      <template v-slot:no-data>
+                        <div class="full-width row flex-center q-pa-md text-grey-7">
+                          <q-icon name="info" size="18px" class="q-mr-sm" />
+                          No experience records found
+                        </div>
+                      </template>
+                    </q-table>
+                  </q-card>
+                </div>
+                <div class="col-3">
+                  <div class="section-title">Position Qualification Standard</div>
+                  <q-card flat class="modern-table-card">
+                    <q-table
+                      :rows="positionQS"
+                      :columns="ExperienceCol"
+                      dense
+                      flat
+                      hide-bottom
+                      row-key="id"
+                      class="modern-table"
+                      wrap-cells
+                    >
+                      <template v-slot:header="props">
+                        <q-tr :props="props">
+                          <q-th
+                            v-for="col in props.cols"
+                            :key="col.name"
+                            :props="props"
+                            class="modern-table-header"
+                          >
+                            {{ col.label }}
+                          </q-th>
+                        </q-tr>
+                      </template>
+                      <template v-slot:body-cell-Experience="props">
+                        <q-td :props="props" class="standard-cell">
+                          {{ props.row.Experience }}
+                        </q-td>
+                      </template>
+                      <template v-slot:no-data>
+                        <div class="full-width row flex-center q-pa-md text-grey-7">
+                          <q-icon name="info" size="18px" class="q-mr-sm" />
+                          No qualification standards available
+                        </div>
+                      </template>
+                    </q-table>
+                  </q-card>
+                  <q-input
+                    v-model="experience_remark"
+                    label="Remarks"
+                    autogrow
+                    outlined
+                    dense
+                    class="q-mt-md modern-input"
+                  />
+                </div>
+              </div>
+            </q-tab-panel>
+
+            <!-- Training Tab -->
+            <q-tab-panel name="training" class="q-pa-none">
+              <div class="row q-col-gutter-md">
+                <div class="col-9">
+                  <div class="section-title">Applicant Training</div>
+                  <q-card flat class="modern-table-card">
+                    <q-table
+                      :rows="xTraining"
+                      :columns="xTrainingCol"
+                      dense
+                      flat
+                      hide-bottom
+                      row-key="id"
+                      class="modern-table"
+                      :pagination="{ rowsPerPage: 5 }"
+                      wrap-cells
+                    >
+                      <template v-slot:header="props">
+                        <q-tr :props="props">
+                          <q-th
+                            v-for="col in props.cols"
+                            :key="col.name"
+                            :props="props"
+                            class="modern-table-header"
+                          >
+                            {{ col.label }}
+                          </q-th>
+                        </q-tr>
+                      </template>
+                      <template v-slot:body="props">
+                        <q-tr :props="props" class="modern-table-row">
+                          <q-td
+                            v-for="col in props.cols"
+                            :key="col.name"
+                            :props="props"
+                            class="modern-table-cell"
+                          >
+                            {{ props.row[col.field] }}
+                          </q-td>
+                        </q-tr>
+                      </template>
+                      <template v-slot:no-data>
+                        <div class="full-width row flex-center q-pa-md text-grey-7">
+                          <q-icon name="info" size="18px" class="q-mr-sm" />
+                          No training records found
+                        </div>
+                      </template>
+                    </q-table>
+                  </q-card>
+                </div>
+                <div class="col-3">
+                  <div class="section-title">Position Qualification Standard</div>
+                  <q-card flat class="modern-table-card">
+                    <q-table
+                      :rows="positionQS"
+                      :columns="trainingCol"
+                      dense
+                      flat
+                      hide-bottom
+                      row-key="id"
+                      class="modern-table"
+                      wrap-cells
+                    >
+                      <template v-slot:header="props">
+                        <q-tr :props="props">
+                          <q-th
+                            v-for="col in props.cols"
+                            :key="col.name"
+                            :props="props"
+                            class="modern-table-header"
+                          >
+                            {{ col.label }}
+                          </q-th>
+                        </q-tr>
+                      </template>
+                      <template v-slot:body-cell-Training="props">
+                        <q-td :props="props" class="standard-cell">
+                          {{ props.row.Training }}
+                        </q-td>
+                      </template>
+                      <template v-slot:no-data>
+                        <div class="full-width row flex-center q-pa-md text-grey-7">
+                          <q-icon name="info" size="18px" class="q-mr-sm" />
+                          No qualification standards available
+                        </div>
+                      </template>
+                    </q-table>
+                  </q-card>
+                  <q-input
+                    v-model="training_remark"
+                    label="Remarks"
+                    autogrow
+                    outlined
+                    dense
+                    class="q-mt-md modern-input"
+                  />
+                </div>
+              </div>
+            </q-tab-panel>
+
+            <!-- Eligibility Tab -->
+            <q-tab-panel name="eligibility" class="q-pa-none">
+              <div class="row q-col-gutter-md">
+                <div class="col-9">
+                  <div class="section-title">Applicant Eligibility</div>
+                  <q-card flat class="modern-table-card">
+                    <q-table
+                      :rows="xEligibility"
+                      :columns="xEligibilityCol"
+                      dense
+                      flat
+                      hide-bottom
+                      row-key="id"
+                      class="modern-table"
+                      :pagination="{ rowsPerPage: 5 }"
+                      wrap-cells
+                    >
+                      <template v-slot:header="props">
+                        <q-tr :props="props">
+                          <q-th
+                            v-for="col in props.cols"
+                            :key="col.name"
+                            :props="props"
+                            class="modern-table-header"
+                          >
+                            {{ col.label }}
+                          </q-th>
+                        </q-tr>
+                      </template>
+                      <template v-slot:body="props">
+                        <q-tr :props="props" class="modern-table-row">
+                          <q-td
+                            v-for="col in props.cols"
+                            :key="col.name"
+                            :props="props"
+                            class="modern-table-cell"
+                          >
+                            {{ props.row[col.field] }}
+                          </q-td>
+                        </q-tr>
+                      </template>
+                      <template v-slot:no-data>
+                        <div class="full-width row flex-center q-pa-md text-grey-7">
+                          <q-icon name="info" size="18px" class="q-mr-sm" />
+                          No eligibility records found
+                        </div>
+                      </template>
+                    </q-table>
+                  </q-card>
+                </div>
+                <div class="col-3">
+                  <div class="section-title">Position Qualification Standard</div>
+                  <q-card flat class="modern-table-card">
+                    <q-table
+                      :rows="positionQS"
+                      :columns="eligibilityCol"
+                      dense
+                      flat
+                      hide-bottom
+                      row-key="id"
+                      class="modern-table"
+                      wrap-cells
+                    >
+                      <template v-slot:header="props">
+                        <q-tr :props="props">
+                          <q-th
+                            v-for="col in props.cols"
+                            :key="col.name"
+                            :props="props"
+                            class="modern-table-header"
+                          >
+                            {{ col.label }}
+                          </q-th>
+                        </q-tr>
+                      </template>
+                      <template v-slot:body-cell-Eligibility="props">
+                        <q-td :props="props" class="standard-cell">
+                          {{ props.row.Eligibility }}
+                        </q-td>
+                      </template>
+                      <template v-slot:no-data>
+                        <div class="full-width row flex-center q-pa-md text-grey-7">
+                          <q-icon name="info" size="18px" class="q-mr-sm" />
+                          No qualification standards available
+                        </div>
+                      </template>
+                    </q-table>
+                  </q-card>
+                  <q-input
+                    v-model="eligibility_remark"
+                    label="Remarks"
+                    autogrow
+                    outlined
+                    dense
+                    class="q-mt-md modern-input"
+                  />
+                </div>
+              </div>
+            </q-tab-panel>
+          </q-tab-panels>
+        </div>
+      </q-card-section>
+
+      <!-- Footer Actions -->
+      <q-separator />
       <q-card-section class="footer-actions bg-grey-2 q-py-sm">
         <div class="row justify-between items-center">
           <div>
@@ -360,23 +514,25 @@
               @click="showControlNo = !showControlNo"
               class="q-mr-sm"
             />
-            <q-badge v-if="showControlNo" color="grey">
+            <q-badge v-if="showControlNo" color="grey-7" class="control-badge">
               Control No. {{ applicantData?.id || '0' }}
             </q-badge>
           </div>
           <div v-if="!props.isPlantilla && !evaluationLocked">
-            <div class="text-caption text-grey-7">Evaluation Status</div>
+            <div class="status-label">Evaluation Status</div>
             <q-radio
               v-model="qualificationStatus"
               val="Qualified"
               label="Qualified"
               color="green"
+              class="qualification-radio"
             />
             <q-radio
               v-model="qualificationStatus"
               val="Unqualified"
               label="Unqualified"
               color="red"
+              class="qualification-radio"
             />
           </div>
           <q-btn
@@ -385,25 +541,33 @@
             color="primary"
             @click="onSubmit"
             :disable="!qualificationStatus"
-            class="q-mx-sm"
+            class="q-mx-sm submit-btn"
           />
         </div>
       </q-card-section>
     </q-card>
   </q-dialog>
+
+  <!-- PDS Modal -->
+  <PDSModalApplicant
+    v-model="showPDSModal"
+    :applicantID="applicantData?.id"
+    :applicantData="applicantData"
+  />
 </template>
 
 <script setup>
   import { ref, computed, watch } from 'vue';
   import { usePlantillaStore } from 'stores/plantillaStore';
-  import { useJobPostStore } from 'stores/jobPostStore';
-
-  const xPDS = useJobPostStore();
+  import PDSModalApplicant from './PDSModalApplicant.vue';
 
   const xEdu = ref([]);
   const xEligibility = ref([]);
   const xExperience = ref([]);
   const xTraining = ref([]);
+
+  // PDS Modal
+  const showPDSModal = ref(false);
 
   const props = defineProps({
     show: Boolean,
@@ -423,8 +587,8 @@
   });
   const emit = defineEmits(['update:show', 'view-pds', 'toggle-qualification', 'submit', 'close']);
   const localShow = ref(props.show);
-  const tab = ref('education');
 
+  const tab = ref('education');
   const qualificationStatus = ref('');
 
   const formattedEducation = computed(
@@ -441,8 +605,19 @@
       })) ?? [],
   );
 
+  const formatSalary = (val) => {
+    if (!val) return '';
+    return parseFloat(val).toLocaleString('en-PH', { style: 'currency', currency: 'PHP' });
+  };
+
   const xEduCol = [
-    { name: 'level', label: 'Level2', align: 'left', field: 'level', sortable: true },
+    {
+      name: 'level',
+      label: 'Level',
+      align: 'left',
+      field: 'level',
+      sortable: true,
+    },
     {
       name: 'school_name',
       label: 'Name of School',
@@ -452,16 +627,26 @@
     },
     {
       name: 'course',
-      label: 'Basic Education/Degree/Course',
+      label: 'Degree/Course',
       align: 'left',
       field: 'degree',
       sortable: true,
     },
-    { name: 'fromYear', label: 'From', align: 'left', field: 'attendance_from', sortable: true },
-    { name: 'toYear', label: 'To', align: 'left', field: 'attendance_to', sortable: true },
+    {
+      name: 'fromYear',
+      label: 'From',
+      align: 'left',
+      field: 'attendance_from',
+    },
+    {
+      name: 'toYear',
+      label: 'To',
+      align: 'left',
+      field: 'attendance_to',
+    },
     {
       name: 'highestLevel',
-      label: 'Highest Level/Units Earned',
+      label: 'Units Earned',
       align: 'left',
       field: 'highest_units',
       sortable: true,
@@ -475,7 +660,7 @@
     },
     {
       name: 'honors',
-      label: 'Scholarship/Academic Honors Received',
+      label: 'Honors',
       align: 'left',
       field: 'scholarship',
       sortable: true,
@@ -492,35 +677,35 @@
     },
     {
       name: 'rating',
-      label: 'Rating (If Applicable)',
+      label: 'Rating',
       field: 'rating',
       sortable: true,
-      align: 'left',
+      align: 'center',
     },
     {
       name: 'examDate',
-      label: 'Date of Examination',
+      label: 'Date of Exam',
       field: 'date_of_examination',
       sortable: true,
       align: 'left',
     },
     {
       name: 'examPlace',
-      label: 'Place of Examination',
+      label: 'Place',
       field: 'place_of_examination',
       sortable: true,
       align: 'left',
     },
     {
       name: 'licenseNumber',
-      label: 'License Number',
+      label: 'License #',
       field: 'license_number',
       sortable: true,
       align: 'left',
     },
     {
       name: 'validityDate',
-      label: 'Date of Validity',
+      label: 'Validity',
       field: 'date_of_validity',
       sortable: true,
       align: 'left',
@@ -528,35 +713,93 @@
   ];
 
   const xExperienceCol = [
-    { name: 'fromDate', label: 'From', field: 'work_date_from', align: 'left' },
-    { name: 'toDate', label: 'To', field: 'work_date_to', align: 'left' },
-    { name: 'positionTitle', label: 'Position Title', field: 'position_title', align: 'left' },
-    { name: 'department', label: 'Department', field: 'department', align: 'left' },
+    {
+      name: 'fromDate',
+      label: 'From',
+      field: 'work_date_from',
+      align: 'center',
+    },
+    {
+      name: 'toDate',
+      label: 'To',
+      field: 'work_date_to',
+      align: 'center',
+    },
+    {
+      name: 'positionTitle',
+      label: 'Position Title',
+      field: 'position_title',
+      align: 'left',
+    },
+    {
+      name: 'department',
+      label: 'Department',
+      field: 'department',
+      align: 'left',
+    },
     {
       name: 'monthlySalary',
       label: 'Monthly Salary',
       field: 'monthly_salary',
       align: 'right',
-      format: (val) =>
-        parseFloat(val).toLocaleString('en-PH', { style: 'currency', currency: 'PHP' }),
     },
-    { name: 'salaryGrade', label: 'Salary Grade', field: 'salary_grade', align: 'left' },
+    {
+      name: 'salaryGrade',
+      label: 'SG',
+      field: 'salary_grade',
+      align: 'center',
+    },
     {
       name: 'appointmentStatus',
-      label: 'Status of Appointment',
+      label: 'Status',
       field: 'status_of_appointment',
       align: 'left',
     },
-    { name: 'govtService', label: "Gov't Service", field: 'government_service', align: 'left' },
+    {
+      name: 'govtService',
+      label: "Gov't",
+      field: 'government_service',
+      align: 'center',
+    },
   ];
 
   const xTrainingCol = [
-    { name: 'title', label: 'Title', field: 'training_title', align: 'left' },
-    { name: 'fromDate', label: 'From', field: 'inclusive_date_from', align: 'left' },
-    { name: 'toDate', label: 'To', field: 'inclusive_date_to', align: 'left' },
-    { name: 'hours', label: 'Number of Hours', field: 'number_of_hours', align: 'left' },
-    { name: 'type', label: 'Type', field: 'type', align: 'left' },
-    { name: 'conductor', label: 'Conducted/Sponsored By', field: 'conducted_by', align: 'left' },
+    {
+      name: 'title',
+      label: 'Title',
+      field: 'training_title',
+      align: 'left',
+    },
+    {
+      name: 'fromDate',
+      label: 'From',
+      field: 'inclusive_date_from',
+      align: 'center',
+    },
+    {
+      name: 'toDate',
+      label: 'To',
+      field: 'inclusive_date_to',
+      align: 'center',
+    },
+    {
+      name: 'hours',
+      label: 'Hours',
+      field: 'number_of_hours',
+      align: 'center',
+    },
+    {
+      name: 'type',
+      label: 'Type',
+      field: 'type',
+      align: 'left',
+    },
+    {
+      name: 'conductor',
+      label: 'Conducted/Sponsored By',
+      field: 'conducted_by',
+      align: 'left',
+    },
   ];
 
   const usePlantilla = usePlantillaStore();
@@ -565,22 +808,42 @@
   const positionQS = ref([]);
 
   const educationCol = ref([
-    { name: 'Education', label: 'Education', align: 'left', field: 'Education' },
+    {
+      name: 'Education',
+      label: 'Education',
+      align: 'left',
+      field: 'Education',
+    },
   ]);
   const ExperienceCol = ref([
-    { name: 'Experience', label: 'Experience', align: 'left', field: 'Experience' },
+    {
+      name: 'Experience',
+      label: 'Experience',
+      align: 'left',
+      field: 'Experience',
+    },
   ]);
   const trainingCol = ref([
-    { name: 'Training', label: 'Training', align: 'left', field: 'Training' },
+    {
+      name: 'Training',
+      label: 'Training',
+      align: 'left',
+      field: 'Training',
+    },
   ]);
   const eligibilityCol = ref([
-    { name: 'Eligibility', label: 'Eligibility', align: 'left', field: 'Eligibility' },
+    {
+      name: 'Eligibility',
+      label: 'Eligibility',
+      align: 'left',
+      field: 'Eligibility',
+    },
   ]);
 
   const education_remark = ref('');
   const experience_remark = ref('');
   const training_remark = ref('');
-  const eligibility_remark = ref(''); // <-- FIXED spelling
+  const eligibility_remark = ref('');
 
   const evaluationLocked = computed(() => props.isSubmitted);
 
@@ -597,7 +860,6 @@
 
   const onModalShow = async () => {
     tab.value = 'education';
-
     if (props.applicantData?.PositionID) {
       await usePlantilla.fetchQsData(props.applicantData.PositionID);
       positionQS.value = usePlantilla.qsData;
@@ -651,7 +913,12 @@
     qualificationStatus.value = '';
   };
 
-  const onViewPDS = () => emit('view-pds');
+  const onViewPDS = () => {
+    // Show PDS Modal
+    showPDSModal.value = true;
+    // Also emit the event for parent components that may need it
+    emit('view-pds');
+  };
 
   watch(qualificationStatus, (newStatus) => {
     emit('toggle-qualification', newStatus);
@@ -665,7 +932,7 @@
         education_remark: education_remark.value,
         experience_remark: experience_remark.value,
         training_remark: training_remark.value,
-        eligibility_remark: eligibility_remark.value, // <-- FIXED spelling
+        eligibility_remark: eligibility_remark.value,
       });
     }
   };
@@ -676,32 +943,176 @@
     border-radius: 8px;
     display: flex;
     flex-direction: column;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    background-color: #ffffff;
   }
+
   .header {
     background-color: #f5f5f5;
+    position: sticky;
+    top: 0;
+    z-index: 2;
   }
+
+  .applicant-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 4px;
+  }
+
+  .view-pds-btn {
+    font-size: 8px;
+    padding: 2px 8px;
+    margin-left: 8px;
+    height: 20px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+  }
+
+  .applicant-info {
+    font-size: 10px;
+    color: #666;
+    margin-bottom: 2px;
+  }
+
+  .status-badge {
+    font-size: 9px;
+    font-weight: 500;
+  }
+
+  /* Modern Tabs Styling */
+  .modern-tabs {
+    display: flex;
+    border-bottom: 1px solid #e0e0e0;
+    background-color: #fff;
+  }
+
+  .modern-tab {
+    padding: 12px 24px;
+    cursor: pointer;
+    color: #666;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    position: relative;
+    letter-spacing: 0.5px;
+
+    &:hover {
+      background-color: #f9f9f9;
+    }
+
+    &.active-tab {
+      color: #4caf50;
+      border-bottom: 3px solid #4caf50;
+    }
+  }
+
   .main-content-section {
     flex: 1;
     overflow: hidden;
-    padding: 16px;
+    padding: 0;
+    background-color: #fff;
   }
+
+  /* Section titles */
+  .section-title {
+    font-size: 14px;
+    font-weight: 400;
+    color: #333;
+    margin: 0 0 12px 0;
+  }
+
+  /* Modern Table Styling */
+  .modern-table-card {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+    border-radius: 8px;
+    border: 1px solid #eee !important;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+
+  .modern-table {
+    border-spacing: 0;
+    width: 100%;
+  }
+
+  .modern-table-header {
+    background-color: #fff !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    color: #333 !important;
+    padding: 12px 16px !important;
+    border-bottom: 1px solid #eee;
+  }
+
+  .modern-table-row {
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: #f9f9f9;
+    }
+
+    &:nth-child(even) {
+      background-color: #fafafa;
+    }
+  }
+
+  .modern-table-cell {
+    padding: 12px 16px !important;
+    font-size: 11px !important;
+    color: #333;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .standard-cell {
+    padding: 16px !important;
+    font-size: 13px !important;
+    line-height: 1.5;
+  }
+
+  /* Input styling */
+  .modern-input {
+    margin-top: 20px;
+
+    :deep(.q-field__control) {
+      background-color: #f9f9f9;
+    }
+  }
+
   .footer-actions {
     flex: 0 0 auto;
+    border-top: 1px solid #eee;
   }
-  .full-height {
-    height: 100%;
+
+  .status-label {
+    font-size: 10px;
+    color: #666;
+    margin-bottom: 3px;
   }
+
+  .qualification-radio {
+    font-size: 11px;
+    margin-right: 16px;
+  }
+
+  .control-badge {
+    font-size: 9px;
+  }
+
+  .submit-btn {
+    font-size: 11px;
+    font-weight: 500;
+  }
+
   .close-btn {
     margin: 0;
   }
-  .text-center {
-    text-align: center;
-  }
-  .full-width {
-    width: 100%;
-  }
-  .qs-panel {
-    max-width: 280px;
-    width: 100%;
+
+  /* Responsive fixes */
+  @media (max-width: 1024px) {
+    .modern-tab {
+      padding: 10px 16px;
+    }
   }
 </style>

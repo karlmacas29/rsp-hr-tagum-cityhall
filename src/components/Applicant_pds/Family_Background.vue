@@ -1,4 +1,3 @@
-<!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <div class="q-mb-sm">
     <div class="text-h5 text-bold">Spouse’s Information</div>
@@ -10,20 +9,20 @@
         <div class="col-12 row justify-between q-gutter-x-sm">
           <div class="col-5">
             <div class="field-label">Spouse's Firstname:</div>
-            <div class="field-value">{{ props.family?.spouse_firstname || 'None' }}</div>
+            <div class="field-value">{{ props.family?.SpouseFirstname || 'None' }}</div>
           </div>
           <div class="col-5">
             <div class="field-label">Spouse's Surname:</div>
-            <div class="field-value">{{ props.family?.spouse_name || 'None' }}</div>
+            <div class="field-value">{{ props.family?.SpouseName || 'None' }}</div>
           </div>
         </div>
         <div class="col-12">
           <div class="field-label">Occupation:</div>
-          <div class="field-value">{{ props.family?.spouse_occupation || 'None' }}</div>
+          <div class="field-value">{{ props.family?.Occupation || 'None' }}</div>
         </div>
         <div class="col-12">
           <div class="field-label">Employers/Business Name:</div>
-          <div class="field-value">{{ props.family?.spouse_employer || 'None' }}</div>
+          <div class="field-value">{{ props.family?.SpouseEmployer || 'None' }}</div>
         </div>
       </div>
     </div>
@@ -32,16 +31,16 @@
       <div class="row q-col-gutter-md">
         <div class="col-12">
           <div class="field-label">Spouse's Middlename:</div>
-          <div class="field-value">{{ props.family?.spouse_middlename || 'None' }}</div>
+          <div class="field-value">{{ props.family?.SpouseMiddlename || 'None' }}</div>
         </div>
 
         <div class="col-12">
           <div class="field-label">Business Address:</div>
-          <div class="field-value">{{ props.family?.spouse_employer_address || 'None' }}</div>
+          <div class="field-value">{{ props.family?.SpouseEmpAddress || 'None' }}</div>
         </div>
         <div class="col-12">
           <div class="field-label">Business Telephone Number:</div>
-          <div class="field-value">{{ props.family?.spouse_employer_telephone || 'None' }}</div>
+          <div class="field-value">{{ props.family?.SpouseEmpTel || 'None' }}</div>
         </div>
         <!-- Note that duplicate fields were removed from the right side -->
       </div>
@@ -60,21 +59,21 @@
         <div class="col-12 row justify-between q-gutter-x-sm">
           <div class="col-5">
             <div class="field-label">Father's Firstname:</div>
-            <div class="field-value">{{ props.family?.father_firstname || 'None' }}</div>
+            <div class="field-value">{{ props.family?.FatherFirstname || 'None' }}</div>
           </div>
           <div class="col-5">
             <div class="field-label">Father's Surname:</div>
-            <div class="field-value">{{ props.family?.father_lastname || 'None' }}</div>
+            <div class="field-value">{{ props.family?.FatherName || 'None' }}</div>
           </div>
         </div>
         <div class="col-12 row justify-between q-gutter-x-sm">
           <div class="col-5">
             <div class="field-label">Mother's Firstname:</div>
-            <div class="field-value">{{ props.family?.mother_firstname || 'None' }}</div>
+            <div class="field-value">{{ props.family?.MotherFirstname || 'None' }}</div>
           </div>
           <div class="col-5">
             <div class="field-label">Mother's Surname:</div>
-            <div class="field-value">{{ props.family?.mother_lastname || 'None' }}</div>
+            <div class="field-value">{{ props.family?.MotherName || 'None' }}</div>
           </div>
         </div>
       </div>
@@ -84,11 +83,11 @@
       <div class="row q-col-gutter-md">
         <div class="col-12">
           <div class="field-label">Father's Middlename:</div>
-          <div class="field-value">{{ props.family?.father_middlename || 'None' }}</div>
+          <div class="field-value">{{ props.family?.FatherMiddlename || 'None' }}</div>
         </div>
         <div class="col-12">
           <div class="field-label">Mother's Middlename:</div>
-          <div class="field-value">{{ props.family?.mother_middlename || 'None' }}</div>
+          <div class="field-value">{{ props.family?.MotherMiddlename || 'None' }}</div>
         </div>
         <!-- Note that duplicate fields were removed from the right side -->
       </div>
@@ -105,14 +104,14 @@
       title="Children's List"
       :rows="props.family?.children || []"
       :columns="[
-        { name: 'name', label: 'Full Name', field: 'child_name', align: 'left' },
-        { name: 'birthdate', label: 'Date of Birth', field: 'birth_date', align: 'left' },
+        { name: 'name', label: 'Full Name', field: 'ChildName', align: 'left' },
+        { name: 'birthdate', label: 'Date of Birth', field: 'BirthDate', align: 'left' },
       ]"
       row-key="name"
     >
       <template v-slot:body-cell-birthdate="props">
         <q-td :props="props">
-          {{ new Date(props.row.birth_date).toLocaleDateString() }}
+          {{ new Date(props.row.BirthDate).toLocaleDateString() }}
         </q-td>
       </template>
       <template v-slot:no-data>
@@ -125,10 +124,6 @@
 <script setup>
   const props = defineProps({
     family: {
-      type: Object,
-      required: true,
-    },
-       children: {
       type: Object,
       required: true,
     },

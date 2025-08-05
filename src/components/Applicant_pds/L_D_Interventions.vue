@@ -1,4 +1,3 @@
-<!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <div class="q-pa-md">
     <q-table
@@ -12,7 +11,7 @@
 
 <script setup>
   const props = defineProps({
-    learning: {
+    ldData: {
       type: Object,
     },
   });
@@ -21,27 +20,27 @@
     {
       name: 'title',
       label: 'Title',
-      field: 'training_title',
+      field: 'Training',
       align: 'left',
     },
     {
       name: 'fromDate',
       label: 'From',
-      field: 'inclusive_date_from',
+      field: 'DateFrom',
       // format: (val) => new Date(val).toLocaleDateString(),
       align: 'left',
     },
     {
       name: 'toDate',
       label: 'To',
-      field: 'inclusive_date_to',
+      field: 'DateTo',
       // format: (val) => new Date(val).toLocaleDateString(),
       align: 'left',
     },
     {
       name: 'hours',
       label: 'Number of Hours',
-      field: 'number_of_hours',
+      field: 'NumHours',
       align: 'left',
     },
     {
@@ -53,7 +52,7 @@
     {
       name: 'conductor',
       label: 'Conducted/Sponsored By',
-      field: 'conducted_by',
+      field: 'Conductor',
       align: 'left',
     },
   ];

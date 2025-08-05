@@ -1,4 +1,3 @@
-<!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <div class="q-pa-md">
     <q-table title="Work Experience" :rows="props.experience" :columns="columns" row-key="id">
@@ -20,52 +19,52 @@
     {
       name: 'fromDate',
       label: 'From',
-      field: 'work_date_from',
+      field: 'WFrom',
       align: 'left',
       // format: (val) => new Date(val).toLocaleDateString('en-PH')
     },
     {
       name: 'toDate',
       label: 'To',
-      field: 'work_date_to',
+      field: 'WTo',
       align: 'left',
       // format: (val) => new Date(val).toLocaleDateString('en-PH')
     },
     {
       name: 'positionTitle',
       label: 'Position Title',
-      field: 'position_title',
+      field: 'WPosition',
       align: 'left',
     },
     {
       name: 'department',
       label: 'Department',
-      field: 'department',
+      field: 'WCompany',
       align: 'left',
     },
     {
       name: 'monthlySalary',
       label: 'Monthly Salary',
-      field: 'monthly_salary',
+      field: 'WSalary',
       align: 'right',
       format: (val) => val.toLocaleString('en-PH', { style: 'currency', currency: 'PHP' }),
     },
     {
       name: 'salaryGrade',
       label: 'Salary Grade',
-      field: 'salary_grade',
+      field: 'WGrade',
       align: 'left',
     },
     {
       name: 'appointmentStatus',
       label: 'Status of Appointment',
-      field: 'status_of_appointment',
+      field: 'Status',
       align: 'left',
     },
     {
       name: 'govtService',
       label: "Gov't Service",
-      field: 'government_service',
+      field: 'WGov',
       align: 'left',
     },
   ];

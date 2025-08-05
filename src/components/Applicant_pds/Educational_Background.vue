@@ -1,9 +1,8 @@
-<!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <div class="q-pa-md">
     <q-table
       title="Educational Background"
-      :rows="props.education"
+      :rows="props.educ"
       :columns="columns"
       row-key="id"
       :pagination="{ rowsPerPage: 10 }"
@@ -12,7 +11,7 @@
 </template>
 <script setup>
   const props = defineProps({
-    education: {
+    educ: {
       type: Object,
       required: true,
     },
@@ -24,7 +23,7 @@
       required: true,
       label: 'Level',
       align: 'left',
-      field: 'level',
+      field: 'Education',
       sortable: true,
     },
     {
@@ -32,7 +31,7 @@
       required: true,
       label: 'Name of School',
       align: 'left',
-      field: 'school_name',
+      field: 'School',
       sortable: true,
     },
     {
@@ -40,7 +39,7 @@
       required: true,
       label: 'Basic Education/Degree/Course',
       align: 'left',
-      field: 'degree',
+      field: 'Degree',
       sortable: true,
     },
     {
@@ -48,9 +47,9 @@
       required: true,
       label: 'From',
       align: 'left',
-      // field: (row) =>
-      //   row.DateAttend.includes('-') ? row.DateAttend.split('-')[0].trim() : row.DateAttend,
-      field: 'attendance_from',
+      field: (row) =>
+        row.DateAttend.includes('-') ? row.DateAttend.split('-')[0].trim() : row.DateAttend,
+      // field: 'DateAttend',
       sortable: true,
     },
     {
@@ -58,9 +57,9 @@
       required: true,
       label: 'To',
       align: 'left',
-      // field: (row) =>
-      //   row.DateAttend.includes('-') ? row.DateAttend.split('-')[1].trim() : row.DateAttend,
-      field: 'attendance_to',
+      field: (row) =>
+        row.DateAttend.includes('-') ? row.DateAttend.split('-')[1].trim() : row.DateAttend,
+      // field: 'DateAttend',
       sortable: true,
     },
     {
@@ -68,7 +67,7 @@
       required: true,
       label: 'Highest Level/Units Earned',
       align: 'left',
-      field: 'highest_units',
+      field: (row) => row?.YearLevel || 'None' + '/' + row.NumUnits,
       sortable: true,
     },
     {
@@ -76,9 +75,9 @@
       required: true,
       label: 'Year Graduated',
       align: 'left',
-      // field: (row) =>
-      //   row.DateAttend.includes('-') ? row.DateAttend.split('-')[1].trim() : row.DateAttend,
-      field: 'year_graduated',
+      field: (row) =>
+        row.DateAttend.includes('-') ? row.DateAttend.split('-')[1].trim() : row.DateAttend,
+      // field: 'DateAttend',
       sortable: true,
     },
     {
@@ -86,7 +85,7 @@
       required: true,
       label: 'Scholarship/Academic Honors Received',
       align: 'left',
-      field: 'scholarship',
+      field: (row) => row?.Honors || 'None',
       sortable: true,
     },
   ];

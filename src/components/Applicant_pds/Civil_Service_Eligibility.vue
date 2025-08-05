@@ -1,4 +1,3 @@
-<!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <div class="q-pa-md">
     <q-table
@@ -27,42 +26,42 @@
     {
       name: 'eligibility',
       label: 'Eligibility',
-      field: 'eligibility',
+      field: 'CivilServe',
       sortable: true,
       align: 'left',
     },
     {
       name: 'rating',
       label: 'Rating (If Applicable)',
-      field: 'rating',
+      field: 'Rates',
       sortable: true,
       align: 'left',
     },
     {
       name: 'examDate',
       label: 'Date of Examination',
-      field: 'date_of_examination',
+      field: 'Dates',
       sortable: true,
       align: 'left',
     },
     {
       name: 'examPlace',
       label: 'Place of Examination',
-      field: 'place_of_examination',
+      field: 'Place',
       sortable: true,
       align: 'left',
     },
     {
       name: 'licenseNumber',
       label: 'License Number',
-      field: 'license_number',
+      field: 'LNumber',
       sortable: true,
       align: 'left',
     },
     {
       name: 'validityDate',
       label: 'Date of Validity',
-      field: 'date_of_validity',
+      field: 'LDate',
       sortable: true,
       align: 'left',
     },

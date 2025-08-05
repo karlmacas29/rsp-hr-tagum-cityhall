@@ -532,6 +532,10 @@ export default {
   },
   { immediate: true, deep: true }
 );
+// In RatingForm.vue
+watch(applicants, (newVal) => {
+  console.log('Applicants data:', newVal);
+}, { deep: true });
 
 // Initialize data when form opens - IMPROVED VERSION
 watch(
@@ -565,7 +569,8 @@ const initializeApplicants = () => {
     // Create a deep copy to avoid reference issues
     applicants.value = props.applicants.map(applicant => ({
       ...applicant,
-      // Ensure scores are numbers
+         id: applicant.id, // This is the submission ID
+        nPersonalInfo_id: applicant.nPersonalInfo_id, // Ensure this exists
       educationScore: Number(applicant.educationScore) || 0,
       experienceScore: Number(applicant.experienceScore) || 0,
       trainingScore: Number(applicant.trainingScore) || 0,

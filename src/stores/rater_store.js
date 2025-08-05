@@ -16,7 +16,8 @@ const submitRatings = async (applicantsData, jobId) => {
   error.value = null;
 
   const payload = applicantsData.map(applicant => ({
-    nPersonalInfo_id: applicant.id,
+    id: applicant.id,
+    nPersonalInfo_id: applicant.nPersonalInfo_id, // Changed from applicant.id to applicant.nPersonalInfo_id
     job_batches_rsp_id: jobId,
     education_score: parseFloat(applicant.educationScore) || 0,
     experience_score: parseFloat(applicant.experienceScore) || 0,
@@ -28,21 +29,22 @@ const submitRatings = async (applicantsData, jobId) => {
     ranking: parseInt(applicant.ranking) || 0,
   }));
 
+  console.log('Payload to submit:', payload);
+
   try {
     const response = await raterApi.post('/rating/score', payload);
     console.log('Ratings submitted:', response.data);
 
     if (response.data.success) {
-      return response.data; // ✅ RETURN the response to the caller
+      return response.data;
     } else {
       error.value = response.data.message || 'Something went wrong.';
-      return { success: false, error: error.value }; // ✅ Return error to caller
+      return { success: false, error: error.value };
     }
-
   } catch (err) {
     error.value = err.response?.data?.message || 'An unexpected error occurred. Please try again.';
     console.error('Submit Ratings Error:', err);
-    return { success: false, error: error.value }; // ✅ Catch block returns error too
+    return { success: false, error: error.value };
   } finally {
     loading.value = false;
   }

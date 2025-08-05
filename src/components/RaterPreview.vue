@@ -34,7 +34,7 @@
                   size="xs"
                   :icon="expandedApplicant === applicant.id ? 'expand_less' : 'expand_more'"
                 />
-                <span class="text-caption ellipsis">{{ applicant.name }}</span>
+                <span class="text-caption ellipsis">{{ applicant.name }}{{ applicant.nPersonalInfo_id }}</span>
               </div>
             </td>
 
@@ -297,12 +297,15 @@
         return Math.min(qs + bei, 100).toFixed(1);
       },
     },
+
     watch: {
       // Close expanded panels when applicant list changes due to filtering
       applicants() {
         this.expandedApplicant = null;
+
       },
     },
+
   };
 </script>
 

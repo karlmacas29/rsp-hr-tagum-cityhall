@@ -262,15 +262,12 @@
 
         // Set selected position first
         selectedPosition.value = { ...position };
-
         // Reset modal data immediately and show loading state
         modalCriteria.value = {};
         modalApplicants.value = [];
         fetchingModalData.value = true;
-
         // Clear any previous data from store
         assignedJobStore.clearCriteriaApplicant();
-
         // Show modal immediately with loading state
         showRatingForm.value = true;
 
@@ -308,6 +305,7 @@
           if (result && result.applicants?.length > 0) {
             modalApplicants.value = result.applicants.map((applicant) => ({
               id: applicant.id,
+              nPersonalInfo_id: applicant.nPersonalInfo_id,
               name: `${applicant.firstname} ${applicant.lastname}`,
               firstname: applicant.firstname,
               lastname: applicant.lastname,

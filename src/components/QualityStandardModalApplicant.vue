@@ -15,16 +15,6 @@
         <div class="col">
           <div class="applicant-name">
             {{ applicantData?.name || 'Please wait' }}
-            <span>
-              <q-btn
-                label="VIEW PDS"
-                color="primary"
-                rounded
-                @click="onViewPDS"
-                class="view-pds-btn"
-                v-if="true"
-              />
-            </span>
           </div>
           <div class="applicant-info">
             {{ applicantData?.position || 'Office of the ...' }} (Level:
@@ -36,7 +26,7 @@
           <div class="applicant-info">
             Applied: {{ applicantData?.appliedDate || '#### ##, ####' }}
           </div>
-          <q-badge
+          <!-- <q-badge
             rounded
             class="q-pa-xs status-badge"
             :class="{
@@ -62,7 +52,15 @@
           >
             {{ applicantData?.status || 'NA' }}
             <q-icon v-if="evaluationLocked" name="lock" class="q-ml-xs" />
-          </q-badge>
+          </q-badge> -->
+          <q-btn
+            label="VIEW PDS"
+            color="primary"
+            rounded
+            @click="onViewPDS"
+            class="view-pds-btn"
+            v-if="true"
+          />
         </div>
         <div class="col-auto">
           <q-btn icon="close" flat round dense class="close-btn q-ml-md" @click="onClose" />
@@ -963,8 +961,7 @@
 
   .view-pds-btn {
     font-size: 8px;
-    padding: 2px 8px;
-    margin-left: 8px;
+    padding: 4px 8px;
     height: 20px;
     font-weight: 500;
     letter-spacing: 0.3px;

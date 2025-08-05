@@ -1,4 +1,3 @@
-<!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <div class="q-pa-md">
     <div class="q-mb-lg">
@@ -21,7 +20,7 @@
             >
               <q-badge rounded>{{ index + 1 }}</q-badge>
 
-              {{ skill.skill }}
+              {{ skill.Skills }}
             </div>
           </q-card-section>
         </q-card>
@@ -35,7 +34,7 @@
 
 <script setup>
   const props = defineProps({
-    skill: {
+    skills: {
       type: Array,
       default: () => [],
     },

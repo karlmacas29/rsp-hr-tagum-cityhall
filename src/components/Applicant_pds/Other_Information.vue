@@ -6,17 +6,17 @@
             <div class="text-h6">Personal Background Questionnaire</div>
             <div class="text-subtitle2">View Only</div>
           </q-card-section>
-
+          
           <div class="q-gutter-md q-pa-md">
             <!-- Questions 34 -->
             <q-separator class="q-mb-md" />
-
+            
             <div class="q-mb-md">
-              <div class="text-bold">34.</div> Are you related by consanguinity or affinity to the appointing or recommending authority,
-              to the chief of bureau or office or to the person who has immediate supervision over you in the
+              <div class="text-bold">34.</div> Are you related by consanguinity or affinity to the appointing or recommending authority, 
+              to the chief of bureau or office or to the person who has immediate supervision over you in the 
               Office, Bureau or Department where you will be appointed,
             </div>
-
+            
             <div class="q-pl-md q-mb-md">
               <q-item tag="label">
                 <q-item-section>
@@ -27,7 +27,7 @@
                   <q-radio v-model="formData.relationThirdDegree" val="No" label="No" disable />
                 </q-item-section>
               </q-item>
-
+              
               <q-item tag="label">
                 <q-item-section>
                   <q-item-label><div class="text-bold">b.</div> within the fourth degree (for Local Government Unit - Career Employees)?</q-item-label>
@@ -38,7 +38,7 @@
                 </q-item-section>
               </q-item>
             </div>
-
+            
             <!-- Questions 35 -->
             <q-separator class="q-mb-md" />
             <div class="q-mb-md text-bold">35.</div>
@@ -52,7 +52,7 @@
                   <q-radio v-model="formData.administrativeOffense" val="No" label="No" disable />
                 </q-item-section>
               </q-item>
-
+              
               <q-item tag="label">
                 <q-item-section>
                   <q-item-label><div class="text-bold">b.</div> Have you been criminally charged before any court?</q-item-label>
@@ -97,7 +97,7 @@
                 <q-radio v-model="formData.electionCandidate" val="No" label="No" disable />
               </q-item-section>
             </q-item>
-
+            
             <q-item tag="label" class="q-pl-md">
               <q-item-section>
                 <q-item-label><div class="text-bold">b.</div> Have you resigned from the government service during the three (3)-month period before the last election to promote/actively campaign for a national or local candidate?</q-item-label>
@@ -118,14 +118,14 @@
                 <q-radio v-model="formData.immigrant" val="No" label="No" disable />
               </q-item-section>
             </q-item>
-
+            
             <!-- Question 40 -->
             <q-separator class="q-mb-md" />
-
+            
             <div class="q-mb-md">
                 <div class="text-bold">40.</div> Pursuant to: (a) Indigenous People's Act (RA 8371); (b) Magna Carta for Disabled Persons (RA 7277); and (c) Solo Parents Welfare Act of 2000 (RA 8972), please answer the following items:
             </div>
-
+            
             <div class="q-pl-md q-mb-md">
               <q-item tag="label">
                 <q-item-section>
@@ -136,7 +136,7 @@
                   <q-radio v-model="formData.indigenous" val="No" label="No" disable />
                 </q-item-section>
               </q-item>
-
+              
               <q-item tag="label">
                 <q-item-section>
                   <q-item-label><div class="text-bold">b.</div> Are you a person with disability?</q-item-label>
@@ -146,7 +146,7 @@
                   <q-radio v-model="formData.pwd" val="No" label="No" disable />
                 </q-item-section>
               </q-item>
-
+              
               <q-item tag="label">
                 <q-item-section>
                   <q-item-label><div class="text-bold">c.</div> Are you a solo parent?</q-item-label>
@@ -157,20 +157,20 @@
                 </q-item-section>
               </q-item>
             </div>
-
-
+            
+            
           </div>
         </q-card>
       </div>
     </q-page>
   </template>
-
+  
   <script setup>
   import { ref, onMounted } from 'vue';
   import { useQuasar } from 'quasar';
-
+  
   const $q = useQuasar();
-
+  
   // Form data setup with example data
   const formData = ref({
     relationThirdDegree: 'No',
@@ -186,22 +186,22 @@
     pwd: 'No',
     soloParent: 'No'
   });
-
+  
   // Simulating data fetching from an API
   onMounted(async () => {
     try {
       $q.loading.show({ message: 'Loading application data...' });
-
+      
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 800));
-
+      
       // In a real application, you would fetch data from your API here
       // const response = await fetch('/api/application/12345');
       // const data = await response.json();
       // formData.value = data;
-
+      
       // For demo purposes, we're using the pre-filled example data
-
+      
       $q.loading.hide();
     } catch (error) {
       $q.loading.hide();
@@ -213,23 +213,23 @@
       console.error('Data loading error:', error);
     }
   });
-
+  
   // Print function
-
+  
   </script>
-
+  
   <style>
   /* Print styles */
   @media print {
     .q-footer, .q-header {
       display: none !important;
     }
-
+    
     .q-btn {
       display: none !important;
     }
   }
-
+  
   /* Additional custom styles */
   .q-radio {
     margin-right: 12px;

@@ -614,6 +614,7 @@
   const filter = ref('');
   const qsDataLoad = ref([]);
   const currentStructure = ref(null);
+
   const selectedApplicant = ref({
     id: null,
     level: '',
@@ -816,10 +817,32 @@
     }
   };
 
-  const printPosition = (row) => {
-    reportRow.value = row;
-    showReportModal.value = true;
-  };
+  // const printPosition = (row) => {
+  //   reportRow.value = row;
+  //   showReportModal.value = true;
+  // };
+// In your main component, update the printPosition method:
+const printPosition = async (row) => {
+  try {
+    // Fetch appointment data using ControlNo
+    const appointmentData = await usePlantilla.fetchAppointmentData(row.ControlNo);
+
+    if (appointmentData) {
+      // Set the appointment data and open the modal
+      reportRow.value = {
+        ...row,
+        appointmentData: appointmentData
+      };
+      showReportModal.value = true;
+    } else {
+      toast.error('No appointment data found for this employee');
+    }
+  } catch (error) {
+    console.error('Error fetching appointment data:', error);
+    toast.error('Failed to fetch appointment data');
+  }
+};
+
 
   // Submit job post with proper state management
   const submitJobPost = async () => {
@@ -865,14 +888,6 @@
       const jobCriteria = {
         ItemNo: parseInt(postJobDetails.value.ItemNo),
         PositionID: parseInt(qsCriteria.value.PositionID),
-        // EduPercent: '0',
-        // EliPercent: '0',
-        // TrainPercent: '0',
-        // ExperiencePercent: '0',
-        // EduPercent: '0',
-        // EliPercent: '0',
-        // TrainPercent: '0',
-        // ExperiencePercent: '0',
         Education: qsCriteria.value.Education,
         Experience: qsCriteria.value.Experience,
         Eligibility: qsCriteria.value.Eligibility,

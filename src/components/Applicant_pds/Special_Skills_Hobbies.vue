@@ -3,8 +3,8 @@
     <div class="q-mb-lg">
       <div class="text-h5 text-bold">SPECIAL SKILLS AND HOBBIES</div>
     </div>
-    <div v-if="skills.length > 0" class="row q-col-gutter-md">
-      <div v-for="(skill, index) in props.skills" :key="skill.ID" class="col-12 col-sm-6 col-md-4">
+    <div v-if="skillsData.length > 0" class="row q-col-gutter-md">
+      <div v-for="(skill, index) in skillsData" :key="skill.id" class="col-12 col-sm-6 col-md-4">
         <q-card class="skill-card" flat bordered>
           <q-card-section>
             <div
@@ -19,8 +19,7 @@
               "
             >
               <q-badge rounded>{{ index + 1 }}</q-badge>
-
-              {{ skill.Skills }}
+              {{ skill.skill }}
             </div>
           </q-card-section>
         </q-card>
@@ -33,11 +32,23 @@
 </template>
 
 <script setup>
+  import { computed } from 'vue';
+
   const props = defineProps({
     skills: {
       type: Array,
+      required: false,
       default: () => [],
     },
+  });
+
+  // Transform skills data if needed
+  const skillsData = computed(() => {
+    if (!Array.isArray(props.skills)) {
+      return [];
+    }
+
+    return props.skills;
   });
 </script>
 

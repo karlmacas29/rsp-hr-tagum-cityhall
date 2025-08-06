@@ -941,7 +941,7 @@
     border-radius: 8px;
     display: flex;
     flex-direction: column;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    font-family: Poppins, sans-serif;
     background-color: #ffffff;
   }
 

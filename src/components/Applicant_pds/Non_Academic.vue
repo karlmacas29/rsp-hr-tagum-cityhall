@@ -3,10 +3,10 @@
     <div class="q-mb-lg">
       <div class="text-h5 text-bold">NON-ACADEMIC DISTINCTIONS / RECOGNITION</div>
     </div>
-    <div v-if="distinctions.length > 0" class="row q-col-gutter-md">
+    <div v-if="distinctionsData.length > 0" class="row q-col-gutter-md">
       <div
-        v-for="(distinction, index) in props.distinctions"
-        :key="distinction.ID"
+        v-for="(distinction, index) in distinctionsData"
+        :key="distinction.id"
         class="col-12 col-sm-6 col-md-4"
       >
         <q-card class="distinction-card" flat bordered>
@@ -23,7 +23,7 @@
               "
             >
               <q-badge rounded>{{ index + 1 }}</q-badge>
-              {{ distinction.NonAcademic }}
+              {{ distinction.non_academic || distinction.skill }}
             </div>
           </q-card-section>
         </q-card>
@@ -36,11 +36,27 @@
 </template>
 
 <script setup>
+  import { computed } from 'vue';
+
   const props = defineProps({
     distinctions: {
       type: Array,
+      required: false,
       default: () => [],
     },
+  });
+
+  // Transform and filter distinctions data
+  const distinctionsData = computed(() => {
+    if (!Array.isArray(props.distinctions)) {
+      return [];
+    }
+
+    // Filter only items that have non_academic data or mark them as non-academic distinctions
+    return props.distinctions.filter((item) => {
+      // If there's a specific field to identify non-academic entries, use it
+      return item.non_academic || (item.skill && item.organization);
+    });
   });
 </script>
 

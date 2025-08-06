@@ -438,12 +438,6 @@
     qualificationModalVisible.value = true;
   }
 
-  // Modal event handlers
-  const onViewPDS = () => {
-    toast.info('View PDS functionality to be implemented');
-    // Implement PDS viewing logic here
-  };
-
   // Update the onToggleQualification function
   const onToggleQualification = (status) => {
     // Update the applicant's qualification status locally

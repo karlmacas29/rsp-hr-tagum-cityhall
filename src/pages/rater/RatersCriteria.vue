@@ -349,53 +349,51 @@
         }
       };
 
-
-
       const handleSubmitRatings = async (data) => {
-  console.log('Ratings submitted:', data);
+        console.log('Ratings submitted:', data);
 
-  try {
-    // Submit ratings using the store method
-    const result = await assignedJobStore.submitRatings(
-      data.applicants,
-      data.positionId // This should be the job_batches_rsp_id
-    );
+        try {
+          // Submit ratings using the store method
+          const result = await assignedJobStore.submitRatings(
+            data.applicants,
+            data.positionId, // This should be the job_batches_rsp_id
+          );
 
-    if (result.success) {
-  $q.notify({
-    color: 'positive',
-    message: result.message || 'Ratings submitted successfully!',
-    icon: 'check_circle',
-    position: 'top',
-    timeout: 3000,
-  });
-  showRatingForm.value = false;
-  await assignedJobStore.fetch_assigned_jobs();
-} else {
-  $q.notify({
-    color: 'negative',
-    message: result.error || 'Failed to submit ratings',
-    icon: 'error',
-    position: 'top',
-    timeout: 3000,
-  });
+          if (result.success) {
+            $q.notify({
+              color: 'positive',
+              message: result.message || 'Ratings submitted successfully!',
+              icon: 'check_circle',
+              position: 'top',
+              timeout: 3000,
+            });
+            showRatingForm.value = false;
+            await assignedJobStore.fetch_assigned_jobs();
+          } else {
+            $q.notify({
+              color: 'negative',
+              message: result.error || 'Failed to submit ratings',
+              icon: 'error',
+              position: 'top',
+              timeout: 3000,
+            });
 
-      // If there are specific validation errors, you could show them
-      if (result.errors) {
-        console.error('Validation errors:', result.errors);
-      }
-    }
-  } catch (error) {
-    console.error('Error submitting ratings:', error);
-    $q.notify({
-      color: 'negative',
-      message: 'An unexpected error occurred. Please try again.',
-      icon: 'error',
-      position: 'top',
-      timeout: 3000,
-    });
-  }
-};
+            // If there are specific validation errors, you could show them
+            if (result.errors) {
+              console.error('Validation errors:', result.errors);
+            }
+          }
+        } catch (error) {
+          console.error('Error submitting ratings:', error);
+          $q.notify({
+            color: 'negative',
+            message: 'An unexpected error occurred. Please try again.',
+            icon: 'error',
+            position: 'top',
+            timeout: 3000,
+          });
+        }
+      };
 
       onMounted(async () => {
         await assignedJobStore.fetch_assigned_jobs();

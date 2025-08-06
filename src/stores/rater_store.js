@@ -9,48 +9,47 @@ export const use_rater_store = defineStore('rater', () => {
   const error = ref(null);
   const criteria_applicant = ref({
     criteria: [],
-    applicants: []
+    applicants: [],
   });
-const submitRatings = async (applicantsData, jobId) => {
-  loading.value = true;
-  error.value = null;
+  const submitRatings = async (applicantsData, jobId) => {
+    loading.value = true;
+    error.value = null;
 
-  const payload = applicantsData.map(applicant => ({
-    id: applicant.id,
-    nPersonalInfo_id: applicant.nPersonalInfo_id, // Changed from applicant.id to applicant.nPersonalInfo_id
-    job_batches_rsp_id: jobId,
-    education_score: parseFloat(applicant.educationScore) || 0,
-    experience_score: parseFloat(applicant.experienceScore) || 0,
-    training_score: parseFloat(applicant.trainingScore) || 0,
-    performance_score: parseFloat(applicant.performance) || 0,
-    behavioral_score: parseFloat(applicant.bei) || 0,
-    total_qs: parseFloat(applicant.totalQS) || 0,
-    grand_total: parseFloat(applicant.grandTotal) || 0,
-    ranking: parseInt(applicant.ranking) || 0,
-  }));
+    const payload = applicantsData.map((applicant) => ({
+      id: applicant.id,
+      nPersonalInfo_id: applicant.nPersonalInfo_id, // Changed from applicant.id to applicant.nPersonalInfo_id
+      job_batches_rsp_id: jobId,
+      education_score: parseFloat(applicant.educationScore) || 0,
+      experience_score: parseFloat(applicant.experienceScore) || 0,
+      training_score: parseFloat(applicant.trainingScore) || 0,
+      performance_score: parseFloat(applicant.performance) || 0,
+      behavioral_score: parseFloat(applicant.bei) || 0,
+      total_qs: parseFloat(applicant.totalQS) || 0,
+      grand_total: parseFloat(applicant.grandTotal) || 0,
+      ranking: parseInt(applicant.ranking) || 0,
+    }));
 
-  console.log('Payload to submit:', payload);
+    console.log('Payload to submit:', payload);
 
-  try {
-    const response = await raterApi.post('/rating/score', payload);
-    console.log('Ratings submitted:', response.data);
+    try {
+      const response = await raterApi.post('/rating/score', payload);
+      console.log('Ratings submitted:', response.data);
 
-    if (response.data.success) {
-      return response.data;
-    } else {
-      error.value = response.data.message || 'Something went wrong.';
+      if (response.data.success) {
+        return response.data;
+      } else {
+        error.value = response.data.message || 'Something went wrong.';
+        return { success: false, error: error.value };
+      }
+    } catch (err) {
+      error.value =
+        err.response?.data?.message || 'An unexpected error occurred. Please try again.';
+      console.error('Submit Ratings Error:', err);
       return { success: false, error: error.value };
+    } finally {
+      loading.value = false;
     }
-  } catch (err) {
-    error.value = err.response?.data?.message || 'An unexpected error occurred. Please try again.';
-    console.error('Submit Ratings Error:', err);
-    return { success: false, error: error.value };
-  } finally {
-    loading.value = false;
-  }
-};
-
-
+  };
 
   const fetch_criteria_applicant = async (id) => {
     loading.value = true;
@@ -59,13 +58,13 @@ const submitRatings = async (applicantsData, jobId) => {
     // CRITICAL FIX: Reset data immediately when starting new request
     criteria_applicant.value = {
       criteria: [],
-      applicants: []
+      applicants: [],
     };
 
     try {
       const token = document.cookie
         .split('; ')
-        .find(row => row.startsWith('rater_token='))
+        .find((row) => row.startsWith('rater_token='))
         ?.split('=')[1];
 
       if (!token) throw new Error('No authentication token found');
@@ -73,7 +72,7 @@ const submitRatings = async (applicantsData, jobId) => {
       console.log(`Fetching data for job ID: ${id}`);
 
       const { data } = await raterApi.get(`/rater/criteria/applicant/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       console.log('API Response for job', id, ':', data);
@@ -82,11 +81,14 @@ const submitRatings = async (applicantsData, jobId) => {
         // Store the data directly as received from API
         criteria_applicant.value = {
           criteria: data.criteria || [],
-          applicants: data.applicants || []
+          applicants: data.applicants || [],
         };
 
         console.log(`Stored criteria_applicant for job ${id}:`, criteria_applicant.value);
-        console.log(`Number of applicants for job ${id}:`, criteria_applicant.value.applicants.length);
+        console.log(
+          `Number of applicants for job ${id}:`,
+          criteria_applicant.value.applicants.length,
+        );
       } else {
         console.warn(`API returned status false for job ${id}`);
         criteria_applicant.value = { criteria: [], applicants: [] };
@@ -107,7 +109,7 @@ const submitRatings = async (applicantsData, jobId) => {
   const clearCriteriaApplicant = () => {
     criteria_applicant.value = {
       criteria: [],
-      applicants: []
+      applicants: [],
     };
   };
 
@@ -117,17 +119,17 @@ const submitRatings = async (applicantsData, jobId) => {
     try {
       const token = document.cookie
         .split('; ')
-        .find(row => row.startsWith('rater_token='))
+        .find((row) => row.startsWith('rater_token='))
         ?.split('=')[1];
 
       if (!token) throw new Error('No authentication token found');
 
       const { data } = await raterApi.get('/rater/assigned-job-batches', {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (data.status && data.assigned_jobs?.length) {
-        assignedJobs.value = data.assigned_jobs.map(job => ({
+        assignedJobs.value = data.assigned_jobs.map((job) => ({
           id: job.id,
           position: job.Position,
           office: job.Office,
@@ -152,6 +154,6 @@ const submitRatings = async (applicantsData, jobId) => {
     criteria_applicant,
     fetch_criteria_applicant,
     clearCriteriaApplicant,
-    submitRatings
+    submitRatings,
   };
 });

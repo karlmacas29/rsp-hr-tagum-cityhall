@@ -20,9 +20,9 @@
                 <q-item
                   v-for="tab in tabs"
                   :key="tab.name"
-                  :clickable="!xPDS.loading"
+                  :clickable="!jobStore.loading"
                   :active="currentTab === tab.name"
-                  @click="!xPDS.loading && (currentTab = tab.name)"
+                  @click="!jobStore.loading && (currentTab = tab.name)"
                   active-class="active-tab"
                   class="tab-item q-py-sm"
                   style="border-radius: 5px"
@@ -43,41 +43,50 @@
           <q-card class="col" style="overflow: hidden">
             <q-scroll-area style="height: 100%">
               <div
-                v-if="xPDS.loading"
+                v-if="jobStore.loading"
                 style="height: 70vh"
                 class="column items-center justify-center"
               >
                 <q-spinner-dots size="40px" color="primary" />
-                <div class="q-mt-sm text-grey">Load PDS...</div>
+                <div class="q-mt-sm text-grey">Loading PDS...</div>
+              </div>
+              <div
+                v-else-if="jobStore.error"
+                style="height: 70vh"
+                class="column items-center justify-center"
+              >
+                <q-icon name="error" color="negative" size="40px" />
+                <div class="q-mt-sm text-negative">Failed to load PDS data.</div>
+                <q-btn color="primary" class="q-mt-md" label="Retry" @click="fetchApplicantData" />
               </div>
               <div v-else>
                 <!-- Personal Information -->
                 <div v-if="currentTab === 'personal'" class="q-pa-md">
-                  <Personal_Information :personal="xPersonal" />
+                  <Personal_Information :personal="applicantData" />
                 </div>
                 <div v-else-if="currentTab === 'family'" class="q-pa-md">
-                  <Family_Background :family="xPersonal" />
+                  <Family_Background :family="applicantData" />
                 </div>
                 <div v-else-if="currentTab === 'education'" class="q-pa-md">
-                  <Educational_Background :educ="xEdu" />
+                  <Educational_Background :educ="applicantData?.education || []" />
                 </div>
                 <div v-else-if="currentTab === 'civilService'" class="q-pa-md">
-                  <Civil_Service_Eligibility :eligibility="xEligibility" />
+                  <Civil_Service_Eligibility :eligibility="applicantData?.eligibity || []" />
                 </div>
                 <div v-else-if="currentTab === 'work'" class="q-pa-md">
-                  <Work_Experience :experience="xExperience" />
+                  <Work_Experience :experience="applicantData?.work_experience || []" />
                 </div>
                 <div v-else-if="currentTab === 'voluntary'" class="q-pa-md">
-                  <Voluntary_Work :voluntary="xVoluntary" />
+                  <Voluntary_Work :voluntary="applicantData?.voluntary_work || []" />
                 </div>
                 <div v-else-if="currentTab === 'training'" class="q-pa-md">
-                  <Training_Interventions :ldData="xTraining" />
+                  <Training_Interventions :ldData="applicantData?.training || []" />
                 </div>
                 <div v-else-if="currentTab === 'skills'" class="q-pa-md">
-                  <Special_Skills_Hobbies :skills="xSkills" />
+                  <Special_Skills_Hobbies :skills="applicantData?.skills || []" />
                 </div>
                 <div v-else-if="currentTab === 'nonAcademic'" class="q-pa-md">
-                  <Non_Academic :distinctions="xAcademic" />
+                  <Non_Academic :distinctions="applicantData?.academic || []" />
                 </div>
                 <div v-else-if="currentTab === 'membership'" class="q-pa-md">
                   <Membership_Association></Membership_Association>
@@ -86,7 +95,7 @@
                   <Other_Information></Other_Information>
                 </div>
                 <div v-else-if="currentTab === 'references'" class="q-pa-md">
-                  <References :references="xReferences" />
+                  <References :references="applicantData?.references || []" />
                 </div>
                 <!-- Placeholder for other tabs -->
                 <div v-else class="q-pa-md">
@@ -110,7 +119,10 @@
 </template>
 
 <script setup>
-  import { onMounted, ref, watch } from 'vue';
+  import { onMounted, ref, watch, computed } from 'vue';
+  import { useQuasar } from 'quasar';
+  import { useJobPostStore } from 'stores/jobPostStore.js';
+
   import Personal_Information from './Applicant_pds/Personal_Information.vue';
   import Family_Background from './Applicant_pds/Family_Background.vue';
   import Educational_Background from './Applicant_pds/Educational_Background.vue';
@@ -123,45 +135,22 @@
   import Membership_Association from './Applicant_pds/Membership_Association.vue';
   import Other_Information from './Applicant_pds/Other_Information.vue';
   import References from './Applicant_pds/References_User.vue';
-  import { usexPDS } from 'stores/xUserPDS';
 
-  const xPDS = usexPDS();
-
-  const xPersonal = ref({});
-  const xEdu = ref({});
-  const xEligibility = ref({});
-  const xExperience = ref({});
-  const xVoluntary = ref({});
-  const xTraining = ref({});
-  const xSkills = ref({});
-  const xAcademic = ref({});
-  const xReferences = ref({});
+  const $q = useQuasar();
+  const jobStore = useJobPostStore();
 
   const props = defineProps({
     modelValue: Boolean,
     applicant: {
       type: Object,
       default: () => ({
+        nPersonalInfo_id: '',
+        controlno: null,
+        id: null,
         name: '',
         photo: '',
         position: '',
         status: 'Pending',
-        personalInfo: {
-          dateOfBirth: '',
-          placeOfBirth: '',
-          sex: '',
-          civilStatus: '',
-          genderPreference: '',
-          height: '',
-          weight: '',
-          bloodType: '',
-          telephone: '',
-          mobile: '',
-        },
-        education: [],
-        experience: [],
-        training: [],
-        eligibility: [],
       }),
     },
   });
@@ -170,6 +159,15 @@
 
   const localShowModal = ref(props.modelValue);
   const currentTab = ref('personal');
+
+  // Computed property to access applicant data from store
+  const applicantData = computed(() => {
+    if (jobStore.applicant && jobStore.applicant.length > 0) {
+      return jobStore.applicant[0];
+    }
+    return {};
+  });
+
   const tabs = ref([
     { name: 'personal', label: 'Personal Information' },
     { name: 'family', label: 'Family Background' },
@@ -199,40 +197,66 @@
     },
   );
 
+  const fetchApplicantData = async () => {
+    // Use the applicant ID from props
+    const id = props.applicant.controlno || props.applicants.id || props.applicant.nPersonalInfo_id;
+
+    if (!id) {
+      $q.notify({
+        color: 'negative',
+        message: 'No valid ID provided for applicant',
+        icon: 'error',
+      });
+      return;
+    }
+
+    // Call the store's fetch_applicant method
+    await jobStore.fetch_applicant(id);
+  };
+
   const closeModal = () => {
     emit('update:modelValue', false);
     emit('close');
   };
 
   const isTabCompleted = (tabName) => {
-    const completedTabs = [
-      'personal',
-      'family',
-      'education',
-      'civilService',
-      'work',
-      'voluntary',
-      'training',
-      'skills',
-      'nonAcademic',
-      'membership',
-      'other',
-      'references',
-    ];
-    return completedTabs.includes(tabName);
+    // Logic to determine if a tab is completed based on applicant data
+    if (!applicantData.value) return false;
+
+    switch (tabName) {
+      case 'personal':
+        return !!applicantData.value.firstname;
+      case 'family':
+        return !!(applicantData.value.family && applicantData.value.family.length > 0);
+      case 'education':
+        return applicantData.value.education && applicantData.value.education.length > 0;
+      case 'civilService':
+        return applicantData.value.eligibity && applicantData.value.eligibity.length > 0;
+      case 'work':
+        return (
+          applicantData.value.work_experience && applicantData.value.work_experience.length > 0
+        );
+      case 'voluntary':
+        return true; // Optional section
+      case 'training':
+        return applicantData.value.training && applicantData.value.training.length > 0;
+      case 'skills':
+        return applicantData.value.skills && applicantData.value.skills.length > 0;
+      case 'nonAcademic':
+        return true; // Optional section
+      case 'membership':
+        return true; // Optional section
+      case 'other':
+        return true; // Optional section
+      case 'references':
+        return true; // Optional section
+      default:
+        return false;
+    }
   };
 
-  onMounted(async () => {
-    await xPDS.fetchxPDS(props.applicant.controlno);
-    xPersonal.value = xPDS.xPDS.User[0];
-    xEdu.value = xPDS.xPDS.Education;
-    xEligibility.value = xPDS.xPDS.Eligibility;
-    xExperience.value = xPDS.xPDS.Experience;
-    xVoluntary.value = xPDS.xPDS.Voluntary;
-    xTraining.value = xPDS.xPDS.Training;
-    xSkills.value = xPDS.xPDS.Skills;
-    xAcademic.value = xPDS.xPDS.Academic;
-    xReferences.value = xPDS.xPDS.Reference;
+  onMounted(() => {
+    fetchApplicantData();
   });
 </script>
 

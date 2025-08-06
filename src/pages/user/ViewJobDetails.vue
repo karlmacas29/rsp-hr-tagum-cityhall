@@ -342,7 +342,15 @@
         </div>
       </q-card>
     </q-dialog>
-
+<!-- Loading Overlay -->
+<q-dialog v-model="uploadStore.isSubmitting" persistent>
+  <q-card class="q-pa-xl flex flex-center" style="min-width:200px;">
+    <q-spinner size="50px" color="primary" />
+    <div class="text-center q-mt-md text-h6">
+      Uploading your application...
+    </div>
+  </q-card>
+</q-dialog>
     <!-- Success Dialog -->
     <q-dialog v-model="successDialog" persistent>
       <q-card class="confirmation-dialog">
@@ -404,7 +412,7 @@
 const uploadStore = useUser_upload();
 
   const jobPostStore = useJobPostStore();
-  
+
 
   const route = useRoute();
   const P_ID = route.params.PositionID;

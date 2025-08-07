@@ -394,7 +394,7 @@
           this.expandedApplicant = null;
           console.log('Applicants data changed:', newApplicants);
         },
-        deep: true, 
+        deep: true,
         immediate: true,
       },
     },

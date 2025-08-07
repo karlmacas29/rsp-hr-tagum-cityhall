@@ -121,6 +121,17 @@
             <div class="text-center text-body2">{{ props.row.unqualified }}</div>
           </q-td>
         </template>
+        <template v-slot:body-cell-status="props">
+          <q-td :props="props" class="count-column">
+            <q-badge
+              rounded
+              :color="getStatusColor(props.row.status)"
+              class="status-badge q-px-md q-py-xs"
+            >
+              {{ props.row.status || 'Not Started' }}
+            </q-badge>
+          </q-td>
+        </template>
         <template v-slot:body-cell-action="props">
           <q-td :props="props" class="action-column q-gutter-x-xs">
             <q-btn
@@ -614,7 +625,7 @@
       label: 'Applicant',
       field: 'total_applicants',
       sortable: true,
-      style: 'width: 9%',
+      style: 'width: 8%',
     },
     {
       name: 'pending_count',
@@ -622,7 +633,7 @@
       label: 'Pending',
       field: 'pending_count',
       sortable: true,
-      style: 'width: 9%',
+      style: 'width: 8%',
     },
     {
       name: 'qualified_count',
@@ -630,7 +641,7 @@
       label: 'Qualified',
       field: 'qualified_count',
       sortable: true,
-      style: 'width: 9%',
+      style: 'width: 8%',
     },
     {
       name: 'unqualified_count',
@@ -638,7 +649,15 @@
       label: 'Unqualified',
       field: 'unqualified_count',
       sortable: true,
-      style: 'width: 10%',
+      style: 'width: 8%',
+    },
+    {
+      name: 'status',
+      label: 'Status',
+      field: 'status',
+      align: 'center',
+      sortable: true,
+      style: 'width": 5%',
     },
     {
       name: 'action',
@@ -677,8 +696,10 @@
         return (
           (job.Office && job.Office.toLowerCase().includes(searchTerm)) ||
           (job.Position && job.Position.toLowerCase().includes(searchTerm)) ||
-          (job.post_date && formatDate(job.post_date, 'MMM D, YYYY').toLowerCase().includes(searchTerm)) ||
-          (job.total_applicants !== undefined && job.total_applicants.toString().includes(searchTerm)) ||
+          (job.post_date &&
+            formatDate(job.post_date, 'MMM D, YYYY').toLowerCase().includes(searchTerm)) ||
+          (job.total_applicants !== undefined &&
+            job.total_applicants.toString().includes(searchTerm)) ||
           (job.pending !== undefined && job.pending.toString().includes(searchTerm)) ||
           (job.qualified !== undefined && job.qualified.toString().includes(searchTerm)) ||
           (job.unqualified !== undefined && job.unqualified.toString().includes(searchTerm))
@@ -1056,12 +1077,16 @@
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Qualified':
-        return 'positive';
-      case 'Pending':
-        return 'warning';
-      case 'Unqualified':
-        return 'negative';
+      case 'not started':
+        return 'grey';
+      case 'pending':
+        return 'orange';
+      case 'assessed':
+        return 'blue';
+      case 'rated':
+        return 'purple';
+      case 'complete':
+        return 'green';
       default:
         return 'grey';
     }
@@ -1155,9 +1180,11 @@
 
   /* Status badges */
   .status-badge {
-    font-size: 0.85rem;
-    padding: 3px 8px;
-    border-radius: 4px;
+    font-size: 0.95rem !important;
+    padding: 4px 10px !important;
+    border-radius: 16px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.5px;
   }
 
   /* Date picker improvements */

@@ -136,10 +136,17 @@
         <q-spinner size="32px" color="primary" />
       </q-inner-loading>
       <q-card-section v-if="!jobPostStore.loading" class="q-pa-md">
-        <div class="row items-center q-mb-sm">
+        <div class="row items-center justify-between q-mb-sm">
           <div class="text-h6 text-primary">
             Applicants for
             <span class="text-weight-bold">{{ selectedJob?.Position || 'Test' }}</span>
+          </div>
+          <!-- New assessment status badge -->
+          <div class="assessment-status">
+            <q-badge class="q-pa-xs">
+              <q-icon name="assessment" class="q-mr-xs" />
+              Assessed: {{ assessedCount }}/{{ totalApplicants }} applicants
+            </q-badge>
           </div>
         </div>
         <q-table
@@ -148,7 +155,6 @@
           row-key="id"
           flat
           bordered
-          hide-pagination
           class="applicants-table"
           dense
           v-if="applicantColumns.length"
@@ -232,34 +238,6 @@
     </q-dialog>
 
     <!-- Qualification Modal -->
-    <!-- <QualificationModal
-      v-if="qualificationModalVisible"
-      :show="qualificationModalVisible"
-      :applicant-data="selectedApplicantData"
-      :position-requirements="selectedCriteria"
-      :is-submitted="false"
-      @update:show="qualificationModalVisible = $event"
-      @view-pds="onViewPDS"
-      @toggle-qualification="onToggleQualification"
-      @submit="onSubmitEvaluation"
-      @close="onCloseQualificationModal"
-    /> -->
-
-    <!-- Qualification Modal -->
-    <!-- <QualificationModal
-  v-if="qualificationModalVisible"
-  :show="qualificationModalVisible"
-  :applicant-data="selectedApplicantData"
-  :education="selectedApplicantData.education"
-  :position-requirements="selectedCriteria"
-  :is-submitted="false"
-  @update:show="qualificationModalVisible = $event"
-  @view-pds="onViewPDS"
-  @toggle-qualification="onToggleQualification"
-  @submit="submitEvaluation"
-  @close="onCloseQualificationModal"
-/> -->
-    <!-- Qualification Modal -->
     <QualificationModal
       v-if="qualificationModalVisible"
       :show="qualificationModalVisible"
@@ -297,6 +275,17 @@
   // Modal state
   const qualificationModalVisible = ref(false);
   const selectedApplicantData = ref({});
+
+  // Computed properties for applicant assessment statistics
+  const totalApplicants = computed(() => {
+    return formattedApplicants.value.length;
+  });
+
+  const assessedCount = computed(() => {
+    return formattedApplicants.value.filter(
+      (applicant) => applicant.status === 'Qualified' || applicant.status === 'Unqualified',
+    ).length;
+  });
 
   const goBack = () => {
     router.push('/job-post');
@@ -485,6 +474,13 @@
     selectedApplicantData.value = {};
   };
 
+  // Define onViewPDS function if it's needed (referenced but not defined in the original code)
+  const onViewPDS = () => {
+    // Implementation would go here if needed
+    console.log('View PDS requested for:', selectedApplicantData.value.name);
+    // You might want to implement this function to view Personal Data Sheet
+  };
+
   onMounted(async () => {
     await jobPostStore.fetchJobPostByPositionAndItemNo(P_ID, I_No).then((job) => {
       selectedJob.value = job;
@@ -531,7 +527,6 @@
     color: #6626a6;
   }
 
-  /* Make font a little smaller for a modern, compact look */
   .chip-label {
     font-size: 1rem;
     font-weight: 400;
@@ -541,10 +536,15 @@
     font-weight: 700;
   }
 
-  /* Adjust icon size and spacing for compact appearance */
   .q-chip__icon,
   .q-icon {
     font-size: 1.15em;
     margin-right: 4px;
+  }
+
+  .assessment-status .q-badge {
+    font-size: 0.9rem;
+    padding: 8px 12px;
+    border-radius: 4px;
   }
 </style>

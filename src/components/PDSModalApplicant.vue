@@ -95,7 +95,7 @@
                   <Other_Information></Other_Information>
                 </div>
                 <div v-else-if="currentTab === 'references'" class="q-pa-md">
-                  <References :references="applicantData?.references || []" />
+                  <References :references="applicantData?.reference || []" />
                 </div>
                 <!-- Placeholder for other tabs -->
                 <div v-else class="q-pa-md">

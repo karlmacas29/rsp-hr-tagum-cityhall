@@ -27,6 +27,7 @@ export const use_rater_store = defineStore('rater', () => {
       total_qs: parseFloat(applicant.totalQS) || 0,
       grand_total: parseFloat(applicant.grandTotal) || 0,
       ranking: parseInt(applicant.ranking) || 0,
+      // status:,
     }));
 
     console.log('Payload to submit:', payload);
@@ -133,7 +134,7 @@ export const use_rater_store = defineStore('rater', () => {
           id: job.id,
           position: job.Position,
           office: job.Office,
-          status: 'Not Started',
+          status: job.status,
         }));
       } else {
         assignedJobs.value = [];

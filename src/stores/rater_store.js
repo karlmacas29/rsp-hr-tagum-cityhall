@@ -17,7 +17,7 @@ export const use_rater_store = defineStore('rater', () => {
 
     const payload = applicantsData.map((applicant) => ({
       id: applicant.id,
-      nPersonalInfo_id: applicant.nPersonalInfo_id, // Changed from applicant.id to applicant.nPersonalInfo_id
+      nPersonalInfo_id: applicant.nPersonalInfo_id,
       job_batches_rsp_id: jobId,
       education_score: parseFloat(applicant.educationScore) || 0,
       experience_score: parseFloat(applicant.experienceScore) || 0,

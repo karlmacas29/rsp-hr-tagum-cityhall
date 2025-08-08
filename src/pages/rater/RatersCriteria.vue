@@ -1,465 +1,385 @@
 <template>
-  <q-page>
-    <div class="positions-container">
-      <div class="q-pa-md">
-        <h6 class="q-my-md text-weight-bold">Positions to Rate</h6>
+  <div class="positions-table-container q-pa-md">
+    <h6 class="q-my-md text-weight-bold">Positions to Rate</h6>
 
-        <!-- Search and filter -->
-        <div class="row q-col-gutter-md q-mb-md">
-          <div class="col-6">
-            <q-input
-              v-model="search"
-              outlined
-              dense
-              placeholder="Search positions..."
-              clearable
-              class="filter-component"
-            >
-              <template v-slot:append>
-                <q-icon name="search" />
-              </template>
-            </q-input>
-          </div>
-          <div class="col-3">
-            <q-select
-              v-model="filterByOffice"
-              :options="officeOptions"
-              outlined
-              dense
-              label="Filter by Office"
-              clearable
-              emit-value
-              map-options
-              class="filter-component"
-            />
-          </div>
-          <div class="col-3">
-            <q-select
-              v-model="statusFilter"
-              :options="statusOptions"
-              outlined
-              dense
-              label="Status"
-              clearable
-              emit-value
-              map-options
-              class="filter-component"
-            />
-          </div>
-        </div>
+    <!-- Search and filter -->
+    <div class="row q-col-gutter-md q-mb-md">
+      <!-- Search input -->
+      <div class="col-12 col-md-6">
+        <q-input v-model="search" outlined dense placeholder="Search positions..." clearable>
+          <template v-slot:append>
+            <q-icon name="search" />
+          </template>
+        </q-input>
+      </div>
 
-        <!-- Positions table -->
-        <div class="table-container">
-          <q-table
-            :rows="filteredPositions"
-            :columns="columns"
-            :pagination="pagination"
-            :loading="loading"
-            binary-state-sort
-            flat
-            bordered
-            class="consistent-font full-width"
-            wrap-cells
-          >
-            <!-- Custom header slot -->
-            <template v-slot:header="props">
-              <q-tr :props="props">
-                <q-th
-                  v-for="col in props.cols"
-                  :key="col.name"
-                  :props="props"
-                  :class="
-                    col.name === 'status'
-                      ? 'status-column'
-                      : col.name === 'actions'
-                        ? 'action-column'
-                        : ''
-                  "
-                >
-                  {{ col.label }}
-                </q-th>
-                <q-th class="action-column">Actions</q-th>
-              </q-tr>
-            </template>
+      <!-- Office filter -->
+      <div class="col-12 col-md-3">
+        <q-select
+          v-model="officeFilter"
+          :options="officeOptions"
+          outlined
+          dense
+          label="Filter by Office"
+          clearable
+          emit-value
+          map-options
+        />
+      </div>
 
-            <!-- Custom body slot -->
-            <template v-slot:body="props">
-              <q-tr
-                :props="props"
-                class="cursor-pointer hover-row"
-                @click="openRatingForm(props.row)"
-              >
-                <q-td
-                  v-for="col in props.cols"
-                  :key="col.name"
-                  :props="props"
-                  :class="
-                    col.name === 'status'
-                      ? 'status-column'
-                      : col.name === 'actions'
-                        ? 'action-column'
-                        : ''
-                  "
-                >
-                  <template v-if="col.name === 'status'">
-                    <q-badge :color="getStatusColor(props.row.status)" class="status-badge">
-                      {{ props.row.status || 'Not Started' }}
-                    </q-badge>
-                  </template>
-                  <template v-else>
-                    <div class="cell-content">{{ col.value }}</div>
-                  </template>
-                </q-td>
-                <q-td class="action-column">
-                  <q-btn
-                    flat
-                    round
-                    color="primary"
-                    icon="edit"
-                    @click.stop="openRatingForm(props.row)"
-                  />
-                </q-td>
-              </q-tr>
-            </template>
-
-            <!-- No data slot -->
-            <template v-slot:no-data>
-              <div class="full-width row flex-center q-pa-lg">
-                <q-icon name="assignment" size="3em" color="grey-5" />
-                <span class="q-ml-sm">No positions found</span>
-              </div>
-            </template>
-          </q-table>
-        </div>
+      <!-- Status filter -->
+      <div class="col-12 col-md-3">
+        <q-select
+          v-model="statusFilter"
+          :options="statusOptions"
+          outlined
+          dense
+          label="Status"
+          clearable
+          emit-value
+          map-options
+        />
       </div>
     </div>
 
-    <!-- Rating Form Component -->
+    <!-- Positions table -->
+    <q-table
+      :rows="filteredPositions"
+      :columns="columns"
+      :pagination="pagination"
+      :loading="loading"
+      binary-state-sort
+      flat
+      bordered
+      wrap-cells
+      class="full-width"
+    >
+      <!-- Status column formatter -->
+      <template v-slot:body-cell-status="props">
+        <q-td :props="props">
+          <q-badge :color="getStatusColor(props.value)" class="status-badge">
+            {{ formatStatus(props.value) }}
+          </q-badge>
+        </q-td>
+      </template>
+
+      <!-- Actions column -->
+      <template v-slot:body-cell-actions="props">
+        <q-td :props="props" class="text-center">
+          <div class="row justify-center q-gutter-xs">
+            <q-btn
+              dense
+              flat
+              round
+              color="primary"
+              icon="rate_review"
+              size="md"
+              class="action-btn"
+              @click="openRatingModal(props.row)"
+            >
+              <q-tooltip>Rate</q-tooltip>
+            </q-btn>
+
+            <q-btn dense flat round color="secondary" icon="print" size="md" class="action-btn">
+              <q-tooltip>Print</q-tooltip>
+            </q-btn>
+
+            <q-btn dense flat round color="info" icon="visibility" size="md" class="action-btn">
+              <q-tooltip>View</q-tooltip>
+            </q-btn>
+          </div>
+        </q-td>
+      </template>
+
+      <!-- No data message -->
+      <template v-slot:no-data>
+        <div class="full-width row flex-center q-pa-lg">
+          <q-icon name="assignment" size="3em" color="grey-5" />
+          <span class="q-ml-sm">No positions found</span>
+        </div>
+      </template>
+    </q-table>
+
+    <!-- Rating Modal -->
     <RatingForm
-      v-model="showRatingForm"
+      v-model="showRatingModal"
       :position="selectedPosition"
-      :criteria="modalCriteria"
-      :applicants="modalApplicants"
-      :loading="fetchingModalData"
-      @submit-ratings="handleSubmitRatings"
+      :criteria="positionCriteria"
+      :applicants="positionApplicants"
+      :loading="loadingModalData"
+      @submit-ratings="handleRatingsSubmit"
     />
-  </q-page>
+  </div>
 </template>
 
 <script>
-  import { ref, computed, onMounted, nextTick } from 'vue';
-  import { useQuasar } from 'quasar';
-  import RatingForm from 'src/components/RatingForm.vue';
-  // import { use_rater_store } from 'stores/assignedJobStore.';
+  import { ref, computed, onMounted } from 'vue';
   import { use_rater_store } from 'stores/rater_store';
   import { storeToRefs } from 'pinia';
+  import { useQuasar } from 'quasar';
+  import RatingForm from 'components/RatingForm.vue';
 
   export default {
-    name: 'PositionsList',
+    name: 'PositionsTable',
     components: {
       RatingForm,
     },
     setup() {
       const $q = useQuasar();
-      const assignedJobStore = use_rater_store();
-      const { assignedJobs, loading, criteria_applicant } = storeToRefs(assignedJobStore);
 
+      // Store
+      const raterStore = use_rater_store();
+      const { assignedJobs, loading } = storeToRefs(raterStore);
+
+      // Filters
       const search = ref('');
-      const filterByOffice = ref(null);
+      const officeFilter = ref(null);
       const statusFilter = ref(null);
-      const showRatingForm = ref(false);
-      const selectedPosition = ref({});
-      const modalCriteria = ref({});
-      const modalApplicants = ref([]);
-      const fetchingModalData = ref(false);
 
+      // Pagination
       const pagination = ref({
         rowsPerPage: 10,
       });
 
+      // Rating modal state
+      const showRatingModal = ref(false);
+      const selectedPosition = ref({});
+      const positionCriteria = ref({});
+      const positionApplicants = ref([]);
+      const loadingModalData = ref(false);
+
+      // Table columns - use correct field accessors matching data structure
       const columns = [
         {
-          name: 'Office',
+          name: 'office',
           label: 'Office',
           field: (row) => row.office || 'N/A',
           align: 'left',
           sortable: true,
+          style: 'width: 40%',
         },
         {
-          name: 'Position',
+          name: 'position',
           label: 'Position',
           field: (row) => row.position || 'N/A',
           align: 'left',
           sortable: true,
+          style: 'width: 30%',
         },
         {
           name: 'status',
           label: 'Status',
           field: 'status',
-          sortable: true,
           align: 'center',
+          sortable: true,
+          style: 'width: 10%',
+        },
+        {
+          name: 'actions',
+          label: 'Actions',
+          field: 'actions',
+          align: 'center',
+          sortable: false,
+          style: 'width: 20%',
         },
       ];
 
-      // Status color mapping
+      // Office options computed from available data
+      const officeOptions = computed(() => {
+        if (!Array.isArray(assignedJobs.value)) return [];
+
+        const offices = [...new Set(assignedJobs.value.map((job) => job.office).filter(Boolean))];
+
+        return offices.map((office) => ({ label: office, value: office }));
+      });
+
+      // Status options computed from available data
+      const statusOptions = computed(() => {
+        if (!Array.isArray(assignedJobs.value)) return [];
+
+        // Extract unique statuses from data
+        const statuses = [...new Set(assignedJobs.value.map((job) => job.status).filter(Boolean))];
+
+        // Add "Not Started" for null/empty values if needed
+        if (assignedJobs.value.some((job) => !job.status)) {
+          statuses.push('not_started');
+        }
+
+        // Map to option objects
+        return statuses.map((status) => ({
+          label: formatStatus(status),
+          value: status,
+        }));
+      });
+
+      // Filtered positions based on search and filters
+      const filteredPositions = computed(() => {
+        if (!Array.isArray(assignedJobs.value)) return [];
+
+        return assignedJobs.value.filter((job) => {
+          // Search filter
+          const searchTerm = search.value.toLowerCase();
+          const matchesSearch =
+            !searchTerm ||
+            (job.position && job.position.toLowerCase().includes(searchTerm)) ||
+            (job.office && job.office.toLowerCase().includes(searchTerm));
+
+          // Office filter
+          const matchesOffice = !officeFilter.value || job.office === officeFilter.value;
+
+          // Status filter
+          const matchesStatus = !statusFilter.value || job.status === statusFilter.value;
+
+          return matchesSearch && matchesOffice && matchesStatus;
+        });
+      });
+
+      // Status helpers
       const getStatusColor = (status) => {
         switch (status) {
-          case 'Not Started':
-            return 'grey';
-          case 'In Progress':
+          case 'assessed':
+            return 'blue';
+          case 'pending':
             return 'orange';
-          case 'Completed':
+          case 'completed':
             return 'green';
-          case 'Overdue':
-            return 'red';
+          case 'rated':
+            return 'purple';
           default:
             return 'grey';
         }
       };
 
-      // Computed values for filters
-      const officeOptions = computed(() => {
-        if (!Array.isArray(assignedJobs.value)) return [];
+      const formatStatus = (status) => {
+        if (!status) return 'Not Started';
 
-        const offices = [...new Set(assignedJobs.value.map((job) => job.office))];
-        return offices.map((office) => ({ label: office, value: office }));
-      });
+        return status
+          .split('_')
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ');
+      };
 
-      const statusOptions = [
-        { label: 'Not Started', value: 'Not Started' },
-        { label: 'In Progress', value: 'In Progress' },
-        { label: 'Completed', value: 'Completed' },
-        { label: 'Overdue', value: 'Overdue' },
-      ];
-
-      const filteredPositions = computed(() => {
-        let filtered = assignedJobs.value;
-        // Apply search filter
-        if (search.value) {
-          const searchTerm = search.value.toLowerCase();
-          filtered = filtered.filter(
-            (job) =>
-              (job.position && job.position.toLowerCase().includes(searchTerm)) ||
-              (job.office && job.office.toLowerCase().includes(searchTerm)),
-          );
-        }
-
-        // Apply office filter
-        if (filterByOffice.value) {
-          filtered = filtered.filter((job) => job.office === filterByOffice.value);
-        }
-
-        // Apply status filter
-        if (statusFilter.value) {
-          filtered = filtered.filter((job) => (job.status || 'Not Started') === statusFilter.value);
-        }
-
-        return filtered;
-      });
-
-      const openRatingForm = async (position) => {
-        console.log('Opening rating form for position:', position.id);
-
-        // Set selected position first
-        selectedPosition.value = { ...position };
-        // Reset modal data immediately and show loading state
-        modalCriteria.value = {};
-        modalApplicants.value = [];
-        fetchingModalData.value = true;
-        // Clear any previous data from store
-        assignedJobStore.clearCriteriaApplicant();
-        // Show modal immediately with loading state
-        showRatingForm.value = true;
+      // Open rating modal when clicking on the rate button
+      const openRatingModal = async (position) => {
+        selectedPosition.value = position;
+        loadingModalData.value = true;
+        showRatingModal.value = true;
 
         try {
-          console.log('Fetching data for job ID:', position.id);
+          // Fetch criteria and applicants for this position
+          const result = await raterStore.fetch_criteria_applicant(position.id);
 
-          // Fetch fresh data for this specific job
-          const result = await assignedJobStore.fetch_criteria_applicant(position.id);
-
-          // Wait for Vue reactivity to complete
-          await nextTick();
-
-          console.log('Fetched result for job', position.id, ':', result);
-          console.log('Store criteria_applicant after fetch:', criteria_applicant.value);
-
-          // Process the fetched data from store
-          if (result && result.criteria?.length > 0) {
+          if (result && result.criteria && result.criteria.length > 0) {
             const criteriaData = result.criteria[0];
-
-            modalCriteria.value = {
+            positionCriteria.value = {
               education: criteriaData.educations?.[0] || {},
               experience: criteriaData.experiences?.[0] || {},
               training: criteriaData.trainings?.[0] || {},
               performance: criteriaData.performances?.[0] || {},
               behavioral: criteriaData.behaviorals?.[0] || {},
             };
-
-            console.log('Processed modal criteria for job', position.id, ':', modalCriteria.value);
           } else {
-            console.warn('No criteria found for job', position.id);
-            modalCriteria.value = {};
+            positionCriteria.value = {};
           }
 
-          // Process applicants
-          if (result && result.applicants?.length > 0) {
-            modalApplicants.value = result.applicants.map((applicant) => ({
-              id: applicant.id,
-              nPersonalInfo_id: applicant.nPersonalInfo_id,
-              name: `${applicant.firstname} ${applicant.lastname}`,
-              firstname: applicant.firstname,
-              lastname: applicant.lastname,
-              educationScore: 0,
-              experienceScore: 0,
-              trainingScore: 0,
-              performance: 0,
-              bei: 0,
-              totalQS: 0,
-              grandTotal: 0,
-              ranking: 0,
-
-              education: applicant.education || [],
-              work_experience: applicant.work_experience || [],
-              training: applicant.training || [],
-              eligibility: applicant.eligibity || [], // Note: typo in your API response "eligibity"
-            }));
-
-            console.log(
-              `Processed ${modalApplicants.value.length} applicants for job ${position.id}:`,
-              modalApplicants.value,
-            );
+          // Process applicants data
+          if (result && result.applicants) {
+            positionApplicants.value = result.applicants;
           } else {
-            console.warn('No applicants found for job', position.id);
-            modalApplicants.value = [];
+            positionApplicants.value = [];
           }
         } catch (error) {
-          console.error('Error fetching criteria/applicants for job', position.id, ':', error);
+          console.error('Error fetching position data:', error);
           $q.notify({
             color: 'negative',
-            message: 'Failed to load position data. Please try again.',
+            message: 'Failed to load position data',
             icon: 'error',
             position: 'top',
           });
-
-          // Reset data on error
-          modalCriteria.value = {};
-          modalApplicants.value = [];
+          showRatingModal.value = false;
         } finally {
-          fetchingModalData.value = false;
+          loadingModalData.value = false;
         }
       };
 
-      const handleSubmitRatings = async (data) => {
-        console.log('Ratings submitted:', data);
-
+      // Handle ratings submission
+      const handleRatingsSubmit = async (data) => {
         try {
           // Submit ratings using the store method
-          const result = await assignedJobStore.submitRatings(
-            data.applicants,
-            data.positionId, // This should be the job_batches_rsp_id
-          );
+          const result = await raterStore.submitRatings(data.applicants, data.positionId);
 
           if (result.success) {
             $q.notify({
               color: 'positive',
-              message: result.message || 'Ratings submitted successfully!',
+              message: 'Ratings submitted successfully!',
               icon: 'check_circle',
               position: 'top',
-              timeout: 3000,
-            });
-            showRatingForm.value = false;
-            await assignedJobStore.fetch_assigned_jobs();
-          } else {
-            $q.notify({
-              color: 'negative',
-              message: result.error || 'Failed to submit ratings',
-              icon: 'error',
-              position: 'top',
-              timeout: 3000,
+              timeout: 2000,
             });
 
-            // If there are specific validation errors, you could show them
-            if (result.errors) {
-              console.error('Validation errors:', result.errors);
-            }
+            // Refresh the list to update status
+            await raterStore.fetch_assigned_jobs();
+          } else {
+            throw new Error(result.error || 'Failed to submit ratings');
           }
         } catch (error) {
           console.error('Error submitting ratings:', error);
           $q.notify({
             color: 'negative',
-            message: 'An unexpected error occurred. Please try again.',
+            message: error.message || 'An error occurred while submitting ratings',
             icon: 'error',
             position: 'top',
-            timeout: 3000,
           });
         }
       };
 
-      onMounted(async () => {
-        await assignedJobStore.fetch_assigned_jobs();
-        console.log('Fetched assigned jobs:', assignedJobStore.assignedJobs);
+      // Fetch data on component mount
+      onMounted(() => {
+        raterStore.fetch_assigned_jobs();
       });
 
       return {
-        assignedJobs,
-        columns,
+        // Data
         search,
-        filterByOffice,
+        officeFilter,
         statusFilter,
-        loading,
+        columns,
         pagination,
+        loading,
         officeOptions,
         statusOptions,
         filteredPositions,
-        showRatingForm,
+
+        // Rating modal
+        showRatingModal,
         selectedPosition,
-        modalCriteria,
-        modalApplicants,
-        fetchingModalData,
+        positionCriteria,
+        positionApplicants,
+        loadingModalData,
+
+        // Methods
         getStatusColor,
-        openRatingForm,
-        handleSubmitRatings,
+        formatStatus,
+        openRatingModal,
+        handleRatingsSubmit,
       };
     },
   };
 </script>
 
 <style lang="scss" scoped>
-  .positions-container {
+  .positions-table-container {
     max-width: 1200px;
     margin: 0 auto;
   }
 
-  .table-container {
-    width: 100%;
-    overflow-x: visible; /* Allow table to be fully visible */
-  }
-
-  .hover-row {
-    transition: background-color 0.2s;
-
-    &:hover {
-      background-color: rgba(0, 0, 0, 0.03);
-    }
-  }
-
-  .consistent-font {
-    font-size: 0.9rem;
-  }
-
+  /* Table styling */
   :deep(.q-table) {
-    table {
-      width: 100%;
-      table-layout: fixed;
-    }
-
     th,
     td {
-      font-size: 1rem;
       padding: 10px 16px;
       overflow-wrap: break-word;
       word-wrap: break-word;
-      word-break: break-word;
     }
 
     th {
@@ -467,76 +387,19 @@
     }
   }
 
-  /* Column specific widths */
-  :deep(td:nth-child(1)),
-  :deep(th:nth-child(1)) {
-    width: 40%;
-  }
-
-  :deep(td:nth-child(2)),
-  :deep(th:nth-child(2)) {
-    width: 40%;
-  }
-
-  .status-column {
-    width: 100px !important;
-    text-align: center;
-  }
-
-  .action-column {
-    width: 80px !important;
-    text-align: center;
-  }
-
-  .cell-content {
-    width: 100%;
-    white-space: normal;
-    overflow-wrap: break-word;
-    word-wrap: break-word;
-  }
-
+  /* Status badge styling */
   .status-badge {
-    font-size: 0.9rem !important;
+    font-size: 0.9rem;
     font-weight: normal;
-    padding: 2px 8px;
-    white-space: nowrap;
+    padding: 4px 8px;
   }
 
-  .filter-component {
-    :deep(.q-field__native),
-    :deep(.q-field__prefix),
-    :deep(.q-field__suffix),
-    :deep(input),
-    :deep(.q-field__label) {
-      font-size: 1rem !important;
+  /* Action buttons styling */
+  .action-btn {
+    margin: 0 2px;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.05);
     }
-
-    :deep(.q-field__marginal) {
-      height: 40px;
-    }
-  }
-
-  :deep(.q-menu) {
-    .q-item,
-    .q-item__label {
-      font-size: 1rem !important;
-      min-height: 32px;
-      padding: 4px 16px;
-    }
-  }
-
-  :deep(.q-select__dropdown-icon) {
-    font-size: 2rem;
-  }
-
-  :deep(.q-select[label='Status']) {
-    .q-item,
-    .q-item__label {
-      font-size: 0.9rem !important;
-    }
-  }
-
-  :deep(.q-notification) {
-    font-size: 1rem;
   }
 </style>

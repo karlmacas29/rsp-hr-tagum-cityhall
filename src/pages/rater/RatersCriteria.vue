@@ -302,10 +302,13 @@
         }
       };
 
-      // Handle ratings submission
+      // Handle ratings submission - FIXED VERSION
       const handleRatingsSubmit = async (data) => {
         try {
-          // Submit ratings using the store method
+          console.log('Received data from rating form:', data);
+
+          // Directly pass the formatted data to the store
+          // The data is already properly formatted by the RatingForm component
           const result = await raterStore.submitRatings(data.applicants, data.positionId);
 
           if (result.success) {

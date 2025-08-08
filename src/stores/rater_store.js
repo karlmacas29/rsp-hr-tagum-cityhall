@@ -11,30 +11,39 @@ export const use_rater_store = defineStore('rater', () => {
     criteria: [],
     applicants: [],
   });
+
+  // FIXED submitRatings function that properly handles the data
   const submitRatings = async (applicantsData, jobId) => {
     loading.value = true;
     error.value = null;
 
-    const payload = applicantsData.map((applicant) => ({
-      id: applicant.id,
-      nPersonalInfo_id: applicant.nPersonalInfo_id,
-      job_batches_rsp_id: jobId,
-      education_score: parseFloat(applicant.educationScore) || 0,
-      experience_score: parseFloat(applicant.experienceScore) || 0,
-      training_score: parseFloat(applicant.trainingScore) || 0,
-      performance_score: parseFloat(applicant.performance) || 0,
-      behavioral_score: parseFloat(applicant.bei) || 0,
-      total_qs: parseFloat(applicant.totalQS) || 0,
-      grand_total: parseFloat(applicant.grandTotal) || 0,
-      ranking: parseInt(applicant.ranking) || 0,
-      // status:,
-    }));
+    console.log('Raw applicant data received:', applicantsData);
 
-    console.log('Payload to submit:', payload);
+    // Create a standardized payload regardless of input format
+    const payload = applicantsData.map((applicant) => {
+      return {
+        id: applicant.id,
+        nPersonalInfo_id: applicant.nPersonalInfo_id,
+        job_batches_rsp_id: jobId,
+        education_score: parseFloat(applicant.education_score || applicant.educationScore || 0),
+        experience_score: parseFloat(applicant.experience_score || applicant.experienceScore || 0),
+        training_score: parseFloat(applicant.training_score || applicant.trainingScore || 0),
+        performance_score: parseFloat(
+          applicant.performance_score || applicant.performanceScore || 0,
+        ),
+        behavioral_score: parseFloat(applicant.behavioral_score || applicant.behavioralScore || 0),
+        total_qs: parseFloat(applicant.total_qs || 0),
+        grand_total: parseFloat(applicant.grand_total || 0),
+        ranking: parseInt(applicant.ranking || 0),
+        // status: applicant.status || 'rated',
+      };
+    });
+
+    console.log('Final payload to submit to API:', JSON.stringify(payload, null, 2));
 
     try {
       const response = await raterApi.post('/rating/score', payload);
-      console.log('Ratings submitted:', response.data);
+      console.log('API Response:', response.data);
 
       if (response.data.success) {
         return response.data;

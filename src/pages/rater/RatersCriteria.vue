@@ -108,6 +108,7 @@
       :applicants="positionApplicants"
       :loading="loadingModalData"
       @submit-ratings="handleRatingsSubmit"
+      @save-draft="saveDraft"
     />
   </div>
 </template>
@@ -302,6 +303,44 @@
         }
       };
 
+      const saveDraft = async (data) => {
+        try {
+          console.log('Received draft data from rating form:', data);
+
+          // Make sure we're using the function from the store
+          if (typeof raterStore.saveDraft !== 'function') {
+            console.error('saveDraft is not a function in the store:', raterStore);
+            throw new Error('Draft ratings functionality is not available');
+          }
+
+          // Use the draftRatings method from the store
+          const result = await raterStore.saveDraft(data.applicants, data.positionId);
+
+          if (result && result.success) {
+            $q.notify({
+              color: 'info',
+              message: 'Draft ratings saved successfully!',
+              icon: 'save',
+              position: 'top',
+              timeout: 2000,
+            });
+
+            // Optionally refresh the list if status might change
+            await raterStore.fetch_assigned_jobs();
+          } else {
+            throw new Error((result && result.error) || 'Failed to save draft ratings');
+          }
+        } catch (error) {
+          console.error('Error saving draft ratings:', error);
+          $q.notify({
+            color: 'negative',
+            message: error.message || 'An error occurred while saving draft ratings',
+            icon: 'error',
+            position: 'top',
+          });
+        }
+      };
+
       // Handle ratings submission - FIXED VERSION
       const handleRatingsSubmit = async (data) => {
         try {
@@ -365,6 +404,7 @@
         formatStatus,
         openRatingModal,
         handleRatingsSubmit,
+        saveDraft,
       };
     },
   };

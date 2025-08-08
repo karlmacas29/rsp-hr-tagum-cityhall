@@ -317,7 +317,7 @@
   }
 
   function formatStatus(status) {
-    if (!status) return 'No Criteria';
+    if (!status) return 'not created';
     return status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ');
   }
 
@@ -326,7 +326,7 @@
     switch (status.toLowerCase()) {
       case 'created':
         return 'positive';
-      case 'no criteria':
+      case 'not created':
         return 'negative';
       default:
         return 'info';

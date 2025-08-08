@@ -97,12 +97,15 @@
             Accredited/Deregulated Pursuant to
             <br />
             <span>CSC Resolution No.</span>
-            <strong class="underline">{{ data.resolution || '(Resolution No.)' }}</strong>
+            <!-- <strong class="underline">{{ data.resolution || '(Resolution No.)' }}</strong>
             , s.
-            <strong class="underline">{{ data.resolutionYear || '(Year)' }}</strong>
+            <strong class="underline">{{ data.resolutionYear || '(Year)' }}</strong> -->
+               <strong class="underline">1701688,</strong>
+            , s. <strong class="underline">2017</strong>
             <br />
             Dated
-            <strong class="underline">{{ formattedResolutionDate || '(Resolution Date)' }}</strong>
+            <!-- <strong class="underline">{{ formattedResolutionDate || '(Resolution Date)' }}</strong> -->
+            <strong class="underline">December 28, 1017</strong>
           </p>
         </div>
       </div>
@@ -247,7 +250,7 @@ const formatSalaryAmount = (amount) => {
   };
 
   const formattedSigningDate = computed(() => formatDate(props.data.signingDate));
-  const formattedResolutionDate = computed(() => formatDate(props.data.resolutionDate));
+  // const formattedResolutionDate = computed(() => formatDate(props.data.resolutionDate));
 </script>
 
 <style scoped>

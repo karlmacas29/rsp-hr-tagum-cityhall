@@ -654,6 +654,10 @@
       if (!isNaN(numValue)) {
         // Ensure the value doesn't exceed the max allowed
         applicant[field] = Math.min(numValue, maxValue);
+
+        // Add debug logging to verify values are being updated
+        console.log(`Updated ${field} for applicant ${applicant.id} to ${applicant[field]}`);
+
         calculateAllRankings();
       }
     }
@@ -678,21 +682,32 @@
   };
 
   const submitRatings = () => {
+    // Create a formatted payload with all the necessary fields and proper values
     const formattedData = applicantsData.value.map((applicant) => {
+      // Calculate QS and total scores
+      const qsScore = parseFloat(calculateQS(applicant));
+      const totalScore = parseFloat(calculateTotal(applicant));
+
       return {
         id: applicant.id,
         nPersonalInfo_id: applicant.nPersonalInfo_id,
-        education_score: applicant.educationScore,
-        experience_score: applicant.experienceScore,
-        training_score: applicant.trainingScore,
-        performance_score: applicant.performanceScore,
-        behavioral_score: applicant.behavioralScore,
-        total_qs: parseFloat(calculateQS(applicant)),
-        grand_total: parseFloat(calculateTotal(applicant)),
+        // Make sure to parse all values as floats to ensure they are numbers
+        education_score: Number(applicant.educationScore || 0),
+        experience_score: Number(applicant.experienceScore || 0),
+        training_score: Number(applicant.trainingScore || 0),
+        performance_score: Number(applicant.performanceScore || 0),
+        behavioral_score: Number(applicant.behavioralScore || 0),
+        total_qs: Number(qsScore),
+        grand_total: Number(totalScore),
         ranking: applicant.ranking || 0,
+        // status: 'rated',
       };
     });
 
+    // Log the data being sent to help debug
+    console.log('Submitting ratings with formatted data:', JSON.stringify(formattedData, null, 2));
+
+    // Pass this data to the parent component
     emit('submit-ratings', {
       positionId: props.position.id,
       applicants: formattedData,

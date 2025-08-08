@@ -403,7 +403,8 @@
 
       <!-- Footer (Sticky) -->
       <q-card-section class="footer-section sticky-footer">
-        <div class="row justify-end">
+        <div class="row justify-end q-gutter-sm">
+          <q-btn color="primary" label="Save as Draft" icon-right="save" @click="saveDraft" dense />
           <q-btn
             color="green"
             label="Submit Ratings"
@@ -442,7 +443,7 @@
   });
 
   // Emits
-  const emit = defineEmits(['update:modelValue', 'submit-ratings']);
+  const emit = defineEmits(['update:modelValue', 'submit-ratings', 'save-draft']);
 
   // Computed
   const isOpen = computed({
@@ -679,6 +680,50 @@
     if (Array.isArray(description)) return description;
 
     return description.split(',').map((item) => item.trim());
+  };
+
+  // Create a new function for saving as draft
+  const saveDraft = () => {
+    // Create a formatted payload similar to submitRatings
+    const formattedData = applicantsData.value.map((applicant) => {
+      // Calculate QS and total scores
+      const qsScore = parseFloat(calculateQS(applicant));
+      const totalScore = parseFloat(calculateTotal(applicant));
+
+      return {
+        id: applicant.id,
+        nPersonalInfo_id: applicant.nPersonalInfo_id,
+        // Parse all values as numbers to ensure proper data types
+        education_score: Number(applicant.educationScore || 0),
+        experience_score: Number(applicant.experienceScore || 0),
+        training_score: Number(applicant.trainingScore || 0),
+        performance_score: Number(applicant.performanceScore || 0),
+        behavioral_score: Number(applicant.behavioralScore || 0),
+        total_qs: Number(qsScore),
+        grand_total: Number(totalScore),
+        ranking: applicant.ranking || 0,
+      };
+    });
+
+    // Log the data being sent to help debug
+    console.log(
+      'Saving draft ratings with formatted data:',
+      JSON.stringify(formattedData, null, 2),
+    );
+
+    // Emit an event to the parent component
+    emit('save-draft', {
+      positionId: props.position.id,
+      applicants: formattedData,
+    });
+
+    $q.notify({
+      color: 'info',
+      message: 'Draft ratings saved successfully!',
+      icon: 'save',
+      position: 'top',
+      timeout: 2000,
+    });
   };
 
   const submitRatings = () => {

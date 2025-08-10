@@ -2,20 +2,13 @@
   <div class="row">
     <div class="col-3 flex justify-center items-center">
       <img
-        v-if="props.personal?.image_path"
-        :src="props.personal.image_path"
+
+        :src="props.personal.image_url || 'https://placehold.co/140'"
         class="bg-grey-4"
         style="width: 140px; height: 140px; border-radius: 10px; object-fit: cover"
         alt="Applicant Photo"
       />
-      <div
-        v-else
-        class="bg-grey-4 flex justify-center items-center"
-        style="width: 140px; height: 140px; border-radius: 10px"
-        title="Applicant Photo"
-      >
-        <q-icon name="person" size="64px" color="grey-6" />
-      </div>
+
     </div>
     <div class="col">
       <div class="form-title-container">

@@ -6,12 +6,13 @@
     >
       <!-- Sticky Applicant Header -->
       <q-card-section class="row items-center header q-px-md q-py-sm">
-        <q-img
-          :src="applicantData?.Pics || 'https://placehold.co/100'"
-          class="bg-grey-4"
-          style="width: 90px; height: 90px; border-radius: 10px; margin-right: 24px"
-          alt="Applicant Photo"
-        />
+<q-img
+  :src="applicantData?.image_url || 'https://placehold.co/100'"
+  class="bg-grey-4"
+  style="width: 90px; height: 90px; border-radius: 10px; margin-right: 24px"
+  alt="Applicant Photo"
+  @error="handleImageError"
+/>
         <div class="col">
           <div class="applicant-name">
             {{ applicantData?.name || 'Please wait' }}
@@ -26,33 +27,7 @@
           <div class="applicant-info">
             Applied: {{ applicantData?.appliedDate || '#### ##, ####' }}
           </div>
-          <!-- <q-badge
-            rounded
-            class="q-pa-xs status-badge"
-            :class="{
-              'bg-blue': applicantData.status == 'ELECTIVE',
-              'bg-purple': applicantData.status == 'APPOINTED',
-              'bg-brown': applicantData.status == 'CO-TERMINOUS',
-              'bg-green': applicantData.status == 'REGULAR',
-              'bg-yellow text-black': applicantData.status == 'TEMPORARY',
-              'bg-grey-4': applicantData.status == 'CASUAL',
-              'bg-light-blue': applicantData.status == 'CONTRACTUAL',
-              'bg-black': applicantData.status == 'HONORARIUM',
-              'bg-grey': ![
-                'ELECTIVE',
-                'APPOINTED',
-                'CO-TERMINOUS',
-                'REGULAR',
-                'TEMPORARY',
-                'CASUAL',
-                'CONTRACTUAL',
-                'HONORARIUM',
-              ].includes(applicantData.status),
-            }"
-          >
-            {{ applicantData?.status || 'NA' }}
-            <q-icon v-if="evaluationLocked" name="lock" class="q-ml-xs" />
-          </q-badge> -->
+
           <q-btn
             label="VIEW PDS"
             color="primary"
@@ -61,6 +36,7 @@
             class="view-pds-btn"
             v-if="true"
           />
+
         </div>
         <div class="col-auto">
           <q-btn icon="close" flat round dense class="close-btn q-ml-md" @click="onClose" />
@@ -934,6 +910,9 @@
       });
     }
   };
+  const handleImageError = (error) => {
+  console.error('Image failed to load:', error);
+};
 </script>
 
 <style scoped lang="scss">

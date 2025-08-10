@@ -332,7 +332,7 @@
   };
 
   const applicantColumns = [
-    //  { name: 'id', label: 'id', field: 'id', align: 'left', sortable: true },
+     { name: 'id', label: 'id', field: 'id', align: 'left', sortable: true },
 
     { name: 'name', label: 'Name', field: 'name', align: 'left', sortable: true },
     {
@@ -373,6 +373,7 @@
         firstname: a.firstname || '',
         lastname: a.lastname || '',
         name_extension: a.name_extension || '',
+        image_url: a.image_url || 'https://placehold.co/100',
         appliedDate:
           a.appliedDate ||
           (a.application_date ? formatDate(a.application_date, 'MMM D, YYYY') : '-'),
@@ -397,6 +398,7 @@
       // nPersonalInfo_id: row.raw?.nPersonalInfo_id,
       job_batches_rsp_id: row.raw?.job_batches_rsp_id,
       status: row.status || 'Pending',
+           image_url: row.image_url || 'https://placehold.co/100',
       name: `${row.firstname}${row.lastname}${row.name_extension ? ' ' + row.name_extension : ''}`,
       position: selectedJob.value?.Position || 'N/A',
       level: selectedJob.value?.level || 'N/A',

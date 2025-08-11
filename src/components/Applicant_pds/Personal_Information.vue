@@ -2,13 +2,11 @@
   <div class="row">
     <div class="col-3 flex justify-center items-center">
       <img
-
         :src="props.personal.image_url || 'https://placehold.co/140'"
         class="bg-grey-4"
         style="width: 140px; height: 140px; border-radius: 10px; object-fit: cover"
         alt="Applicant Photo"
       />
-
     </div>
     <div class="col">
       <div class="form-title-container">

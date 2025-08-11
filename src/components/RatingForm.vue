@@ -540,16 +540,16 @@
   const initializeApplicants = () => {
     if (props.applicants?.length > 0) {
       applicantsData.value = props.applicants.map((applicant) => {
-        const ratingScore = applicant.rating_score || {};
+        const draftScore = applicant.draft_score || {};
         return {
           ...applicant,
-          educationScore: parseFloat(ratingScore.education_score ?? 0),
-          experienceScore: parseFloat(ratingScore.experience_score ?? 0),
-          trainingScore: parseFloat(ratingScore.training_score ?? 0),
-          performanceScore: parseFloat(ratingScore.performance_score ?? 0),
-          behavioralScore: parseFloat(ratingScore.behavioral_score ?? 0),
+          educationScore: parseFloat(draftScore.education_score ?? 0),
+          experienceScore: parseFloat(draftScore.experience_score ?? 0),
+          trainingScore: parseFloat(draftScore.training_score ?? 0),
+          performanceScore: parseFloat(draftScore.performance_score ?? 0),
+          behavioralScore: parseFloat(draftScore.behavioral_score ?? 0),
           name: `${applicant.firstname} ${applicant.lastname}`,
-          ranking: ratingScore.ranking || 0,
+          ranking: draftScore.ranking || 0,
         };
       });
 

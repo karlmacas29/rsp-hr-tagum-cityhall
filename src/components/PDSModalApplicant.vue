@@ -5,6 +5,7 @@
       <q-card-section class="row justify-between text-black q-mb-sm">
         <div class="text-h4 text-bold items-center flex">
           Personal Data Sheet (PDS)
+
           <q-badge class="bg-blue">View PDS</q-badge>
         </div>
         <q-btn icon="close" flat round dense class="close-btn" @click="closeModal" />
@@ -50,7 +51,7 @@
                 <q-spinner-dots size="40px" color="primary" />
                 <div class="q-mt-sm text-grey">Loading PDS...</div>
               </div>
-              <div
+              <!-- <div
                 v-else-if="jobStore.error"
                 style="height: 70vh"
                 class="column items-center justify-center"
@@ -58,7 +59,7 @@
                 <q-icon name="error" color="negative" size="40px" />
                 <div class="q-mt-sm text-negative">Failed to load PDS data.</div>
                 <q-btn color="primary" class="q-mt-md" label="Retry" @click="fetchApplicantData" />
-              </div>
+              </div> -->
               <div v-else>
                 <!-- Personal Information -->
                 <div v-if="currentTab === 'personal'" class="q-pa-md">
@@ -89,10 +90,10 @@
                   <Non_Academic :distinctions="applicantData?.academic || []" />
                 </div>
                 <div v-else-if="currentTab === 'membership'" class="q-pa-md">
-                  <Membership_Association></Membership_Association>
+                  <Membership_Association />
                 </div>
                 <div v-else-if="currentTab === 'other'" class="q-pa-md">
-                  <Other_Information></Other_Information>
+                  <Other_Information />
                 </div>
                 <div v-else-if="currentTab === 'references'" class="q-pa-md">
                   <References :references="applicantData?.reference || []" />
@@ -119,8 +120,7 @@
 </template>
 
 <script setup>
-  import { onMounted, ref, watch, computed } from 'vue';
-  import { useQuasar } from 'quasar';
+  import { ref, watch, computed } from 'vue';
   import { useJobPostStore } from 'stores/jobPostStore.js';
 
   import Personal_Information from './Applicant_pds/Personal_Information.vue';
@@ -136,7 +136,6 @@
   import Other_Information from './Applicant_pds/Other_Information.vue';
   import References from './Applicant_pds/References_User.vue';
 
-  const $q = useQuasar();
   const jobStore = useJobPostStore();
 
   const props = defineProps({
@@ -160,10 +159,10 @@
   const localShowModal = ref(props.modelValue);
   const currentTab = ref('personal');
 
-  // Computed property to access applicant data from store
   const applicantData = computed(() => {
-    if (jobStore.applicant && jobStore.applicant.length > 0) {
-      return jobStore.applicant[0];
+    let arr = jobStore.applicants || jobStore.applicant || [];
+    if (arr.length && props.applicant && props.applicant.id) {
+      return arr.find((a) => a.id === props.applicant.id) || {};
     }
     return {};
   });
@@ -197,23 +196,6 @@
     },
   );
 
-  const fetchApplicantData = async () => {
-    // Use the applicant ID from props
-    const id = props.applicant.controlno || props.applicants.id || props.applicant.nPersonalInfo_id;
-
-    if (!id) {
-      $q.notify({
-        color: 'negative',
-        message: 'No valid ID provided for applicant',
-        icon: 'error',
-      });
-      return;
-    }
-
-    // Call the store's fetch_applicant method
-    await jobStore.fetch_applicant(id);
-  };
-
   const closeModal = () => {
     emit('update:modelValue', false);
     emit('close');
@@ -222,7 +204,6 @@
   const isTabCompleted = (tabName) => {
     // Logic to determine if a tab is completed based on applicant data
     if (!applicantData.value) return false;
-
     switch (tabName) {
       case 'personal':
         return !!applicantData.value.firstname;
@@ -254,10 +235,6 @@
         return false;
     }
   };
-
-  onMounted(() => {
-    fetchApplicantData();
-  });
 </script>
 
 <style lang="scss" scoped>

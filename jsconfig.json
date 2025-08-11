@@ -3,7 +3,10 @@
     "baseUrl": "./",
     "paths": {
       "@/*": ["src/*"],
-      "!src/components/QualificationStandardModal.vue": ["src/alternativePath/QualificationStandardModal.vue"]
+      "!src/components/QualificationStandardModal.vue": [
+        "src/alternativePath/QualificationStandardModal.vue"
+      ]
     }
-  }
+  },
+  "exclude": ["src/components/viewrated.vue"]
 }

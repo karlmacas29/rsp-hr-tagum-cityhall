@@ -4,7 +4,6 @@
 
     <!-- Search and filter -->
     <div class="row q-col-gutter-md q-mb-md">
-      <!-- Search input -->
       <div class="col-12 col-md-6">
         <q-input v-model="search" outlined dense placeholder="Search positions..." clearable>
           <template v-slot:append>
@@ -12,8 +11,6 @@
           </template>
         </q-input>
       </div>
-
-      <!-- Office filter -->
       <div class="col-12 col-md-3">
         <q-select
           v-model="officeFilter"
@@ -26,8 +23,6 @@
           map-options
         />
       </div>
-
-      <!-- Status filter -->
       <div class="col-12 col-md-3">
         <q-select
           v-model="statusFilter"
@@ -53,21 +48,14 @@
       bordered
       wrap-cells
       class="full-width"
+      row-key="id"
     >
-      <!-- Status column formatter -->
-      <template v-slot:body-cell-status="props">
-        <q-td :props="props">
-          <q-badge :color="getStatusColor(props.value)" class="status-badge">
-            {{ formatStatus(props.value) }}
-          </q-badge>
-        </q-td>
-      </template>
-
       <!-- Actions column -->
       <template v-slot:body-cell-actions="props">
         <q-td :props="props" class="text-center">
           <div class="row justify-center q-gutter-xs">
             <q-btn
+              v-if="!props.row.submitted"
               dense
               flat
               round
@@ -79,12 +67,17 @@
             >
               <q-tooltip>Rate</q-tooltip>
             </q-btn>
-
-            <q-btn dense flat round color="secondary" icon="print" size="md" class="action-btn">
-              <q-tooltip>Print</q-tooltip>
-            </q-btn>
-
-            <q-btn dense flat round color="info" icon="visibility" size="md" class="action-btn">
+            <q-btn
+              v-else
+              dense
+              flat
+              round
+              color="info"
+              icon="visibility"
+              size="md"
+              class="action-btn"
+              @click="openViewRatedModal(props.row)"
+            >
               <q-tooltip>View</q-tooltip>
             </q-btn>
           </div>
@@ -109,6 +102,17 @@
       :loading="loadingModalData"
       @submit-ratings="handleRatingsSubmit"
       @save-draft="saveDraft"
+      @close="handleRatingModalClose"
+    />
+
+    <!-- View Rated Modal -->
+    <ViewRated
+      v-model="showViewRatedModal"
+      :position="selectedPosition"
+      :criteria="positionCriteria"
+      :applicants="positionApplicants"
+      :loading="loadingModalData"
+      @close="handleViewRatedModalClose"
     />
   </div>
 </template>
@@ -119,11 +123,13 @@
   import { storeToRefs } from 'pinia';
   import { useQuasar } from 'quasar';
   import RatingForm from 'components/RatingForm.vue';
+  import ViewRated from 'components/ViewRatedModal.vue';
 
   export default {
     name: 'PositionsTable',
     components: {
       RatingForm,
+      ViewRated,
     },
     setup() {
       const $q = useQuasar();
@@ -142,19 +148,20 @@
         rowsPerPage: 10,
       });
 
-      // Rating modal state
+      // Modal state
       const showRatingModal = ref(false);
+      const showViewRatedModal = ref(false);
       const selectedPosition = ref({});
       const positionCriteria = ref({});
       const positionApplicants = ref([]);
       const loadingModalData = ref(false);
 
-      // Table columns - use correct field accessors matching data structure
+      // Table columns (without status and print)
       const columns = [
         {
           name: 'office',
           label: 'Office',
-          field: (row) => row.office || 'N/A',
+          field: (row) => row.office || row.Office || 'N/A',
           align: 'left',
           sortable: true,
           style: 'width: 40%',
@@ -162,18 +169,10 @@
         {
           name: 'position',
           label: 'Position',
-          field: (row) => row.position || 'N/A',
+          field: (row) => row.position || row.Position || 'N/A',
           align: 'left',
           sortable: true,
           style: 'width: 30%',
-        },
-        {
-          name: 'status',
-          label: 'Status',
-          field: 'status',
-          align: 'center',
-          sortable: true,
-          style: 'width: 10%',
         },
         {
           name: 'actions',
@@ -181,93 +180,63 @@
           field: 'actions',
           align: 'center',
           sortable: false,
-          style: 'width: 20%',
+          style: 'width: 30%',
         },
       ];
 
-      // Office options computed from available data
+      // Office options
       const officeOptions = computed(() => {
         if (!Array.isArray(assignedJobs.value)) return [];
-
-        const offices = [...new Set(assignedJobs.value.map((job) => job.office).filter(Boolean))];
-
+        const offices = [
+          ...new Set(assignedJobs.value.map((job) => job.office || job.Office).filter(Boolean)),
+        ];
         return offices.map((office) => ({ label: office, value: office }));
       });
 
-      // Status options computed from available data
+      // Status options
       const statusOptions = computed(() => {
         if (!Array.isArray(assignedJobs.value)) return [];
-
-        // Extract unique statuses from data
         const statuses = [...new Set(assignedJobs.value.map((job) => job.status).filter(Boolean))];
-
-        // Add "Not Started" for null/empty values if needed
-        if (assignedJobs.value.some((job) => !job.status)) {
-          statuses.push('not_started');
-        }
-
-        // Map to option objects
+        if (assignedJobs.value.some((job) => !job.status)) statuses.push('not_started');
         return statuses.map((status) => ({
           label: formatStatus(status),
           value: status,
         }));
       });
 
-      // Filtered positions based on search and filters
+      // Filtered positions
       const filteredPositions = computed(() => {
         if (!Array.isArray(assignedJobs.value)) return [];
-
         return assignedJobs.value.filter((job) => {
-          // Search filter
           const searchTerm = search.value.toLowerCase();
           const matchesSearch =
             !searchTerm ||
-            (job.position && job.position.toLowerCase().includes(searchTerm)) ||
-            (job.office && job.office.toLowerCase().includes(searchTerm));
-
-          // Office filter
-          const matchesOffice = !officeFilter.value || job.office === officeFilter.value;
-
-          // Status filter
+            (job.position || job.Position || '').toLowerCase().includes(searchTerm) ||
+            (job.office || job.Office || '').toLowerCase().includes(searchTerm);
+          const matchesOffice =
+            !officeFilter.value ||
+            job.office === officeFilter.value ||
+            job.Office === officeFilter.value;
           const matchesStatus = !statusFilter.value || job.status === statusFilter.value;
-
           return matchesSearch && matchesOffice && matchesStatus;
         });
       });
 
-      // Status helpers
-      const getStatusColor = (status) => {
-        switch (status) {
-          case 'assessed':
-            return 'blue';
-          case 'pending':
-            return 'orange';
-          case 'completed':
-            return 'green';
-          case 'rated':
-            return 'purple';
-          default:
-            return 'grey';
-        }
-      };
-
       const formatStatus = (status) => {
         if (!status) return 'Not Started';
-
         return status
           .split('_')
           .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
           .join(' ');
       };
 
-      // Open rating modal when clicking on the rate button
+      // Open rating modal for a position
       const openRatingModal = async (position) => {
         selectedPosition.value = position;
         loadingModalData.value = true;
         showRatingModal.value = true;
 
         try {
-          // Fetch criteria and applicants for this position
           const result = await raterStore.fetch_criteria_applicant(position.id);
 
           if (result && result.criteria && result.criteria.length > 0) {
@@ -283,12 +252,7 @@
             positionCriteria.value = {};
           }
 
-          // Process applicants data
-          if (result && result.applicants) {
-            positionApplicants.value = result.applicants;
-          } else {
-            positionApplicants.value = [];
-          }
+          positionApplicants.value = result && result.applicants ? result.applicants : [];
         } catch (error) {
           console.error('Error fetching position data:', error);
           $q.notify({
@@ -303,19 +267,49 @@
         }
       };
 
-      const saveDraft = async (data) => {
-        try {
-          console.log('Received draft data from rating form:', data);
+      // Open view rated modal for a position
+      const openViewRatedModal = async (position) => {
+        selectedPosition.value = position;
+        loadingModalData.value = true;
+        showViewRatedModal.value = true;
 
-          // Make sure we're using the function from the store
-          if (typeof raterStore.saveDraft !== 'function') {
-            console.error('saveDraft is not a function in the store:', raterStore);
-            throw new Error('Draft ratings functionality is not available');
+        try {
+          const result = await raterStore.fetch_criteria_applicant(position.id);
+
+          if (result && result.criteria && result.criteria.length > 0) {
+            const criteriaData = result.criteria[0];
+            positionCriteria.value = {
+              education: criteriaData.educations?.[0] || {},
+              experience: criteriaData.experiences?.[0] || {},
+              training: criteriaData.trainings?.[0] || {},
+              performance: criteriaData.performances?.[0] || {},
+              behavioral: criteriaData.behaviorals?.[0] || {},
+            };
+          } else {
+            positionCriteria.value = {};
           }
 
-          // Use the draftRatings method from the store
-          const result = await raterStore.saveDraft(data.applicants, data.positionId);
+          positionApplicants.value = result && result.applicants ? result.applicants : [];
+        } catch (error) {
+          console.error('Error fetching position data:', error);
+          $q.notify({
+            color: 'negative',
+            message: 'Failed to load position data',
+            icon: 'error',
+            position: 'top',
+          });
+          showViewRatedModal.value = false;
+        } finally {
+          loadingModalData.value = false;
+        }
+      };
 
+      const saveDraft = async (data) => {
+        try {
+          if (typeof raterStore.saveDraft !== 'function') {
+            throw new Error('Draft ratings functionality is not available');
+          }
+          const result = await raterStore.saveDraft(data.applicants, data.positionId);
           if (result && result.success) {
             $q.notify({
               color: 'info',
@@ -324,14 +318,11 @@
               position: 'top',
               timeout: 2000,
             });
-
-            // Optionally refresh the list if status might change
             await raterStore.fetch_assigned_jobs();
           } else {
             throw new Error((result && result.error) || 'Failed to save draft ratings');
           }
         } catch (error) {
-          console.error('Error saving draft ratings:', error);
           $q.notify({
             color: 'negative',
             message: error.message || 'An error occurred while saving draft ratings',
@@ -341,15 +332,10 @@
         }
       };
 
-      // Handle ratings submission - FIXED VERSION
+      // Handle ratings submission
       const handleRatingsSubmit = async (data) => {
         try {
-          console.log('Received data from rating form:', data);
-
-          // Directly pass the formatted data to the store
-          // The data is already properly formatted by the RatingForm component
           const result = await raterStore.submitRatings(data.applicants, data.positionId);
-
           if (result.success) {
             $q.notify({
               color: 'positive',
@@ -358,14 +344,12 @@
               position: 'top',
               timeout: 2000,
             });
-
-            // Refresh the list to update status
+            showRatingModal.value = false;
             await raterStore.fetch_assigned_jobs();
           } else {
             throw new Error(result.error || 'Failed to submit ratings');
           }
         } catch (error) {
-          console.error('Error submitting ratings:', error);
           $q.notify({
             color: 'negative',
             message: error.message || 'An error occurred while submitting ratings',
@@ -375,13 +359,21 @@
         }
       };
 
-      // Fetch data on component mount
+      // When modal is closed after save or cancel
+      const handleRatingModalClose = () => {
+        showRatingModal.value = false;
+      };
+
+      // When view rated modal is closed
+      const handleViewRatedModalClose = () => {
+        showViewRatedModal.value = false;
+      };
+
       onMounted(() => {
         raterStore.fetch_assigned_jobs();
       });
 
       return {
-        // Data
         search,
         officeFilter,
         statusFilter,
@@ -392,19 +384,21 @@
         statusOptions,
         filteredPositions,
 
-        // Rating modal
+        // Modal state
         showRatingModal,
+        showViewRatedModal,
         selectedPosition,
         positionCriteria,
         positionApplicants,
         loadingModalData,
 
         // Methods
-        getStatusColor,
-        formatStatus,
         openRatingModal,
+        openViewRatedModal,
         handleRatingsSubmit,
         saveDraft,
+        handleRatingModalClose,
+        handleViewRatedModalClose,
       };
     },
   };
@@ -415,7 +409,6 @@
     max-width: 1200px;
     margin: 0 auto;
   }
-
   /* Table styling */
   :deep(.q-table) {
     th,
@@ -424,23 +417,13 @@
       overflow-wrap: break-word;
       word-wrap: break-word;
     }
-
     th {
       font-weight: bold;
     }
   }
-
-  /* Status badge styling */
-  .status-badge {
-    font-size: 0.9rem;
-    font-weight: normal;
-    padding: 4px 8px;
-  }
-
   /* Action buttons styling */
   .action-btn {
     margin: 0 2px;
-
     &:hover {
       background: rgba(0, 0, 0, 0.05);
     }

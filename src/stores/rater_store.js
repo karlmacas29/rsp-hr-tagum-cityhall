@@ -191,7 +191,7 @@ export const use_rater_store = defineStore('rater', () => {
           id: job.id,
           position: job.Position,
           office: job.Office,
-          status: job.status,
+          submitted: job.submitted,
         }));
       } else {
         assignedJobs.value = [];

@@ -6,13 +6,12 @@
     >
       <!-- Sticky Applicant Header -->
       <q-card-section class="row items-center header q-px-md q-py-sm">
-<q-img
-  :src="applicantData?.image_url || 'https://placehold.co/100'"
-  class="bg-grey-4"
-  style="width: 90px; height: 90px; border-radius: 10px; margin-right: 24px"
-  alt="Applicant Photo"
-  @error="handleImageError"
-/>
+        <q-img
+          :src="applicantData?.image_url || 'https://placehold.co/100'"
+          class="bg-grey-4"
+          style="width: 90px; height: 90px; border-radius: 10px; margin-right: 24px"
+          alt="Applicant Photo"
+        />
         <div class="col">
           <div class="applicant-name">
             {{ applicantData?.name || 'Please wait' }}
@@ -27,7 +26,6 @@
           <div class="applicant-info">
             Applied: {{ applicantData?.appliedDate || '#### ##, ####' }}
           </div>
-
           <q-btn
             label="VIEW PDS"
             color="primary"
@@ -36,7 +34,6 @@
             class="view-pds-btn"
             v-if="true"
           />
-
         </div>
         <div class="col-auto">
           <q-btn icon="close" flat round dense class="close-btn q-ml-md" @click="onClose" />
@@ -522,12 +519,7 @@
     </q-card>
   </q-dialog>
 
-  <!-- PDS Modal -->
-  <PDSModalApplicant
-    v-model="showPDSModal"
-    :applicantID="applicantData?.id"
-    :applicantData="applicantData"
-  />
+  <PDSModalApplicant v-model="showPDSModal" :applicant="applicantData" />
 </template>
 
 <script setup>
@@ -559,11 +551,26 @@
     isSubmitted: Boolean,
     education: { type: Array, default: () => [] },
   });
+
   const emit = defineEmits(['update:show', 'view-pds', 'toggle-qualification', 'submit', 'close']);
   const localShow = ref(props.show);
 
   const tab = ref('education');
   const qualificationStatus = ref('');
+
+  // Helper function to extract personal info from multiple possible structures
+  const getPersonalInfo = (applicantData) => {
+    if (!applicantData) return {};
+
+    // Check all possible paths to personal info
+    const personalInfo =
+      applicantData.n_personal_info ||
+      applicantData.nPersonalInfo ||
+      (applicantData.firstname ? applicantData : null) ||
+      {};
+
+    return personalInfo;
+  };
 
   const formattedEducation = computed(
     () =>
@@ -834,47 +841,54 @@
 
   const onModalShow = async () => {
     tab.value = 'education';
-    if (props.applicantData?.PositionID) {
-      await usePlantilla.fetchQsData(props.applicantData.PositionID);
-      positionQS.value = usePlantilla.qsData;
-    }
 
-    if (props.education && props.education.length > 0) {
-      xEdu.value = props.education;
-    } else if (props.applicantData?.n_personal_info?.education) {
-      xEdu.value = props.applicantData.n_personal_info.education;
-    } else if (props.applicantData?.education) {
-      xEdu.value = props.applicantData.education;
-    } else {
-      xEdu.value = [];
-    }
+    try {
+      console.log('Applicant Data:', props.applicantData);
 
-    if (props.applicantData?.n_personal_info) {
-      const personalInfo = props.applicantData.n_personal_info;
-      xEligibility.value = personalInfo.eligibity || [];
-      xExperience.value = personalInfo.work_experience || [];
-      xTraining.value = personalInfo.training || [];
-    } else {
-      xEligibility.value = [];
-      xExperience.value = [];
-      xTraining.value = [];
-    }
+      // Load QS data
+      if (props.applicantData?.PositionID) {
+        await usePlantilla.fetchQsData(props.applicantData.PositionID);
+        positionQS.value = usePlantilla.qsData || [];
+      }
 
-    // Set the initial radio selection ONLY ONCE, when modal opens
-    if (
-      props.applicantData?.status === 'Qualified' ||
-      props.applicantData?.status === 'Unqualified'
-    ) {
-      qualificationStatus.value = props.applicantData.status;
-    } else {
-      qualificationStatus.value = '';
-    }
+      // Get personal info from various possible data structures
+      const personalInfo = getPersonalInfo(props.applicantData);
+      console.log('Extracted Personal Info:', personalInfo);
 
-    // Set remarks if there is a value
-    education_remark.value = props.applicantData?.['education_remark'] || '';
-    experience_remark.value = props.applicantData?.['experience_remark'] || '';
-    training_remark.value = props.applicantData?.['training_remark'] || '';
-    eligibility_remark.value = props.applicantData?.['eligibility_remark'] || '';
+      // Set education data
+      if (props.education && props.education.length > 0) {
+        xEdu.value = props.education;
+      } else if (personalInfo?.education && personalInfo.education.length > 0) {
+        xEdu.value = personalInfo.education;
+      } else if (props.applicantData?.education && props.applicantData.education.length > 0) {
+        xEdu.value = props.applicantData.education;
+      } else {
+        xEdu.value = [];
+      }
+
+      // Set other PDS data
+      xEligibility.value = personalInfo?.eligibility || personalInfo?.eligibity || [];
+      xExperience.value = personalInfo?.work_experience || [];
+      xTraining.value = personalInfo?.training || [];
+
+      // Set qualification status if available
+      if (
+        props.applicantData?.status === 'Qualified' ||
+        props.applicantData?.status === 'Unqualified'
+      ) {
+        qualificationStatus.value = props.applicantData.status;
+      } else {
+        qualificationStatus.value = '';
+      }
+
+      // Set remarks
+      education_remark.value = props.applicantData?.education_remark || '';
+      experience_remark.value = props.applicantData?.experience_remark || '';
+      training_remark.value = props.applicantData?.training_remark || '';
+      eligibility_remark.value = props.applicantData?.eligibility_remark || '';
+    } catch (error) {
+      console.error('Error in onModalShow:', error);
+    }
   };
 
   const onClose = () => {
@@ -910,9 +924,6 @@
       });
     }
   };
-  const handleImageError = (error) => {
-  console.error('Image failed to load:', error);
-};
 </script>
 
 <style scoped lang="scss">

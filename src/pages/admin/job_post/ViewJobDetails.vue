@@ -381,6 +381,7 @@
         ranking: a.ranking,
         education: a.education || [],
         raw: a, // for details action
+       
         education_remark: a.education_remark,
         experience_remark: a.experience_remark,
         training_remark: a.training_remark,
@@ -391,41 +392,31 @@
 
   // Updated viewApplicantDetails function to open the modal
   function viewApplicantDetails(row) {
-    console.log('Full row data:', row);
-    console.log('Raw data:', row.raw);
+    // Set the selected applicant's data and id
     selectedApplicantData.value = {
       id: row.raw?.id || row.id,
-      // nPersonalInfo_id: row.raw?.nPersonalInfo_id,
       job_batches_rsp_id: row.raw?.job_batches_rsp_id,
       status: row.status || 'Pending',
-           image_url: row.image_url || 'https://placehold.co/100',
-      name: `${row.firstname}${row.lastname}${row.name_extension ? ' ' + row.name_extension : ''}`,
+      name: `${row.firstname} ${row.lastname}${row.name_extension ? ' ' + row.name_extension : ''}`,
       position: selectedJob.value?.Position || 'N/A',
       level: selectedJob.value?.level || 'N/A',
       appliedDate: row.appliedDate,
       PositionID: selectedJob.value?.PositionID,
       ItemNo: selectedJob.value?.ItemNo,
+      image_url: row.image_url,
       education_remark: row.education_remark,
       experience_remark: row.experience_remark,
       training_remark: row.training_remark,
       eligibility_remark: row.eligibility_remark,
-
-      // Use the education data from the formatted row first, then fallback to raw
       education: row.education || row.raw?.education || [],
-
-      // Pass complete personal info structure
       n_personal_info: {
         education: row.education || row.raw?.education || [],
         work_experience: row.work_experience || row.raw?.work_experience || [],
         training: row.training || row.raw?.training || [],
         eligibity: row.eligibity || row.raw?.eligibity || [],
       },
-
-      raw: row.raw, // Include the full raw data
+      raw: row.raw,
     };
-    console.log('Selected applicant data:', selectedApplicantData.value);
-    console.log('Applicant ID:', selectedApplicantData.value.id); // Log the id we'll
-    console.log('Selected applicant data:', selectedApplicantData.value); // Debug log
     qualificationModalVisible.value = true;
   }
 

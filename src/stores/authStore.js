@@ -501,20 +501,8 @@ async rater_edit(id, userData) {
       if (!token) {
         throw new Error('No authentication token found');
       }
-      const plantillaStore = usePlantillaStore();
-      await plantillaStore.fetch_office_rater();
-      const raterInfo = plantillaStore.plantilla.find(
-        person => person.ControlNo === userData.controlNo
-      );
 
-      if (!raterInfo) {
-        throw new Error('Rater not found in plantilla data');
-      }
-
-      if (!raterInfo.BirthDate) {
-        throw new Error('Birthdate not available for this rater');
-      }
-      const date = new Date(raterInfo.BirthDate);
+      const date = new Date(userData.BirthDate);
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const day = String(date.getDate()).padStart(2, '0');
@@ -525,8 +513,8 @@ async rater_edit(id, userData) {
         name: username,
         username: username,
         job_batches_rsp_id: userData.job_batches_rsp_id || [],
-        position: userData.position || raterInfo.Designation,
-        office: userData.Office || raterInfo.Office,
+        position: userData.position || userData.Designation,
+        office: userData.Office || userData.Office,
         password: birthdatePassword,
         controlNo: userData.controlNo,
       };

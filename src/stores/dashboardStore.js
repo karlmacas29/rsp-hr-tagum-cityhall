@@ -41,8 +41,6 @@ export const DashboardStore = defineStore('dashboard', {
           }
         },
 
-
-
     async fetch_vwActive() {
       this.loading = true;
       this.error = null;
@@ -75,6 +73,7 @@ export const DashboardStore = defineStore('dashboard', {
         this.loading = false;
       }
     },
+
     async fetchCountAll() {
       this.loading = true;
       try {
@@ -89,6 +88,7 @@ export const DashboardStore = defineStore('dashboard', {
         this.loading = false;
       }
     },
+
     async getSexCount() {
       this.loading = true;
       this.error = null;

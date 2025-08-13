@@ -5,6 +5,7 @@ import { toast } from 'src/boot/toast'; // Import toast instance
 export const usePlantillaStore = defineStore('plantilla', {
   state: () => ({
     plantilla: [],
+    office:[],
     plantillaData: [],
     qsData: [],
     qsLoad: false,
@@ -14,53 +15,87 @@ export const usePlantillaStore = defineStore('plantilla', {
   }),
 
   actions: {
-    async fetchPlantilla() {
+    // async fetchPlantilla() {
+    //   this.loading = true;
+    //   this.error = null;
+    //   try {
+    //     const response = await adminApi.get('/plantilla');
+
+    //     // console.log(response.data); // Debugging
+
+    //     if (Array.isArray(response.data)) {
+    //       this.plantilla = response.data;
+    //     } else {
+    //       console.error('Unexpected response format', response.data);
+    //       this.plantilla = [];
+    //     }
+    //   } catch (error) {
+    //     this.loading = false;
+    //     console.error('Fetch error:', error); // Debugging
+    //     toast.error('Failed to Load Plantilla');
+    //     this.error = error;
+    //   } finally {
+    //     this.loading = false;
+    //   }
+    // },
+       async fetchPlantilla() {
       this.loading = true;
       this.error = null;
       try {
         const response = await adminApi.get('/plantilla');
-
-        // console.log(response.data); // Debugging
-
-        if (Array.isArray(response.data)) {
-          this.plantilla = response.data;
-        } else {
-          console.error('Unexpected response format', response.data);
-          this.plantilla = [];
-        }
+        this.plantilla = Array.isArray(response.data) ? response.data : [];
       } catch (error) {
-        this.loading = false;
-        console.error('Fetch error:', error); // Debugging
+        console.error('Fetch error:', error);
         toast.error('Failed to Load Plantilla');
         this.error = error;
       } finally {
         this.loading = false;
       }
     },
+//  // NEW: fetch plantilla filtered by office
+//     async fetchPlantillaByOffice(office) {
+//       this.loading = true;
+//       this.error = null;
+//       try {
+//         const response = await adminApi.get('/plantilla', {
+//           params: { office },
+//         });
+//         this.plantilla = Array.isArray(response.data) ? response.data : [];
+//       } catch (error) {
+//         console.error('Fetch error:', error);
+//         toast.error('Failed to Load Plantilla for selected office');
+//         this.plantilla = [];
+//         this.error = error;
+//       } finally {
+//         this.loading = false;
+//       }
+//     },
 
     async fetch_office_rater() {
       this.loading = true;
       this.error = null;
       try {
-        const response = await adminApi.get('/plantilla/office/rater');
+        const response = await adminApi.get('/office');
 
         // console.log(response.data); // Debugging
 
         if (Array.isArray(response.data)) {
-          this.plantilla = response.data;
+          this.office = response.data;
         } else {
           console.error('Unexpected response format', response.data);
-          this.plantilla = [];
+          this.office = [];
         }
       } catch (error) {
         this.loading = false;
         console.error('Fetch error:', error); // Debugging
-        toast.error('Failed to Load Plantilla');
+        toast.error('Failed to Load office');
         this.error = error;
       } finally {
         this.loading = false;
       }
     },
+
+
     async fetchPlantillaData() {
       this.loading = true;
       this.error = null;
@@ -111,52 +146,6 @@ export const usePlantillaStore = defineStore('plantilla', {
       }
     },
 
-
-//    async fetchAppointmentData(ControlNo) {
-//   this.loading = true;
-//   this.error = null;
-//   try {
-//     const response = await adminApi.get(`plantilla/appointment/${ControlNo}`);
-
-//     console.log('Appointment data:', response.data); // Debugging
-
-//     if (response.data && response.data.length > 0) {
-//       // Transform the data to match your template structure
-//       const appointmentData = response.data[0];
-//       const plantillaInfo = appointmentData.plantilla;
-//       const tempRegInfo = appointmentData.temp_reg_appointments?.[0];
-
-//       return {
-//         Name4: plantillaInfo?.Name4 || '',
-//         NewDesignation: tempRegInfo?.NewDesignation || tempRegInfo?.Designation || '',
-//         SG: tempRegInfo?.SG || '',
-//         Step: tempRegInfo?.Step || '',
-//         Status: tempRegInfo?.Status || '',
-//         NewOffice: tempRegInfo?.NewOffice || tempRegInfo?.Office || '',
-//         MRate: tempRegInfo?.MRate || '',
-//         Renew: tempRegInfo?.Renew || '',
-//         vicecause: tempRegInfo?.vicecause || '',
-//         ItemNo: tempRegInfo?.ItemNo || '',
-//         Pages: tempRegInfo?.Pages || '',
-//         FromDate: appointmentData.FromDate || '',
-//         ToDate: appointmentData.ToDate || '',
-//         // Add more fields as needed
-//         mayor: 'REY T. UY', // Default or from data
-//         resolution: '', // Add if available in your data
-//         resolutionYear: '', // Add if available in your data
-//       };
-//     }
-
-//     return null;
-//   } catch (error) {
-//     console.error('Fetch appointment error:', error);
-//     toast.error('Failed to load appointment data');
-//     this.error = error;
-//     return null;
-//   } finally {
-//     this.loading = false;
-//   }
-// }
 
 
 async fetchAppointmentData(ControlNo) {

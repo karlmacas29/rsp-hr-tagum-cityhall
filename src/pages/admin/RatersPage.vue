@@ -51,37 +51,22 @@
           row-key="id"
           :loading="isSubmitting"
         >
-          <!-- Position column: flex wrap badges, fix column width, tooltip full value -->
-          <!-- <template v-slot:body-cell-job_batches_rsp="props">
+          <template v-slot:body-cell-job_batches_rsp="props">
             <q-td :props="props">
-              <div class="position-cell" :title="props.row.Position">
+              <div class="position-cell" :title="props.row.job_batches_rsp">
                 <q-badge
-                  v-for="(pos, index) in props.row.Position.split(', ')"
+                  v-for="(pos, index) in props.row.job_batches_rsp.split(',')"
                   :key="index"
                   color="primary"
                   text-color="white"
-                  class="q-pa-xs"
+                  class="q-pa-xs q-mb-xs badge-block"
                 >
-                  {{ pos }}
+                  {{ pos.trim() }}
                 </q-badge>
               </div>
             </q-td>
-          </template> -->
-          <template v-slot:body-cell-job_batches_rsp="props">
-  <q-td :props="props">
-    <div class="position-cell" :title="props.row.job_batches_rsp">
-      <q-badge
-        v-for="(pos, index) in props.row.job_batches_rsp.split(',')"
-        :key="index"
-        color="primary"
-        text-color="white"
-        class="q-pa-xs q-mb-xs badge-block"
-      >
-        {{ pos.trim() }}
-      </q-badge>
-    </div>
-  </q-td>
-</template>
+          </template>
+
           <template v-slot:body-cell-Office="props">
             <q-td :props="props">
               <div style="white-space: normal; overflow-wrap: break-word">
@@ -89,6 +74,7 @@
               </div>
             </q-td>
           </template>
+
           <!-- Actions column -->
           <template v-slot:body-cell-actions="props">
             <q-td :props="props">
@@ -106,17 +92,17 @@
               <template
                 v-if="authStore.user.permissions.isRaterM === '1' && props.row.completed == 0"
               >
-               <q-btn
-  flat
-  round
-  dense
-  icon="edit"
-  @click="editRater(props.row)"
-  class="q-ml-sm bg-teal-1"
-  color="positive"
->
-  <q-tooltip>Edit</q-tooltip>
-</q-btn>
+                <q-btn
+                  flat
+                  round
+                  dense
+                  icon="edit"
+                  @click="editRater(props.row)"
+                  class="q-ml-sm bg-teal-1"
+                  color="positive"
+                >
+                  <q-tooltip>Edit</q-tooltip>
+                </q-btn>
                 <q-btn
                   flat
                   round
@@ -185,13 +171,12 @@
 
           <!-- Add Mode: Select Office FIRST, then Select Rater -->
           <template v-if="!isEditMode">
-            <!-- Select Office in Add Mode -->
             <div class="q-mb-md">
-    <q-select
+              <q-select
                 v-model="selectedOffice"
                 :options="offices"
-                option-value="id"
-                option-label="name"
+                option-label="label"
+                option-value="value"
                 label="Select an office"
                 outlined
                 dense
@@ -206,7 +191,6 @@
               </q-select>
             </div>
 
-            <!-- Select Rater in Add Mode (AFTER office) -->
             <div class="q-mb-md">
               <div class="text-subtitle2 text-weight-medium">Select Rater</div>
               <q-select
@@ -221,6 +205,7 @@
                 dense
                 emit-value
                 map-options
+                :loading="isLoadingRaters"
                 :disable="!selectedOffice"
                 @filter="filterRatersByOffice"
               >
@@ -234,33 +219,30 @@
                     </q-item-section>
                   </q-item>
                 </template>
-
-
               </q-select>
             </div>
           </template>
 
-          <!-- Edit Mode: Display Rater + Office (readonly) -->
+          <!-- Edit Mode: Display Rater + Office (name-only) -->
           <template v-else>
-            <!-- Select Office in Edit Mode (readonly but visible) -->
+            <!-- Select Office in Edit Mode (name-only) -->
             <div class="q-mb-md">
               <div class="text-subtitle2 text-weight-medium">Select Office</div>
-    <q-select
-      v-model="selectedOffice"
-      :options="offices"
-      option-value="id"
-      option-label="name"
-      label="Select an office"
-      outlined
-      dense
-      emit-value
-      map-options
-    >
+              <q-select
+                v-model="selectedOffice"
+                :options="offices"
+                option-label="label"
+                option-value="value"
+                label="Select an office"
+                outlined
+                dense
+                emit-value
+                map-options
+              >
                 <template v-slot:prepend>
                   <q-icon name="business" />
                 </template>
-                <template v-slot:append>
-                </template>
+                <template v-slot:append></template>
               </q-select>
             </div>
 
@@ -310,7 +292,6 @@
             "
           />
         </q-card-actions>
-
       </q-card>
     </q-dialog>
 
@@ -330,10 +311,9 @@
       </q-card>
     </q-dialog>
 
-    <!-- View Rater Dialog - Updated to show real jobs data -->
+    <!-- View Rater Dialog -->
     <q-dialog v-model="showViewDialog" persistent>
       <q-card style="width: 800px; max-width: 95vw; display: flex; flex-direction: column">
-        <!-- Header with more padding and better alignment - Sticky -->
         <q-card-section class="bg-grey-2 q-px-lg q-py-md sticky-header">
           <div class="text-h6">Jobs to Rate</div>
           <q-btn
@@ -346,7 +326,6 @@
           />
         </q-card-section>
 
-        <!-- Rater Information with better spacing - Sticky -->
         <q-card-section class="q-px-lg sticky-info">
           <div class="row q-col-gutter-md">
             <div class="col">
@@ -376,7 +355,6 @@
           </div>
         </q-card-section>
 
-        <!-- Table Section with proper spacing - Scrollable content -->
         <q-card-section class="q-pa-md q-mx-md scrollable-content">
           <q-table
             flat
@@ -390,7 +368,6 @@
             wrap-cells
             virtual-scroll
           >
-            <!-- Position column with full text display -->
             <template v-slot:body-cell-position="props">
               <q-td :props="props" class="position-column">
                 <div class="full-position-text" :title="props.row.position">
@@ -424,7 +401,6 @@
               </q-td>
             </template>
 
-            <!-- Fixed pagination display -->
             <template v-slot:bottom="scope">
               <div class="row items-center justify-between full-width q-px-md">
                 <div>Records per page: {{ scope.pagination.rowsPerPage }}</div>
@@ -442,7 +418,6 @@
           </q-table>
         </q-card-section>
 
-        <!-- Summary section with proper spacing -->
         <q-card-section class="q-pt-md q-px-lg sticky-footer">
           <div class="row justify-between items-center">
             <div class="text-caption text-grey-7">Showing {{ filteredJobs.length }} jobs</div>
@@ -458,34 +433,30 @@
             </div>
           </div>
         </q-card-section>
-
-        <!-- Removed the footer section -->
       </q-card>
     </q-dialog>
   </q-page>
 </template>
-
 <script setup>
   import { ref, computed, onMounted } from 'vue';
   import { useAuthStore } from 'stores/authStore';
   import { useJobPostStore } from 'stores/jobPostStore';
   import { usePlantillaStore } from 'stores/plantillaStore';
-  // import { useauthStore } from 'stores/authStore_raters';
+
   import { toast } from 'boot/toast';
+  import { adminApi } from 'boot/axios_admin';
 
   const jobPostStore = useJobPostStore();
   const authStore = useAuthStore();
   const plantillaStore = usePlantillaStore();
-//  const  authStore = useauthStore();
+
   // Search
   const globalSearch = ref('');
   const jobSearch = ref('');
 
   // Data
   const raters = ref([]);
-  // Using a separate ref for rater jobs
   const raterJobs = ref([]);
-
   const isLoadingJobs = ref(false);
 
   // Modal state
@@ -496,7 +467,7 @@
   const currentRaterId = ref(null);
   const currentRaterName = ref('');
   const currentRaterOffice = ref('');
-  const currentOfficeId = ref(null);
+
   const currentOfficeRaters = ref([]);
 
   // View dialog state
@@ -523,43 +494,40 @@
   // Form selections
   const selectedPositions = ref([]);
   const selectedRater = ref(null);
-  const selectedOffice = ref(null);
+  // store office as NAME string (no ID)
+  const selectedOffice = ref('');
 
   // Options data
+  // offices options are [{ label: 'Office Name', value: 'Office Name' }]
   const offices = ref([]);
   const positions = ref([]);
 
-  const availableRaters = ref([]);
-
+  // Rater options for the selected office
   const filteredRatersByOffice = ref([]);
+  const officeRatersRaw = ref([]);
+  const isLoadingRaters = ref(false);
 
-  // Columns definition
-const columns = [
-  { name: 'id', label: 'ID', field: 'id', align: 'left' },
-  { name: 'Rater', label: 'Rater Name', field: 'Rater', align: 'left' },
-  { name: 'job_batches_rsp', label: 'Jobs Position to Rate', field: 'job_batches_rsp', align: 'left' },
-  { name: 'Office', label: 'Office', field: 'Office', align: 'left' },
-  { name: 'pending', label: 'Pending', field: 'pending', align: 'center', sortable: false },
-  { name: 'completed', label: 'Completed', field: 'completed', align: 'center', sortable: false },
-  { name: 'active', align: 'left', label: 'Status', field: 'active', sortable: true },
-  { name: 'actions', label: 'Actions', align: 'center' },
-];
-  // Job columns for the view dialog
-  const jobColumns = [
+  // Columns definition (unchanged)
+  const columns = [
+    { name: 'id', label: 'ID', field: 'id', align: 'left' },
+    { name: 'Rater', label: 'Rater Name', field: 'Rater', align: 'left' },
     {
-      name: 'position',
-      label: 'Position',
-      field: 'position',
+      name: 'job_batches_rsp',
+      label: 'Jobs Position to Rate',
+      field: 'job_batches_rsp',
       align: 'left',
-      style: 'width: 40%', // Fixed width for position column
     },
-    {
-      name: 'slots',
-      label: 'Slots',
-      field: 'slots',
-      align: 'center',
-      style: 'width: 15%',
-    },
+    { name: 'Office', label: 'Office', field: 'Office', align: 'left' },
+    { name: 'pending', label: 'Pending', field: 'pending', align: 'center', sortable: false },
+    { name: 'completed', label: 'Completed', field: 'completed', align: 'center', sortable: false },
+    { name: 'active', align: 'left', label: 'Status', field: 'active', sortable: true },
+    { name: 'actions', label: 'Actions', align: 'center' },
+  ];
+
+  // Job columns (unchanged)
+  const jobColumns = [
+    { name: 'position', label: 'Position', field: 'position', align: 'left', style: 'width: 40%' },
+    { name: 'slots', label: 'Slots', field: 'slots', align: 'center', style: 'width: 15%' },
     {
       name: 'applicantCount',
       label: 'Number of Applicants',
@@ -567,33 +535,25 @@ const columns = [
       align: 'center',
       style: 'width: 25%',
     },
-    {
-      name: 'status',
-      label: 'Status',
-      field: 'status',
-      align: 'center',
-      style: 'width: 20%',
-    },
+    { name: 'status', label: 'Status', field: 'status', align: 'center', style: 'width: 20%' },
   ];
 
-  // Computed properties
+  // Computed (unchanged except safe guards)
   const filteredRaters = computed(() => {
     if (!globalSearch.value) return raters.value;
-
     const searchTerm = globalSearch.value.toLowerCase();
     return raters.value.filter((rater) => {
       return (
-        rater.id.toString().includes(searchTerm) ||
-        rater.Rater.toLowerCase().includes(searchTerm) ||
-        rater.Position.toLowerCase().includes(searchTerm) ||
-        rater.Office.toLowerCase().includes(searchTerm)
+        String(rater.id).includes(searchTerm) ||
+        (rater.Rater || '').toLowerCase().includes(searchTerm) ||
+        (rater.Position || '').toLowerCase().includes(searchTerm) ||
+        (rater.Office || '').toLowerCase().includes(searchTerm)
       );
     });
   });
 
   const filteredJobs = computed(() => {
     if (!jobSearch.value) return raterJobs.value;
-
     const searchTerm = jobSearch.value.toLowerCase();
     return raterJobs.value.filter((job) => {
       return (
@@ -609,7 +569,7 @@ const columns = [
     return [allOption, ...positions.value];
   });
 
-  // Methods
+  // Methods (only the office+rater flow is new/updated)
   const showAddModal = () => {
     isEditMode.value = false;
     showModal.value = true;
@@ -628,101 +588,98 @@ const columns = [
 
   const togglePosition = (id, checked) => {
     if (id === 'all') {
-      if (checked) {
-        selectedPositions.value = ['all', ...positions.value.map((p) => p.id)];
-      } else {
-        selectedPositions.value = [];
-      }
-    } else {
-      let newSelection = [...selectedPositions.value];
-      const allIndex = newSelection.indexOf('all');
-
-      if (checked) {
-        if (!newSelection.includes(id)) {
-          newSelection.push(id);
-        }
-
-        const allSelected = positions.value.every((p) => newSelection.includes(p.id));
-        if (allSelected && allIndex === -1) {
-          newSelection.push('all');
-        }
-      } else {
-        newSelection = newSelection.filter((item) => item !== id);
-
-        if (allIndex !== -1) {
-          newSelection.splice(allIndex, 1);
-        }
-      }
-
-      selectedPositions.value = newSelection;
+      selectedPositions.value = checked ? ['all', ...positions.value.map((p) => p.id)] : [];
+      return;
     }
+    let newSelection = [...selectedPositions.value];
+    const allIndex = newSelection.indexOf('all');
+    if (checked) {
+      if (!newSelection.includes(id)) newSelection.push(id);
+      const allSelected = positions.value.every((p) => newSelection.includes(p.id));
+      if (allSelected && allIndex === -1) newSelection.push('all');
+    } else {
+      newSelection = newSelection.filter((item) => item !== id);
+      if (allIndex !== -1) newSelection.splice(allIndex, 1);
+    }
+    selectedPositions.value = newSelection;
   };
 
   const handlePositionSelection = (newSelection) => {
     const allOptionId = 'all';
     const regularIds = positions.value.map((p) => p.id);
-
     if (newSelection.includes(allOptionId)) {
       selectedPositions.value = [allOptionId, ...regularIds];
     } else {
       selectedPositions.value = newSelection.filter((id) => id !== allOptionId);
-
       const allSelected =
         regularIds.length > 0 && regularIds.every((id) => newSelection.includes(id));
-
       if (allSelected) {
         selectedPositions.value = [allOptionId, ...regularIds];
       }
     }
   };
 
-  const handleOfficeChange = (officeId) => {
-    selectedRater.value = null; // Reset selected rater
-    // Filter raters based on the selected office's ID
-    // Assumes availableRaters items have { id, name, officeId }
-    filteredRatersByOffice.value = availableRaters.value.filter(
-      (rater) => rater.officeId === officeId,
-    );
+  // Fetch employees by selected office name (server-side filtered)
+  const fetchEmployeesByOffice = async (officeName) => {
+    isLoadingRaters.value = true;
+    filteredRatersByOffice.value = [];
+    officeRatersRaw.value = [];
+    try {
+      const resp = await adminApi.get('/active', { params: { office: officeName } });
+      const list = (Array.isArray(resp.data) ? resp.data : [])
+        .map((e) => ({
+          id: e.ControlNo, // keep ControlNo as unique value
+          name: e.Name4, // label shown in the select
+          Office: e.Office,
+          Designation: e.Designation,
+          BirthDate: e.BirthDate,
+        }))
+        .filter((e) => e.id && e.name); // ensure usable
+      officeRatersRaw.value = list;
+      filteredRatersByOffice.value = list;
+    } catch (err) {
+      console.error('Failed to fetch employees for office:', err);
+      toast.error('Failed to load employees for selected office');
+    } finally {
+      isLoadingRaters.value = false;
+    }
   };
 
-  const filterRatersByOffice = (val, update) => {
-    if (typeof update !== 'function') {
+  // When office is changed, fetch employees under that office
+  const handleOfficeChange = async (OfficeName) => {
+    selectedRater.value = null; // reset selected rater
+    if (!OfficeName) {
+      filteredRatersByOffice.value = [];
+      officeRatersRaw.value = [];
       return;
     }
+    await fetchEmployeesByOffice(OfficeName);
+  };
 
+  // Local search within fetched employees for this office
+  const filterRatersByOffice = (val, update) => {
+    if (typeof update !== 'function') return;
     update(() => {
-      if (!selectedOffice.value) {
-        // selectedOffice.value holds the ID of the selected office
-        filteredRatersByOffice.value = [];
+      if (!val) {
+        filteredRatersByOffice.value = officeRatersRaw.value;
         return;
       }
-
-      // Assumes availableRaters items have { id, name, officeId }
-      if (val === '') {
-        // If search input is empty, list all raters for the selected office
-        filteredRatersByOffice.value = availableRaters.value.filter(
-          (rater) => rater.officeId === selectedOffice.value,
-        );
-      } else {
-        // Otherwise, filter by name within the selected office
-        const needle = val.toLowerCase();
-        filteredRatersByOffice.value = availableRaters.value.filter(
-          (rater) =>
-            rater.officeId === selectedOffice.value && rater.name.toLowerCase().includes(needle),
-        );
-      }
+      const needle = val.toLowerCase();
+      filteredRatersByOffice.value = officeRatersRaw.value.filter((r) =>
+        r.name.toLowerCase().includes(needle),
+      );
     });
   };
 
   const resetForm = () => {
     selectedPositions.value = [];
     selectedRater.value = null;
-    selectedOffice.value = null;
+    selectedOffice.value = '';
     filteredRatersByOffice.value = [];
+    officeRatersRaw.value = [];
     currentRaterId.value = null;
     currentRaterName.value = '';
     currentRaterOffice.value = '';
-    currentOfficeId.value = null;
     currentOfficeRaters.value = [];
     showError.value = false;
   };
@@ -739,180 +696,161 @@ const columns = [
       Position: rater.Position,
       Office: rater.Office,
     };
-
     isLoadingJobs.value = true;
-
-    // Reset pagination
     pagination.value.page = 1;
-    // Get the positions this rater is assigned to
-    const assignedPositions = rater.job_batches_rsp.split(', ');
-    // Filter jobPosts to get only the ones this rater is assigned to rate
+
+    const assignedPositions = (rater.job_batches_rsp || '')
+      .split(', ')
+      .map((s) => s.trim())
+      .filter(Boolean);
     const raterJobsData = jobPostStore.jobPosts
       .filter((job) => assignedPositions.includes(job.Position))
       .map((job) => {
-        // For demo purposes, randomly decide if the job is completed or pending
-        // In a real app, you would determine this based on actual data
         const isCompleted = Math.random() > 0.5;
-
         return {
           id: job.id,
           position: job.Position,
-          slots: job.Plantilla || 1, // Use actual slots from job data if available
-          applicantCount: job.ApplicantCount || Math.floor(Math.random() * 15) + 1, // Use actual count or random for demo
+          slots: job.Plantilla || 1,
+          applicantCount: job.ApplicantCount || Math.floor(Math.random() * 15) + 1,
           status: isCompleted ? 'completed' : 'pending',
         };
       });
 
-    // Small delay to simulate loading
     setTimeout(() => {
       raterJobs.value = raterJobsData;
       pagination.value.rowsNumber = raterJobsData.length;
       isLoadingJobs.value = false;
       showViewDialog.value = true;
-    }, 500);
+    }, 300);
   };
-const editRater = async (rater) => {
-  try {
-    isEditMode.value = true;
-    currentRaterId.value = rater.id;
-    currentRaterName.value = rater.Rater;
 
-    // Fetch the latest office data
-    await plantillaStore.fetch_office_rater();
+  const editRater = async (rater) => {
+    try {
+      isEditMode.value = true;
+      currentRaterId.value = rater.id;
+      currentRaterName.value = rater.Rater;
 
-    // Set the current office selection
-    const currentOffice = plantillaStore.plantilla.find(
-      person => person.Name4 === rater.Rater
-    );
+      // Ensure office options are present
+      if (
+        !offices.value.length &&
+        Array.isArray(plantillaStore.office) &&
+        plantillaStore.office.length
+      ) {
+        const names = Array.from(
+          new Set(
+            plantillaStore.office
+              .map((row) =>
+                typeof row === 'string' ? row : row?.Office || row?.office || row?.name,
+              )
+              .filter(Boolean),
+          ),
+        );
+        offices.value = names.map((n) => ({ label: n, value: n }));
+      }
 
-    if (currentOffice) {
-      selectedOffice.value = currentOffice.OfficeID;
+      // Pre-select office by name
+      selectedOffice.value = rater.Office || '';
 
-      // Ensure offices list is up to date
-      const uniqueOfficesData = plantillaStore.plantilla.reduce((acc, item) => {
-        if (!acc.some((office) => office.name === item.office)) {
-          acc.push({
-            id: item.OfficeID,
-            name: item.office,
-          });
-        }
-        return acc;
-      }, []);
-      offices.value = uniqueOfficesData;
+      // Populate rater list for that office
+      if (selectedOffice.value) {
+        await fetchEmployeesByOffice(selectedOffice.value);
+      }
+
+      // Pre-select positions by name
+      const positionNames = (rater.job_batches_rsp || '')
+        .split(',')
+        .map((name) => name.trim())
+        .filter(Boolean);
+      selectedPositions.value = positions.value
+        .filter((pos) => positionNames.includes(pos.name))
+        .map((pos) => pos.id);
+
+      showModal.value = true;
+    } catch (error) {
+      console.error('Error setting up edit mode:', error);
+      toast.error('Failed to prepare edit form');
+    }
+  };
+
+  const updateRater = async () => {
+    if (selectedPositions.value.length === 0 || !selectedOffice.value) {
+      showError.value = true;
+      return;
     }
 
-    // Convert job_batches_rsp string to array of position IDs
-    const positionNames = rater.job_batches_rsp.split(',').map(name => name.trim());
-    selectedPositions.value = positions.value
-      .filter((pos) => positionNames.includes(pos.name))
-      .map((pos) => pos.id);
+    showError.value = false;
+    isSubmitting.value = true;
 
-    showModal.value = true;
-  } catch (error) {
-    console.error('Error setting up edit mode:', error);
-    toast.error('Failed to prepare edit form');
-  }
-};
-const updateRater = async () => {
-  if (selectedPositions.value.length === 0 || !selectedOffice.value) {
-    showError.value = true;
-    return;
-  }
+    try {
+      const raterId = currentRaterId.value;
+      if (!raterId) throw new Error('No rater selected for editing');
 
-  showError.value = false;
-  isSubmitting.value = true;
+      const userData = {
+        job_batches_rsp_id: selectedPositions.value.filter((id) => id !== 'all'),
+        Office: selectedOffice.value, // name-only
+      };
 
-  try {
-    const raterId = currentRaterId.value;
-    if (!raterId) {
-      throw new Error('No rater selected for editing');
+      const result = await authStore.rater_edit(raterId, userData);
+
+      if (result.success) {
+        await authStore.get_all_raters();
+        raters.value = authStore.users;
+        closeModal();
+        toast.success('Rater updated successfully');
+      } else {
+        throw new Error(result.message || 'Failed to update rater');
+      }
+    } catch (error) {
+      console.error('Error updating rater:', error);
+      toast.error(error.message || 'Failed to update rater');
+    } finally {
+      isSubmitting.value = false;
+    }
+  };
+
+  const addRater = async () => {
+    if (selectedPositions.value.length === 0 || !selectedOffice.value || !selectedRater.value) {
+      showError.value = true;
+      return;
     }
 
-    // Get the office name from plantilla data
-    await plantillaStore.fetch_office_rater();
-    const selectedOfficeData = plantillaStore.plantilla.find(
-      person => person.OfficeID === selectedOffice.value
-    );
+    showError.value = false;
+    isSubmitting.value = true;
 
-    if (!selectedOfficeData) {
-      throw new Error('Selected office not found');
+    try {
+      const raterData = officeRatersRaw.value.find((r) => r.id === selectedRater.value);
+      if (!raterData) throw new Error('Rater data not found');
+
+      const jobBatchIds = selectedPositions.value.filter((id) => id !== 'all');
+
+      const userData = {
+        name: raterData.name,
+        controlNo: raterData.id, // ControlNo
+        BirthDate: raterData.BirthDate || '', // optional
+        Designation: raterData.Designation || '', // optional
+        job_batches_rsp_id: jobBatchIds,
+        Office: selectedOffice.value, // name-only
+        active: true,
+      };
+
+      const result = await authStore.Rater_register(userData);
+
+      if (result.success) {
+        await authStore.get_all_raters();
+        raters.value = authStore.users;
+        closeModal();
+        toast.success('Rater added successfully');
+      } else {
+        throw new Error(result.message || 'Failed to add rater');
+      }
+    } catch (error) {
+      console.error('Error adding rater:', error);
+      toast.error(error.message || 'Failed to add rater');
+      showError.value = true;
+    } finally {
+      isSubmitting.value = false;
     }
-
-    // Prepare the data for the edit request
-    const userData = {
-      job_batches_rsp_id: selectedPositions.value.filter(id => id !== 'all'),
-      Office: selectedOfficeData.office,
-    };
-
-    // Call the rater_edit action
-    const result = await authStore.rater_edit(raterId, userData);
-
-    if (result.success) {
-      // Refresh the raters list
-      await authStore.get_all_raters();
-      raters.value = authStore.users;
-      closeModal();
-      toast.success('Rater updated successfully');
-    } else {
-      throw new Error(result.message || 'Failed to update rater');
-    }
-  } catch (error) {
-    console.error('Error updating rater:', error);
-    toast.error(error.message || 'Failed to update rater');
-  } finally {
-    isSubmitting.value = false;
-  }
-};
-
-
-const addRater = async () => {
-  if (selectedPositions.value.length === 0 || !selectedOffice.value || !selectedRater.value) {
-    showError.value = true;
-    return;
-  }
-
-  showError.value = false;
-  isSubmitting.value = true;
-
-  try {
-    const raterData = availableRaters.value.find((r) => r.id === selectedRater.value);
-    const officeData = offices.value.find((o) => o.id === selectedOffice.value);
-
-    if (!raterData || !officeData) {
-      throw new Error('Rater or office data not found');
-    }
-
-    // Filter out 'all' if present and get actual position IDs
-    const jobBatchIds = selectedPositions.value.filter(id => id !== 'all');
-
-    const userData = {
-      name: raterData.name,
-      controlNo: raterData.id,
-      job_batches_rsp_id: jobBatchIds,
-      Office: officeData.name, // Include office name
-      active:true,
-    };
-
-    const result = await authStore.Rater_register(userData);
-
-    if (result.success) {
-      // Refresh the raters list
-      await authStore.get_all_raters();
-      // Update local raters list
-      raters.value = authStore.users;
-      closeModal();
-      toast.success('Rater added successfully');
-    } else {
-      throw new Error(result.message || 'Failed to add rater');
-    }
-  } catch (error) {
-    console.error('Error adding rater:', error);
-    toast.error(error.message || 'Failed to add rater');
-    showError.value = true;
-  } finally {
-    isSubmitting.value = false;
-  }
-};
+  };
 
   const confirmDeleteRater = (rater) => {
     raterToDelete.value = rater.id;
@@ -926,50 +864,34 @@ const addRater = async () => {
   };
 
   onMounted(async () => {
-   try {
-    await Promise.all([
-      jobPostStore.job_post_list(),
-      authStore.get_all_raters(),
-      plantillaStore.fetch_office_rater()
-    ]);
+    try {
+      await Promise.all([
+        jobPostStore.job_post_list(),
+        authStore.get_all_raters(),
+        plantillaStore.fetch_office_rater(), // loads office names
+      ]);
 
-    raters.value = authStore.users || [];
-
-  } catch (error) {
-    console.error('Initialization error:', error);
-    toast.error('Failed to load initial data');
-  }
-
-    //  raters.value = authStore.users;
-    // Populate uniqueOffices
-   const uniqueOfficesData = plantillaStore.plantilla.reduce((acc, item) => {
-    if (!acc.some((office) => office.name === item.office)) {
-      acc.push({
-        id: item.OfficeID,
-        name: item.office,
-      });
+      raters.value = authStore.users || [];
+    } catch (error) {
+      console.error('Initialization error:', error);
+      toast.error('Failed to load initial data');
     }
-    return acc;
-  }, []);
-  offices.value = uniqueOfficesData;
 
-  positions.value = jobPostStore.jobPosts.map((post) => {
-    return {
-      id: post.id,
-      name: post.Position,
-    };
+    // Positions for selection
+    positions.value = jobPostStore.jobPosts.map((post) => ({ id: post.id, name: post.Position }));
+
+    // Populate office options from store (name-only)
+    if (Array.isArray(plantillaStore.office) && plantillaStore.office.length > 0) {
+      const names = Array.from(
+        new Set(
+          plantillaStore.office
+            .map((row) => (typeof row === 'string' ? row : row?.Office || row?.office || row?.name))
+            .filter(Boolean),
+        ),
+      );
+      offices.value = names.map((name) => ({ label: name, value: name }));
+    }
   });
-
-  if (plantillaStore.plantilla && plantillaStore.plantilla.length > 0) {
-    availableRaters.value = plantillaStore.plantilla
-      .map((person) => ({
-        id: person.ControlNo,
-        name: person.Name4,
-        officeId: person.OfficeID,
-      }))
-      .filter((person) => person.id && person.name && person.officeId);
-  }
-});
 </script>
 
 <style scoped>

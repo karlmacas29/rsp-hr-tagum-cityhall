@@ -1,3 +1,15 @@
+async fetch_applicant_score(id) { this.loading = true; try { const { data } = await
+adminApi.get(`/show/${id}`); this.applicant = data.applicants; this.error = null; } catch (error) {
+this.error = error; toast.error('Failed to fetch applicants.'); } finally { this.loading = false; }
+},{ "34": { "firstname": "Deniel", "lastname": "Tomenio", "education": "23.00", "experience":
+"18.50", "training": "13.50", "performance": "9.00", "bei": "18.00", "total_qs": "64.00",
+"grand_total": "82.00", "nPersonalInfo_id": "34", "job_batches_rsp_id": "40061", "rank": 1 }, "33":
+{ "firstname": "Alvin", "lastname": "Monsanto", "education": "16.50", "experience": "17.50",
+"training": "12.50", "performance": "7.50", "bei": "19.00", "total_qs": "54.00", "grand_total":
+"73.00", "nPersonalInfo_id": "33", "job_batches_rsp_id": "40061", "rank": 2 }, "32": { "firstname":
+"Millan", "lastname": "Cliford", "education": "13.00", "experience": "13.00", "training": "10.00",
+"performance": "10.00", "bei": "13.00", "total_qs": "46.00", "grand_total": "59.00",
+"nPersonalInfo_id": "32", "job_batches_rsp_id": "40061", "rank": 3 } }
 <template>
   <div class="q-pa-md bg-grey-1">
     <!-- Job Details Card -->
@@ -288,7 +300,7 @@
                     flat
                     icon="visibility"
                     color="primary"
-                    @click="viewApplicantDetails(props.row)"
+                    @click="viewApplicantScore(props.row)"
                   />
                 </q-td>
               </template>
@@ -345,6 +357,14 @@
       @submit="submitEvaluation"
       @close="onCloseQualificationModal"
     />
+
+    <ScoreModal
+      v-if="scoreModal.visible"
+      :show="scoreModal.visible"
+      :applicant="scoreModal.applicant"
+      @update:show="scoreModal.visible = $event"
+      @close="closeScoreModal"
+    />
   </div>
 </template>
 
@@ -356,6 +376,7 @@
   import axios from 'axios';
   import { toast } from 'src/boot/toast';
   import QualificationModal from 'src/components/QualityStandardModalApplicant.vue';
+  import ScoreModal from 'src/components/Rater/ApplicantScore.vue';
 
   const router = useRouter();
   const route = useRoute();
@@ -371,6 +392,7 @@
 
   // Modal state
   const qualificationModalVisible = ref(false);
+  const scoreModal = ref({ visible: false, applicant: null });
   const selectedApplicantData = ref({});
 
   // Computed properties for applicant assessment statistics
@@ -452,7 +474,6 @@
     },
   ];
 
-  // Rating results columns - similar to applicant columns but with ranking
   const ratingColumns = [
     { name: 'name', label: 'Name', field: 'name', align: 'left', sortable: true },
     {
@@ -532,6 +553,17 @@
       raw: row.raw,
     };
     qualificationModalVisible.value = true;
+  }
+
+  function viewApplicantScore(applicantRow) {
+    scoreModal.value = {
+      visible: true,
+      applicant: applicantRow.raw || applicantRow,
+    };
+  }
+
+  function closeScoreModal() {
+    scoreModal.value = { visible: false, applicant: null };
   }
 
   // Update the onToggleQualification function

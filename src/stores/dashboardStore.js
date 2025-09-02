@@ -11,37 +11,33 @@ export const DashboardStore = defineStore('dashboard', {
     countAll: 0,
     loading: false,
     error: null,
-    qualified:0,
-    unqualified:0,
-    pending:0,
+    qualified: 0,
+    unqualified: 0,
+    pending: 0,
     total: 0,
-
   }),
 
   actions: {
-
-       async status (){
-        this.loading = true;
-        this.error = null;
-        try {
-             const response = await adminApi.get('dashboard');
-             const data = await response.data;
-            this.qualified = data.qualified;
-            this.unqualified = data.unqualified;
-            this.pending = data.pending;
-            this.total = data.total;
-           // Optional: Show a toast
-            toast.success('Status fetched successfully!');
-          } catch (error) {
-            console.error('Error fetching the status:', error);
-            this.error = 'Failed to fetch status summary.';
-            toast.error('Failed to fetch status summary.');
-          } finally {
-            this.loading = false;
-          }
-        },
-
-
+    async status() {
+      this.loading = true;
+      this.error = null;
+      try {
+        const response = await adminApi.get('dashboard');
+        const data = await response.data;
+        this.qualified = data.qualified;
+        this.unqualified = data.unqualified;
+        this.pending = data.pending;
+        this.total = data.total;
+        // Optional: Show a toast
+        toast.success('Status fetched successfully!');
+      } catch (error) {
+        console.error('Error fetching the status:', error);
+        this.error = 'Failed to fetch status summary.';
+        toast.error('Failed to fetch status summary.');
+      } finally {
+        this.loading = false;
+      }
+    },
 
     async fetch_vwActive() {
       this.loading = true;
@@ -75,6 +71,7 @@ export const DashboardStore = defineStore('dashboard', {
         this.loading = false;
       }
     },
+
     async fetchCountAll() {
       this.loading = true;
       try {
@@ -89,6 +86,7 @@ export const DashboardStore = defineStore('dashboard', {
         this.loading = false;
       }
     },
+
     async getSexCount() {
       this.loading = true;
       this.error = null;

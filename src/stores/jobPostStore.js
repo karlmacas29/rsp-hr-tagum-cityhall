@@ -7,6 +7,7 @@ export const useJobPostStore = defineStore('jobPost', {
     jobPosts: [],
     applicant: [],
     jobPostsrater: [],
+    applicantScores: null,
     loading: false,
     error: null,
   }),
@@ -48,6 +49,23 @@ export const useJobPostStore = defineStore('jobPost', {
       } catch (error) {
         this.error = error;
         toast.error('Failed to fetch applicants.');
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async fetch_applicant_score(id) {
+      this.loading = true;
+      try {
+        const { data } = await adminApi.get(`/show/${id}`);
+
+        // Convert object into array
+        this.applicantScores = Object.values(data.applicants);
+
+        this.error = null;
+      } catch (error) {
+        this.error = error;
+        toast.error('Failed to fetch applicant scores.');
       } finally {
         this.loading = false;
       }

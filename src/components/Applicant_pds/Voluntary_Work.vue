@@ -1,7 +1,7 @@
 <template>
   <div class="q-pa-md">
+    <div class="text-h6 text-bold">Voluntary Work</div>
     <q-table
-      title="Voluntary Work"
       :rows="voluntaryData"
       :columns="columns"
       row-key="id"

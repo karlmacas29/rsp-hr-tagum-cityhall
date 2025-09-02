@@ -1,6 +1,6 @@
 <template>
   <div class="q-mb-sm">
-    <div class="text-h5 text-bold">Spouse's Information</div>
+    <div class="text-h6 text-bold">Spouse's Information</div>
   </div>
   <!-- 1 -->
   <div class="row q-col-gutter-md q-px-sm">
@@ -48,7 +48,7 @@
 
   <q-separator class="q-my-md" />
   <div class="q-mb-sm">
-    <div class="text-h5 text-bold">Parent's Information</div>
+    <div class="text-h6 text-bold">Parent's Information</div>
   </div>
 
   <!-- 2 -->
@@ -94,12 +94,11 @@
 
   <q-separator class="q-my-md" />
   <div class="q-mb-sm">
-    <div class="text-h5 text-bold">Children's Information</div>
+    <div class="text-h6 text-bold">Children's Information</div>
   </div>
 
   <div class="q-pa-md">
     <q-table
-      title="Children's List"
       :rows="childrenData"
       :columns="childrenColumns"
       row-key="id"

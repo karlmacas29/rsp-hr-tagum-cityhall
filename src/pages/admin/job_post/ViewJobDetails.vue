@@ -107,7 +107,7 @@
           <div class="row q-col-gutter-md q-mb-sm">
             <div class="col-12 col-md-6">
               <q-card flat bordered class="q-pa-sm q-mb-xs">
-                <div class="text-caption text-grey-7">Education1</div>
+                <div class="text-caption text-grey-7">Education</div>
                 <div class="text-body1">{{ selectedCriteria?.Education || 'None' }}</div>
               </q-card>
               <q-card flat bordered class="q-pa-sm">
@@ -130,80 +130,174 @@
       </q-card-section>
     </q-card>
 
-    <!-- Applicants Table Card -->
+    <!-- Tabs Card for Applicants and Rating Results -->
     <q-card flat bordered class="shadow-2" style="max-width: 1000px; margin: auto">
       <q-inner-loading :showing="jobPostStore.loading">
         <q-spinner size="32px" color="primary" />
       </q-inner-loading>
+
       <q-card-section v-if="!jobPostStore.loading" class="q-pa-md">
-        <div class="row items-center justify-between q-mb-sm">
-          <div class="text-h6 text-primary">
-            Applicants for
-            <span class="text-weight-bold">{{ selectedJob?.Position || 'Test' }}</span>
-          </div>
-          <!-- New assessment status badge -->
-          <div class="assessment-status">
-            <q-badge class="q-pa-xs">
-              <q-icon name="assessment" class="q-mr-xs" />
-              Assessed: {{ assessedCount }}/{{ totalApplicants }} applicants
-            </q-badge>
-          </div>
-        </div>
-        <q-table
-          :rows="formattedApplicants"
-          :columns="applicantColumns"
-          row-key="id"
-          flat
-          bordered
-          class="applicants-table"
+        <q-tabs
+          v-model="activeTab"
           dense
-          v-if="applicantColumns.length"
-          separator="cell"
-          color="primary"
+          class="text-primary"
+          active-color="primary"
+          indicator-color="primary"
+          align="justify"
         >
-          <template #body-cell-name="props">
-            <q-td :props="props">
-              {{ props.row.firstname }}{{ props.row.lastname }}
-              <span v-if="props.row.name_extension">&nbsp;{{ props.row.name_extension }}</span>
-            </q-td>
-          </template>
-          <template #body-cell-appliedDate="props">
-            <q-td :props="props">
-              {{ props.row.appliedDate || '-' }}
-            </q-td>
-          </template>
-          <template #body-cell-status="props">
-            <q-td :props="props">
-              <q-badge
-                rounded
-                :color="
-                  props.row.status === 'Qualified'
-                    ? 'green'
-                    : props.row.status === 'Unqualified'
-                      ? 'red'
-                      : 'grey'
-                "
-                class="text-caption q-px-sm"
-              >
-                {{ props.row.status || '-' }}
-              </q-badge>
-            </q-td>
-          </template>
-          <template #body-cell-action="props">
-            <q-td :props="props">
-              <q-btn
-                size="sm"
-                flat
-                icon="visibility"
-                color="primary"
-                @click="viewApplicantDetails(props.row)"
-              />
-            </q-td>
-          </template>
-        </q-table>
-        <div v-else class="text-caption text-grey-6 q-mt-md q-ml-sm">
-          No applicant data available.
-        </div>
+          <q-tab name="applicants" label="Applicants" />
+          <q-tab name="ratings" label="Rating Results" />
+        </q-tabs>
+
+        <q-separator />
+
+        <q-tab-panels v-model="activeTab" animated>
+          <!-- Applicants Tab Panel -->
+          <q-tab-panel name="applicants">
+            <div class="row items-center justify-between q-mb-sm">
+              <div class="text-h6 text-primary text-bold">Applicants</div>
+              <!-- Assessment status badge -->
+              <div class="assessment-status">
+                <q-badge class="q-pa-xs">
+                  <q-icon name="assessment" class="q-mr-xs" />
+                  Assessed: {{ assessedCount }}/{{ totalApplicants }} applicants
+                </q-badge>
+              </div>
+            </div>
+            <q-table
+              :rows="formattedApplicants"
+              :columns="applicantColumns"
+              row-key="id"
+              flat
+              bordered
+              class="applicants-table"
+              dense
+              v-if="applicantColumns.length"
+              separator="cell"
+              color="primary"
+            >
+              <template #body-cell-name="props">
+                <q-td :props="props">
+                  {{ props.row.firstname }}{{ props.row.lastname }}
+                  <span v-if="props.row.name_extension">&nbsp;{{ props.row.name_extension }}</span>
+                </q-td>
+              </template>
+              <template #body-cell-appliedDate="props">
+                <q-td :props="props">
+                  {{ props.row.appliedDate || '-' }}
+                </q-td>
+              </template>
+              <template #body-cell-status="props">
+                <q-td :props="props">
+                  <q-badge
+                    rounded
+                    :color="
+                      props.row.status === 'Qualified'
+                        ? 'green'
+                        : props.row.status === 'Unqualified'
+                          ? 'red'
+                          : 'grey'
+                    "
+                    class="text-caption q-px-sm"
+                  >
+                    {{ props.row.status || '-' }}
+                  </q-badge>
+                </q-td>
+              </template>
+              <template #body-cell-action="props">
+                <q-td :props="props">
+                  <q-btn
+                    size="sm"
+                    flat
+                    icon="visibility"
+                    color="primary"
+                    @click="viewApplicantDetails(props.row)"
+                  />
+                </q-td>
+              </template>
+            </q-table>
+            <div v-else class="text-caption text-grey-6 q-mt-md q-ml-sm">
+              No applicant data available.
+            </div>
+          </q-tab-panel>
+
+          <!-- Rating Results Tab Panel -->
+          <q-tab-panel name="ratings">
+            <div class="row items-center justify-between q-mb-sm">
+              <div class="text-h6 text-primary text-bold">Rating Results</div>
+              <!-- Assessment status badge -->
+              <div class="assessment-status">
+                <q-badge class="q-pa-xs">
+                  <q-icon name="assessment" class="q-mr-xs" />
+                  Rated: {{ assessedCount }}/{{ totalApplicants }} raters
+                </q-badge>
+              </div>
+            </div>
+            <q-table
+              :rows="formattedApplicants"
+              :columns="ratingColumns"
+              row-key="id"
+              flat
+              bordered
+              class="rating-table"
+              dense
+              v-if="ratingColumns.length"
+              separator="cell"
+              color="primary"
+            >
+              <template #body-cell-name="props">
+                <q-td :props="props">
+                  {{ props.row.firstname }}{{ props.row.lastname }}
+                  <span v-if="props.row.name_extension">&nbsp;{{ props.row.name_extension }}</span>
+                </q-td>
+              </template>
+              <template #body-cell-status="props">
+                <q-td :props="props">
+                  <q-badge
+                    rounded
+                    :color="
+                      props.row.status === 'Qualified'
+                        ? 'green'
+                        : props.row.status === 'Unqualified'
+                          ? 'red'
+                          : 'grey'
+                    "
+                    class="text-caption q-px-sm"
+                  >
+                    {{ props.row.status || '-' }}
+                  </q-badge>
+                </q-td>
+              </template>
+              <template #body-cell-ranking="props">
+                <q-td :props="props">
+                  <q-badge
+                    v-if="props.row.ranking"
+                    color="orange"
+                    class="text-caption q-px-sm"
+                    rounded
+                  >
+                    {{ props.row.ranking }}
+                  </q-badge>
+                  <span v-else>-</span>
+                </q-td>
+              </template>
+              <template #body-cell-action="props">
+                <q-td :props="props">
+                  <q-btn
+                    size="sm"
+                    flat
+                    icon="visibility"
+                    color="primary"
+                    @click="viewApplicantDetails(props.row)"
+                  />
+                </q-td>
+              </template>
+            </q-table>
+            <div v-else class="text-caption text-grey-6 q-mt-md q-ml-sm">
+              No rating data available.
+            </div>
+          </q-tab-panel>
+        </q-tab-panels>
       </q-card-section>
     </q-card>
 
@@ -272,6 +366,9 @@
   const { formatDate } = date;
   const selectedCriteria = ref([]);
 
+  // Tab state
+  const activeTab = ref('applicants');
+
   // Modal state
   const qualificationModalVisible = ref(false);
   const selectedApplicantData = ref({});
@@ -331,15 +428,14 @@
     }
   };
 
+  // Table column definitions
   const applicantColumns = [
-     { name: 'id', label: 'id', field: 'id', align: 'left', sortable: true },
-
     { name: 'name', label: 'Name', field: 'name', align: 'left', sortable: true },
     {
       name: 'appliedDate',
       label: 'Applied Date',
       field: 'appliedDate',
-      align: 'left',
+      align: 'center',
     },
     {
       name: 'status',
@@ -348,7 +444,25 @@
       align: 'center',
     },
     {
-      name: 'rank',
+      name: 'action',
+      label: 'Action',
+      field: 'action',
+      align: 'center',
+      sortable: false,
+    },
+  ];
+
+  // Rating results columns - similar to applicant columns but with ranking
+  const ratingColumns = [
+    { name: 'name', label: 'Name', field: 'name', align: 'left', sortable: true },
+    {
+      name: 'status',
+      label: 'Status',
+      field: 'status',
+      align: 'center',
+    },
+    {
+      name: 'ranking',
       label: 'Rank',
       field: 'ranking',
       align: 'center',
@@ -381,7 +495,7 @@
         ranking: a.ranking,
         education: a.education || [],
         raw: a, // for details action
-       
+
         education_remark: a.education_remark,
         experience_remark: a.experience_remark,
         training_remark: a.training_remark,
@@ -426,6 +540,7 @@
     selectedApplicantData.value.status = status;
     console.log(`Qualification status changed to: ${status}`);
   };
+
   // Update the submitEvaluation function to use id
   const submitEvaluation = async (evaluationData) => {
     try {
@@ -539,5 +654,29 @@
     font-size: 0.9rem;
     padding: 8px 12px;
     border-radius: 4px;
+  }
+
+  /* Tab styling */
+  .q-tabs {
+    background-color: #fff;
+    border-radius: 8px 8px 0 0;
+  }
+
+  .q-tab {
+    font-weight: 500;
+    padding: 12px;
+  }
+
+  .q-tab-panels {
+    background-color: white;
+  }
+
+  .q-tab-panel {
+    padding: 16px;
+  }
+
+  /* Add a subtle hover effect for table rows */
+  .q-table tr:hover {
+    background-color: rgba(0, 0, 0, 0.03);
   }
 </style>

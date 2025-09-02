@@ -906,7 +906,7 @@
 
   .total-score {
     font-weight: bold;
-    color: #1976d2;
+    color: green;
   }
 
   .rank {

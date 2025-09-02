@@ -10,7 +10,7 @@
     </div>
     <div class="col">
       <div class="form-title-container">
-        <div class="text-h5 text-bold q-px-sm flex items-center q-gutter-x-sm">
+        <div class="text-h6 text-bold q-px-sm flex items-center q-gutter-x-sm">
           Employee's Name
           <q-badge v-if="props.personal?.status" :color="getStatusColor(props.personal.status)">
             {{ props.personal?.status }}
@@ -41,7 +41,7 @@
 
   <q-separator class="q-my-md" />
   <div class="q-mb-sm">
-    <div class="text-h5 text-bold">Additional Information</div>
+    <div class="text-h6 text-bold">Additional Information</div>
   </div>
   <!-- 1 -->
   <div class="row q-col-gutter-md q-px-sm">
@@ -114,7 +114,7 @@
 
   <q-separator class="q-my-md" />
   <div class="q-mb-sm">
-    <div class="text-h5 text-bold">Government IDs</div>
+    <div class="text-h6 text-bold">Government IDs</div>
   </div>
 
   <!-- 2 -->
@@ -158,7 +158,7 @@
 
   <q-separator class="q-my-md" />
   <div class="q-mb-sm">
-    <div class="text-h5 text-bold">Residential Address</div>
+    <div class="text-h6 text-bold">Residential Address</div>
   </div>
 
   <!-- 3 -->
@@ -208,7 +208,7 @@
 
   <q-separator class="q-my-md" />
   <div class="q-mb-sm">
-    <div class="text-h5 text-bold q-px-sm flex items-center q-gutter-x-sm">Permanent Address</div>
+    <div class="text-h6 text-bold q-px-sm flex items-center q-gutter-x-sm">Permanent Address</div>
   </div>
 
   <!-- 4 -->
@@ -258,7 +258,7 @@
 
   <q-separator class="q-my-md" />
   <div class="q-mb-sm">
-    <div class="text-h5 text-bold">Other Information</div>
+    <div class="text-h6 text-bold">Other Information</div>
   </div>
 
   <!-- 5 -->

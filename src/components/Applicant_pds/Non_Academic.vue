@@ -1,7 +1,7 @@
 <template>
   <div class="q-pa-md">
     <div class="q-mb-lg">
-      <div class="text-h5 text-bold">NON-ACADEMIC DISTINCTIONS / RECOGNITION</div>
+      <div class="text-h6 text-bold">NON-ACADEMIC DISTINCTIONS / RECOGNITION</div>
     </div>
     <div v-if="distinctionsData.length > 0" class="row q-col-gutter-md">
       <div

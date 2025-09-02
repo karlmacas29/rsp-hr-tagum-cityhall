@@ -1,7 +1,7 @@
 <template>
   <div class="q-pa-md">
+    <div class="text-h6 text-bold">Civil Service Eligibility</div>
     <q-table
-      title="Civil Service Eligibility"
       :rows="eligibilityData"
       :columns="columns"
       row-key="id"

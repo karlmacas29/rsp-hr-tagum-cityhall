@@ -1,7 +1,7 @@
 <template>
   <div class="q-pa-md">
+    <div class="text-h6 text-bold">Work Experience</div>
     <q-table
-      title="Work Experience"
       :rows="experienceData"
       :columns="columns"
       row-key="id"

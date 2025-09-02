@@ -1,7 +1,7 @@
 <template>
   <div class="q-pa-md">
     <div class="q-mb-lg">
-      <div class="text-h5 text-bold">MEMBERSHIP IN ASSOCIATION/ORGANIZATION</div>
+      <div class="text-h6 text-bold">MEMBERSHIP IN ASSOCIATION/ORGANIZATION</div>
     </div>
     <div v-if="membershipData.length > 0" class="row q-col-gutter-md">
       <div

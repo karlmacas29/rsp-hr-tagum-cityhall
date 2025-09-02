@@ -3,7 +3,7 @@
   <q-dialog v-model="localShowModal" persistent class="pds-dialog">
     <q-card class="pds-container">
       <q-card-section class="row justify-between text-black q-mb-sm">
-        <div class="text-h4 text-bold items-center flex">
+        <div class="text-h5 text-bold items-center flex">
           Personal Data Sheet (PDS)
 
           <q-badge class="bg-blue">View PDS</q-badge>

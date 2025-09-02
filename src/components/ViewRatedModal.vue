@@ -16,11 +16,10 @@
             <q-input
               v-model="filterText"
               dense
-              outlined
+              borderless
               placeholder="Filter by name"
               class="filter-input"
               clearable
-              readonly
             >
               <template v-slot:prepend>
                 <q-icon name="search" />
@@ -28,14 +27,7 @@
             </q-input>
           </div>
           <div class="col-4">
-            <q-select
-              v-model="sortBy"
-              :options="sortOptions"
-              dense
-              outlined
-              label="Sort by"
-              readonly
-            />
+            <q-select v-model="sortBy" :options="sortOptions" dense borderless label="Sort by" />
           </div>
           <div class="col-4">
             <q-btn-toggle
@@ -50,7 +42,6 @@
               no-caps
               unelevated
               rounded
-              disable
             />
           </div>
         </div>
@@ -193,7 +184,7 @@
                       :model-value="applicant.educationScore"
                       type="number"
                       dense
-                      outlined
+                      borderless
                       readonly
                       class="score-input"
                     />
@@ -203,7 +194,7 @@
                       :model-value="applicant.experienceScore"
                       type="number"
                       dense
-                      outlined
+                      borderless
                       readonly
                       class="score-input"
                     />
@@ -213,7 +204,7 @@
                       :model-value="applicant.trainingScore"
                       type="number"
                       dense
-                      outlined
+                      borderless
                       readonly
                       class="score-input"
                     />
@@ -223,7 +214,7 @@
                       :model-value="applicant.performanceScore"
                       type="number"
                       dense
-                      outlined
+                      borderless
                       readonly
                       class="score-input"
                     />
@@ -233,7 +224,7 @@
                       :model-value="applicant.behavioralScore"
                       type="number"
                       dense
-                      outlined
+                      borderless
                       readonly
                       class="score-input"
                     />
@@ -357,9 +348,9 @@
 
       <!-- Footer (Sticky) -->
       <q-card-section class="footer-section sticky-footer">
-        <div class="row justify-end q-gutter-sm">
+        <!-- <div class="row justify-end q-gutter-sm">
           <q-btn color="primary" label="Close" @click="closeForm" dense />
-        </div>
+        </div> -->
       </q-card-section>
     </q-card>
   </q-dialog>
@@ -655,7 +646,7 @@
       background-color: rgba(0, 0, 0, 0.03);
     }
     &.expanded {
-      background-color: #e3f2fd;
+      background-color: #d0ffd6;
     }
   }
   .score-input {
@@ -673,11 +664,11 @@
   }
   .total-score {
     font-weight: bold;
-    color: #1976d2;
+    color: green;
   }
   .rank {
     font-weight: bold;
-    background-color: #f0f8ff;
+    background-color: #d0ffd6;
   }
   .applicant-details {
     background-color: #f8f9fa;

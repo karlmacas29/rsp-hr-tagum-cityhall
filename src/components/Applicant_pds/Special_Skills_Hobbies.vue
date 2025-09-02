@@ -1,7 +1,7 @@
 <template>
   <div class="q-pa-md">
     <div class="q-mb-lg">
-      <div class="text-h5 text-bold">SPECIAL SKILLS AND HOBBIES</div>
+      <div class="text-h6 text-bold">SPECIAL SKILLS AND HOBBIES</div>
     </div>
     <div v-if="skillsData.length > 0" class="row q-col-gutter-md">
       <div v-for="(skill, index) in skillsData" :key="skill.id" class="col-12 col-sm-6 col-md-4">

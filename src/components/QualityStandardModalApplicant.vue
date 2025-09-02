@@ -17,11 +17,7 @@
             {{ applicantData?.name || 'Please wait' }}
           </div>
           <div class="applicant-info">
-            {{ applicantData?.position || 'Office of the ...' }} (Level:
-            <q-badge rounded dense color="green" class="text-white q-ml-xs">
-              {{ applicantData?.level || 'A' }}
-            </q-badge>
-            )
+            {{ applicantData?.position || 'Office of the ...' }}
           </div>
           <div class="applicant-info">
             Applied: {{ applicantData?.appliedDate || '#### ##, ####' }}
@@ -59,7 +55,7 @@
 
           <q-separator />
 
-          <q-tab-panels v-model="tab" animated class="q-pa-md" style="min-height: 400px">
+          <q-tab-panels v-model="tab" class="q-pa-md" style="min-height: 400px">
             <!-- Education Tab -->
             <q-tab-panel name="education" class="q-pa-none">
               <div class="row q-col-gutter-md">
@@ -70,11 +66,8 @@
                     <q-table
                       :rows="formattedEducation"
                       :columns="xEduCol"
-                      dense
-                      flat
                       hide-bottom
                       row-key="id"
-                      class="modern-table"
                       :pagination="{ rowsPerPage: 5 }"
                       wrap-cells
                       :hide-header="false"
@@ -604,14 +597,12 @@
       label: 'Name of School',
       align: 'left',
       field: 'school_name',
-      sortable: true,
     },
     {
       name: 'course',
       label: 'Degree/Course',
       align: 'left',
       field: 'degree',
-      sortable: true,
     },
     {
       name: 'fromYear',
@@ -630,21 +621,18 @@
       label: 'Units Earned',
       align: 'left',
       field: 'highest_units',
-      sortable: true,
     },
     {
       name: 'yearGraduated',
       label: 'Year Graduated',
       align: 'left',
       field: 'year_graduated',
-      sortable: true,
     },
     {
       name: 'honors',
       label: 'Honors',
       align: 'left',
       field: 'scholarship',
-      sortable: true,
     },
   ];
 
@@ -931,7 +919,6 @@
     border-radius: 8px;
     display: flex;
     flex-direction: column;
-    font-family: Poppins, sans-serif;
     background-color: #ffffff;
   }
 
@@ -1014,7 +1001,7 @@
   .modern-table-card {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
     border-radius: 8px;
-    border: 1px solid #eee !important;
+    border: 2px solid #eee !important;
     overflow: hidden;
     margin-bottom: 20px;
   }

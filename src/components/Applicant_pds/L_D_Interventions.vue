@@ -1,12 +1,7 @@
 <template>
   <div class="q-pa-md">
-    <q-table
-      title="Learning and Development (L&D) Interventions"
-      :rows="trainingData"
-      :columns="columns"
-      row-key="id"
-      :pagination="{ rowsPerPage: 10 }"
-    >
+    <div class="text-h6 text-bold">L&D Interventions</div>
+    <q-table :rows="trainingData" :columns="columns" row-key="id" :pagination="{ rowsPerPage: 10 }">
       <template v-slot:body-cell-fromDate="props">
         <q-td :props="props">
           {{ formatDate(props.row.inclusive_date_from) }}
@@ -116,12 +111,4 @@
   ];
 </script>
 
-<style scoped>
-  .text-h6 {
-    color: #666;
-  }
-
-  .q-table__title {
-    font-weight: bold;
-  }
-</style>
+<style scoped></style>

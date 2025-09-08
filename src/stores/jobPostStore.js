@@ -6,6 +6,7 @@ export const useJobPostStore = defineStore('jobPost', {
   state: () => ({
     jobPosts: [],
     applicant: [],
+    applicant_rating: [],
     jobPostsrater: [],
     applicantScores: null,
     loading: false,
@@ -54,18 +55,37 @@ export const useJobPostStore = defineStore('jobPost', {
       }
     },
 
+    async fetch_applicant_rating(id) {
+      this.loading = true;
+      try {
+        const { data } = await adminApi.get(`/rater/show/${id}`);
+        this.applicant_rating = data.applicants_rating || data;
+        this.error = null;
+        return this.applicant_rating;
+      } catch (error) {
+        this.error = error;
+        toast.error('Failed to fetch applicant ratings.');
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
     async fetch_applicant_score(id) {
       this.loading = true;
       try {
-        const { data } = await adminApi.get(`/show/${id}`);
+        const { data } = await adminApi.get(`/rater/applicant/history/score/${id}`);
 
-        // Convert object into array
-        this.applicantScores = Object.values(data.applicants);
-
+        // Store the complete response data, not just data.applicants
+        this.applicant = data;
         this.error = null;
+
+        console.log('Store - fetch_applicant_score response:', data);
+        return data; // Return the data for immediate use
       } catch (error) {
         this.error = error;
         toast.error('Failed to fetch applicant scores.');
+        throw error;
       } finally {
         this.loading = false;
       }

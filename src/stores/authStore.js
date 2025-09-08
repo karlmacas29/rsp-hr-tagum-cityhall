@@ -128,7 +128,7 @@ export const useAuthStore = defineStore('auth', {
         .find((row) => row.startsWith('admin_token='))
         ?.split('=')[1];
       try {
-        await adminApi.post('/logout', null, {
+        await adminApi.post('/users/logout', null, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

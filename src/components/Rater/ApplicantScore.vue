@@ -1,46 +1,197 @@
 <template>
-  <q-dialog v-model="localShow" persistent @show="onModalShow" @hide="onModalHide">
-    <q-card class="applicant-score-modal">
-      <q-card-section
-        class="row items-center bg-primary text-white"
-        style="position: relative; padding-bottom: 12px"
-      >
-        <div>
-          <div class="text-h6 text-bold">Applicant Scores by Rater</div>
-          <div class="text-subtitle1 q-mt-xs">
+  <q-dialog v-model="localShow" persistent>
+    <q-card
+      class="applicant-score-modal"
+      style="width: 1200px; max-width: 98vw; max-height: 98vh; overflow: auto"
+    >
+      <!-- Sticky Applicant Header -->
+      <q-card-section class="row items-center header q-px-md q-py-sm">
+        <q-img
+          :src="applicantImageUrl || 'https://placehold.co/100'"
+          class="bg-grey-4"
+          style="width: 90px; height: 90px; border-radius: 10px; margin-right: 24px"
+          alt="Applicant Photo"
+        />
+        <div class="col">
+          <div class="applicant-name">
             {{ applicantName }}
           </div>
-          <div class="text-subtitle1 q-mt-xs">
-            {{ applicant.status }}
-          </div>
+          <div class="applicant-info">Position: {{ applicant?.position || 'N/A' }}</div>
+          <div class="applicant-info">Final Rank: #{{ finalScores?.rank || 'N/A' }}</div>
         </div>
-        <q-space />
-        <q-btn icon="close" flat round dense class="close-btn" @click="closeModal" />
+        <div class="col-auto">
+          <q-btn icon="close" flat round dense class="close-btn q-ml-md" @click="closeModal" />
+        </div>
       </q-card-section>
 
-      <q-card-section style="padding-top: 12px">
-        <q-table :rows="raterScores" :columns="columns" row-key="rater" flat dense hide-pagination>
-          <template v-slot:body-cell-rank="props">
-            <q-td :props="props">
-              <span class="text-bold">
-                <q-badge color="green" class="text-caption q-px-sm" rounded>
-                  {{ props.row.rank }}
-                </q-badge>
-              </span>
-            </q-td>
-          </template>
-          <template v-slot:body-cell-grandTotal="props">
-            <q-td :props="props">
-              <span class="text-bold">{{ props.row.grandTotal }}</span>
-            </q-td>
-          </template>
-        </q-table>
+      <q-separator />
+
+      <q-card-section class="main-content-section q-pa-none">
+        <!-- Individual Rater Scores -->
+        <div v-if="raterScores.length > 0" class="q-mb-lg q-pa-md">
+          <div class="section-title">Individual Rater Scores</div>
+          <q-card flat class="modern-table-card">
+            <q-table
+              :rows="raterScores"
+              :columns="columns"
+              row-key="id"
+              flat
+              dense
+              hide-pagination
+              separator="cell"
+              wrap-cells
+              :hide-header="false"
+            >
+              <template v-slot:header="props">
+                <q-tr :props="props">
+                  <q-th
+                    v-for="col in props.cols"
+                    :key="col.name"
+                    :props="props"
+                    class="modern-table-header"
+                  >
+                    {{ col.label }}
+                  </q-th>
+                </q-tr>
+              </template>
+              <template v-slot:body="props">
+                <q-tr :props="props" class="modern-table-row">
+                  <q-td
+                    v-for="col in props.cols"
+                    :key="col.name"
+                    :props="props"
+                    class="modern-table-cell"
+                  >
+                    <template v-if="col.name === 'rater'">
+                      <span class="text-weight-medium">
+                        {{ props.row.rater_name || 'Anonymous Rater' }}
+                      </span>
+                      <div v-if="props.row.rater_id" class="text-caption text-grey-6">
+                        ID: {{ props.row.rater_id }}
+                      </div>
+                    </template>
+                    <template v-else-if="col.name === 'rank'">
+                      <q-badge
+                        :color="getRankColor(props.row.ranking)"
+                        class="text-caption q-px-sm"
+                        rounded
+                      >
+                        {{ props.row.ranking }}
+                      </q-badge>
+                    </template>
+                    <template v-else-if="col.name === 'grandTotal'">
+                      <span class="text-bold">{{ formatScore(props.row.grand_total) }}</span>
+                    </template>
+                    <template v-else>
+                      {{ formatScore(props.row[col.field]) }}
+                    </template>
+                  </q-td>
+                </q-tr>
+              </template>
+              <template v-slot:no-data>
+                <div class="full-width row flex-center q-pa-md text-grey-7">
+                  <q-icon name="info" size="18px" class="q-mr-sm" />
+                  No individual rater scores available
+                </div>
+              </template>
+            </q-table>
+          </q-card>
+        </div>
+
+        <!-- Final/Average Scores -->
+        <div v-if="finalScores" class="q-pa-md">
+          <div class="section-title">Final Averaged Scores</div>
+          <q-card flat class="modern-table-card">
+            <q-table
+              :rows="[finalScores]"
+              :columns="finalScoreColumns"
+              row-key="nPersonalInfo_id"
+              flat
+              dense
+              hide-pagination
+              separator="cell"
+              wrap-cells
+              :hide-header="false"
+            >
+              <template v-slot:header="props">
+                <q-tr :props="props">
+                  <q-th
+                    v-for="col in props.cols"
+                    :key="col.name"
+                    :props="props"
+                    class="modern-table-header"
+                  >
+                    {{ col.label }}
+                  </q-th>
+                </q-tr>
+              </template>
+              <template v-slot:body="props">
+                <q-tr :props="props" class="modern-table-row">
+                  <q-td
+                    v-for="col in props.cols"
+                    :key="col.name"
+                    :props="props"
+                    class="modern-table-cell"
+                  >
+                    <template v-if="col.name === 'rank'">
+                      <q-badge
+                        :color="getRankColor(props.row.rank)"
+                        class="text-caption q-px-sm"
+                        rounded
+                      >
+                        {{ props.row.rank }}
+                      </q-badge>
+                    </template>
+                    <template v-else-if="col.name === 'grandTotal'">
+                      <span class="text-bold text-positive">
+                        {{ formatScore(props.row.grand_total) }}
+                      </span>
+                    </template>
+                    <template v-else>
+                      {{ formatScore(props.row[col.field]) }}
+                    </template>
+                  </q-td>
+                </q-tr>
+              </template>
+            </q-table>
+          </q-card>
+        </div>
+
+        <!-- No data message -->
+        <div
+          v-if="raterScores.length === 0 && !finalScores"
+          class="text-center q-pa-md text-grey-6"
+        >
+          <q-icon name="info" size="2em" />
+          <div class="q-mt-sm">No scoring data available for this applicant</div>
+        </div>
+      </q-card-section>
+
+      <!-- Footer Actions -->
+      <q-separator />
+      <q-card-section class="footer-actions bg-grey-2 q-py-sm">
+        <div class="row justify-between items-center">
+          <div>
+            <q-btn
+              flat
+              dense
+              :icon="showControlNo ? 'visibility_off' : 'visibility'"
+              @click="showControlNo = !showControlNo"
+              class="q-mr-sm"
+            />
+            <q-badge v-if="showControlNo" color="grey-7" class="control-badge">
+              Control No. {{ applicant?.nPersonalInfo_id || '0' }}
+            </q-badge>
+          </div>
+        </div>
       </q-card-section>
     </q-card>
   </q-dialog>
 </template>
 
 <script>
+  import { ref, computed, watch } from 'vue';
+
   export default {
     name: 'ApplicantScoreModal',
     props: {
@@ -53,161 +204,294 @@
         default: () => ({}),
       },
     },
-    data() {
-      return {
-        localShow: this.show,
-        raterScores: [],
-        columns: [
-          { name: 'rater', label: 'Rater', field: 'rater', align: 'left' },
-          {
-            name: 'education',
-            label: 'Education',
-            field: 'education',
-            align: 'left',
-          },
-          {
-            name: 'experience',
-            label: 'Experience',
-            field: 'experience',
-            align: 'left',
-          },
-          {
-            name: 'trainingPerformance',
-            label: 'Training Performance',
-            field: 'trainingPerformance',
-            align: 'left',
-          },
-          { name: 'bei', label: 'BEI', field: 'bei', align: 'left' },
-          { name: 'totalQs', label: 'Total QS', field: 'totalQs', align: 'center' },
-          { name: 'rank', label: 'Rank', field: 'rank', align: 'center' },
-          {
-            name: 'grandTotal',
-            label: 'Grand Total',
-            field: 'grandTotal',
-            align: 'center',
-          },
-        ],
-      };
-    },
-    computed: {
-      applicantName() {
-        if (!this.applicant) return '';
-        let ext = this.applicant.name_extension ? ` ${this.applicant.name_extension}` : '';
-        let firstname = this.applicant.firstname || this.applicant.first_name || '';
-        let lastname = this.applicant.lastname || this.applicant.last_name || '';
-        return `${firstname} ${lastname}${ext}`;
-      },
-    },
-    watch: {
-      show(val) {
-        this.localShow = val;
-        if (val) {
-          this.loadRaterScores();
-        }
-      },
-      localShow(val) {
-        this.$emit('update:show', val);
-        if (!val) this.$emit('close');
-      },
-      applicant: {
-        handler() {
-          if (this.localShow) this.loadRaterScores();
+    emits: ['update:show', 'close'],
+    setup(props, { emit }) {
+      const localShow = ref(props.show);
+      const raterScores = ref([]);
+      const finalScores = ref(null);
+      const applicantImageUrl = ref('');
+      const showControlNo = ref(false);
+
+      const applicantName = computed(() => {
+        if (!props.applicant) return 'Unknown Applicant';
+
+        const firstName = props.applicant.firstname || props.applicant.first_name || '';
+        const lastName = props.applicant.lastname || props.applicant.last_name || '';
+        const extension = props.applicant.name_extension
+          ? ` ${props.applicant.name_extension}`
+          : '';
+
+        return `${firstName} ${lastName}${extension}`.trim() || 'Unknown Applicant';
+      });
+
+      const columns = ref([
+        { name: 'rater', label: 'Rater', field: 'rater_name', align: 'left' },
+        {
+          name: 'education',
+          label: 'Education',
+          field: 'education',
+          align: 'center',
         },
-        immediate: true,
-        deep: true,
-      },
-    },
-    methods: {
-      onModalShow() {
-        this.loadRaterScores();
-      },
-      onModalHide() {
-        this.$emit('close');
-      },
-      closeModal() {
-        this.localShow = false;
-      },
-      loadRaterScores() {
-        if (
-          this.applicant &&
-          Array.isArray(this.applicant.raterScores) &&
-          this.applicant.raterScores.length
-        ) {
-          this.raterScores = this.applicant.raterScores;
-        } else {
-          this.raterScores = [
-            {
-              rater: 'Rater 1',
-              education: 25,
-              experience: 30,
-              trainingPerformance: 20,
-              bei: 15,
-              totalQs: 90,
-              rank: 1,
-              grandTotal: 180,
-            },
-            {
-              rater: 'Rater 2',
-              education: 24,
-              experience: 28,
-              trainingPerformance: 19,
-              bei: 16,
-              totalQs: 87,
-              rank: 2,
-              grandTotal: 174,
-            },
-          ];
+        {
+          name: 'experience',
+          label: 'Experience',
+          field: 'experience',
+          align: 'center',
+        },
+        {
+          name: 'training',
+          label: 'Training',
+          field: 'training',
+          align: 'center',
+        },
+        {
+          name: 'performance',
+          label: 'Performance',
+          field: 'performance',
+          align: 'center',
+        },
+        { name: 'bei', label: 'BEI', field: 'bei', align: 'center' },
+        { name: 'totalQs', label: 'Total QS', field: 'total_qs', align: 'center' },
+        { name: 'rank', label: 'Rank', field: 'ranking', align: 'center' },
+        {
+          name: 'grandTotal',
+          label: 'Grand Total',
+          field: 'grand_total',
+          align: 'center',
+        },
+      ]);
+
+      const finalScoreColumns = ref([
+        {
+          name: 'education',
+          label: 'Education',
+          field: 'education',
+          align: 'center',
+        },
+        {
+          name: 'experience',
+          label: 'Experience',
+          field: 'experience',
+          align: 'center',
+        },
+        {
+          name: 'training',
+          label: 'Training',
+          field: 'training',
+          align: 'center',
+        },
+        {
+          name: 'performance',
+          label: 'Performance',
+          field: 'performance',
+          align: 'center',
+        },
+        { name: 'bei', label: 'BEI', field: 'bei', align: 'center' },
+        { name: 'totalQs', label: 'Total QS', field: 'total_qs', align: 'center' },
+        { name: 'rank', label: 'Final Rank', field: 'rank', align: 'center' },
+        {
+          name: 'grandTotal',
+          label: 'Final Total',
+          field: 'grand_total',
+          align: 'center',
+        },
+      ]);
+
+      // DEFINE ALL FUNCTIONS FIRST BEFORE WATCHERS
+
+      const closeModal = () => {
+        localShow.value = false;
+      };
+
+      const cleanupModal = () => {
+        raterScores.value = [];
+        finalScores.value = null;
+        applicantImageUrl.value = '';
+        showControlNo.value = false;
+        emit('close');
+      };
+
+      const getRankColor = (rank) => {
+        const rankNum = parseInt(rank);
+        if (rankNum === 1) return 'orange';
+        if (rankNum === 2) return 'grey-6';
+        if (rankNum === 3) return 'brown';
+        return 'grey';
+      };
+
+      const formatScore = (score) => {
+        if (score === null || score === undefined || score === '') return '0.00';
+        const num = parseFloat(score);
+        return isNaN(num) ? '0.00' : num.toFixed(2);
+      };
+
+      const loadScoreData = () => {
+        console.log('Loading score data for applicant:', props.applicant);
+
+        if (!props.applicant) {
+          console.warn('No applicant data available');
+          return;
         }
-      },
+
+        // Set image URL
+        applicantImageUrl.value = props.applicant.image_url || 'https://placehold.co/100';
+
+        // Load individual rater scores from history
+        if (props.applicant.history && Array.isArray(props.applicant.history)) {
+          raterScores.value = props.applicant.history.map((score, index) => ({
+            ...score,
+            // Ensure we have a unique ID for each row
+            id: score.id || `rater-${index}`,
+          }));
+          console.log('Loaded rater scores:', raterScores.value);
+        } else {
+          console.log('No history data found in applicant:', props.applicant);
+          raterScores.value = [];
+        }
+
+        // Set final scores (the averaged scores from the main applicant data)
+        finalScores.value = {
+          education: props.applicant.education,
+          experience: props.applicant.experience,
+          training: props.applicant.training,
+          performance: props.applicant.performance,
+          bei: props.applicant.bei,
+          total_qs: props.applicant.total_qs,
+          grand_total: props.applicant.grand_total,
+          rank: props.applicant.rank,
+          nPersonalInfo_id: props.applicant.nPersonalInfo_id,
+        };
+
+        console.log('Final scores set:', finalScores.value);
+        console.log('Rater scores set:', raterScores.value);
+      };
+
+      // NOW DEFINE WATCHERS AFTER ALL FUNCTIONS ARE DECLARED
+
+      // Watch for show prop changes
+      watch(
+        () => props.show,
+        (newVal) => {
+          localShow.value = newVal;
+          if (newVal) {
+            loadScoreData();
+          }
+        },
+        { immediate: true },
+      );
+
+      // Watch for applicant changes
+      watch(
+        () => props.applicant,
+        () => {
+          if (props.show) {
+            loadScoreData();
+          }
+        },
+        { deep: true },
+      );
+
+      watch(localShow, (newVal) => {
+        emit('update:show', newVal);
+        if (!newVal) {
+          cleanupModal();
+        }
+      });
+
+      return {
+        localShow,
+        raterScores,
+        finalScores,
+        applicantImageUrl,
+        showControlNo,
+        applicantName,
+        columns,
+        finalScoreColumns,
+        closeModal,
+        getRankColor,
+        formatScore,
+      };
     },
   };
 </script>
 
-<style scoped>
+<style scoped lang="scss">
   .applicant-score-modal {
-    width: 1000px;
-    max-width: 95vw;
-    max-height: 90vh;
+    border-radius: 8px;
     display: flex;
     flex-direction: column;
-    border-radius: 12px;
-    box-shadow:
-      0 2px 12px 0 rgba(38, 50, 56, 0.12),
-      0 1.5px 7px 0 rgba(38, 50, 56, 0.08);
-    border: 1px solid #eee;
-    background: #fff;
-  }
-  .q-card-section.bg-primary {
-    border-radius: 12px 12px 0 0;
-    padding: 18px 24px 10px 24px !important;
+    background-color: #ffffff;
   }
 
-  .text-h6.text-bold {
-    font-weight: 700;
-    letter-spacing: -0.5px;
-  }
-
-  .close-btn {
-    position: absolute;
-    right: 16px;
-    top: 10px;
-    color: #fff;
+  .header {
+    background-color: #f5f5f5;
+    position: sticky;
+    top: 0;
     z-index: 2;
   }
 
-  .q-table {
-    background: #fff;
-    border-radius: 8px;
-    font-size: 1rem;
-  }
-  .q-table thead tr {
-    background: #f7f7fa;
+  .applicant-name {
+    font-size: 14px;
     font-weight: 600;
+    color: #333;
+    margin-bottom: 4px;
   }
-  .q-table tr:hover {
-    background-color: rgba(33, 86, 164, 0.04);
+
+  .applicant-info {
+    font-size: 10px;
+    color: #666;
+    margin-bottom: 2px;
   }
-  .q-td .text-bold {
-    font-weight: 700;
+
+  .modern-table-card {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+    border-radius: 8px;
+    border: 2px solid #eee !important;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+
+  .modern-table-header {
+    background-color: #fff !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    color: #333 !important;
+    padding: 12px 16px !important;
+    border-bottom: 1px solid #eee;
+  }
+
+  .modern-table-row {
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: #f9f9f9;
+    }
+
+    &:nth-child(even) {
+      background-color: #fafafa;
+    }
+  }
+
+  .modern-table-cell {
+    padding: 12px 16px !important;
+    font-size: 11px !important;
+    color: #333;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .section-title {
+    font-size: 14px;
+    font-weight: 400;
+    color: #333;
+    margin: 0 0 12px 0;
+  }
+
+  .footer-actions {
+    flex: 0 0 auto;
+    border-top: 1px solid #eee;
+  }
+
+  .control-badge {
+    font-size: 9px;
   }
 </style>

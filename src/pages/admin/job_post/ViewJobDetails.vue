@@ -1,15 +1,3 @@
-async fetch_applicant_score(id) { this.loading = true; try { const { data } = await
-adminApi.get(`/show/${id}`); this.applicant = data.applicants; this.error = null; } catch (error) {
-this.error = error; toast.error('Failed to fetch applicants.'); } finally { this.loading = false; }
-},{ "34": { "firstname": "Deniel", "lastname": "Tomenio", "education": "23.00", "experience":
-"18.50", "training": "13.50", "performance": "9.00", "bei": "18.00", "total_qs": "64.00",
-"grand_total": "82.00", "nPersonalInfo_id": "34", "job_batches_rsp_id": "40061", "rank": 1 }, "33":
-{ "firstname": "Alvin", "lastname": "Monsanto", "education": "16.50", "experience": "17.50",
-"training": "12.50", "performance": "7.50", "bei": "19.00", "total_qs": "54.00", "grand_total":
-"73.00", "nPersonalInfo_id": "33", "job_batches_rsp_id": "40061", "rank": 2 }, "32": { "firstname":
-"Millan", "lastname": "Cliford", "education": "13.00", "experience": "13.00", "training": "10.00",
-"performance": "10.00", "bei": "13.00", "total_qs": "46.00", "grand_total": "59.00",
-"nPersonalInfo_id": "32", "job_batches_rsp_id": "40061", "rank": 3 } }
 <template>
   <div class="q-pa-md bg-grey-1">
     <!-- Job Details Card -->
@@ -144,10 +132,7 @@ this.error = error; toast.error('Failed to fetch applicants.'); } finally { this
 
     <!-- Tabs Card for Applicants and Rating Results -->
     <q-card flat bordered class="shadow-2" style="max-width: 1000px; margin: auto">
-      <q-inner-loading :showing="jobPostStore.loading">
-        <q-spinner size="32px" color="primary" />
-      </q-inner-loading>
-
+      <!-- Removed key attribute to fix duplicate key error -->
       <q-card-section v-if="!jobPostStore.loading" class="q-pa-md">
         <q-tabs
           v-model="activeTab"
@@ -156,6 +141,7 @@ this.error = error; toast.error('Failed to fetch applicants.'); } finally { this
           active-color="primary"
           indicator-color="primary"
           align="justify"
+          :key="tabsKey"
         >
           <q-tab name="applicants" label="Applicants" />
           <q-tab name="ratings" label="Rating Results" />
@@ -163,12 +149,11 @@ this.error = error; toast.error('Failed to fetch applicants.'); } finally { this
 
         <q-separator />
 
-        <q-tab-panels v-model="activeTab" animated>
+        <q-tab-panels v-model="activeTab" animated :key="tabPanelsKey">
           <!-- Applicants Tab Panel -->
           <q-tab-panel name="applicants">
             <div class="row items-center justify-between q-mb-sm">
               <div class="text-h6 text-primary text-bold">Applicants</div>
-              <!-- Assessment status badge -->
               <div class="assessment-status">
                 <q-badge class="q-pa-xs">
                   <q-icon name="assessment" class="q-mr-xs" />
@@ -190,7 +175,7 @@ this.error = error; toast.error('Failed to fetch applicants.'); } finally { this
             >
               <template #body-cell-name="props">
                 <q-td :props="props">
-                  {{ props.row.firstname }}{{ props.row.lastname }}
+                  {{ props.row.firstname }} {{ props.row.lastname }}
                   <span v-if="props.row.name_extension">&nbsp;{{ props.row.name_extension }}</span>
                 </q-td>
               </template>
@@ -237,60 +222,91 @@ this.error = error; toast.error('Failed to fetch applicants.'); } finally { this
           <q-tab-panel name="ratings">
             <div class="row items-center justify-between q-mb-sm">
               <div class="text-h6 text-primary text-bold">Rating Results</div>
-              <!-- Assessment status badge -->
               <div class="assessment-status">
-                <q-badge class="q-pa-xs">
+                <q-badge class="q-pa-xs" color="primary" text-color="white">
                   <q-icon name="assessment" class="q-mr-xs" />
-                  Rated: {{ assessedCount }}/{{ totalApplicants }} raters
+                  Rated: {{ ratingData.total_completed }}/{{ ratingData.total_assigned }}
+                  completed ratings
                 </q-badge>
               </div>
             </div>
+
+            <div v-if="ratingsLoading" class="text-center q-pa-md">
+              <q-spinner color="primary" size="32px" />
+              <div class="q-mt-sm text-grey-6">Loading ratings...</div>
+            </div>
+
             <q-table
-              :rows="formattedApplicants"
+              v-else-if="formattedApplicantRatings.length > 0"
+              :rows="formattedApplicantRatings"
               :columns="ratingColumns"
-              row-key="id"
+              row-key="nPersonalInfo_id"
               flat
               bordered
               class="rating-table"
               dense
-              v-if="ratingColumns.length"
               separator="cell"
               color="primary"
             >
               <template #body-cell-name="props">
+                <q-td :props="props">{{ props.row.firstname }} {{ props.row.lastname }}</q-td>
+              </template>
+              <template #body-cell-education="props">
                 <q-td :props="props">
-                  {{ props.row.firstname }}{{ props.row.lastname }}
-                  <span v-if="props.row.name_extension">&nbsp;{{ props.row.name_extension }}</span>
+                  {{ props.row.education }}
                 </q-td>
               </template>
-              <template #body-cell-status="props">
+              <template #body-cell-experience="props">
+                <q-td :props="props">
+                  {{ props.row.experience }}
+                </q-td>
+              </template>
+              <template #body-cell-training="props">
+                <q-td :props="props">
+                  {{ props.row.training }}
+                </q-td>
+              </template>
+              <template #body-cell-performance="props">
+                <q-td :props="props">
+                  {{ props.row.performance }}
+                </q-td>
+              </template>
+              <template #body-cell-bei="props">
+                <q-td :props="props">
+                  {{ props.row.bei }}
+                </q-td>
+              </template>
+              <template #body-cell-total_qs="props">
+                <q-td :props="props">
+                  <q-badge color="blue" class="text-caption q-px-sm" rounded>
+                    {{ props.row.total_qs }}
+                  </q-badge>
+                </q-td>
+              </template>
+              <template #body-cell-grand_total="props">
+                <q-td :props="props">
+                  <q-badge color="green" class="text-caption q-px-sm" rounded>
+                    {{ props.row.grand_total }}
+                  </q-badge>
+                </q-td>
+              </template>
+              <template #body-cell-rank="props">
                 <q-td :props="props">
                   <q-badge
-                    rounded
                     :color="
-                      props.row.status === 'Qualified'
-                        ? 'green'
-                        : props.row.status === 'Unqualified'
-                          ? 'red'
-                          : 'grey'
+                      props.row.rank === 1
+                        ? 'orange'
+                        : props.row.rank === 2
+                          ? 'grey-6'
+                          : props.row.rank === 3
+                            ? 'brown'
+                            : 'grey'
                     "
                     class="text-caption q-px-sm"
-                  >
-                    {{ props.row.status || '-' }}
-                  </q-badge>
-                </q-td>
-              </template>
-              <template #body-cell-ranking="props">
-                <q-td :props="props">
-                  <q-badge
-                    v-if="props.row.ranking"
-                    color="orange"
-                    class="text-caption q-px-sm"
                     rounded
                   >
-                    {{ props.row.ranking }}
+                    {{ props.row.rank }}
                   </q-badge>
-                  <span v-else>-</span>
                 </q-td>
               </template>
               <template #body-cell-action="props">
@@ -314,7 +330,7 @@ this.error = error; toast.error('Failed to fetch applicants.'); } finally { this
     </q-card>
 
     <!-- PDF Dialog -->
-    <q-dialog v-model="pdfModalVisible">
+    <q-dialog v-model="pdfModalVisible" maximized>
       <q-card style="width: 85vw; max-width: 1000px; height: 90vh">
         <q-card-section class="row items-center bg-primary text-white">
           <div class="text-h6 text-bold">Funded Plantilla Document</div>
@@ -343,7 +359,7 @@ this.error = error; toast.error('Failed to fetch applicants.'); } finally { this
       </q-card>
     </q-dialog>
 
-    <!-- Qualification Modal -->
+    <!-- Modals -->
     <QualificationModal
       v-if="qualificationModalVisible"
       :show="qualificationModalVisible"
@@ -351,7 +367,7 @@ this.error = error; toast.error('Failed to fetch applicants.'); } finally { this
       :education="selectedApplicantData.education"
       :position-requirements="selectedCriteria"
       :is-submitted="false"
-      @update:show="qualificationModalVisible = $event"
+      @update:show="handleQualificationModalUpdate"
       @view-pds="onViewPDS"
       @toggle-qualification="onToggleQualification"
       @submit="submitEvaluation"
@@ -362,7 +378,7 @@ this.error = error; toast.error('Failed to fetch applicants.'); } finally { this
       v-if="scoreModal.visible"
       :show="scoreModal.visible"
       :applicant="scoreModal.applicant"
-      @update:show="scoreModal.visible = $event"
+      @update:show="handleScoreModalUpdate"
       @close="closeScoreModal"
     />
   </div>
@@ -371,7 +387,7 @@ this.error = error; toast.error('Failed to fetch applicants.'); } finally { this
 <script setup>
   import { useRouter, useRoute } from 'vue-router';
   import { useJobPostStore } from 'stores/jobPostStore';
-  import { onMounted, ref, computed } from 'vue';
+  import { onMounted, ref, computed, nextTick } from 'vue';
   import { date } from 'quasar';
   import axios from 'axios';
   import { toast } from 'src/boot/toast';
@@ -387,13 +403,40 @@ this.error = error; toast.error('Failed to fetch applicants.'); } finally { this
   const { formatDate } = date;
   const selectedCriteria = ref([]);
 
-  // Tab state
+  // Tab state with reactive keys for force re-render
   const activeTab = ref('applicants');
+  const tabsKey = ref(0);
+  const tabPanelsKey = ref(0);
+  const ratingsLoading = ref(false);
 
   // Modal state
   const qualificationModalVisible = ref(false);
   const scoreModal = ref({ visible: false, applicant: null });
   const selectedApplicantData = ref({});
+
+  // PDF Modal state
+  const pdfModalVisible = ref(false);
+  const pdfFileUrl = ref('');
+  const isLoadingPdf = ref(false);
+  const pdfErrorMessage = ref('');
+
+  // Computed property for rating data
+  const ratingData = computed(() => {
+    if (!jobPostStore.applicant_rating) {
+      return { total_completed: 0, total_assigned: 0 };
+    }
+
+    return {
+      total_completed: jobPostStore.applicant_rating.total_completed || 0,
+      total_assigned: jobPostStore.applicant_rating.total_assigned || 0,
+    };
+  });
+
+  // Force re-render tabs when modal closes
+  const forceTabsUpdate = () => {
+    tabsKey.value += 1;
+    tabPanelsKey.value += 1;
+  };
 
   // Computed properties for applicant assessment statistics
   const totalApplicants = computed(() => {
@@ -410,11 +453,6 @@ this.error = error; toast.error('Failed to fetch applicants.'); } finally { this
     router.push('/job-post');
   };
 
-  const pdfModalVisible = ref(false);
-  const pdfFileUrl = ref('');
-  const isLoadingPdf = ref(false);
-  const pdfErrorMessage = ref('');
-
   const viewFundedDocument = async () => {
     if (!selectedJob.value || !selectedJob.value.PositionID || !selectedJob.value.ItemNo) {
       toast.error('PositionID or ItemNo not found for the selected job. Cannot fetch document.');
@@ -429,7 +467,6 @@ this.error = error; toast.error('Failed to fetch applicants.'); } finally { this
       const response = await axios.get(
         `${apiUrl}/on-funded-plantilla/by-funded/${selectedJob.value.PositionID}/${selectedJob.value.ItemNo}`,
       );
-      // Remove '/api' from the apiUrl if present
       let apiPDF = apiUrl.replace(/\/api\/?$/, '');
       if (response.data.status === 'success' && response.data.data.fileUpload) {
         pdfFileUrl.value = `${apiPDF}/storage/${response.data.data.fileUpload}`;
@@ -474,27 +511,36 @@ this.error = error; toast.error('Failed to fetch applicants.'); } finally { this
     },
   ];
 
+  // Updated rating columns to match the API response structure
   const ratingColumns = [
     { name: 'name', label: 'Name', field: 'name', align: 'left', sortable: true },
+    { name: 'education', label: 'Education', field: 'education', align: 'center', sortable: true },
     {
-      name: 'status',
-      label: 'Status',
-      field: 'status',
+      name: 'experience',
+      label: 'Experience',
+      field: 'experience',
       align: 'center',
+      sortable: true,
     },
+    { name: 'training', label: 'Training', field: 'training', align: 'center', sortable: true },
     {
-      name: 'ranking',
-      label: 'Rank',
-      field: 'ranking',
+      name: 'performance',
+      label: 'Performance',
+      field: 'performance',
       align: 'center',
+      sortable: true,
     },
+    { name: 'bei', label: 'BEI', field: 'bei', align: 'center', sortable: true },
+    { name: 'total_qs', label: 'Total QS', field: 'total_qs', align: 'center', sortable: true },
     {
-      name: 'action',
-      label: 'Action',
-      field: 'action',
+      name: 'grand_total',
+      label: 'Grand Total',
+      field: 'grand_total',
       align: 'center',
-      sortable: false,
+      sortable: true,
     },
+    { name: 'rank', label: 'Rank', field: 'rank', align: 'center', sortable: true },
+    { name: 'action', label: 'Action', field: 'action', align: 'center', sortable: false },
   ];
 
   // Format applicants data for the table
@@ -502,7 +548,6 @@ this.error = error; toast.error('Failed to fetch applicants.'); } finally { this
     if (!jobPostStore.applicant) return [];
 
     return jobPostStore.applicant.map((a) => {
-      // fallback for API structure: applicant.n_personal_info
       return {
         id: a.id,
         firstname: a.firstname || '',
@@ -515,8 +560,7 @@ this.error = error; toast.error('Failed to fetch applicants.'); } finally { this
         status: a.status || '-',
         ranking: a.ranking,
         education: a.education || [],
-        raw: a, // for details action
-
+        raw: a,
         education_remark: a.education_remark,
         experience_remark: a.experience_remark,
         training_remark: a.training_remark,
@@ -525,9 +569,53 @@ this.error = error; toast.error('Failed to fetch applicants.'); } finally { this
     });
   });
 
+  // FIXED: Format applicant ratings data for the table with correct data structure handling
+  const formattedApplicantRatings = computed(() => {
+    if (!jobPostStore.applicant_rating) return [];
+
+    // Handle your specific data structure: { jobpost_id, total_assigned, total_completed, applicants: { "32": {...}, "33": {...} } }
+    let ratingsArray = [];
+
+    if (
+      jobPostStore.applicant_rating.applicants &&
+      typeof jobPostStore.applicant_rating.applicants === 'object'
+    ) {
+      // Extract applicants from the nested object structure
+      ratingsArray = Object.values(jobPostStore.applicant_rating.applicants);
+    } else if (Array.isArray(jobPostStore.applicant_rating)) {
+      ratingsArray = jobPostStore.applicant_rating;
+    } else if (typeof jobPostStore.applicant_rating === 'object') {
+      ratingsArray = Object.values(jobPostStore.applicant_rating);
+    }
+
+    const formatted = ratingsArray
+      .map((rating) => ({
+        nPersonalInfo_id: rating.nPersonalInfo_id,
+        firstname: rating.firstname || '',
+        lastname: rating.lastname || '',
+        education: rating.education || '0.00',
+        experience: rating.experience || '0.00',
+        training: rating.training || '0.00',
+        performance: rating.performance || '0.00',
+        bei: rating.bei || '0.00',
+        total_qs: rating.total_qs || '0.00',
+        grand_total: rating.grand_total || '0.00',
+        rank: rating.rank || '-',
+        image_url: rating.image_url || 'https://placehold.co/100',
+        job_batches_rsp_id: rating.job_batches_rsp_id,
+        history: rating.history || [], // ENSURE this is directly accessible
+        // Store the complete raw data for the modal
+        originalData: rating, // This contains everything including history
+        raw: rating,
+      }))
+      .sort((a, b) => parseInt(a.rank) - parseInt(b.rank)); // Sort by rank
+
+    console.log('Formatted applicant ratings:', formatted);
+    return formatted;
+  });
+
   // Updated viewApplicantDetails function to open the modal
   function viewApplicantDetails(row) {
-    // Set the selected applicant's data and id
     selectedApplicantData.value = {
       id: row.raw?.id || row.id,
       job_batches_rsp_id: row.raw?.job_batches_rsp_id,
@@ -555,25 +643,85 @@ this.error = error; toast.error('Failed to fetch applicants.'); } finally { this
     qualificationModalVisible.value = true;
   }
 
+  // FIXED: viewApplicantScore function to properly pass all data including history
   function viewApplicantScore(applicantRow) {
+    console.log('Opening score modal for:', applicantRow);
+    console.log('Original data:', applicantRow.originalData);
+    console.log('History data:', applicantRow.history);
+
+    // Extract history from multiple possible sources
+    let historyData = [];
+
+    // Try to get history from originalData first, then from direct property
+    if (applicantRow.originalData && applicantRow.originalData.history) {
+      historyData = applicantRow.originalData.history;
+    } else if (applicantRow.history) {
+      historyData = applicantRow.history;
+    } else if (applicantRow.raw && applicantRow.raw.history) {
+      historyData = applicantRow.raw.history;
+    }
+
+    console.log('Extracted history data:', historyData);
+
     scoreModal.value = {
       visible: true,
-      applicant: applicantRow.raw || applicantRow,
+      applicant: {
+        nPersonalInfo_id: applicantRow.nPersonalInfo_id,
+        firstname: applicantRow.firstname,
+        lastname: applicantRow.lastname,
+        name_extension: applicantRow.name_extension || '',
+        status: applicantRow.status || 'N/A',
+        image_url: applicantRow.image_url,
+        position: selectedJob.value?.Position || 'N/A',
+        // Individual scores (final averaged scores)
+        education: applicantRow.education,
+        experience: applicantRow.experience,
+        training: applicantRow.training,
+        performance: applicantRow.performance,
+        bei: applicantRow.bei,
+        total_qs: applicantRow.total_qs,
+        grand_total: applicantRow.grand_total,
+        rank: applicantRow.rank,
+        // Ensure history is properly passed
+        history: historyData,
+      },
     };
+
+    console.log('Modal applicant data:', scoreModal.value.applicant);
+    console.log('Modal history:', scoreModal.value.applicant.history);
   }
+
+  // Fixed modal handlers
+  const handleQualificationModalUpdate = (value) => {
+    qualificationModalVisible.value = value;
+    if (!value) {
+      nextTick(() => {
+        forceTabsUpdate();
+      });
+    }
+  };
+
+  const handleScoreModalUpdate = (value) => {
+    scoreModal.value.visible = value;
+    if (!value) {
+      nextTick(() => {
+        forceTabsUpdate();
+      });
+    }
+  };
 
   function closeScoreModal() {
     scoreModal.value = { visible: false, applicant: null };
+    nextTick(() => {
+      forceTabsUpdate();
+    });
   }
 
-  // Update the onToggleQualification function
   const onToggleQualification = (status) => {
-    // Update the applicant's qualification status locally
     selectedApplicantData.value.status = status;
     console.log(`Qualification status changed to: ${status}`);
   };
 
-  // Update the submitEvaluation function to use id
   const submitEvaluation = async (evaluationData) => {
     try {
       console.log('Submitting evaluation:', evaluationData);
@@ -588,21 +736,20 @@ this.error = error; toast.error('Failed to fetch applicants.'); } finally { this
         return;
       }
 
-      // Call the store method with the applicant id instead of nPersonalInfo_id
       await jobPostStore.evaluation(evaluationData);
-
-      // Update the local status
       selectedApplicantData.value.status = evaluationData.status;
-
-      // Close the modal
       qualificationModalVisible.value = false;
 
-      // Refresh the applicants list to show updated status
       if (selectedJob.value && selectedJob.value.id) {
         await jobPostStore.fetch_applicant(selectedJob.value.id);
       }
 
       toast.success('Evaluation submitted successfully!');
+
+      // Force tabs update after modal closes
+      nextTick(() => {
+        forceTabsUpdate();
+      });
     } catch (error) {
       console.error('Evaluation submission error:', error);
       toast.error('Failed to submit evaluation');
@@ -612,27 +759,48 @@ this.error = error; toast.error('Failed to fetch applicants.'); } finally { this
   const onCloseQualificationModal = () => {
     qualificationModalVisible.value = false;
     selectedApplicantData.value = {};
+    nextTick(() => {
+      forceTabsUpdate();
+    });
   };
 
-  // Define onViewPDS function if it's needed (referenced but not defined in the original code)
   const onViewPDS = () => {
-    // Implementation would go here if needed
     console.log('View PDS requested for:', selectedApplicantData.value.name);
-    // You might want to implement this function to view Personal Data Sheet
   };
 
+  // Fetch all data when component mounts
   onMounted(async () => {
-    await jobPostStore.fetchJobPostByPositionAndItemNo(P_ID, I_No).then((job) => {
+    try {
+      // Fetch job details first
+      const job = await jobPostStore.fetchJobPostByPositionAndItemNo(P_ID, I_No);
       selectedJob.value = job;
-      if (job && job.id) {
-        // Fetch applicants for this job
-        jobPostStore.fetch_applicant(job.id);
-      }
-    });
 
-    await jobPostStore.fetchCriteriaByPositionAndItemNo(P_ID, I_No).then((criteria) => {
+      // Fetch criteria
+      const criteria = await jobPostStore.fetchCriteriaByPositionAndItemNo(P_ID, I_No);
       selectedCriteria.value = criteria;
-    });
+
+      // If job exists, fetch both applicants and ratings data
+      if (job && job.id) {
+        // Start loading indicator for ratings
+        ratingsLoading.value = true;
+
+        try {
+          // Fetch applicants and ratings concurrently
+          await Promise.all([
+            jobPostStore.fetch_applicant(job.id),
+            jobPostStore.fetch_applicant_rating(job.id),
+          ]);
+        } catch (error) {
+          console.error('Error fetching applicant data:', error);
+          toast.error('Failed to load some applicant data');
+        } finally {
+          ratingsLoading.value = false;
+        }
+      }
+    } catch (error) {
+      console.error('Error during component initialization:', error);
+      toast.error('Failed to load page data');
+    }
   });
 </script>
 
@@ -643,13 +811,11 @@ this.error = error; toast.error('Failed to fetch applicants.'); } finally { this
     gap: 16px;
   }
 
-  /* Add horizontal padding on both sides */
   .chip-padding {
     padding-left: 18px;
     padding-right: 18px;
   }
 
-  /* Match the chip colors from the image */
   .level-chip {
     background: #a8d5a4;
     color: #161616;
@@ -688,7 +854,6 @@ this.error = error; toast.error('Failed to fetch applicants.'); } finally { this
     border-radius: 4px;
   }
 
-  /* Tab styling */
   .q-tabs {
     background-color: #fff;
     border-radius: 8px 8px 0 0;
@@ -707,8 +872,7 @@ this.error = error; toast.error('Failed to fetch applicants.'); } finally { this
     padding: 16px;
   }
 
-  /* Add a subtle hover effect for table rows */
   .q-table tr:hover {
-    background-color: rgba(0, 0, 0, 0.03);
+    background-color: #f5f5f5;
   }
 </style>

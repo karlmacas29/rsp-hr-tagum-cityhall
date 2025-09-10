@@ -23,6 +23,7 @@ export const use_rater_store = defineStore('rater', () => {
       return {
         id: applicant.id,
         nPersonalInfo_id: applicant.nPersonalInfo_id,
+        ControlNo: applicant.ControlNo,
         job_batches_rsp_id: jobId,
         education_score: parseFloat(applicant.education_score || applicant.educationScore || 0),
         experience_score: parseFloat(applicant.experience_score || applicant.experienceScore || 0),
@@ -72,6 +73,7 @@ export const use_rater_store = defineStore('rater', () => {
       return {
         id: applicant.id,
         nPersonalInfo_id: applicant.nPersonalInfo_id,
+        ControlNo: applicant.ControlNo,
         job_batches_rsp_id: jobId,
         education_score: parseFloat(applicant.education_score || applicant.educationScore || 0),
         experience_score: parseFloat(applicant.experience_score || applicant.experienceScore || 0),

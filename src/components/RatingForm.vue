@@ -693,6 +693,7 @@
       return {
         id: applicant.id,
         nPersonalInfo_id: applicant.nPersonalInfo_id,
+        ControlNo: applicant.ControlNo,
         // Parse all values as numbers to ensure proper data types
         education_score: Number(applicant.educationScore || 0),
         experience_score: Number(applicant.experienceScore || 0),
@@ -736,6 +737,7 @@
       return {
         id: applicant.id,
         nPersonalInfo_id: applicant.nPersonalInfo_id,
+        ControlNo: applicant.ControlNo,
         // Make sure to parse all values as floats to ensure they are numbers
         education_score: Number(applicant.educationScore || 0),
         experience_score: Number(applicant.experienceScore || 0),

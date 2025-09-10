@@ -35,11 +35,11 @@
         </div>
 
         <div class="col-12">
-          <div class="field-label">Business Address:</div>
+          <div class="field-label">Address:</div>
           <div class="field-value">{{ props.family?.SpouseEmpAddress || 'None' }}</div>
         </div>
         <div class="col-12">
-          <div class="field-label">Business Telephone Number:</div>
+          <div class="field-label">Telephone Number:</div>
           <div class="field-value">{{ props.family?.SpouseEmpTel || 'None' }}</div>
         </div>
         <!-- Note that duplicate fields were removed from the right side -->

@@ -24,7 +24,7 @@
       <q-card-section class="main-content-section" style="flex: 1; overflow: hidden">
         <div class="row no-wrap full-height">
           <!-- Left Card (Applicant Info) -->
-          <q-card class="col-3 q-mr-md">
+          <q-card class="col-2 q-mr-md">
             <q-card-section class="column justify-between items-center q-pa-md">
               <q-img
                 :src="applicantData?.Pics || 'https://placehold.co/100'"
@@ -123,7 +123,7 @@
             <q-tab-panels v-model="tab" class="q-pa-none" style="flex: 1; overflow: auto">
               <!-- Education Panel -->
               <q-tab-panel name="education" class="row q-pa-none">
-                <div class="col q-pa-sm" style="border-right: 1px solid #e0e0e0">
+                <div class="col-9 q-pa-sm" style="border-right: 1px solid #e0e0e0">
                   <q-scroll-area style="height: 100%">
                     <div class="text-h6 q-mb-md">Applicant Education</div>
                     <q-card class="q-ma-sm">
@@ -131,8 +131,9 @@
                         :rows="xEdu"
                         :columns="xEduCol"
                         row-key="id"
-                        :pagination="{ rowsPerPage: 10 }"
+                        :pagination="{ rowsPerPage: 5 }"
                         :loading="xPDS.loading"
+                        wrap-cells
                       >
                         <!-- <template v-slot:loading>
                           <q-inner-loading showing color="primary">
@@ -144,7 +145,7 @@
                   </q-scroll-area>
                 </div>
 
-                <div class="col q-pa-sm">
+                <div class="col-3 q-pa-sm">
                   <q-scroll-area style="height: 100%">
                     <div class="text-h6 q-mb-md">Position Qualification Standard</div>
                     <q-card class="q-ma-sm">
@@ -181,7 +182,7 @@
 
               <!-- Experience Panel -->
               <q-tab-panel name="experience" class="row q-pa-none">
-                <div class="col q-pa-sm" style="border-right: 1px solid #e0e0e0">
+                <div class="col-9 q-pa-sm" style="border-right: 1px solid #e0e0e0">
                   <q-scroll-area style="height: 100%">
                     <div class="text-h6 q-mb-md">Applicant Experience</div>
                     <q-card class="q-ma-sm">
@@ -189,13 +190,14 @@
                         :rows="xExperience"
                         :columns="xExperienceCol"
                         row-key="id"
-                        :pagination="{ rowsPerPage: 10 }"
+                        :pagination="{ rowsPerPage: 5 }"
+                        wrap-cells
                       ></q-table>
                     </q-card>
                   </q-scroll-area>
                 </div>
 
-                <div class="col q-pa-sm">
+                <div class="col-3 q-pa-sm">
                   <q-scroll-area style="height: 100%">
                     <div class="text-h6 q-mb-md">Position Qualification Standard</div>
                     <q-card class="q-ma-sm">
@@ -222,7 +224,7 @@
 
               <!-- Training Panel -->
               <q-tab-panel name="training" class="row q-pa-none">
-                <div class="col q-pa-sm" style="border-right: 1px solid #e0e0e0">
+                <div class="col-9 q-pa-sm" style="border-right: 1px solid #e0e0e0">
                   <q-scroll-area style="height: 100%">
                     <div class="text-h6 q-mb-md">Applicant Training</div>
                     <q-card class="q-ma-sm">
@@ -230,13 +232,14 @@
                         :rows="xTraining"
                         :columns="xTrainingCol"
                         row-key="id"
-                        :pagination="{ rowsPerPage: 10 }"
+                        :pagination="{ rowsPerPage: 5 }"
+                        wrap-cells
                       ></q-table>
                     </q-card>
                   </q-scroll-area>
                 </div>
 
-                <div class="col q-pa-sm">
+                <div class="col-3 q-pa-sm">
                   <q-scroll-area style="height: 100%">
                     <div class="text-h6 q-mb-md">Position Qualification Standard</div>
                     <q-card class="q-ma-sm">
@@ -263,7 +266,7 @@
 
               <!-- Eligibility Panel -->
               <q-tab-panel name="eligibility" class="row q-pa-none">
-                <div class="col q-pa-sm" style="border-right: 1px solid #e0e0e0">
+                <div class="col-9 q-pa-sm" style="border-right: 1px solid #e0e0e0">
                   <q-scroll-area style="height: 100%">
                     <div class="text-h6 q-mb-md">Applicant Eligibility</div>
                     <q-card class="q-ma-sm">
@@ -271,13 +274,14 @@
                         :rows="xEligibility"
                         :columns="xEligibilityCol"
                         row-key="id"
-                        :pagination="{ rowsPerPage: 10 }"
+                        :pagination="{ rowsPerPage: 5 }"
+                        wrap-cells
                       ></q-table>
                     </q-card>
                   </q-scroll-area>
                 </div>
 
-                <div class="col q-pa-sm">
+                <div class="col-3 q-pa-sm">
                   <q-scroll-area style="height: 100%">
                     <div class="text-h6 q-mb-md">Position Qualification Standard</div>
                     <q-card class="q-ma-sm">
@@ -397,7 +401,7 @@
     {
       name: 'course',
       required: true,
-      label: 'Basic Education/Degree/Course',
+      label: 'Degree/Course',
       align: 'left',
       field: 'Degree',
       sortable: true,
@@ -425,7 +429,7 @@
     {
       name: 'highestLevel',
       required: true,
-      label: 'Highest Level/Units Earned',
+      label: 'Units Earned',
       align: 'left',
       field: (row) => row?.YearLevel || 'None' + '/' + row.NumUnits,
       sortable: true,
@@ -443,7 +447,7 @@
     {
       name: 'honors',
       required: true,
-      label: 'Scholarship/Academic Honors Received',
+      label: 'Honor',
       align: 'left',
       field: (row) => row?.Honors || 'None',
       sortable: true,
@@ -531,7 +535,7 @@
     },
     {
       name: 'salaryGrade',
-      label: 'Salary Grade',
+      label: 'SG',
       field: 'WGrade',
       align: 'left',
     },
@@ -572,7 +576,7 @@
     },
     {
       name: 'hours',
-      label: 'Number of Hours',
+      label: 'Hours',
       field: 'NumHours',
       align: 'left',
     },
@@ -596,17 +600,17 @@
   const positionQS = ref([]);
 
   const educationCol = ref([
-    { name: 'Education', label: 'Education3', align: 'left', field: 'Education' },
+    { name: 'Education', label: 'Education', align: 'left', field: 'Education' },
   ]);
 
   const ExperienceCol = ref([
-    { name: 'Experience', label: 'Experience3', align: 'left', field: 'Experience' },
+    { name: 'Experience', label: 'Experience', align: 'left', field: 'Experience' },
   ]);
   const trainingCol = ref([
-    { name: 'Training', label: 'Training3', align: 'left', field: 'Training' },
+    { name: 'Training', label: 'Training', align: 'left', field: 'Training' },
   ]);
   const eligibilityCol = ref([
-    { name: 'Eligibility', label: 'Eligibility3', align: 'left', field: 'Eligibility' },
+    { name: 'Eligibility', label: 'Eligibility', align: 'left', field: 'Eligibility' },
   ]);
 
   const props = defineProps({
@@ -781,6 +785,25 @@
 
   .q-markup-table {
     width: 100%;
+  }
+
+  :deep(.q-table) {
+    font-size: 9pt !important;
+
+    .q-table__top,
+    .q-table__bottom,
+    .q-td,
+    .q-th {
+      font-size: 8pt !important;
+    }
+
+    tbody tr td {
+      font-size: 8pt !important;
+    }
+
+    thead tr th {
+      font-size: 8pt !important;
+    }
   }
 
   .q-markup-table thead tr {

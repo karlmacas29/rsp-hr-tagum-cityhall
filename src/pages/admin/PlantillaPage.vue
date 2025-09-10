@@ -821,28 +821,27 @@
   //   reportRow.value = row;
   //   showReportModal.value = true;
   // };
-// In your main component, update the printPosition method:
-const printPosition = async (row) => {
-  try {
-    // Fetch appointment data using ControlNo
-    const appointmentData = await usePlantilla.fetchAppointmentData(row.ControlNo);
+  // In your main component, update the printPosition method:
+  const printPosition = async (row) => {
+    try {
+      // Fetch appointment data using ControlNo
+      const appointmentData = await usePlantilla.fetchAppointmentData(row.ControlNo);
 
-    if (appointmentData) {
-      // Set the appointment data and open the modal
-      reportRow.value = {
-        ...row,
-        appointmentData: appointmentData
-      };
-      showReportModal.value = true;
-    } else {
-      toast.error('No appointment data found for this employee');
+      if (appointmentData) {
+        // Set the appointment data and open the modal
+        reportRow.value = {
+          ...row,
+          appointmentData: appointmentData,
+        };
+        showReportModal.value = true;
+      } else {
+        toast.error('No appointment data found for this employee');
+      }
+    } catch (error) {
+      console.error('Error fetching appointment data:', error);
+      toast.error('Failed to fetch appointment data');
     }
-  } catch (error) {
-    console.error('Error fetching appointment data:', error);
-    toast.error('Failed to fetch appointment data');
-  }
-};
-
+  };
 
   // Submit job post with proper state management
   const submitJobPost = async () => {

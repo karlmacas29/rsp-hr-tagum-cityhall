@@ -9,20 +9,20 @@
         <div class="col-12 row justify-between q-gutter-x-sm">
           <div class="col-5">
             <div class="field-label">Spouse's Firstname:</div>
-            <div class="field-value">{{ familyInfo.spouse_firstname || 'None' }}</div>
+            <div class="field-value">{{ familyInfo.spouse_firstname}}</div>
           </div>
           <div class="col-5">
             <div class="field-label">Spouse's Surname:</div>
-            <div class="field-value">{{ familyInfo.spouse_name || 'None' }}</div>
+            <div class="field-value">{{ familyInfo.spouse_name}}</div>
           </div>
         </div>
         <div class="col-12">
           <div class="field-label">Occupation:</div>
-          <div class="field-value">{{ familyInfo.spouse_occupation || 'None' }}</div>
+          <div class="field-value">{{ familyInfo.spouse_occupation}}</div>
         </div>
         <div class="col-12">
           <div class="field-label">Employers/Business Name:</div>
-          <div class="field-value">{{ familyInfo.spouse_employer || 'None' }}</div>
+          <div class="field-value">{{ familyInfo.spouse_employer}}</div>
         </div>
       </div>
     </div>
@@ -31,16 +31,16 @@
       <div class="row q-col-gutter-md">
         <div class="col-12">
           <div class="field-label">Spouse's Middlename:</div>
-          <div class="field-value">{{ familyInfo.spouse_middlename || 'None' }}</div>
+          <div class="field-value">{{ familyInfo.spouse_middlename}}</div>
         </div>
 
         <div class="col-12">
           <div class="field-label">Business Address:</div>
-          <div class="field-value">{{ familyInfo.spouse_employer_address || 'None' }}</div>
+          <div class="field-value">{{ familyInfo.spouse_employer_address}}</div>
         </div>
         <div class="col-12">
           <div class="field-label">Business Telephone Number:</div>
-          <div class="field-value">{{ familyInfo.spouse_employer_telephone || 'None' }}</div>
+          <div class="field-value">{{ familyInfo.spouse_employer_telephone}}</div>
         </div>
       </div>
     </div>
@@ -58,21 +58,21 @@
         <div class="col-12 row justify-between q-gutter-x-sm">
           <div class="col-5">
             <div class="field-label">Father's Firstname:</div>
-            <div class="field-value">{{ familyInfo.father_firstname || 'None' }}</div>
+            <div class="field-value">{{ familyInfo.father_firstname}}</div>
           </div>
           <div class="col-5">
             <div class="field-label">Father's Surname:</div>
-            <div class="field-value">{{ familyInfo.father_lastname || 'None' }}</div>
+            <div class="field-value">{{ familyInfo.father_lastname}}</div>
           </div>
         </div>
         <div class="col-12 row justify-between q-gutter-x-sm">
           <div class="col-5">
             <div class="field-label">Mother's Firstname:</div>
-            <div class="field-value">{{ familyInfo.mother_firstname || 'None' }}</div>
+            <div class="field-value">{{ familyInfo.mother_firstname}}</div>
           </div>
           <div class="col-5">
             <div class="field-label">Mother's Surname:</div>
-            <div class="field-value">{{ familyInfo.mother_lastname || 'None' }}</div>
+            <div class="field-value">{{ familyInfo.mother_lastname}}</div>
           </div>
         </div>
       </div>
@@ -82,11 +82,11 @@
       <div class="row q-col-gutter-md">
         <div class="col-12">
           <div class="field-label">Father's Middlename:</div>
-          <div class="field-value">{{ familyInfo.father_middlename || 'None' }}</div>
+          <div class="field-value">{{ familyInfo.father_middlename}}</div>
         </div>
         <div class="col-12">
           <div class="field-label">Mother's Middlename:</div>
-          <div class="field-value">{{ familyInfo.mother_middlename || 'None' }}</div>
+          <div class="field-value">{{ familyInfo.mother_middlename}}</div>
         </div>
       </div>
     </div>

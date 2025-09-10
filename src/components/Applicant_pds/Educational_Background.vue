@@ -49,7 +49,7 @@
       required: true,
       label: 'Level',
       align: 'left',
-      field: (row) => row.level || 'Not specified',
+      field: (row) => row.level ,
       sortable: true,
     },
     {
@@ -57,7 +57,7 @@
       required: true,
       label: 'Name of School',
       align: 'left',
-      field: (row) => row.school_name || 'Not specified',
+      field: (row) => row.school_name ,
       sortable: true,
     },
     {
@@ -65,7 +65,7 @@
       required: true,
       label: 'Basic Education/Degree/Course',
       align: 'left',
-      field: (row) => row.degree || 'Not specified',
+      field: (row) => row.degree ,
       sortable: true,
     },
     {
@@ -73,7 +73,7 @@
       required: true,
       label: 'From',
       align: 'left',
-      field: (row) => row.attendance_from || 'Not specified',
+      field: (row) => row.attendance_from ,
       sortable: true,
     },
     {
@@ -81,7 +81,7 @@
       required: true,
       label: 'To',
       align: 'left',
-      field: (row) => row.attendance_to || 'Not specified',
+      field: (row) => row.attendance_to ,
       sortable: true,
     },
     {
@@ -89,7 +89,7 @@
       required: true,
       label: 'Highest Level/Units Earned',
       align: 'left',
-      field: (row) => row.highest_units || 'Not specified',
+      field: (row) => row.highest_units ,
       sortable: true,
     },
     {
@@ -97,7 +97,7 @@
       required: true,
       label: 'Year Graduated',
       align: 'left',
-      field: (row) => row.year_graduated || 'Not specified',
+      field: (row) => row.year_graduated ,
       sortable: true,
     },
     {
@@ -105,7 +105,7 @@
       required: true,
       label: 'Scholarship/Academic Honors Received',
       align: 'left',
-      field: (row) => row.scholarship || 'None',
+      field: (row) => row.scholarship ,
       sortable: true,
     },
   ];

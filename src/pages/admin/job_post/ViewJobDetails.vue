@@ -184,6 +184,17 @@
                   {{ props.row.appliedDate || '-' }}
                 </q-td>
               </template>
+              <template #body-cell-source="props">
+                <q-td :props="props">
+                  <q-badge
+                    rounded
+                    :color="props.row.source === 'Internal' ? 'blue' : 'orange'"
+                    class="text-caption q-px-sm"
+                  >
+                    {{ props.row.source }}
+                  </q-badge>
+                </q-td>
+              </template>
               <template #body-cell-status="props">
                 <q-td :props="props">
                   <q-badge
@@ -497,6 +508,13 @@
       align: 'center',
     },
     {
+      name: 'source',
+      label: 'Source',
+      field: 'source',
+      align: 'center',
+      sortable: true,
+    },
+    {
       name: 'status',
       label: 'Status',
       field: 'status',
@@ -557,6 +575,7 @@
         appliedDate:
           a.appliedDate ||
           (a.application_date ? formatDate(a.application_date, 'MMM D, YYYY') : '-'),
+        source: a.ControlNo || a.controlno ? 'Internal' : 'External',
         status: a.status || '-',
         ranking: a.ranking,
         education: a.education || [],

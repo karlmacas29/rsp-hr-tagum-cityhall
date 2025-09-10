@@ -57,7 +57,7 @@
         </template>
       </q-input>
 
-      <!-- Search and Actions -->
+      <!-- Search Input -->
       <div class="row items-center">
         <q-input
           v-model="globalSearch"
@@ -72,13 +72,6 @@
             <q-icon name="search" color="primary" />
           </template>
         </q-input>
-        <q-btn
-          v-if="selectedRows.length > 0"
-          class="q-ml-sm"
-          color="primary"
-          label="Same as"
-          @click="handleSameAs"
-        />
       </div>
     </div>
 
@@ -91,13 +84,12 @@
       class="job-posts-table q-mt-md"
       :loading="loading"
       table-style="min-width: 100%"
-      selection="multiple"
-      v-model:selected="selectedRows"
+      wrap-cells
     >
       <!-- Office Column -->
       <template v-slot:body-cell-office="props">
-        <q-td :props="props" class="office-column">
-          <div class="text-body2 text-weight-medium text-black">
+        <q-td :props="props" class="office-column text-wrap">
+          <div class="text-body2 text-weight-medium text-black word-break">
             {{ props.row.office }}
           </div>
         </q-td>
@@ -105,8 +97,8 @@
 
       <!-- Position Column -->
       <template v-slot:body-cell-Position="props">
-        <q-td :props="props" class="position-column">
-          <div class="text-body2 text-weight-medium text-black">
+        <q-td :props="props" class="position-column text-wrap">
+          <div class="text-body2 text-weight-medium text-black word-break">
             {{ props.row.Position }}
           </div>
         </q-td>
@@ -128,8 +120,8 @@
 
       <!-- Rater Column -->
       <template v-slot:body-cell-raters="props">
-        <q-td :props="props" class="rater-column">
-          <div v-if="props.row.assigned_raters.length > 0" class="text-body2">
+        <q-td :props="props" class="rater-column text-wrap">
+          <div v-if="props.row.assigned_raters.length > 0" class="text-body2 word-break">
             {{ formatRaters(props.row.assigned_raters) }}
           </div>
           <span v-else class="text-grey">Not Assigned</span>
@@ -203,7 +195,7 @@
   const criteriaStore = useCriteriaStore();
   const { formatDate } = date;
 
-  // Table configuration
+  // Table configuration - Updated column widths without selection
   const columns = [
     {
       name: 'office',
@@ -211,7 +203,7 @@
       align: 'left',
       field: 'office',
       sortable: true,
-      style: 'width: 25%',
+      style: 'width: 20%; word-wrap: break-word; white-space: normal;',
     },
     {
       name: 'Position',
@@ -219,7 +211,7 @@
       align: 'left',
       field: 'Position',
       sortable: true,
-      style: 'width: 30%',
+      style: 'width: 30%; word-wrap: break-word; white-space: normal;',
     },
     {
       name: 'status',
@@ -227,7 +219,7 @@
       align: 'center',
       field: 'status',
       sortable: false,
-      style: 'width: 13%',
+      style: 'width: 15%;',
     },
     {
       name: 'raters',
@@ -235,7 +227,7 @@
       align: 'center',
       field: (row) => row.assigned_raters.length,
       sortable: false,
-      style: 'width: 15%',
+      style: 'width:35%; word-wrap: break-word; white-space: normal;',
     },
     {
       name: 'action',
@@ -243,14 +235,13 @@
       label: 'Actions',
       field: (row) => row.criteria_ratings.length,
       sortable: false,
-      style: 'width: 17%',
+      style: 'width: 15%;',
     },
   ];
 
   // Reactive data
   const loading = ref(false);
   const jobs = ref([]);
-  const selectedRows = ref([]);
   const selectedJob = ref(null);
   const selectedCriteria = ref(null);
   const showCriteriaModal = ref(false);
@@ -393,11 +384,6 @@
     });
   }
 
-  function handleSameAs() {
-    // Implement your "Same As" functionality here
-    console.log('Same as clicked for:', selectedRows.value);
-  }
-
   async function loadJobPosts() {
     loading.value = true;
     try {
@@ -439,34 +425,44 @@
     td {
       font-size: 0.9rem;
       padding: 8px 12px;
-      vertical-align: middle;
+      vertical-align: top; // Changed from middle to top for better wrapping
     }
 
     .office-column {
-      width: 25%;
-      white-space: normal;
-      word-break: break-word;
+      width: 30%;
     }
 
     .position-column {
-      width: 30%;
-      white-space: normal;
-      word-break: break-word;
+      width: 35%;
     }
 
     .status-column {
       width: 15%;
       text-align: center;
+      vertical-align: middle; // Keep status centered
     }
 
     .rater-column {
-      width: 15%;
+      width: 20%;
       text-align: center;
     }
 
     .action-column {
-      width: 17%;
+      width: 20%;
       text-align: center;
+      vertical-align: middle; // Keep actions centered
+    }
+
+    // Text wrapping classes
+    .text-wrap {
+      white-space: normal !important;
+    }
+
+    .word-break {
+      word-wrap: break-word;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      hyphens: auto;
     }
   }
 
@@ -483,6 +479,21 @@
       th,
       td {
         padding: 6px 8px;
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
+    .job-posts-table {
+      font-size: 0.8rem;
+
+      th {
+        font-size: 0.85rem;
+        padding: 4px 6px;
+      }
+
+      td {
+        padding: 4px 6px;
       }
     }
   }

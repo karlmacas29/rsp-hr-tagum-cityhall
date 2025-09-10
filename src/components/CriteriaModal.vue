@@ -24,15 +24,9 @@
             </div>
           </div>
           <div class="col-12 col-md-3">
-            <div class="text-11 text-grey-8 q-mb-xs">Salary Grade</div>
+            <div class="text-11 text-grey-8 q-mb-xs">Status</div>
             <div class="q-pa-xs text-11 text-weight-medium bg-grey-2 rounded-borders">
-              {{ formData.salaryGrade || '-' }}
-            </div>
-          </div>
-          <div class="col-12 col-md-3">
-            <div class="text-11 text-grey-8 q-mb-xs">Plantilla Item No.</div>
-            <div class="q-pa-xs text-12 text-weight-medium bg-grey-2 rounded-borders">
-              {{ formData.plantillaItemNo || '-' }}
+              {{ formData.status || '-' }}
             </div>
           </div>
         </div>
@@ -319,8 +313,7 @@
   const formData = ref({
     office: null,
     position: null,
-    salaryGrade: '',
-    plantillaItemNo: '',
+    status: null,
   });
 
   const baseCriteria = {

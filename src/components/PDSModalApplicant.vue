@@ -87,10 +87,10 @@
                   <Special_Skills_Hobbies :skills="applicantData?.skills || []" />
                 </div>
                 <div v-else-if="currentTab === 'nonAcademic'" class="q-pa-md">
-                  <Non_Academic :distinctions="applicantData?.academic || []" />
+                  <Non_Academic :distinctions="applicantData?.skills || []" />
                 </div>
                 <div v-else-if="currentTab === 'membership'" class="q-pa-md">
-                  <Membership_Association />
+                  <Membership_Association :memberships="applicantData?.skills || []" />
                 </div>
                 <div v-else-if="currentTab === 'other'" class="q-pa-md">
                   <Other_Information />

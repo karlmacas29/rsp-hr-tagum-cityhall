@@ -175,8 +175,8 @@
     <!-- Criteria Modal -->
     <criteria-rater-modal
       v-model="showCriteriaModal"
-      :job="selectedJob"
-      :criteria="selectedCriteria"
+      :position-id="selectedPositionId"
+      :item-no="selectedItemNo"
       :mode="modalMode"
       @saved="onCriteriaSaved"
       @switch-to-edit="handleSwitchToEdit"
@@ -188,14 +188,12 @@
   import { ref, computed, onMounted, nextTick } from 'vue';
   import { date } from 'quasar';
   import { useJobPostStore } from 'stores/jobPostStore';
-  import { useCriteriaStore } from 'stores/criteriaStore';
   import CriteriaRaterModal from 'src/components/CriteriaModal.vue';
 
   const jobPostStore = useJobPostStore();
-  const criteriaStore = useCriteriaStore();
   const { formatDate } = date;
 
-  // Table configuration - Updated column widths without selection
+  // Table configuration
   const columns = [
     {
       name: 'office',
@@ -211,7 +209,7 @@
       align: 'left',
       field: 'Position',
       sortable: true,
-      style: 'width: 30%; word-wrap: break-word; white-space: normal;',
+      style: 'width: 20%; word-wrap: break-word; white-space: normal;',
     },
     {
       name: 'status',
@@ -227,7 +225,7 @@
       align: 'center',
       field: (row) => row.assigned_raters.length,
       sortable: false,
-      style: 'width:35%; word-wrap: break-word; white-space: normal;',
+      style: 'width:30%; word-wrap: break-word; white-space: normal;',
     },
     {
       name: 'action',
@@ -235,15 +233,15 @@
       label: 'Actions',
       field: (row) => row.criteria_ratings.length,
       sortable: false,
-      style: 'width: 15%;',
+      style: 'width: 30%;',
     },
   ];
 
   // Reactive data
   const loading = ref(false);
   const jobs = ref([]);
-  const selectedJob = ref(null);
-  const selectedCriteria = ref(null);
+  const selectedPositionId = ref(null);
+  const selectedItemNo = ref(null);
   const showCriteriaModal = ref(false);
   const modalMode = ref('create');
   const globalSearch = ref('');
@@ -335,52 +333,43 @@
   async function openCriteriaModal(job, mode) {
     console.log('Opening criteria modal:', { job, mode });
 
-    selectedJob.value = job;
+    // Only pass PositionID and ItemNo
+    selectedPositionId.value = job.PositionID;
+    selectedItemNo.value = job.ItemNo;
     modalMode.value = mode;
 
-    if (mode === 'create') {
-      selectedCriteria.value = null;
-      criteriaStore.clearCurrentCriteria();
-      console.log('Create mode: cleared criteria');
-    } else if (mode === 'view' || mode === 'edit') {
-      try {
-        console.log('Fetching criteria for job:', job.id);
-        await criteriaStore.viewCriteria(job.id);
-        selectedCriteria.value = criteriaStore.currentCriteria;
-        console.log('Fetched criteria:', selectedCriteria.value);
-      } catch (error) {
-        console.error('Error fetching criteria:', error);
-        selectedCriteria.value = null;
-        // If we can't fetch criteria for edit mode, switch to create mode
-        if (mode === 'edit') {
-          modalMode.value = 'create';
-          console.log('Switched to create mode due to missing criteria');
-        }
-      }
-    }
-
     showCriteriaModal.value = true;
-    console.log('Modal opened with mode:', modalMode.value);
+    console.log(
+      'Modal opened with mode:',
+      modalMode.value,
+      'PositionID:',
+      selectedPositionId.value,
+      'ItemNo:',
+      selectedItemNo.value,
+    );
   }
 
   function onCriteriaSaved() {
     console.log('Criteria saved, refreshing job posts');
     loadJobPosts();
     showCriteriaModal.value = false;
-    criteriaStore.clearCurrentCriteria();
+
     // Reset selections
-    selectedJob.value = null;
-    selectedCriteria.value = null;
+    selectedPositionId.value = null;
+    selectedItemNo.value = null;
   }
 
-  function handleSwitchToEdit(job) {
-    console.log('Switching to edit mode for job:', job);
+  function handleSwitchToEdit(positionId, itemNo) {
+    console.log('Switching to edit mode for PositionID:', positionId, 'ItemNo:', itemNo);
     // Close current modal and reopen in edit mode
     showCriteriaModal.value = false;
 
     // Use nextTick to ensure modal is fully closed
     nextTick(() => {
-      openCriteriaModal(job, 'edit');
+      selectedPositionId.value = positionId;
+      selectedItemNo.value = itemNo;
+      modalMode.value = 'edit';
+      showCriteriaModal.value = true;
     });
   }
 
@@ -425,7 +414,7 @@
     td {
       font-size: 0.9rem;
       padding: 8px 12px;
-      vertical-align: top; // Changed from middle to top for better wrapping
+      vertical-align: top;
     }
 
     .office-column {
@@ -439,7 +428,7 @@
     .status-column {
       width: 15%;
       text-align: center;
-      vertical-align: middle; // Keep status centered
+      vertical-align: middle;
     }
 
     .rater-column {
@@ -450,10 +439,9 @@
     .action-column {
       width: 20%;
       text-align: center;
-      vertical-align: middle; // Keep actions centered
+      vertical-align: middle;
     }
 
-    // Text wrapping classes
     .text-wrap {
       white-space: normal !important;
     }

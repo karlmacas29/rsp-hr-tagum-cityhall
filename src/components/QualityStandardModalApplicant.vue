@@ -2,7 +2,7 @@
   <q-dialog v-model="localShow" persistent @show="onModalShow">
     <q-card
       class="qualification-modal"
-      style="width: 1200px; max-width: 98vw; max-height: 98vh; overflow: auto"
+      style="width: 1200px; max-width: 98vw; height: 90vh; display: flex; flex-direction: column"
     >
       <!-- Sticky Applicant Header -->
       <q-card-section class="row items-center header q-px-md q-py-sm">
@@ -38,8 +38,9 @@
 
       <q-separator />
 
-      <!-- Tabs for each QS area -->
-      <q-card-section class="main-content-section q-pa-none">
+      <!-- Scrollable Content Area -->
+      <div class="content-wrapper">
+        <!-- Tabs for each QS area -->
         <div>
           <div class="modern-tabs">
             <div
@@ -55,7 +56,7 @@
 
           <q-separator />
 
-          <q-tab-panels v-model="tab" class="q-pa-md" style="min-height: 400px">
+          <q-tab-panels v-model="tab" class="q-pa-md scrollable-panels">
             <!-- Education Tab -->
             <q-tab-panel name="education" class="q-pa-none">
               <div class="row q-col-gutter-md">
@@ -66,9 +67,7 @@
                     <q-table
                       :rows="formattedEducation"
                       :columns="xEduCol"
-                      hide-bottom
                       row-key="id"
-                      :pagination="{ rowsPerPage: 5 }"
                       wrap-cells
                       :hide-header="false"
                     >
@@ -112,11 +111,11 @@
                     <q-table
                       :rows="positionQS"
                       :columns="educationCol"
+                      :loading="usePlantilla.qsLoad"
+                      row-key="id"
                       dense
                       flat
                       hide-bottom
-                      :loading="usePlantilla.qsLoad"
-                      row-key="id"
                       class="modern-table"
                       wrap-cells
                       :hide-header="false"
@@ -167,12 +166,8 @@
                     <q-table
                       :rows="xExperience"
                       :columns="xExperienceCol"
-                      dense
-                      flat
-                      hide-bottom
                       row-key="id"
                       class="modern-table"
-                      :pagination="{ rowsPerPage: 5 }"
                       wrap-cells
                     >
                       <template v-slot:header="props">
@@ -272,12 +267,8 @@
                     <q-table
                       :rows="xTraining"
                       :columns="xTrainingCol"
-                      dense
-                      flat
-                      hide-bottom
                       row-key="id"
                       class="modern-table"
-                      :pagination="{ rowsPerPage: 5 }"
                       wrap-cells
                     >
                       <template v-slot:header="props">
@@ -372,9 +363,6 @@
                     <q-table
                       :rows="xEligibility"
                       :columns="xEligibilityCol"
-                      dense
-                      flat
-                      hide-bottom
                       row-key="id"
                       class="modern-table"
                       :pagination="{ rowsPerPage: 5 }"
@@ -464,9 +452,9 @@
             </q-tab-panel>
           </q-tab-panels>
         </div>
-      </q-card-section>
+      </div>
 
-      <!-- Footer Actions -->
+      <!-- Sticky Footer Actions -->
       <q-separator />
       <q-card-section class="footer-actions bg-grey-2 q-py-sm">
         <div class="row justify-between items-center">
@@ -917,8 +905,6 @@
 <style scoped lang="scss">
   .qualification-modal {
     border-radius: 8px;
-    display: flex;
-    flex-direction: column;
     background-color: #ffffff;
   }
 
@@ -926,7 +912,28 @@
     background-color: #f5f5f5;
     position: sticky;
     top: 0;
-    z-index: 2;
+    z-index: 10;
+    flex-shrink: 0;
+  }
+
+  .content-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .scrollable-panels {
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .footer-actions {
+    background-color: #f5f5f5;
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    flex-shrink: 0;
+    border-top: 1px solid #eee;
   }
 
   .applicant-name {
@@ -960,6 +967,7 @@
     display: flex;
     border-bottom: 1px solid #e0e0e0;
     background-color: #fff;
+    flex-shrink: 0;
   }
 
   .modern-tab {
@@ -982,13 +990,6 @@
     }
   }
 
-  .main-content-section {
-    flex: 1;
-    overflow: hidden;
-    padding: 0;
-    background-color: #fff;
-  }
-
   /* Section titles */
   .section-title {
     font-size: 14px;
@@ -1002,7 +1003,6 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
     border-radius: 8px;
     border: 2px solid #eee !important;
-    overflow: hidden;
     margin-bottom: 20px;
   }
 
@@ -1052,11 +1052,6 @@
     :deep(.q-field__control) {
       background-color: #f9f9f9;
     }
-  }
-
-  .footer-actions {
-    flex: 0 0 auto;
-    border-top: 1px solid #eee;
   }
 
   .status-label {

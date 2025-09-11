@@ -403,9 +403,18 @@
 
       <!-- Footer (Sticky) -->
       <q-card-section class="footer-section sticky-footer">
+        <!-- Progress indicator -->
+        <div v-if="!allApplicantsRated" class="row items-center q-mb-sm">
+          <q-icon name="info" color="info" class="q-mr-xs" />
+          <span class="text-caption text-info">
+            {{ ratedApplicantsCount }} of {{ applicantsData.length }} applicants rated
+          </span>
+        </div>
+
         <div class="row justify-end q-gutter-sm">
           <q-btn color="primary" label="Save as Draft" icon-right="save" @click="saveDraft" dense />
           <q-btn
+            v-if="allApplicantsRated"
             color="green"
             label="Submit Ratings"
             icon-right="check"
@@ -475,6 +484,45 @@
   // Dynamic total max rate (QS + BEI)
   const totalMaxRate = computed(() => qsMaxRate.value + behavioralMaxRate.value);
 
+  // Check if all applicants have been rated
+  const allApplicantsRated = computed(() => {
+    if (!applicantsData.value || applicantsData.value.length === 0) {
+      return false;
+    }
+
+    return applicantsData.value.every((applicant) => {
+      return (
+        isValidScore(applicant.educationScore) &&
+        isValidScore(applicant.experienceScore) &&
+        isValidScore(applicant.trainingScore) &&
+        isValidScore(applicant.performanceScore) &&
+        isValidScore(applicant.behavioralScore)
+      );
+    });
+  });
+
+  // Count how many applicants have been rated
+  const ratedApplicantsCount = computed(() => {
+    if (!applicantsData.value || applicantsData.value.length === 0) {
+      return 0;
+    }
+
+    return applicantsData.value.filter((applicant) => {
+      return (
+        isValidScore(applicant.educationScore) &&
+        isValidScore(applicant.experienceScore) &&
+        isValidScore(applicant.trainingScore) &&
+        isValidScore(applicant.performanceScore) &&
+        isValidScore(applicant.behavioralScore)
+      );
+    }).length;
+  });
+
+  // Helper function to check if a score is valid (not null, undefined, empty string, or NaN)
+  const isValidScore = (score) => {
+    return score !== null && score !== undefined && score !== '' && !isNaN(score) && score >= 0;
+  };
+
   // State
   const expandedApplicant = ref(null);
   const filterText = ref('');
@@ -543,13 +591,28 @@
         const draftScore = applicant.draft_score || {};
         return {
           ...applicant,
-          educationScore: parseFloat(draftScore.education_score ?? 0),
-          experienceScore: parseFloat(draftScore.experience_score ?? 0),
-          trainingScore: parseFloat(draftScore.training_score ?? 0),
-          performanceScore: parseFloat(draftScore.performance_score ?? 0),
-          behavioralScore: parseFloat(draftScore.behavioral_score ?? 0),
+          educationScore:
+            draftScore.education_score !== null && draftScore.education_score !== undefined
+              ? parseFloat(draftScore.education_score)
+              : null,
+          experienceScore:
+            draftScore.experience_score !== null && draftScore.experience_score !== undefined
+              ? parseFloat(draftScore.experience_score)
+              : null,
+          trainingScore:
+            draftScore.training_score !== null && draftScore.training_score !== undefined
+              ? parseFloat(draftScore.training_score)
+              : null,
+          performanceScore:
+            draftScore.performance_score !== null && draftScore.performance_score !== undefined
+              ? parseFloat(draftScore.performance_score)
+              : null,
+          behavioralScore:
+            draftScore.behavioral_score !== null && draftScore.behavioral_score !== undefined
+              ? parseFloat(draftScore.behavioral_score)
+              : null,
           name: `${applicant.firstname} ${applicant.lastname}`,
-          ranking: draftScore.ranking || 0,
+          ranking: draftScore.ranking || null,
         };
       });
 
@@ -651,10 +714,10 @@
       }
 
       // Convert to number and validate
-      const numValue = value === '' ? 0 : parseFloat(value);
-      if (!isNaN(numValue)) {
+      const numValue = value === '' ? null : parseFloat(value);
+      if (numValue === null || !isNaN(numValue)) {
         // Ensure the value doesn't exceed the max allowed
-        applicant[field] = Math.min(numValue, maxValue);
+        applicant[field] = numValue !== null ? Math.min(numValue, maxValue) : null;
 
         // Add debug logging to verify values are being updated
         console.log(`Updated ${field} for applicant ${applicant.id} to ${applicant[field]}`);
@@ -694,15 +757,20 @@
         id: applicant.id,
         nPersonalInfo_id: applicant.nPersonalInfo_id,
         ControlNo: applicant.ControlNo,
-        // Parse all values as numbers to ensure proper data types
-        education_score: Number(applicant.educationScore || 0),
-        experience_score: Number(applicant.experienceScore || 0),
-        training_score: Number(applicant.trainingScore || 0),
-        performance_score: Number(applicant.performanceScore || 0),
-        behavioral_score: Number(applicant.behavioralScore || 0),
+        // Parse all values as numbers to ensure proper data types, but allow null values
+        education_score:
+          applicant.educationScore !== null ? Number(applicant.educationScore || null) : null,
+        experience_score:
+          applicant.experienceScore !== null ? Number(applicant.experienceScore || null) : null,
+        training_score:
+          applicant.trainingScore !== null ? Number(applicant.trainingScore || null) : null,
+        performance_score:
+          applicant.performanceScore !== null ? Number(applicant.performanceScore || null) : null,
+        behavioral_score:
+          applicant.behavioralScore !== null ? Number(applicant.behavioralScore || null) : null,
         total_qs: Number(qsScore),
         grand_total: Number(totalScore),
-        ranking: applicant.ranking || 0,
+        ranking: applicant.ranking || null,
       };
     });
 
@@ -728,6 +796,18 @@
   };
 
   const submitRatings = () => {
+    // Only allow submission if all applicants are rated
+    if (!allApplicantsRated.value) {
+      $q.notify({
+        color: 'warning',
+        message: 'Please rate all applicants before submitting.',
+        icon: 'warning',
+        position: 'top',
+        timeout: 3000,
+      });
+      return;
+    }
+
     // Create a formatted payload with all the necessary fields and proper values
     const formattedData = applicantsData.value.map((applicant) => {
       // Calculate QS and total scores
@@ -739,14 +819,14 @@
         nPersonalInfo_id: applicant.nPersonalInfo_id,
         ControlNo: applicant.ControlNo,
         // Make sure to parse all values as floats to ensure they are numbers
-        education_score: Number(applicant.educationScore || 0),
-        experience_score: Number(applicant.experienceScore || 0),
-        training_score: Number(applicant.trainingScore || 0),
-        performance_score: Number(applicant.performanceScore || 0),
-        behavioral_score: Number(applicant.behavioralScore || 0),
+        education_score: Number(applicant.educationScore || null),
+        experience_score: Number(applicant.experienceScore || null),
+        training_score: Number(applicant.trainingScore || null),
+        performance_score: Number(applicant.performanceScore || null),
+        behavioral_score: Number(applicant.behavioralScore || null),
         total_qs: Number(qsScore),
         grand_total: Number(totalScore),
-        ranking: applicant.ranking || 0,
+        ranking: applicant.ranking || null,
         // status: 'rated',
       };
     });
@@ -908,7 +988,7 @@
 
   .total-score {
     font-weight: bold;
-    color: green;
+    color: #1976d2;
   }
 
   .rank {

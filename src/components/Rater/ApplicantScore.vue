@@ -170,18 +170,23 @@
       <!-- Footer Actions -->
       <q-separator />
       <q-card-section class="footer-actions bg-grey-2 q-py-sm">
-        <div class="row justify-between items-center">
+        <div class="row justify-between items-center q-gutter-sm" style="width: 100%">
+          <div class="text-body2 text-grey-8" v-if="showHireButton">
+            <q-icon name="info" color="primary" class="q-mr-xs" />
+            Note: This applicant is considered qualified for the position and may be hired.
+          </div>
+
           <div>
             <q-btn
-              flat
-              dense
-              :icon="showControlNo ? 'visibility_off' : 'visibility'"
-              @click="showControlNo = !showControlNo"
+              v-if="showHireButton"
+              color="positive"
+              icon="work"
+              label="Hire"
               class="q-mr-sm"
+              @click="hireApplicant"
+              :loading="hiringLoading"
+              unelevated
             />
-            <q-badge v-if="showControlNo" color="grey-7" class="control-badge">
-              Control No. {{ applicant?.nPersonalInfo_id || '0' }}
-            </q-badge>
           </div>
         </div>
       </q-card-section>
@@ -191,6 +196,8 @@
 
 <script>
   import { ref, computed, watch } from 'vue';
+  import { useJobPostStore } from 'stores/jobPostStore';
+  import { toast } from 'src/boot/toast';
 
   export default {
     name: 'ApplicantScoreModal',
@@ -203,6 +210,10 @@
         type: Object,
         default: () => ({}),
       },
+      ratingData: {
+        type: Object,
+        default: () => ({ total_completed: 0, total_assigned: 0 }),
+      },
     },
     emits: ['update:show', 'close'],
     setup(props, { emit }) {
@@ -211,6 +222,9 @@
       const finalScores = ref(null);
       const applicantImageUrl = ref('');
       const showControlNo = ref(false);
+      const hiringLoading = ref(false);
+
+      const jobPostStore = useJobPostStore();
 
       const applicantName = computed(() => {
         if (!props.applicant) return 'Unknown Applicant';
@@ -222,6 +236,19 @@
           : '';
 
         return `${firstName} ${lastName}${extension}`.trim() || 'Unknown Applicant';
+      });
+
+      // Computed property to determine if hire button should be shown
+      const showHireButton = computed(() => {
+        // Check if all ratings are completed
+        const allRatingsCompleted =
+          props.ratingData.total_completed === props.ratingData.total_assigned;
+
+        // Check if applicant rank is within top 5
+        const applicantRank = parseInt(finalScores.value?.rank) || 999;
+        const isTopFive = applicantRank <= 5;
+
+        return allRatingsCompleted && isTopFive;
       });
 
       const columns = ref([
@@ -308,6 +335,7 @@
         finalScores.value = null;
         applicantImageUrl.value = '';
         showControlNo.value = false;
+        hiringLoading.value = false;
         emit('close');
       };
 
@@ -323,6 +351,38 @@
         if (score === null || score === undefined || score === '') return '0.00';
         const num = parseFloat(score);
         return isNaN(num) ? '0.00' : num.toFixed(2);
+      };
+
+      const hireApplicant = async () => {
+        try {
+          hiringLoading.value = true;
+
+          // Prepare the payload for hiring
+          const payload = {
+            nPersonalInfo_id: props.applicant.nPersonalInfo_id,
+            job_batches_rsp_id: props.applicant.job_batches_rsp_id,
+            rank: finalScores.value?.rank,
+            grand_total: finalScores.value?.grand_total,
+            firstname: props.applicant.firstname,
+            lastname: props.applicant.lastname,
+            name_extension: props.applicant.name_extension || '',
+            position: props.applicant.position,
+          };
+
+          console.log('Hiring applicant with payload:', payload);
+
+          await jobPostStore.hiredApplicant(payload);
+
+          toast.success(`Successfully hired ${applicantName.value}!`);
+
+          // Close the modal after successful hiring
+          closeModal();
+        } catch (error) {
+          console.error('Error hiring applicant:', error);
+          toast.error('Failed to hire applicant. Please try again.');
+        } finally {
+          hiringLoading.value = false;
+        }
       };
 
       const loadScoreData = () => {
@@ -410,6 +470,9 @@
         closeModal,
         getRankColor,
         formatScore,
+        showHireButton,
+        hireApplicant,
+        hiringLoading,
       };
     },
   };
@@ -493,5 +556,16 @@
 
   .control-badge {
     font-size: 9px;
+  }
+
+  .hire-note {
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+  }
+
+  .hire-btn {
+    font-weight: 500;
+    padding: 8px 16px;
   }
 </style>

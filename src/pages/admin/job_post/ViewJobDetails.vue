@@ -389,6 +389,7 @@
       v-if="scoreModal.visible"
       :show="scoreModal.visible"
       :applicant="scoreModal.applicant"
+      :rating-data="ratingData"
       @update:show="handleScoreModalUpdate"
       @close="closeScoreModal"
     />
@@ -500,6 +501,7 @@
 
   // Table column definitions
   const applicantColumns = [
+    { name: 'id', label: 'ID', field: 'id', align: 'center', sortable: true },
     { name: 'name', label: 'Name', field: 'name', align: 'left', sortable: true },
     {
       name: 'appliedDate',

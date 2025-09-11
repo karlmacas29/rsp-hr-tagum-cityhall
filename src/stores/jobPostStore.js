@@ -31,7 +31,6 @@ export const useJobPostStore = defineStore('jobPost', {
         );
 
         console.log('Evaluation response:', response.data);
-        toast.success('Evaluation submitted successfully!');
         return response.data;
       } catch (error) {
         console.error('Evaluation API error:', error);
@@ -206,6 +205,17 @@ export const useJobPostStore = defineStore('jobPost', {
       } catch (err) {
         this.error = err;
         throw err;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async hiredApplicant(payload) {
+      try {
+        const res = await adminApi.post('/hired', payload);
+        this.jobPosts.push(res.data);
+      } catch (err) {
+        console.error('Failed to hire applicant:', err);
       } finally {
         this.loading = false;
       }

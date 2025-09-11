@@ -25,16 +25,20 @@ export const use_rater_store = defineStore('rater', () => {
         nPersonalInfo_id: applicant.nPersonalInfo_id,
         ControlNo: applicant.ControlNo,
         job_batches_rsp_id: jobId,
-        education_score: parseFloat(applicant.education_score || applicant.educationScore || 0),
-        experience_score: parseFloat(applicant.experience_score || applicant.experienceScore || 0),
-        training_score: parseFloat(applicant.training_score || applicant.trainingScore || 0),
-        performance_score: parseFloat(
-          applicant.performance_score || applicant.performanceScore || 0,
+        education_score: parseFloat(applicant.education_score || applicant.educationScore || null),
+        experience_score: parseFloat(
+          applicant.experience_score || applicant.experienceScore || null,
         ),
-        behavioral_score: parseFloat(applicant.behavioral_score || applicant.behavioralScore || 0),
-        total_qs: parseFloat(applicant.total_qs || 0),
-        grand_total: parseFloat(applicant.grand_total || 0),
-        ranking: parseInt(applicant.ranking || 0),
+        training_score: parseFloat(applicant.training_score || applicant.trainingScore || null),
+        performance_score: parseFloat(
+          applicant.performance_score || applicant.performanceScore || null,
+        ),
+        behavioral_score: parseFloat(
+          applicant.behavioral_score || applicant.behavioralScore || null,
+        ),
+        total_qs: parseFloat(applicant.total_qs || null),
+        grand_total: parseFloat(applicant.grand_total || null),
+        ranking: parseInt(applicant.ranking || null),
         // status: applicant.status || 'rated',
       };
     });
@@ -42,7 +46,7 @@ export const use_rater_store = defineStore('rater', () => {
     console.log('Final payload to submit to API:', JSON.stringify(payload, null, 2));
 
     try {
-      const response = await raterApi.post('/rating/score', payload);
+      const response = await raterApi.post('/rating/draft', payload);
       console.log('API Response:', response.data);
 
       if (response.data.success) {
@@ -75,16 +79,20 @@ export const use_rater_store = defineStore('rater', () => {
         nPersonalInfo_id: applicant.nPersonalInfo_id,
         ControlNo: applicant.ControlNo,
         job_batches_rsp_id: jobId,
-        education_score: parseFloat(applicant.education_score || applicant.educationScore || 0),
-        experience_score: parseFloat(applicant.experience_score || applicant.experienceScore || 0),
-        training_score: parseFloat(applicant.training_score || applicant.trainingScore || 0),
-        performance_score: parseFloat(
-          applicant.performance_score || applicant.performanceScore || 0,
+        education_score: parseFloat(applicant.education_score || applicant.educationScore || null),
+        experience_score: parseFloat(
+          applicant.experience_score || applicant.experienceScore || null,
         ),
-        behavioral_score: parseFloat(applicant.behavioral_score || applicant.behavioralScore || 0),
-        total_qs: parseFloat(applicant.total_qs || 0),
-        grand_total: parseFloat(applicant.grand_total || 0),
-        ranking: parseInt(applicant.ranking || 0),
+        training_score: parseFloat(applicant.training_score || applicant.trainingScore || null),
+        performance_score: parseFloat(
+          applicant.performance_score || applicant.performanceScore || null,
+        ),
+        behavioral_score: parseFloat(
+          applicant.behavioral_score || applicant.behavioralScore || null,
+        ),
+        total_qs: parseFloat(applicant.total_qs || null),
+        grand_total: parseFloat(applicant.grand_total || null),
+        ranking: parseInt(applicant.ranking || null),
         // status: applicant.status || 'rated',
       };
     });

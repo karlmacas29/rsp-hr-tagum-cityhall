@@ -13,7 +13,7 @@
 
     <!-- Rating Stats Cards -->
     <div class="row q-col-gutter-md q-mb-lg">
-      <div class="col-12 col-md-3">
+      <div class="col-12 col-md-4">
         <q-card class="bg-white stat-card">
           <q-card-section>
             <div class="row items-center no-wrap">
@@ -28,7 +28,7 @@
           </q-card-section>
         </q-card>
       </div>
-      <div class="col-12 col-md-3">
+      <div class="col-12 col-md-4">
         <q-card class="bg-white stat-card">
           <q-card-section>
             <div class="row items-center no-wrap">
@@ -43,7 +43,7 @@
           </q-card-section>
         </q-card>
       </div>
-      <div class="col-12 col-md-3">
+      <div class="col-12 col-md-4">
         <q-card class="bg-white stat-card">
           <q-card-section>
             <div class="row items-center no-wrap">
@@ -58,25 +58,10 @@
           </q-card-section>
         </q-card>
       </div>
-      <div class="col-12 col-md-3">
-        <q-card class="bg-white stat-card">
-          <q-card-section>
-            <div class="row items-center no-wrap">
-              <div class="col">
-                <div class="text-h6">Overdue</div>
-                <div class="text-h5 q-mt-sm text-negative">{{ overdueRatings }}</div>
-              </div>
-              <div class="col-auto">
-                <q-icon name="event_busy" size="48px" color="negative" />
-              </div>
-            </div>
-          </q-card-section>
-        </q-card>
-      </div>
     </div>
 
     <div class="row q-col-gutter-md q-mb-lg">
-      <div class="col-12 col-md-6">
+      <!-- <div class="col-12 col-md-6">
         <q-card class="bg-white content-card">
           <q-card-section class="deadline-header q-pb-xs">
             <div class="text-h6">Upcoming Rating Deadlines</div>
@@ -116,10 +101,10 @@
             </q-scroll-area>
           </q-card-section>
         </q-card>
-      </div>
+      </div> -->
 
       <!-- Status Chart (Remains in place) -->
-      <div class="col-12 col-md-6">
+      <div class="col-12 col-md-12">
         <q-card class="bg-white content-card">
           <q-card-section class="full-height">
             <div class="text-h6">Rating Status Overview</div>
@@ -134,7 +119,7 @@
 </template>
 
 <script setup>
-  import { ref, onMounted, onUnmounted, computed } from 'vue';
+  import { ref, onMounted, onUnmounted } from 'vue';
   import { Chart, registerables } from 'chart.js';
 
   Chart.register(...registerables);
@@ -142,128 +127,127 @@
   const positionsToRate = ref(16);
   const ratedPositions = ref(3);
   const inProgressRatings = ref(2);
-  const overdueRatings = ref(2);
 
-  const upcomingDeadlines = ref([
-    {
-      position: 'City Government Department Head',
-      department: 'DRRM Office',
-      date: 'July 30, 2025',
-      daysLeft: 22,
-    },
-    {
-      position: 'Information Technology Officer',
-      department: 'IT Department',
-      date: 'July 15, 2025',
-      daysLeft: 7,
-    },
-    {
-      position: 'City Planner IV',
-      department: 'Planning and Development',
-      date: 'July 20, 2025',
-      daysLeft: 12,
-    },
-    {
-      position: 'City Health Officer',
-      department: 'Health Department',
-      date: 'July 25, 2025',
-      daysLeft: 17,
-    },
-    {
-      position: 'Budget Officer III',
-      department: 'Finance Department',
-      date: 'July 18, 2025',
-      daysLeft: 10,
-    },
-    {
-      position: 'Human Resource Manager',
-      department: 'HR Department',
-      date: 'August 5, 2025',
-      daysLeft: 28,
-    },
-    {
-      position: 'Civil Engineer II',
-      department: 'Engineering Office',
-      date: 'July 14, 2025',
-      daysLeft: 6,
-    },
-    {
-      position: 'Administrative Officer V',
-      department: 'Administrative Services',
-      date: 'July 22, 2025',
-      daysLeft: 14,
-    },
-    {
-      position: 'Legal Officer II',
-      department: 'Legal Department',
-      date: 'July 17, 2025',
-      daysLeft: 9,
-    },
-    {
-      position: 'City Treasurer',
-      department: 'Treasury Office',
-      date: 'July 28, 2025',
-      daysLeft: 20,
-    },
-    {
-      position: 'Environmental Specialist',
-      department: 'Environmental Management',
-      date: 'July 16, 2025',
-      daysLeft: 8,
-    },
-    {
-      position: 'Tourism Officer',
-      department: 'Tourism Office',
-      date: 'July 31, 2025',
-      daysLeft: 23,
-    },
-    {
-      position: 'Accountant III',
-      department: 'Accounting Department',
-      date: 'July 19, 2025',
-      daysLeft: 11,
-    },
-    {
-      position: 'Social Welfare Officer',
-      department: 'Social Welfare Department',
-      date: 'July 13, 2025',
-      daysLeft: 5,
-    },
-    // Adding overdue items
-    {
-      position: 'Procurement Officer II',
-      department: 'Procurement Department',
-      date: 'July 6, 2025',
-      daysLeft: -2,
-    },
-    {
-      position: 'City Architect',
-      department: 'City Engineering Office',
-      date: 'July 7, 2025',
-      daysLeft: -1,
-    },
-  ]);
+  // const upcomingDeadlines = ref([
+  //   {
+  //     position: 'City Government Department Head',
+  //     department: 'DRRM Office',
+  //     date: 'July 30, 2025',
+  //     daysLeft: 22,
+  //   },
+  //   {
+  //     position: 'Information Technology Officer',
+  //     department: 'IT Department',
+  //     date: 'July 15, 2025',
+  //     daysLeft: 7,
+  //   },
+  //   {
+  //     position: 'City Planner IV',
+  //     department: 'Planning and Development',
+  //     date: 'July 20, 2025',
+  //     daysLeft: 12,
+  //   },
+  //   {
+  //     position: 'City Health Officer',
+  //     department: 'Health Department',
+  //     date: 'July 25, 2025',
+  //     daysLeft: 17,
+  //   },
+  //   {
+  //     position: 'Budget Officer III',
+  //     department: 'Finance Department',
+  //     date: 'July 18, 2025',
+  //     daysLeft: 10,
+  //   },
+  //   {
+  //     position: 'Human Resource Manager',
+  //     department: 'HR Department',
+  //     date: 'August 5, 2025',
+  //     daysLeft: 28,
+  //   },
+  //   {
+  //     position: 'Civil Engineer II',
+  //     department: 'Engineering Office',
+  //     date: 'July 14, 2025',
+  //     daysLeft: 6,
+  //   },
+  //   {
+  //     position: 'Administrative Officer V',
+  //     department: 'Administrative Services',
+  //     date: 'July 22, 2025',
+  //     daysLeft: 14,
+  //   },
+  //   {
+  //     position: 'Legal Officer II',
+  //     department: 'Legal Department',
+  //     date: 'July 17, 2025',
+  //     daysLeft: 9,
+  //   },
+  //   {
+  //     position: 'City Treasurer',
+  //     department: 'Treasury Office',
+  //     date: 'July 28, 2025',
+  //     daysLeft: 20,
+  //   },
+  //   {
+  //     position: 'Environmental Specialist',
+  //     department: 'Environmental Management',
+  //     date: 'July 16, 2025',
+  //     daysLeft: 8,
+  //   },
+  //   {
+  //     position: 'Tourism Officer',
+  //     department: 'Tourism Office',
+  //     date: 'July 31, 2025',
+  //     daysLeft: 23,
+  //   },
+  //   {
+  //     position: 'Accountant III',
+  //     department: 'Accounting Department',
+  //     date: 'July 19, 2025',
+  //     daysLeft: 11,
+  //   },
+  //   {
+  //     position: 'Social Welfare Officer',
+  //     department: 'Social Welfare Department',
+  //     date: 'July 13, 2025',
+  //     daysLeft: 5,
+  //   },
+  //   // Adding overdue items
+  //   {
+  //     position: 'Procurement Officer II',
+  //     department: 'Procurement Department',
+  //     date: 'July 6, 2025',
+  //     daysLeft: -2,
+  //   },
+  //   {
+  //     position: 'City Architect',
+  //     department: 'City Engineering Office',
+  //     date: 'July 7, 2025',
+  //     daysLeft: -1,
+  //   },
+  // ]);
 
-  const sortedDeadlines = computed(() => {
-    return [...upcomingDeadlines.value].sort((a, b) => {
-      if ((a.daysLeft < 0 && b.daysLeft < 0) || (a.daysLeft >= 0 && b.daysLeft >= 0)) {
-        return a.daysLeft - b.daysLeft;
-      }
+  // const sortedDeadlines = computed(() => {
+  //   return [...upcomingDeadlines.value].sort((a, b) => {
+  //     if ((a.daysLeft < 0 && b.daysLeft < 0) || (a.daysLeft >= 0 && b.daysLeft >= 0)) {
+  //       return a.daysLeft - b.daysLeft;
+  //     }
 
-      return a.daysLeft < 0 ? -1 : 1;
-    });
-  });
+  //     return a.daysLeft < 0 ? -1 : 1;
+  //   });
+  // });
 
-  const getDeadlineColor = (daysLeft) => {
-    if (daysLeft < 0) return 'negative';
-    if (daysLeft <= 3) return 'negative';
-    if (daysLeft <= 7) return 'warning';
-    return 'primary';
-  };
+  // const getDeadlineColor = (daysLeft) => {
+  //   if (daysLeft < 0) return 'negative';
+  //   if (daysLeft <= 3) return 'negative';
+  //   if (daysLeft <= 7) return 'warning';
+  //   return 'primary';
+  // };
 
-  const startRating = (deadline) => {
-    console.log('Starting rating for:', deadline.position);
-  };
+  // const startRating = (deadline) => {
+  //   console.log('Starting rating for:', deadline.position);
+  // };
 
   const statusChart = ref(null);
   let chartInstance = null;
@@ -338,7 +322,7 @@
   }
 
   .content-card {
-    height: 450px;
+    height: 400px;
     overflow: hidden;
     display: flex;
     flex-direction: column;

@@ -304,15 +304,7 @@
               <template #body-cell-rank="props">
                 <q-td :props="props">
                   <q-badge
-                    :color="
-                      props.row.rank === 1
-                        ? 'orange'
-                        : props.row.rank === 2
-                          ? 'grey-6'
-                          : props.row.rank === 3
-                            ? 'brown'
-                            : 'grey'
-                    "
+                    :color="props.row.rank <= 5 ? 'purple' : 'grey'"
                     class="text-caption q-px-sm"
                     rounded
                   >
@@ -390,6 +382,7 @@
       :show="scoreModal.visible"
       :applicant="scoreModal.applicant"
       :rating-data="ratingData"
+      :job-details="scoreModal.jobDetails || selectedJob"
       @update:show="handleScoreModalUpdate"
       @close="closeScoreModal"
     />
@@ -611,6 +604,7 @@
 
     const formatted = ratingsArray
       .map((rating) => ({
+        submission_id: rating.submission_id,
         nPersonalInfo_id: rating.nPersonalInfo_id,
         firstname: rating.firstname || '',
         lastname: rating.lastname || '',
@@ -687,6 +681,7 @@
     scoreModal.value = {
       visible: true,
       applicant: {
+        submission_id: applicantRow.submission_id,
         nPersonalInfo_id: applicantRow.nPersonalInfo_id,
         firstname: applicantRow.firstname,
         lastname: applicantRow.lastname,
@@ -706,6 +701,8 @@
         // Ensure history is properly passed
         history: historyData,
       },
+      // Pass job details for the confirmation dialog
+      jobDetails: selectedJob.value || {},
     };
 
     console.log('Modal applicant data:', scoreModal.value.applicant);

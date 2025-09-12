@@ -210,10 +210,9 @@ export const useJobPostStore = defineStore('jobPost', {
       }
     },
 
-    async hiredApplicant(payload) {
+    async hiredApplicant(id, payload) {
       try {
-        const res = await adminApi.post('/hired', payload);
-        this.jobPosts.push(res.data);
+        await adminApi.post(`/hire/${id}`, payload);
       } catch (err) {
         console.error('Failed to hire applicant:', err);
       } finally {

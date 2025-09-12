@@ -183,7 +183,7 @@
               icon="work"
               label="Hire"
               class="q-mr-sm"
-              @click="hireApplicant"
+              @click="showHireConfirmation"
               :loading="hiringLoading"
               unelevated
             />
@@ -191,6 +191,119 @@
         </div>
       </q-card-section>
     </q-card>
+
+    <!-- Hire Confirmation Dialog -->
+    <q-dialog v-model="hireConfirmationDialog" persistent>
+      <q-card style="min-width: 600px; max-width: 800px">
+        <q-card-section class="row items-center bg-positive text-white">
+          <q-icon name="work" size="24px" class="q-mr-sm" />
+          <div class="text-h6">Confirm Hiring</div>
+          <q-space />
+          <q-btn icon="close" flat round dense @click="hireConfirmationDialog = false" />
+        </q-card-section>
+
+        <q-card-section class="q-pt-lg">
+          <div class="text-body1 text-weight-medium q-mb-md">
+            Are you sure you want to hire this applicant?
+          </div>
+
+          <!-- Applicant Summary Card -->
+          <q-card flat bordered class="q-mb-md">
+            <q-card-section class="bg-grey-1">
+              <div class="row items-center q-gutter-md">
+                <q-avatar size="60px" color="primary" text-color="white" icon="person" />
+                <div class="col">
+                  <div class="text-h6 text-primary">{{ applicantName }}</div>
+                  <div class="text-subtitle2 text-grey-7">{{ jobDetails.Position || 'N/A' }}</div>
+                  <q-badge color="positive" class="q-mt-xs">
+                    Rank #{{ finalScores?.rank || 'N/A' }}
+                  </q-badge>
+                </div>
+              </div>
+            </q-card-section>
+          </q-card>
+
+          <!-- Job Details Grid -->
+          <div class="row q-col-gutter-md">
+            <div class="col-8">
+              <div class="detail-item">
+                <q-icon name="business" class="q-mr-xs text-primary" />
+                <span class="label">Office:</span>
+                <span class="value">{{ jobDetails.Office || '-' }}</span>
+              </div>
+
+              <div class="detail-item">
+                <q-icon name="apartment" class="q-mr-xs text-primary" />
+                <span class="label">Division:</span>
+                <span class="value">{{ jobDetails.Division || '-' }}</span>
+              </div>
+
+              <div class="detail-item">
+                <q-icon name="call_split" class="q-mr-xs text-primary" />
+                <span class="label">Section:</span>
+                <span class="value">{{ jobDetails.Section || '-' }}</span>
+              </div>
+
+              <div class="detail-item">
+                <q-icon name="group_work" class="q-mr-xs text-primary" />
+                <span class="label">Unit:</span>
+                <span class="value">{{ jobDetails.Unit || '-' }}</span>
+              </div>
+
+              <div class="detail-item">
+                <q-icon name="layers" class="q-mr-xs text-primary" />
+                <span class="label">Level:</span>
+                <span class="value">{{ jobDetails.level || '-' }}</span>
+              </div>
+            </div>
+
+            <div class="col-4">
+              <div class="detail-item">
+                <q-icon name="description" class="q-mr-xs text-primary" />
+                <span class="label">Page No:</span>
+                <span class="value">{{ jobDetails.PageNo || '-' }}</span>
+              </div>
+
+              <div class="detail-item">
+                <q-icon name="apps" class="q-mr-xs text-primary" />
+                <span class="label">Item No:</span>
+                <span class="value">{{ jobDetails.ItemNo || '-' }}</span>
+              </div>
+
+              <div class="detail-item">
+                <q-icon name="star" class="q-mr-xs text-primary" />
+                <span class="label">Salary Grade:</span>
+                <span class="value">{{ jobDetails.SalaryGrade || '-' }}</span>
+              </div>
+
+              <div class="detail-item">
+                <q-icon name="emoji_events" class="q-mr-xs text-positive" />
+                <span class="label">Final Rank:</span>
+                <span class="value">#{{ finalScores?.rank || '-' }}</span>
+              </div>
+            </div>
+          </div>
+        </q-card-section>
+
+        <q-card-actions align="right" class="q-pa-lg">
+          <q-btn
+            flat
+            label="Cancel"
+            color="grey-7"
+            @click="hireConfirmationDialog = false"
+            class="q-mr-sm"
+          />
+          <q-btn
+            color="positive"
+            label="Confirm Hire"
+            icon="check"
+            @click="confirmHireApplicant"
+            :loading="hiringLoading"
+            unelevated
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-dialog>
 </template>
 
@@ -214,6 +327,10 @@
         type: Object,
         default: () => ({ total_completed: 0, total_assigned: 0 }),
       },
+      jobDetails: {
+        type: Object,
+        default: () => ({}),
+      },
     },
     emits: ['update:show', 'close'],
     setup(props, { emit }) {
@@ -223,13 +340,14 @@
       const applicantImageUrl = ref('');
       const showControlNo = ref(false);
       const hiringLoading = ref(false);
+      const hireConfirmationDialog = ref(false);
 
       const jobPostStore = useJobPostStore();
 
       const applicantName = computed(() => {
         if (!props.applicant) return 'Unknown Applicant';
 
-        const firstName = props.applicant.firstname || props.applicant.first_name || '';
+        const firstName = props.applicant.firstname;
         const lastName = props.applicant.lastname || props.applicant.last_name || '';
         const extension = props.applicant.name_extension
           ? ` ${props.applicant.name_extension}`
@@ -336,14 +454,14 @@
         applicantImageUrl.value = '';
         showControlNo.value = false;
         hiringLoading.value = false;
+        hireConfirmationDialog.value = false;
         emit('close');
       };
 
       const getRankColor = (rank) => {
         const rankNum = parseInt(rank);
-        if (rankNum === 1) return 'orange';
-        if (rankNum === 2) return 'grey-6';
-        if (rankNum === 3) return 'brown';
+        if (rankNum <= 5) return 'purple';
+
         return 'grey';
       };
 
@@ -353,29 +471,27 @@
         return isNaN(num) ? '0.00' : num.toFixed(2);
       };
 
-      const hireApplicant = async () => {
+      const showHireConfirmation = () => {
+        hireConfirmationDialog.value = true;
+      };
+
+      const confirmHireApplicant = async () => {
         try {
           hiringLoading.value = true;
 
           // Prepare the payload for hiring
           const payload = {
-            nPersonalInfo_id: props.applicant.nPersonalInfo_id,
-            job_batches_rsp_id: props.applicant.job_batches_rsp_id,
-            rank: finalScores.value?.rank,
-            grand_total: finalScores.value?.grand_total,
-            firstname: props.applicant.firstname,
-            lastname: props.applicant.lastname,
-            name_extension: props.applicant.name_extension || '',
-            position: props.applicant.position,
+            submission_id: props.applicant.submission_id,
           };
 
           console.log('Hiring applicant with payload:', payload);
 
-          await jobPostStore.hiredApplicant(payload);
+          await jobPostStore.hiredApplicant(props.applicant.submission_id, payload);
 
           toast.success(`Successfully hired ${applicantName.value}!`);
 
-          // Close the modal after successful hiring
+          // Close dialogs after successful hiring
+          hireConfirmationDialog.value = false;
           closeModal();
         } catch (error) {
           console.error('Error hiring applicant:', error);
@@ -383,6 +499,11 @@
         } finally {
           hiringLoading.value = false;
         }
+      };
+
+      // Legacy function kept for backward compatibility
+      const hireApplicant = async () => {
+        showHireConfirmation();
       };
 
       const loadScoreData = () => {
@@ -473,6 +594,9 @@
         showHireButton,
         hireApplicant,
         hiringLoading,
+        hireConfirmationDialog,
+        showHireConfirmation,
+        confirmHireApplicant,
       };
     },
   };
@@ -567,5 +691,100 @@
   .hire-btn {
     font-weight: 500;
     padding: 8px 16px;
+  }
+
+  // New improved job details styles
+  .job-details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 16px;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .details-section {
+    background: #fafafa;
+    border-radius: 8px;
+    padding: 16px;
+    border-left: 4px solid #e0e0e0;
+    transition: all 0.3s ease;
+
+    &:hover {
+      border-left-color: #1976d2;
+      background: #f5f5f5;
+    }
+
+    &.highlight-section {
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      border-left-color: #28a745;
+    }
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e0e0e0;
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #333;
+      margin: 0;
+    }
+  }
+
+  .details-content {
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      padding: 4px 0;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      .detail-label {
+        font-weight: 500;
+        font-size: 13px;
+        color: #666;
+        min-width: 100px;
+      }
+
+      .detail-value {
+        color: #333;
+        font-weight: 400;
+        font-size: 13px;
+        text-align: right;
+        flex: 1;
+        margin-left: 12px;
+      }
+    }
+  }
+
+  .detail-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 13px;
+  }
+
+  .label {
+    font-weight: 500;
+    margin-left: 4px;
+    margin-right: 8px;
+    min-width: 80px;
+    color: #666;
+  }
+
+  .value {
+    color: #333;
+    font-weight: 400;
   }
 </style>

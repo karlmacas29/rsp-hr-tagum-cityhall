@@ -1,6 +1,6 @@
 // stores/rater_store.js
 import { defineStore } from 'pinia';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { raterApi } from 'boot/axios_rater';
 
 export const use_rater_store = defineStore('rater', () => {
@@ -12,13 +12,39 @@ export const use_rater_store = defineStore('rater', () => {
     applicants: [],
   });
 
+  const dashboardStats = computed(() => {
+    const stats = {
+      totalAssignedJobs: assignedJobs.value.length,
+      ratedPositions: 0, // Only count completed (submitted) jobs
+    };
+
+    console.log('Computing dashboard stats for jobs:', assignedJobs.value.length);
+
+    assignedJobs.value.forEach((job) => {
+      console.log(`Job ${job.id}: status=${job.status}, submitted=${job.submitted}`);
+
+      // Count completed ratings - check if submitted is true (regardless of status)
+      // or if status indicates completion
+      if (
+        job.submitted === true ||
+        job.status === 'rated' ||
+        job.status === 'assessed' ||
+        job.status === 'Occupied'
+      ) {
+        stats.ratedPositions++;
+        console.log(`Job ${job.id} counted as completed`);
+      }
+    });
+
+    console.log('Final dashboard stats:', stats);
+    return stats;
+  });
   const saveDraft = async (applicantsData, jobId) => {
     loading.value = true;
     error.value = null;
 
     console.log('Raw applicant data received:', applicantsData);
 
-    // Create a standardized payload regardless of input format
     const payload = applicantsData.map((applicant) => {
       return {
         id: applicant.id,
@@ -39,7 +65,6 @@ export const use_rater_store = defineStore('rater', () => {
         total_qs: parseFloat(applicant.total_qs || null),
         grand_total: parseFloat(applicant.grand_total || null),
         ranking: parseInt(applicant.ranking || null),
-        // status: applicant.status || 'rated',
       };
     });
 
@@ -65,14 +90,12 @@ export const use_rater_store = defineStore('rater', () => {
     }
   };
 
-  // FIXED submitRatings function that properly handles the data
   const submitRatings = async (applicantsData, jobId) => {
     loading.value = true;
     error.value = null;
 
     console.log('Raw applicant data received:', applicantsData);
 
-    // Create a standardized payload regardless of input format
     const payload = applicantsData.map((applicant) => {
       return {
         id: applicant.id,
@@ -93,7 +116,6 @@ export const use_rater_store = defineStore('rater', () => {
         total_qs: parseFloat(applicant.total_qs || null),
         grand_total: parseFloat(applicant.grand_total || null),
         ranking: parseInt(applicant.ranking || null),
-        // status: applicant.status || 'rated',
       };
     });
 
@@ -104,6 +126,7 @@ export const use_rater_store = defineStore('rater', () => {
       console.log('API Response:', response.data);
 
       if (response.data.success) {
+        await fetch_assigned_jobs();
         return response.data;
       } else {
         error.value = response.data.message || 'Something went wrong.';
@@ -123,7 +146,6 @@ export const use_rater_store = defineStore('rater', () => {
     loading.value = true;
     error.value = null;
 
-    // CRITICAL FIX: Reset data immediately when starting new request
     criteria_applicant.value = {
       criteria: [],
       applicants: [],
@@ -146,7 +168,6 @@ export const use_rater_store = defineStore('rater', () => {
       console.log('API Response for job', id, ':', data);
 
       if (data.status) {
-        // Store the data directly as received from API
         criteria_applicant.value = {
           criteria: data.criteria || [],
           applicants: data.applicants || [],
@@ -173,7 +194,6 @@ export const use_rater_store = defineStore('rater', () => {
     }
   };
 
-  // Add a method to clear criteria_applicant data
   const clearCriteriaApplicant = () => {
     criteria_applicant.value = {
       criteria: [],
@@ -202,6 +222,8 @@ export const use_rater_store = defineStore('rater', () => {
           position: job.Position,
           office: job.Office,
           submitted: job.submitted,
+          status: job.status,
+          ...job,
         }));
       } else {
         assignedJobs.value = [];
@@ -224,5 +246,6 @@ export const use_rater_store = defineStore('rater', () => {
     clearCriteriaApplicant,
     submitRatings,
     saveDraft,
+    dashboardStats,
   };
 });

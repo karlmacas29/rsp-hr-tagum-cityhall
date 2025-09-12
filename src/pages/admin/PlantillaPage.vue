@@ -195,7 +195,12 @@
                     <q-td :props="props" class="q-gutter-x-sm">
                       <!-- Show job post button only if Funded==1, Name1 is null, and there is no existing job post for this funded position -->
                       <q-btn
-                        v-if="props.row.Funded == '1' && !props.row.Name1 && !hasJobPost(props.row)"
+                        v-if="
+                          props.row.Funded == '1' &&
+                          !props.row.Name1 &&
+                          !hasJobPost(props.row) &&
+                          props.row.status == 'assessed'
+                        "
                         flat
                         dense
                         round

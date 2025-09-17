@@ -25,6 +25,14 @@
         <div class="text-h6 text-primary text-weight-bold q-mb-xs">
           {{ selectedJob?.Position || 'Job Title' }}
           {{ selectedJob?.id || 'Job ID' }}
+          <q-chip
+            class="chip-padding"
+            dense
+            :color="selectedJob?.status === 'Occupied' ? 'negative' : 'primary'"
+            :label="
+              selectedJob?.status === 'Occupied' ? 'This job is occupied' : selectedJob?.status
+            "
+          ></q-chip>
         </div>
         <div class="chips-row">
           <q-chip class="chip-padding level-chip" dense>
@@ -641,6 +649,7 @@
       appliedDate: row.appliedDate,
       PositionID: selectedJob.value?.PositionID,
       ItemNo: selectedJob.value?.ItemNo,
+      Jobstatus: selectedJob.value?.status,
       image_url: row.image_url,
       education_remark: row.education_remark,
       experience_remark: row.experience_remark,
@@ -689,6 +698,7 @@
         status: applicantRow.status || 'N/A',
         image_url: applicantRow.image_url,
         position: selectedJob.value?.Position || 'N/A',
+        Jobstatus: selectedJob.value?.status,
         // Individual scores (final averaged scores)
         education: applicantRow.education,
         experience: applicantRow.experience,

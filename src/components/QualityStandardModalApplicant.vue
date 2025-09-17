@@ -37,7 +37,7 @@
               </div>
               <q-badge rounded class="q-pa-xs" :class="getStatusClass(applicantData?.status)">
                 {{ applicantData?.status || 'PENDING' }}
-                <q-icon v-if="evaluationLocked" name="lock" class="q-ml-xs" />
+                <q-icon v-if="evaluationLocked || isJobOccupied" name="lock" class="q-ml-xs" />
               </q-badge>
 
               <div class="full-width">
@@ -144,6 +144,8 @@
                       outlined
                       dense
                       class="q-mt-md modern-input"
+                      :readonly="isJobOccupied || evaluationLocked"
+                      :bg-color="isJobOccupied || evaluationLocked ? 'grey-3' : 'white'"
                     />
                   </q-scroll-area>
                 </div>
@@ -206,6 +208,8 @@
                       outlined
                       dense
                       class="q-mt-md modern-input"
+                      :readonly="isJobOccupied || evaluationLocked"
+                      :bg-color="isJobOccupied || evaluationLocked ? 'grey-3' : 'white'"
                     />
                   </q-scroll-area>
                 </div>
@@ -263,6 +267,8 @@
                       outlined
                       dense
                       class="q-mt-md modern-input"
+                      :readonly="isJobOccupied || evaluationLocked"
+                      :bg-color="isJobOccupied || evaluationLocked ? 'grey-3' : 'white'"
                     />
                   </q-scroll-area>
                 </div>
@@ -320,6 +326,8 @@
                       outlined
                       dense
                       class="q-mt-md modern-input"
+                      :readonly="isJobOccupied || evaluationLocked"
+                      :bg-color="isJobOccupied || evaluationLocked ? 'grey-3' : 'white'"
                     />
                   </q-scroll-area>
                 </div>
@@ -345,7 +353,11 @@
             </q-badge>
           </div>
 
-          <div v-if="!props.isPlantilla && !evaluationLocked" class="column items-center">
+          <!-- Only show qualification status selection if not plantilla, not evaluation locked, and job is not occupied -->
+          <div
+            v-if="!props.isPlantilla && !evaluationLocked && !isJobOccupied"
+            class="column items-center"
+          >
             <div class="text-caption text-grey-7 q-mb-xs">Evaluation Status</div>
             <div class="row justify-center q-gutter-md">
               <q-radio
@@ -353,7 +365,7 @@
                 val="Qualified"
                 label="Qualified"
                 color="positive"
-                :disable="evaluationLocked"
+                :disable="evaluationLocked || isJobOccupied"
                 class="radio-button"
               >
                 <q-tooltip>Candidate meets all requirements</q-tooltip>
@@ -363,7 +375,7 @@
                 val="Unqualified"
                 label="Unqualified"
                 color="negative"
-                :disable="evaluationLocked"
+                :disable="evaluationLocked || isJobOccupied"
                 class="radio-button"
               >
                 <q-tooltip>Candidate doesn't meet requirements</q-tooltip>
@@ -371,9 +383,19 @@
             </div>
           </div>
 
+          <!-- Show message when job is occupied -->
+          <div v-if="isJobOccupied && !props.isPlantilla" class="column items-center">
+            <div class="text-caption text-orange-8 q-mb-xs">Job Status</div>
+            <q-badge color="orange" class="text-caption q-px-sm">
+              <q-icon name="lock" class="q-mr-xs" />
+              Position is Occupied - Evaluation Disabled
+            </q-badge>
+          </div>
+
           <div class="row justify-end">
+            <!-- Only show submit button if not plantilla, not evaluation locked, and job is not occupied -->
             <q-btn
-              v-if="!props.isPlantilla && !evaluationLocked"
+              v-if="!props.isPlantilla && !evaluationLocked && !isJobOccupied"
               label="SUBMIT EVALUATION"
               color="positive"
               @click="onSubmit"
@@ -424,6 +446,13 @@
 
   const tab = ref('education');
   const qualificationStatus = ref('');
+
+  // Computed property to check if job is occupied
+  const isJobOccupied = computed(() => {
+    return (
+      props.applicantData?.Jobstatus === 'Occupied' || props.applicantData?.Jobstatus === 'occupied'
+    );
+  });
 
   // Helper function to extract personal info from multiple possible structures
   const getPersonalInfo = (applicantData) => {
@@ -820,7 +849,7 @@
   });
 
   const onSubmit = () => {
-    if (!evaluationLocked.value && qualificationStatus.value) {
+    if (!evaluationLocked.value && qualificationStatus.value && !isJobOccupied.value) {
       emit('submit', {
         status: qualificationStatus.value,
         id: props.applicantData?.id,
@@ -900,6 +929,12 @@
   .modern-input {
     :deep(.q-field__control) {
       background-color: #f9f9f9;
+    }
+  }
+
+  .modern-input[readonly] {
+    :deep(.q-field__control) {
+      background-color: #e0e0e0;
     }
   }
 

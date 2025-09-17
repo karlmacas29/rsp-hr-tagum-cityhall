@@ -171,14 +171,22 @@
       <q-separator />
       <q-card-section class="footer-actions bg-grey-2 q-py-sm">
         <div class="row justify-between items-center q-gutter-sm" style="width: 100%">
-          <div class="text-body2 text-grey-8" v-if="showHireButton">
+          <!-- Show hire note only if hire button is shown and job is not occupied -->
+          <div class="text-body2 text-grey-8" v-if="showHireButton && !isJobOccupied">
             <q-icon name="info" color="primary" class="q-mr-xs" />
             Note: This applicant is considered qualified for the position and may be hired.
           </div>
 
+          <!-- Show occupied message when job is occupied -->
+          <div class="text-body2 text-orange-8" v-if="isJobOccupied">
+            <q-icon name="lock" color="orange" class="q-mr-xs" />
+            Position is occupied - Hiring is disabled.
+          </div>
+
           <div>
+            <!-- Only show hire button if job is not occupied -->
             <q-btn
-              v-if="showHireButton"
+              v-if="showHireButton && !isJobOccupied"
               color="positive"
               icon="work"
               label="Hire"
@@ -356,6 +364,16 @@
         return `${firstName} ${lastName}${extension}`.trim() || 'Unknown Applicant';
       });
 
+      // Computed property to check if job is occupied
+      const isJobOccupied = computed(() => {
+        return (
+          props.jobDetails?.status === 'Occupied' ||
+          props.jobDetails?.status === 'occupied' ||
+          props.applicant?.Jobstatus === 'Occupied' ||
+          props.applicant?.Jobstatus === 'occupied'
+        );
+      });
+
       // Computed property to determine if hire button should be shown
       const showHireButton = computed(() => {
         // Check if all ratings are completed
@@ -366,7 +384,8 @@
         const applicantRank = parseInt(finalScores.value?.rank) || 999;
         const isTopFive = applicantRank <= 5;
 
-        return allRatingsCompleted && isTopFive;
+        // Only show if ratings are complete, applicant is in top 5, and job is not occupied
+        return allRatingsCompleted && isTopFive && !isJobOccupied.value;
       });
 
       const columns = ref([
@@ -472,7 +491,9 @@
       };
 
       const showHireConfirmation = () => {
-        hireConfirmationDialog.value = true;
+        if (!isJobOccupied.value) {
+          hireConfirmationDialog.value = true;
+        }
       };
 
       const confirmHireApplicant = async () => {
@@ -486,13 +507,23 @@
 
           console.log('Hiring applicant with payload:', payload);
 
-          await jobPostStore.hiredApplicant(props.applicant.submission_id, payload);
+          const response = await jobPostStore.hiredApplicant(
+            props.applicant.submission_id,
+            payload,
+          );
+          console.log('API Response:', response);
 
-          toast.success(`Successfully hired ${applicantName.value}!`);
-
-          // Close dialogs after successful hiring
-          hireConfirmationDialog.value = false;
-          closeModal();
+          if (response.data && typeof response.data.success === 'boolean') {
+            if (response.data.success) {
+              toast.success(response.data.message);
+              hireConfirmationDialog.value = false;
+              closeModal();
+            } else {
+              toast.success(response.data.message);
+            }
+          } else {
+            toast.error('Unexpected response format.');
+          }
         } catch (error) {
           console.error('Error hiring applicant:', error);
           toast.error('Failed to hire applicant. Please try again.');
@@ -592,6 +623,7 @@
         getRankColor,
         formatScore,
         showHireButton,
+        isJobOccupied,
         hireApplicant,
         hiringLoading,
         hireConfirmationDialog,

@@ -75,6 +75,16 @@
             </q-td>
           </template>
 
+          <template v-slot:body-cell-active="props">
+            <q-td :props="props">
+              <q-badge
+                :color="props.row.active ? 'green' : 'red'"
+                :label="props.row.active ? 'Active' : 'Inactive'"
+                class="q-pa-xs"
+              />
+            </q-td>
+          </template>
+
           <!-- Actions column -->
           <template v-slot:body-cell-actions="props">
             <q-td :props="props">
@@ -89,9 +99,7 @@
               >
                 <q-tooltip>View</q-tooltip>
               </q-btn>
-              <template
-                v-if="authStore.user.permissions.isRaterM === '1' && props.row.completed == 0"
-              >
+              <template v-if="authStore.user.permissions.isRaterM === '1'">
                 <q-btn
                   flat
                   round
@@ -102,17 +110,6 @@
                   color="positive"
                 >
                   <q-tooltip>Edit</q-tooltip>
-                </q-btn>
-                <q-btn
-                  flat
-                  round
-                  dense
-                  icon="delete"
-                  @click="confirmDeleteRater(props.row)"
-                  class="q-ml-sm bg-red-1"
-                  color="negative"
-                >
-                  <q-tooltip>Delete</q-tooltip>
                 </q-btn>
               </template>
             </q-td>
@@ -221,6 +218,21 @@
                 </template>
               </q-select>
             </div>
+
+            <!-- Add/Edit: Toggle active/inactive -->
+            <div class="q-mb-md">
+              <q-toggle
+                v-model="activeStatus"
+                :true-value="true"
+                :false-value="false"
+                color="green"
+                checked-icon="check"
+                unchecked-icon="block"
+              />
+              <span class="text-body1 q-ml-sm" :class="activeStatus ? 'text-green' : 'text-red'">
+                {{ activeStatus ? 'Active' : 'Inactive' }}
+              </span>
+            </div>
           </template>
 
           <!-- Edit Mode: Display Rater + Office (name-only) -->
@@ -273,6 +285,21 @@
                 <q-icon name="info" size="xs" class="q-mr-xs" />
                 Rater name cannot be changed
               </div>
+            </div>
+
+            <!-- Add/Edit: Toggle active/inactive -->
+            <div class="q-mb-md">
+              <q-toggle
+                v-model="activeStatus"
+                :true-value="true"
+                :false-value="false"
+                color="green"
+                checked-icon="check"
+                unchecked-icon="block"
+              />
+              <span class="text-body1 q-ml-sm" :class="activeStatus ? 'text-green' : 'text-red'">
+                {{ activeStatus ? 'Active' : 'Inactive' }}
+              </span>
             </div>
           </template>
         </q-card-section>
@@ -438,7 +465,7 @@
   </q-page>
 </template>
 <script setup>
-  import { ref, computed, onMounted } from 'vue';
+  import { ref, computed, onMounted, watch } from 'vue';
   import { useAuthStore } from 'stores/authStore';
   import { useJobPostStore } from 'stores/jobPostStore';
   import { usePlantillaStore } from 'stores/plantillaStore';
@@ -496,6 +523,7 @@
   const selectedRater = ref(null);
   // store office as NAME string (no ID)
   const selectedOffice = ref('');
+  const activeStatus = ref(true); // NEW: status toggle
 
   // Options data
   // offices options are [{ label: 'Office Name', value: 'Office Name' }]
@@ -574,6 +602,7 @@
     isEditMode.value = false;
     showModal.value = true;
     resetForm();
+    activeStatus.value = true; // default new rater to active
   };
 
   const isPositionSelected = (id) => {
@@ -637,6 +666,7 @@
         .filter((e) => e.id && e.name); // ensure usable
       officeRatersRaw.value = list;
       filteredRatersByOffice.value = list;
+      currentOfficeRaters.value = list;
     } catch (err) {
       console.error('Failed to fetch employees for office:', err);
       toast.error('Failed to load employees for selected office');
@@ -651,6 +681,7 @@
     if (!OfficeName) {
       filteredRatersByOffice.value = [];
       officeRatersRaw.value = [];
+      currentOfficeRaters.value = [];
       return;
     }
     await fetchEmployeesByOffice(OfficeName);
@@ -682,6 +713,7 @@
     currentRaterOffice.value = '';
     currentOfficeRaters.value = [];
     showError.value = false;
+    activeStatus.value = true;
   };
 
   const closeModal = () => {
@@ -729,6 +761,7 @@
       isEditMode.value = true;
       currentRaterId.value = rater.id;
       currentRaterName.value = rater.Rater;
+      activeStatus.value = !!rater.active; // set toggle from record
 
       // Ensure office options are present
       if (
@@ -754,6 +787,7 @@
       // Populate rater list for that office
       if (selectedOffice.value) {
         await fetchEmployeesByOffice(selectedOffice.value);
+        currentOfficeRaters.value = officeRatersRaw.value;
       }
 
       // Pre-select positions by name
@@ -788,6 +822,7 @@
       const userData = {
         job_batches_rsp_id: selectedPositions.value.filter((id) => id !== 'all'),
         Office: selectedOffice.value, // name-only
+        active: activeStatus.value, // NEW: pass status
       };
 
       const result = await authStore.rater_edit(raterId, userData);
@@ -830,7 +865,7 @@
         Designation: raterData.Designation || '', // optional
         job_batches_rsp_id: jobBatchIds,
         Office: selectedOffice.value, // name-only
-        active: true,
+        active: activeStatus.value, // NEW: pass status
       };
 
       const result = await authStore.Rater_register(userData);
@@ -852,10 +887,10 @@
     }
   };
 
-  const confirmDeleteRater = (rater) => {
-    raterToDelete.value = rater.id;
-    showDeleteDialog.value = true;
-  };
+  // const confirmDeleteRater = (rater) => {
+  //   raterToDelete.value = rater.id;
+  //   showDeleteDialog.value = true;
+  // };
 
   const deleteRater = () => {
     raters.value = raters.value.filter((r) => r.id !== raterToDelete.value);
@@ -890,6 +925,15 @@
         ),
       );
       offices.value = names.map((name) => ({ label: name, value: name }));
+    }
+  });
+
+  // If you want to sync the toggle when opening edit modal, do it here:
+  watch(showModal, (val) => {
+    if (val && isEditMode.value) {
+      // already set in editRater
+    } else if (val && !isEditMode.value) {
+      activeStatus.value = true;
     }
   });
 </script>

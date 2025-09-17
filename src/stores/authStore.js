@@ -31,6 +31,7 @@ export const useAuthStore = defineStore('auth', {
 
         const formattedData = {
           office: userData.Office,
+          active: userData.active,
         };
 
         if (Array.isArray(userData.job_batches_rsp_id) && userData.job_batches_rsp_id.length > 0) {
@@ -470,6 +471,7 @@ export const useAuthStore = defineStore('auth', {
             Rater: rater.name,
             Office: rater.office || 'No office assigned',
             job_batches_rsp: rater.job_batches_rsp || 'No positions assigned',
+            active: rater.active,
             pending: rater.pending || 0,
             completed: rater.completed || 0,
           }));

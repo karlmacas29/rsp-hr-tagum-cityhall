@@ -1085,7 +1085,7 @@
         return 'blue';
       case 'rated':
         return 'purple';
-      case 'complete':
+      case 'Occupied':
         return 'green';
       default:
         return 'grey';

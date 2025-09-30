@@ -358,11 +358,11 @@
             <div class="col">
               <div class="text-subtitle1 q-mb-sm">
                 <strong>Rater:</strong>
-                {{ currentViewRater.Rater }}
+                {{ currentViewRater.name }}
               </div>
               <div class="text-subtitle1 q-mb-sm">
                 <strong>Office:</strong>
-                {{ currentViewRater.Office }}
+                {{ currentViewRater.office }}
               </div>
             </div>
             <div class="col-auto">
@@ -383,13 +383,26 @@
         </q-card-section>
 
         <q-card-section class="q-pa-md q-mx-md scrollable-content">
+          <!-- Loading state -->
+          <div v-if="isLoadingJobs" class="flex flex-center q-py-xl">
+            <q-spinner size="50px" color="primary" />
+            <div class="q-ml-md">Loading assigned jobs...</div>
+          </div>
+
+          <!-- Error state -->
+          <div v-else-if="jobLoadError" class="flex flex-center q-py-xl">
+            <q-icon name="error" size="40px" color="negative" />
+            <div class="q-ml-md text-negative">{{ jobLoadError }}</div>
+          </div>
+
+          <!-- Jobs table -->
           <q-table
+            v-else
             flat
             bordered
             :rows="filteredJobs"
             :columns="jobColumns"
             row-key="id"
-            :loading="isLoadingJobs"
             :pagination="pagination"
             class="sticky-header-table no-horizontal-scroll"
             wrap-cells
@@ -397,35 +410,34 @@
           >
             <template v-slot:body-cell-position="props">
               <q-td :props="props" class="position-column">
-                <div class="full-position-text" :title="props.row.position">
-                  {{ props.row.position }}
+                <div class="full-position-text" :title="props.row.Position">
+                  {{ props.row.Position }}
                 </div>
               </q-td>
             </template>
 
-            <template v-slot:body-cell-status="props">
-              <q-td :props="props" class="text-center">
-                <div
-                  v-if="props.row.status === 'completed'"
-                  class="text-green flex items-center justify-center"
-                >
-                  <q-icon name="check_circle" size="xs" class="q-mr-xs" />
-                  Completed
-                </div>
-                <div v-else class="text-orange flex items-center justify-center">
-                  <q-icon name="schedule" size="xs" class="q-mr-xs" />
-                  Pending
+            <template v-slot:body-cell-office="props">
+              <q-td :props="props" class="office-column">
+                <div class="full-office-text" :title="props.row.Office">
+                  {{ props.row.Office }}
                 </div>
               </q-td>
             </template>
 
-            <template v-slot:body-cell-applicantCount="props">
+            <template v-slot:body-cell-applicant="props">
               <q-td :props="props" class="text-center">
                 <div class="text-grey-9">
-                  {{ props.row.applicantCount }}
+                  {{ props.row.applicant }}
                   <q-icon name="people" size="xs" class="q-ml-xs" />
                 </div>
               </q-td>
+            </template>
+
+            <template v-slot:no-data>
+              <div class="full-width row flex-center q-gutter-sm text-grey">
+                <q-icon size="2em" name="inbox" />
+                <span>No jobs assigned to this rater</span>
+              </div>
             </template>
 
             <template v-slot:bottom="scope">
@@ -447,15 +459,17 @@
 
         <q-card-section class="q-pt-md q-px-lg sticky-footer">
           <div class="row justify-between items-center">
-            <div class="text-caption text-grey-7">Showing {{ filteredJobs.length }} jobs</div>
+            <div class="text-caption text-grey-7">
+              Showing {{ filteredJobs.length }} job{{ filteredJobs.length !== 1 ? 's' : '' }}
+            </div>
             <div class="row q-gutter-md">
-              <div class="text-green flex items-center">
-                <q-icon name="check_circle" size="sm" class="q-mr-xs" />
-                Completed: {{ raterJobs.filter((j) => j.status === 'completed').length }}
+              <div class="text-primary flex items-center">
+                <q-icon name="assignment" size="sm" class="q-mr-xs" />
+                Total Jobs: {{ raterJobs.length }}
               </div>
-              <div class="text-orange flex items-center">
-                <q-icon name="schedule" size="sm" class="q-mr-xs" />
-                Pending: {{ raterJobs.filter((j) => j.status === 'pending').length }}
+              <div class="text-info flex items-center">
+                <q-icon name="people" size="sm" class="q-mr-xs" />
+                Total Applicants: {{ totalApplicants }}
               </div>
             </div>
           </div>
@@ -464,6 +478,7 @@
     </q-dialog>
   </q-page>
 </template>
+
 <script setup>
   import { ref, computed, onMounted, watch } from 'vue';
   import { useAuthStore } from 'stores/authStore';
@@ -485,6 +500,7 @@
   const raters = ref([]);
   const raterJobs = ref([]);
   const isLoadingJobs = ref(false);
+  const jobLoadError = ref('');
 
   // Modal state
   const showModal = ref(false);
@@ -500,14 +516,15 @@
   // View dialog state
   const showViewDialog = ref(false);
   const currentViewRater = ref({
-    Rater: '',
-    Position: '',
-    Office: '',
+    id: null,
+    name: '',
+    position: '',
+    office: '',
   });
 
   // Pagination state
   const pagination = ref({
-    sortBy: 'position',
+    sortBy: 'Position',
     descending: false,
     page: 1,
     rowsPerPage: 10,
@@ -535,7 +552,7 @@
   const officeRatersRaw = ref([]);
   const isLoadingRaters = ref(false);
 
-  // Columns definition (unchanged)
+  // Columns definition
   const columns = [
     { name: 'id', label: 'ID', field: 'id', align: 'left' },
     { name: 'Rater', label: 'Rater Name', field: 'Rater', align: 'left' },
@@ -552,21 +569,32 @@
     { name: 'actions', label: 'Actions', align: 'center' },
   ];
 
-  // Job columns (unchanged)
+  // Updated job columns to match API response
   const jobColumns = [
-    { name: 'position', label: 'Position', field: 'position', align: 'left', style: 'width: 40%' },
-    { name: 'slots', label: 'Slots', field: 'slots', align: 'center', style: 'width: 15%' },
     {
-      name: 'applicantCount',
-      label: 'Number of Applicants',
-      field: 'applicantCount',
+      name: 'position',
+      label: 'Position',
+      field: 'Position',
+      align: 'left',
+      style: 'width: 35%',
+    },
+    {
+      name: 'office',
+      label: 'Office',
+      field: 'Office',
+      align: 'left',
+      style: 'width: 40%',
+    },
+    {
+      name: 'applicant',
+      label: 'Applicants',
+      field: 'applicant',
       align: 'center',
       style: 'width: 25%',
     },
-    { name: 'status', label: 'Status', field: 'status', align: 'center', style: 'width: 20%' },
   ];
 
-  // Computed (unchanged except safe guards)
+  // Computed
   const filteredRaters = computed(() => {
     if (!globalSearch.value) return raters.value;
     const searchTerm = globalSearch.value.toLowerCase();
@@ -585,8 +613,8 @@
     const searchTerm = jobSearch.value.toLowerCase();
     return raterJobs.value.filter((job) => {
       return (
-        job.position.toLowerCase().includes(searchTerm) ||
-        job.status.toLowerCase().includes(searchTerm)
+        job.Position.toLowerCase().includes(searchTerm) ||
+        job.Office.toLowerCase().includes(searchTerm)
       );
     });
   });
@@ -597,7 +625,14 @@
     return [allOption, ...positions.value];
   });
 
-  // Methods (only the office+rater flow is new/updated)
+  // Calculate total applicants
+  const totalApplicants = computed(() => {
+    return raterJobs.value.reduce((total, job) => {
+      return total + parseInt(job.applicant || 0);
+    }, 0);
+  });
+
+  // Methods
   const showAddModal = () => {
     isEditMode.value = false;
     showModal.value = true;
@@ -722,38 +757,66 @@
     isEditMode.value = false;
   };
 
-  const viewRater = (rater) => {
+  // Updated viewRater method to properly handle the API response structure
+  const viewRater = async (rater) => {
     currentViewRater.value = {
-      Rater: rater.Rater,
-      Position: rater.Position,
-      Office: rater.Office,
+      id: rater.id,
+      name: rater.Rater,
+      position: rater.Position || 'N/A',
+      office: rater.Office,
     };
+
     isLoadingJobs.value = true;
+    jobLoadError.value = '';
+    raterJobs.value = [];
     pagination.value.page = 1;
+    showViewDialog.value = true;
 
-    const assignedPositions = (rater.job_batches_rsp || '')
-      .split(', ')
-      .map((s) => s.trim())
-      .filter(Boolean);
-    const raterJobsData = jobPostStore.jobPosts
-      .filter((job) => assignedPositions.includes(job.Position))
-      .map((job) => {
-        const isCompleted = Math.random() > 0.5;
-        return {
-          id: job.id,
-          position: job.Position,
-          slots: job.Plantilla || 1,
-          applicantCount: job.ApplicantCount || Math.floor(Math.random() * 15) + 1,
-          status: isCompleted ? 'completed' : 'pending',
-        };
-      });
+    try {
+      // Use the assign_job_list method from jobPostStore
+      await jobPostStore.assign_job_list(rater.id);
 
-    setTimeout(() => {
-      raterJobs.value = raterJobsData;
-      pagination.value.rowsNumber = raterJobsData.length;
+      // Debug: Log the actual response structure
+      console.log('jobPostStore.jobPosts after assign_job_list:', jobPostStore.jobPosts);
+
+      // Handle the response structure properly
+      let jobsData = [];
+
+      if (jobPostStore.jobPosts) {
+        if (Array.isArray(jobPostStore.jobPosts)) {
+          // If jobPosts is directly an array of jobs
+          jobsData = jobPostStore.jobPosts;
+        } else if (
+          jobPostStore.jobPosts.job_batches_rsp &&
+          Array.isArray(jobPostStore.jobPosts.job_batches_rsp)
+        ) {
+          // If the response has job_batches_rsp as an array
+          jobsData = jobPostStore.jobPosts.job_batches_rsp;
+        } else if (
+          typeof jobPostStore.jobPosts === 'object' &&
+          jobPostStore.jobPosts.job_batches_rsp
+        ) {
+          // Handle single object response
+          jobsData = Array.isArray(jobPostStore.jobPosts.job_batches_rsp)
+            ? jobPostStore.jobPosts.job_batches_rsp
+            : [jobPostStore.jobPosts.job_batches_rsp];
+        }
+      }
+
+      if (jobsData.length > 0) {
+        raterJobs.value = jobsData;
+        pagination.value.rowsNumber = jobsData.length;
+      } else {
+        raterJobs.value = [];
+        jobLoadError.value = 'No jobs assigned to this rater';
+      }
+    } catch (error) {
+      console.error('Error fetching rater jobs:', error);
+      jobLoadError.value = error.response?.data?.message || 'Failed to load assigned jobs';
+      toast.error('Failed to load assigned jobs for this rater');
+    } finally {
       isLoadingJobs.value = false;
-      showViewDialog.value = true;
-    }, 300);
+    }
   };
 
   const editRater = async (rater) => {
@@ -993,12 +1056,19 @@
 
   /* Position column styles */
   .position-column {
-    width: 40%;
+    width: 35%;
     max-width: 300px;
   }
 
-  /* Full text display for position */
-  .full-position-text {
+  /* Office column styles */
+  .office-column {
+    width: 40%;
+    max-width: 350px;
+  }
+
+  /* Full text display for position and office */
+  .full-position-text,
+  .full-office-text {
     white-space: normal;
     word-break: break-word;
     line-height: 1.4;

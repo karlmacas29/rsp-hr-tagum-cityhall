@@ -103,22 +103,22 @@
         </template>
         <template v-slot:body-cell-applicants="props">
           <q-td :props="props" class="count-column">
-            <div class="text-center text-body2">{{ props.row.applicants }}</div>
+            <div class="text-center text-body2">{{ props.row.applicants || 0 }}</div>
           </q-td>
         </template>
         <template v-slot:body-cell-pending="props">
           <q-td :props="props" class="count-column">
-            <div class="text-center text-body2">{{ props.row.pending }}</div>
+            <div class="text-center text-body2">{{ props.row.pending || 0 }}</div>
           </q-td>
         </template>
         <template v-slot:body-cell-qualified="props">
           <q-td :props="props" class="count-column">
-            <div class="text-center text-body2">{{ props.row.qualified }}</div>
+            <div class="text-center text-body2">{{ props.row.qualified || 0 }}</div>
           </q-td>
         </template>
         <template v-slot:body-cell-unqualified="props">
           <q-td :props="props" class="count-column">
-            <div class="text-center text-body2">{{ props.row.unqualified }}</div>
+            <div class="text-center text-body2">{{ props.row.unqualified || 0 }}</div>
           </q-td>
         </template>
         <template v-slot:body-cell-status="props">
@@ -196,7 +196,7 @@
             <div>
               <div class="text-h5 text-bold">Edit Job Post</div>
               <div class="text-body text-grey-8 text-bold">
-                {{ editJobDetails.position }}
+                {{ editJobDetails.Position }}
               </div>
               <q-chip dense>
                 Position Level:
@@ -215,11 +215,11 @@
           <q-card-section class="q-py-none">
             <div class="row q-col-gutter-md">
               <div class="col-6">
-                <q-input v-model="editJobDetails.office" label="Office" outlined dense disable />
+                <q-input v-model="editJobDetails.Office" label="Office" outlined dense disable />
               </div>
               <div class="col-6">
                 <q-input
-                  v-model="editJobDetails.division"
+                  v-model="editJobDetails.Division"
                   label="Division"
                   outlined
                   dense
@@ -227,44 +227,43 @@
                 />
               </div>
             </div>
-            <div class="row q-col-gutter-md">
+            <div class="row q-col-gutter-md q-mt-sm">
               <div class="col-6">
-                <q-input v-model="editJobDetails.section" label="Section" outlined dense disable />
+                <q-input v-model="editJobDetails.Section" label="Section" outlined dense disable />
               </div>
               <div class="col-6">
-                <q-input v-model="editJobDetails.unit" label="Unit" outlined dense disable />
+                <q-input v-model="editJobDetails.Unit" label="Unit" outlined dense disable />
               </div>
             </div>
 
             <div class="row q-col-gutter-md q-mt-sm">
               <div class="col-6">
                 <q-input
-                  v-model="editJobDetails.startingDate"
+                  v-model="editJobDetails.post_date"
                   label="Starting Date"
                   outlined
                   dense
                   mask="date"
-                  disable
                 />
               </div>
               <div class="col-6">
                 <q-input
-                  v-model="editJobDetails.endedDate"
-                  label="Ended Date"
+                  v-model="editJobDetails.end_date"
+                  label="End Date"
                   outlined
                   dense
                   mask="date"
                   :rules="[
                     (date) =>
-                      date >= editJobDetails.startingDate || 'End date cannot be before start date',
+                      date >= editJobDetails.post_date || 'End date cannot be before start date',
                   ]"
                 >
                   <template v-slot:append>
                     <q-icon name="event" class="cursor-pointer">
                       <q-popup-proxy cover transition-show="scale" transition-hide="scale">
                         <q-date
-                          v-model="editJobDetails.endedDate"
-                          :options="(date) => date >= editJobDetails.startingDate"
+                          v-model="editJobDetails.end_date"
+                          :options="(date) => date >= editJobDetails.post_date"
                         >
                           <div class="row items-center justify-end">
                             <q-btn v-close-popup label="Close" color="primary" flat />
@@ -281,7 +280,7 @@
           <q-card-section>
             <div class="text-h5 q-mb-sm text-bold">Qualification Standard</div>
             <q-table
-              :rows="qsDataLoad"
+              :rows="criteriaData ? [criteriaData] : []"
               :columns="[
                 { name: 'education', label: 'Education', field: 'Education', align: 'left' },
                 { name: 'experience', label: 'Experience', field: 'Experience', align: 'left' },
@@ -289,22 +288,50 @@
                 { name: 'eligibility', label: 'Eligibility', field: 'Eligibility', align: 'left' },
               ]"
               row-key="id"
-              :loading="usePlantilla.qsLoad"
+              :loading="loadingCriteria"
               hide-bottom
             >
               <template v-slot:body="props">
                 <q-tr :props="props">
                   <q-td style="width: 100px; white-space: pre-line; word-break: break-word">
-                    {{ props.row.Education }}
+                    <q-input
+                      v-model="props.row.Education"
+                      type="textarea"
+                      dense
+                      borderless
+                      autogrow
+                      class="q-pa-none"
+                    />
                   </q-td>
                   <q-td style="width: 100px; white-space: pre-line; word-break: break-word">
-                    {{ props.row.Experience }}
+                    <q-input
+                      v-model="props.row.Experience"
+                      type="textarea"
+                      dense
+                      borderless
+                      autogrow
+                      class="q-pa-none"
+                    />
                   </q-td>
                   <q-td style="width: 100px; white-space: pre-line; word-break: break-word">
-                    {{ props.row.Training }}
+                    <q-input
+                      v-model="props.row.Training"
+                      type="textarea"
+                      dense
+                      borderless
+                      autogrow
+                      class="q-pa-none"
+                    />
                   </q-td>
                   <q-td style="width: 120px; white-space: pre-line; word-break: break-word">
-                    {{ props.row.Eligibility }}
+                    <q-input
+                      v-model="props.row.Eligibility"
+                      type="textarea"
+                      dense
+                      borderless
+                      autogrow
+                      class="q-pa-none"
+                    />
                   </q-td>
                 </q-tr>
               </template>
@@ -312,18 +339,15 @@
           </q-card-section>
 
           <!-- Current Document Display -->
-          <q-card-section v-if="editJobDetails.currentDocument">
+          <q-card-section v-if="editJobDetails.fileUpload">
             <div class="text-h6 q-mb-sm">Current Document</div>
             <div class="row items-center q-gutter-md">
               <q-icon name="picture_as_pdf" size="md" color="red" />
               <div class="column">
                 <div class="text-body2 text-weight-medium">
-                  {{ editJobDetails.currentDocument.name }}
+                  {{ getFileName(editJobDetails.fileUpload) }}
                 </div>
-                <div class="text-caption text-grey-6">
-                  Uploaded on
-                  {{ formatDate(editJobDetails.currentDocument.uploadDate, 'MMM D, YYYY') }}
-                </div>
+                <div class="text-caption text-grey-6">Current plantilla document</div>
               </div>
               <q-btn
                 flat
@@ -352,6 +376,8 @@
               label="Upload new PDF file (Max 5MB)"
               style="width: 330px; border: 2px dashed #ccc; border-radius: 8px"
               class="q-mx-auto q-mb-md"
+              :max-file-size="5242880"
+              @rejected="onFileRejected"
             >
               <template v-slot:prepend>
                 <q-icon name="upload_file" size="2em" color="grey-7" />
@@ -359,6 +385,9 @@
             </q-file>
             <div class="text-caption text-grey-6 text-center" v-if="!editJobDetails.newFile">
               No new file selected. Current document will be retained.
+            </div>
+            <div class="text-caption text-positive text-center" v-if="editJobDetails.newFile">
+              New file selected: {{ editJobDetails.newFile.name }}
             </div>
           </q-card-section>
         </q-scroll-area>
@@ -373,7 +402,7 @@
             dense
             label="Set Page No."
             type="number"
-            v-model="editJobDetails.PageNo"
+            v-model.number="editJobDetails.PageNo"
           />
 
           <div class="q-gutter-sm">
@@ -545,18 +574,25 @@
 
   // Edit related state
   const showEditModal = ref(false);
+  const loadingCriteria = ref(false);
+  const criteriaData = ref(null);
+
   const editJobDetails = ref({
     id: null,
-    office: '',
-    division: '',
-    section: '',
-    unit: '',
-    position: '',
+    Office: '',
+    Division: '',
+    Section: '',
+    Unit: '',
+    Position: '',
     level: '',
-    startingDate: '',
-    endedDate: '',
-    PageNo: 1,
-    currentDocument: null,
+    post_date: '',
+    end_date: '',
+    PageNo: 0,
+    PositionID: '',
+    ItemNo: '',
+    SalaryGrade: '',
+    status: '',
+    fileUpload: '',
     newFile: null,
   });
 
@@ -620,34 +656,34 @@
       style: 'width: 12%',
     },
     {
-      name: 'total_applicants',
+      name: 'applicants',
       align: 'center',
       label: 'Applicant',
-      field: 'total_applicants',
+      field: 'applicants',
       sortable: true,
       style: 'width: 8%',
     },
     {
-      name: 'pending_count',
+      name: 'pending',
       align: 'center',
       label: 'Pending',
-      field: 'pending_count',
+      field: 'pending',
       sortable: true,
       style: 'width: 8%',
     },
     {
-      name: 'qualified_count',
+      name: 'qualified',
       align: 'center',
       label: 'Qualified',
-      field: 'qualified_count',
+      field: 'qualified',
       sortable: true,
       style: 'width: 8%',
     },
     {
-      name: 'unqualified_count',
+      name: 'unqualified',
       align: 'center',
       label: 'Unqualified',
-      field: 'unqualified_count',
+      field: 'unqualified',
       sortable: true,
       style: 'width: 8%',
     },
@@ -657,7 +693,7 @@
       field: 'status',
       align: 'center',
       sortable: true,
-      style: 'width": 5%',
+      style: 'width: 5%',
     },
     {
       name: 'action',
@@ -670,8 +706,6 @@
   ];
 
   const jobs = ref([]);
-  const qsDataLoad = ref([]);
-  const usePlantilla = ref({ qsLoad: false });
 
   // Add this computed property to filter jobs by date range
   const filteredJobs = computed(() => {
@@ -698,8 +732,7 @@
           (job.Position && job.Position.toLowerCase().includes(searchTerm)) ||
           (job.post_date &&
             formatDate(job.post_date, 'MMM D, YYYY').toLowerCase().includes(searchTerm)) ||
-          (job.total_applicants !== undefined &&
-            job.total_applicants.toString().includes(searchTerm)) ||
+          (job.applicants !== undefined && job.applicants.toString().includes(searchTerm)) ||
           (job.pending !== undefined && job.pending.toString().includes(searchTerm)) ||
           (job.qualified !== undefined && job.qualified.toString().includes(searchTerm)) ||
           (job.unqualified !== undefined && job.unqualified.toString().includes(searchTerm))
@@ -738,33 +771,36 @@
   // Edit job post functions
   const editJobPost = async (job) => {
     try {
-      // Populate edit form with job data
+      showEditModal.value = true;
+
+      // Fetch detailed job post data using the store method
+      const jobData = await jobPostStore.fetchJobPostByPositionAndItemNo(
+        job.PositionID,
+        job.ItemNo,
+      );
+
+      // Populate edit form with fetched job data
       editJobDetails.value = {
-        id: job.PositionID || job.id,
-        office: job.Office,
-        division: job.Division || '',
-        section: job.Section || '',
-        unit: job.Unit || '',
-        position: job.Position,
-        level: job.Level || '',
-        startingDate: job.starting_date || job.startingDate || '',
-        endedDate: job.ended_date || job.endedDate || '',
-        PageNo: job.PageNo || 1,
-        currentDocument: job.document
-          ? {
-              name: job.document.name || 'Current Document.pdf',
-              uploadDate: job.document.uploadDate || job.post_date,
-            }
-          : null,
+        id: jobData.id,
+        Office: jobData.Office || '',
+        Division: jobData.Division || '',
+        Section: jobData.Section || '',
+        Unit: jobData.Unit || '',
+        Position: jobData.Position || '',
+        level: jobData.level || '',
+        post_date: jobData.post_date ? jobData.post_date.split(' ')[0] : '',
+        end_date: jobData.end_date || '',
+        PageNo: parseInt(jobData.PageNo) || 0,
+        PositionID: jobData.PositionID,
+        ItemNo: jobData.ItemNo,
+        SalaryGrade: jobData.SalaryGrade || '',
+        status: jobData.status || '',
+        fileUpload: jobData.fileUpload || '',
         newFile: null,
       };
 
-      // Load qualification standards if needed
-      if (job.PositionID) {
-        await loadQualificationStandards(job.PositionID);
-      }
-
-      showEditModal.value = true;
+      // Fetch criteria data
+      await loadCriteriaData(jobData.PositionID, jobData.ItemNo);
     } catch (error) {
       console.error('Error loading job data for edit:', error);
       $q.notify({
@@ -772,23 +808,96 @@
         message: 'Failed to load job data for editing',
         position: 'top',
       });
+      showEditModal.value = false;
+    }
+  };
+
+  // Helper function to extract filename from file path
+  const getFileName = (filePath) => {
+    if (!filePath) return 'Unknown File';
+    const parts = filePath.split('/');
+    return parts[parts.length - 1];
+  };
+
+  // Handle file rejection (size, type, etc.)
+  const onFileRejected = (rejectedEntries) => {
+    const file = rejectedEntries[0];
+    if (file.failedPropValidation === 'max-file-size') {
+      $q.notify({
+        type: 'negative',
+        message: 'File size must be less than 5MB',
+        position: 'top',
+      });
+    } else if (file.failedPropValidation === 'accept') {
+      $q.notify({
+        type: 'negative',
+        message: 'Only PDF files are allowed',
+        position: 'top',
+      });
+    }
+  };
+
+  // Download current document
+  const downloadCurrentDocument = () => {
+    if (!editJobDetails.value.fileUpload) {
+      $q.notify({
+        type: 'warning',
+        message: 'No document available for download',
+        position: 'top',
+      });
+      return;
+    }
+
+    // Create a download link for the current document
+    // You might need to adjust this URL based on your backend setup
+    const baseUrl = process.env.VUE_APP_API_URL || '';
+    const downloadUrl = `${baseUrl}/storage/${editJobDetails.value.fileUpload}`;
+
+    // Create temporary link and trigger download
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = getFileName(editJobDetails.value.fileUpload);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const loadCriteriaData = async (positionId, itemNo) => {
+    try {
+      loadingCriteria.value = true;
+      const criteria = await jobPostStore.fetchCriteriaByPositionAndItemNo(positionId, itemNo);
+      criteriaData.value = criteria;
+    } catch (error) {
+      console.error('Error loading criteria data:', error);
+      $q.notify({
+        type: 'negative',
+        message: 'Failed to load criteria data',
+        position: 'top',
+      });
+    } finally {
+      loadingCriteria.value = false;
     }
   };
 
   const closeEditModal = () => {
     showEditModal.value = false;
+    criteriaData.value = null;
     editJobDetails.value = {
       id: null,
-      office: '',
-      division: '',
-      section: '',
-      unit: '',
-      position: '',
+      Office: '',
+      Division: '',
+      Section: '',
+      Unit: '',
+      Position: '',
       level: '',
-      startingDate: '',
-      endedDate: '',
-      PageNo: 1,
-      currentDocument: null,
+      post_date: '',
+      end_date: '',
+      PageNo: 0,
+      PositionID: '',
+      ItemNo: '',
+      SalaryGrade: '',
+      status: '',
+      fileUpload: '',
       newFile: null,
     };
   };
@@ -796,7 +905,7 @@
   const updateJobPost = async () => {
     try {
       // Validate required fields
-      if (!editJobDetails.value.endedDate) {
+      if (!editJobDetails.value.end_date) {
         $q.notify({
           type: 'negative',
           message: 'Please select an end date',
@@ -805,20 +914,41 @@
         return;
       }
 
-      // Prepare update data
-      const updateData = {
-        id: editJobDetails.value.id,
-        endedDate: editJobDetails.value.endedDate,
-        PageNo: editJobDetails.value.PageNo,
+      if (!criteriaData.value) {
+        $q.notify({
+          type: 'negative',
+          message: 'Criteria data is missing',
+          position: 'top',
+        });
+        return;
+      }
+
+      // Prepare job batch update data
+      const jobBatch = {
+        end_date: editJobDetails.value.end_date,
+        PageNo: editJobDetails.value.PageNo.toString(),
       };
 
       // Add file if a new one was selected
       if (editJobDetails.value.newFile) {
-        updateData.document = editJobDetails.value.newFile;
+        jobBatch.fileUpload = editJobDetails.value.newFile;
       }
 
+      // Prepare criteria update data
+      const criteria = {
+        Education: criteriaData.value.Education,
+        Experience: criteriaData.value.Experience,
+        Training: criteriaData.value.Training,
+        Eligibility: criteriaData.value.Eligibility,
+      };
+
       // Call the store's update method
-      await jobPostStore.updateJobPost(updateData);
+      await jobPostStore.updateJobPost({
+        id: editJobDetails.value.id,
+        jobBatch: jobBatch,
+        criteria: criteria,
+        criteriaId: criteriaData.value.id,
+      });
 
       // Refresh the job list
       await jobPostStore.job_post();
@@ -837,45 +967,9 @@
       console.error('Error updating job post:', error);
       $q.notify({
         type: 'negative',
-        message: 'Failed to update job post. Please try again.',
+        message: error.response?.data?.message || 'Failed to update job post. Please try again.',
         position: 'top',
       });
-    }
-  };
-
-  const downloadCurrentDocument = () => {
-    // Implement document download functionality
-    // This would typically call an API endpoint to download the current document
-    console.log('Downloading current document for job:', editJobDetails.value.id);
-    $q.notify({
-      type: 'info',
-      message: 'Document download initiated',
-      position: 'top',
-    });
-  };
-
-  const loadQualificationStandards = async () => {
-    try {
-      usePlantilla.value.qsLoad = true;
-      // Call your API to load qualification standards for the position
-      // This should be replaced with your actual API call
-      // const response = await jobPostStore.getQualificationStandards();
-      // qsDataLoad.value = response.data;
-
-      // Mock data for demonstration
-      qsDataLoad.value = [
-        {
-          id: 1,
-          Education: "Bachelor's degree relevant to the job",
-          Experience: 'At least 1 year of relevant experience',
-          Training: '4 hours of relevant training',
-          Eligibility: 'Career Service (Professional) Second Level Eligibility',
-        },
-      ];
-    } catch (error) {
-      console.error('Error loading qualification standards:', error);
-    } finally {
-      usePlantilla.value.qsLoad = false;
     }
   };
 
@@ -890,7 +984,7 @@
     if (!jobToDelete.value) return;
 
     try {
-      deletingJobId.value = jobToDelete.value.id;
+      deletingJobId.value = jobToDelete.value.PositionID;
 
       // Call the store's deleteJobPost method
       await jobPostStore.deleteJobPost({ id: jobToDelete.value.id });
@@ -901,7 +995,7 @@
 
       // Show success notification
       $q.notify({
-        type: 'negative',
+        type: 'positive',
         message: 'Job post deleted successfully',
         position: 'top',
       });
@@ -1076,7 +1170,7 @@
   };
 
   const getStatusColor = (status) => {
-    switch (status) {
+    switch (status?.toLowerCase()) {
       case 'not started':
         return 'grey';
       case 'pending':
@@ -1085,19 +1179,33 @@
         return 'blue';
       case 'rated':
         return 'purple';
-      case 'Occupied':
+      case 'occupied':
         return 'green';
+      case 'qualified':
+        return 'green';
+      case 'unqualified':
+        return 'red';
       default:
         return 'grey';
     }
   };
 
   onMounted(async () => {
-    // Fetch job posts from the store
-    await jobPostStore.job_post();
-    jobs.value = jobPostStore.jobPosts;
-    // Set the date range to the last 30 days
-    setDateRange();
+    try {
+      // Fetch job posts from the store
+      await jobPostStore.job_post();
+      jobs.value = jobPostStore.jobPosts;
+
+      // Set the date range to the current year
+      setDateRange();
+    } catch (error) {
+      console.error('Error loading job posts:', error);
+      $q.notify({
+        type: 'negative',
+        message: 'Failed to load job posts',
+        position: 'top',
+      });
+    }
   });
 </script>
 
@@ -1260,13 +1368,6 @@
     background-color: rgba(255, 152, 0, 0.1);
   }
 
-  /* Current document section styling */
-  .current-document-section {
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    padding: 16px;
-  }
-
   /* Responsive adjustments */
   @media (max-width: 1024px) {
     .job-posts-table {
@@ -1275,5 +1376,18 @@
         padding: 6px 8px;
       }
     }
+  }
+
+  /* Editable criteria table styling */
+  .q-table .q-input {
+    min-height: auto;
+  }
+
+  .q-table .q-input .q-field__control {
+    min-height: auto;
+  }
+
+  .q-table .q-input .q-field__native {
+    padding: 4px 0;
   }
 </style>

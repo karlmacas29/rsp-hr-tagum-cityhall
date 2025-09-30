@@ -169,7 +169,7 @@
                   <!-- Main Description -->
                   <q-input
                     v-model="editableCriteria[section.key].description"
-                    label="Primary Description"
+                    label="Description"
                     dense
                     outlined
                     autogrow
@@ -184,9 +184,9 @@
                       v-if="getCommaSeparatedDescriptions(section.key).length > 0"
                       class="q-mt-sm"
                     >
-                      <div class="text-11 text-grey-8 q-mb-xs text-weight-medium">
+                      <!-- <div class="text-11 text-grey-8 q-mb-xs text-weight-medium">
                         Additional Descriptions:
-                      </div>
+                      </div> -->
                       <div
                         v-for="(desc, idx) in getCommaSeparatedDescriptions(section.key)"
                         :key="`${section.key}-comma-desc-${idx}`"
@@ -212,9 +212,9 @@
                       v-if="editableCriteria[section.key].additionalFields.length > 0"
                       class="q-mt-sm"
                     >
-                      <div class="text-11 text-grey-8 q-mb-xs text-weight-medium">
+                      <!-- <div class="text-11 text-grey-8 q-mb-xs text-weight-medium">
                         Additional Descriptions:
-                      </div>
+                      </div> -->
                       <div
                         v-for="(field, idx) in editableCriteria[section.key].additionalFields"
                         :key="section.key + '-edit-desc-' + idx"

@@ -200,7 +200,7 @@
     width: 8.5in;
     min-height: 11in;
     padding: 0.3in;
-    padding-bottom: 0%;
+    padding-bottom: 10px;
     padding-top: 1.2in;
     font-family: 'Consolas', 'Courier New', Courier, monospace;
     font-size: 12pt;

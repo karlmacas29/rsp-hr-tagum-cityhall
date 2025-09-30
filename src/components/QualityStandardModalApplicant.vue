@@ -341,7 +341,7 @@
       <q-card-section class="footer-actions bg-grey-2 q-py-sm">
         <div class="row justify-between items-center">
           <div class="row items-center">
-            <q-btn
+            <!-- <q-btn
               flat
               dense
               :icon="showControlNo ? 'visibility_off' : 'visibility'"
@@ -350,7 +350,7 @@
             />
             <q-badge v-if="showControlNo" color="grey">
               Control No. {{ applicantData?.id || '0' }}
-            </q-badge>
+            </q-badge> -->
           </div>
 
           <!-- Only show qualification status selection if not plantilla, not evaluation locked, and job is not occupied -->
@@ -698,7 +698,7 @@
   ];
 
   const usePlantilla = usePlantillaStore();
-  const showControlNo = ref(false);
+  // const showControlNo = ref(false);
 
   const positionQS = ref([]);
 

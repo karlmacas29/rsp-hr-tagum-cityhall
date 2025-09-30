@@ -25,14 +25,16 @@
         <div class="text-h6 text-primary text-weight-bold q-mb-xs">
           {{ selectedJob?.Position || 'Job Title' }}
           {{ selectedJob?.id || 'Job ID' }}
-          <q-chip
-            class="chip-padding"
-            dense
-            :color="selectedJob?.status === 'Occupied' ? 'negative' : 'primary'"
-            :label="
-              selectedJob?.status === 'Occupied' ? 'This job is occupied' : selectedJob?.status
-            "
-          ></q-chip>
+          <q-chip class="chip-padding status-chip" dense>
+            <q-icon
+              :name="selectedJob?.status === 'Occupied' ? 'warning' : 'check_circle'"
+              class="q-mr-xs"
+            />
+            <span class="chip-label">
+              Status:
+              <b>{{ selectedJob?.status || 'Unknown' }}</b>
+            </span>
+          </q-chip>
         </div>
         <div class="chips-row">
           <q-chip class="chip-padding level-chip" dense>

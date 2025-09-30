@@ -414,7 +414,7 @@
                 />
               </div>
             </div>
-            <div class="row q-col-gutter-md">
+            <div class="row q-col-gutter-md q-mt-sm">
               <div class="col-6">
                 <q-input v-model="postJobDetails.section" label="Section" outlined dense disable />
               </div>
@@ -852,11 +852,11 @@
 
     try {
       // Upload funded file first
-      await uploadFileToServer(
-        postJobDetails.value.selectedFile,
-        postJobDetails.value.PositionID,
-        postJobDetails.value.ItemNo,
-      );
+      // await uploadFileToServer(
+      //   postJobDetails.value.selectedFile,
+      //   postJobDetails.value.PositionID,
+      //   postJobDetails.value.ItemNo,
+      // );
 
       await updateFundedStatusAPI(
         postJobDetails.value.PositionID,
@@ -878,10 +878,15 @@
         end_date: postJobDetails.value.endedDate.replace(/\//g, '-'),
         PageNo: postJobDetails.value.PageNo,
         ItemNo: postJobDetails.value.ItemNo,
+        fileUpload: postJobDetails.value.selectedFile,
         SalaryGrade: postJobDetails.value.SG,
         level: postJobDetails.value.level,
         salaryMin: null,
         salaryMax: null,
+        Education: qsCriteria.value.Education,
+        Experience: qsCriteria.value.Experience,
+        Eligibility: qsCriteria.value.Eligibility,
+        Training: qsCriteria.value.Training,
       };
 
       const jobCriteria = {
@@ -895,7 +900,7 @@
 
       await jobPostStore.insertJobPost({
         jobBatch: jobBatch,
-        criteria: jobCriteria,
+        jobCriteria,
       });
 
       await updatePageNoAPI(
@@ -959,39 +964,39 @@
     showPDSModal.value = true;
   };
 
-  const uploadFileToServer = (fileToUpload, positionId, itemNo) => {
-    return new Promise((resolve, reject) => {
-      const formData = new FormData();
-      formData.append('fileUpload', fileToUpload);
-      formData.append('PositionID', positionId);
-      formData.append('ItemNo', itemNo);
+  // const uploadFileToServer = (fileToUpload, positionId, itemNo) => {
+  //   return new Promise((resolve, reject) => {
+  //     const formData = new FormData();
+  //     formData.append('fileUpload', fileToUpload);
+  //     formData.append('PositionID', positionId);
+  //     formData.append('ItemNo', itemNo);
 
-      const token = document.cookie
-        .split('; ')
-        .find((row) => row.startsWith('admin_token='))
-        ?.split('=')[1];
+  //     const token = document.cookie
+  //       .split('; ')
+  //       .find((row) => row.startsWith('admin_token='))
+  //       ?.split('=')[1];
 
-      const requestConfig = {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          ...(token && { Authorization: `Bearer ${token}` }),
-        },
-      };
+  //     const requestConfig = {
+  //       headers: {
+  //         'Content-Type': 'multipart/form-data',
+  //         ...(token && { Authorization: `Bearer ${token}` }),
+  //       },
+  //     };
 
-      axios
-        .post(`${process.env.VUE_APP_API_URL}/plantilla/funded`, formData, requestConfig)
-        .then((response) => {
-          resolve({
-            url: response.data?.data?.fileUpload ?? '',
-          });
-        })
-        .catch((error) => {
-          const errorMessage = error.response?.data?.message || error.message || 'Upload failed';
-          toast.error('Error -> ' + errorMessage);
-          reject(new Error(errorMessage));
-        });
-    });
-  };
+  //     axios
+  //       .post(`${process.env.VUE_APP_API_URL}/plantilla/funded`, formData, requestConfig)
+  //       .then((response) => {
+  //         resolve({
+  //           url: response.data?.data?.fileUpload ?? '',
+  //         });
+  //       })
+  //       .catch((error) => {
+  //         const errorMessage = error.response?.data?.message || error.message || 'Upload failed';
+  //         toast.error('Error -> ' + errorMessage);
+  //         reject(new Error(errorMessage));
+  //       });
+  //   });
+  // };
 
   const updateFundedStatusAPI = (positionId, isFunded, itemNo) => {
     return new Promise((resolve, reject) => {

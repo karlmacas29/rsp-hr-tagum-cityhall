@@ -278,6 +278,46 @@
                       :error-message="authStore.errors?.['permissions.isDashboardStat']?.[0]"
                       icon="rule"
                     />
+
+                    <q-toggle
+                      true-value="1"
+                      false-value="0"
+                      v-model="form.permissions.isDashboardStat"
+                      label="Allow Printing of Report"
+                      :error="!!authStore.errors?.['permissions.isDashboardStat']"
+                      :error-message="authStore.errors?.['permissions.isDashboardStat']?.[0]"
+                      icon="rule"
+                    />
+
+                    <q-toggle
+                      true-value="1"
+                      false-value="0"
+                      v-model="form.permissions.isDashboardStat"
+                      label="Allow Modifying Job Post"
+                      :error="!!authStore.errors?.['permissions.isDashboardStat']"
+                      :error-message="authStore.errors?.['permissions.isDashboardStat']?.[0]"
+                      icon="rule"
+                    />
+
+                    <q-toggle
+                      true-value="1"
+                      false-value="0"
+                      v-model="form.permissions.isDashboardStat"
+                      label="Allow Hiring Applicant"
+                      :error="!!authStore.errors?.['permissions.isDashboardStat']"
+                      :error-message="authStore.errors?.['permissions.isDashboardStat']?.[0]"
+                      icon="rule"
+                    />
+
+                    <q-toggle
+                      true-value="1"
+                      false-value="0"
+                      v-model="form.permissions.isDashboardStat"
+                      label="Allow Activity Log Access"
+                      :error="!!authStore.errors?.['permissions.isDashboardStat']"
+                      :error-message="authStore.errors?.['permissions.isDashboardStat']?.[0]"
+                      icon="rule"
+                    />
                   </div>
                 </q-card>
               </div>

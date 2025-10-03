@@ -26,7 +26,7 @@
           </td>
         </tr>
         <tr>
-          <td colspan="3" class="data-cell">COMPUTER PROGRAMMER II</td>
+          <td colspan="3" class="data-cell">{{ data.NewDesignation }}</td>
         </tr>
 
         <!-- Item Number and Salary Grade -->
@@ -35,8 +35,8 @@
           <td colspan="3" class="section-header">3. SALARY GRADE</td>
         </tr>
         <tr>
-          <td colspan="3" class="data-cell">72</td>
-          <td colspan="3" class="data-cell">15</td>
+          <td colspan="3" class="data-cell">{{ data.ItemNo }}</td>
+          <td colspan="3" class="data-cell">{{ data.SG }}</td>
         </tr>
 
         <!-- Local Government Classification -->
@@ -110,7 +110,7 @@
         </tr>
         <tr>
           <td colspan="3" class="data-cell">LOCAL GOVERNMENT UNIT OF TAGUM CITY</td>
-          <td colspan="3" class="data-cell">OFFICE OF THE CITY MAYOR</td>
+          <td colspan="3" class="data-cell">{{ data.NewOffice || data.NewOFfice }}</td>
         </tr>
 
         <!-- Division and Workstation -->
@@ -131,16 +131,16 @@
           <td colspan="3" class="section-header">10. PREVIOUS APPROP ACT</td>
         </tr>
         <tr>
-          <td colspan="3" class="data-cell">ORDINANCE NO. 06, SERIES 2018</td>
-          <td colspan="3" class="data-cell">NONE</td>
+          <td colspan="3" class="data-cell">{{ data.PresAppro }}</td>
+          <td colspan="3" class="data-cell">{{ data.PrevAppro }}</td>
         </tr>
         <tr>
           <td colspan="3" class="section-header">11. SALARY AUTHORIZED</td>
           <td colspan="3" class="section-header">12. OTHER COMPENSATION</td>
         </tr>
         <tr>
-          <td colspan="3" class="data-cell">30,531.00 / mo.</td>
-          <td colspan="3" class="data-cell">PERA - 2,000.00 / mo.</td>
+          <td colspan="3" class="data-cell">{{ data.SalAuthorized }}</td>
+          <td colspan="3" class="data-cell">{{ data.OtherComp }}</td>
         </tr>
 
         <!-- Supervision -->
@@ -149,8 +149,8 @@
           <td colspan="3" class="section-header">14. POSITION TITLE OF NEXT HIGHER SUPERVISOR</td>
         </tr>
         <tr>
-          <td colspan="3" class="data-cell">INFORMATION SYSTEMS ANALYST III</td>
-          <td colspan="3" class="data-cell">DEVELOPMENT MANAGEMENT OFFICER IV</td>
+          <td colspan="3" class="data-cell">{{ data.SupPosition }}</td>
+          <td colspan="3" class="data-cell">{{ data.HSupPosition }}</td>
         </tr>
 
         <!-- Directly Supervised -->
@@ -181,160 +181,215 @@
         </tr>
         <tr>
           <td colspan="6" class="data-cell">
-            COMPUTER, TELEPHONE, MOBILE PHONE, TABLE, CHAIRS, ETC.
+            {{ data.Tool }}
           </td>
         </tr>
 
-        <!-- Contacts/Clients -->
+        <!-- Contacts/Clients - MODIFIED SECTION -->
+        <!-- Contacts/Clients - FIXED SECTION -->
         <tr>
           <td colspan="6" class="section-header">17. CONTACTS / CLIENTS / STAKEHOLDERS</td>
         </tr>
         <tr>
-          <td colspan="6" class="no-padding">
-            <table class="inner-table">
-              <tbody>
-                <tr>
-                  <td class="contact-option">17a. Internal</td>
-                  <td class="contact-option">Occasional</td>
-                  <td class="contact-option">Frequent</td>
-                  <td class="contact-option">17b. External</td>
-                  <td class="contact-option">Occasional</td>
-                  <td class="contact-option">Frequent</td>
-                </tr>
-                <tr>
-                  <td>Executive / Managerial</td>
-                  <td class="checkbox-cell">
-                    <div class="checkbox-wrapper">
-                      <input type="checkbox" id="cb1" class="custom-checkbox" checked />
-                    </div>
-                  </td>
-                  <td class="checkbox-cell">
-                    <div class="checkbox-wrapper">
-                      <input type="checkbox" id="cb2" class="custom-checkbox" />
-                    </div>
-                  </td>
-                  <td>General Public</td>
-                  <td class="checkbox-cell">
-                    <div class="checkbox-wrapper">
-                      <input type="checkbox" id="cb3" class="custom-checkbox" checked />
-                    </div>
-                  </td>
-                  <td class="checkbox-cell">
-                    <div class="checkbox-wrapper">
-                      <input type="checkbox" id="cb4" class="custom-checkbox" />
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>Supervisors</td>
-                  <td class="checkbox-cell">
-                    <div class="checkbox-wrapper">
-                      <input type="checkbox" id="cb5" class="custom-checkbox" />
-                    </div>
-                  </td>
-                  <td class="checkbox-cell">
-                    <div class="checkbox-wrapper">
-                      <input type="checkbox" id="cb6" class="custom-checkbox" checked />
-                    </div>
-                  </td>
-                  <td>Other Agencies</td>
-                  <td class="checkbox-cell">
-                    <div class="checkbox-wrapper">
-                      <input type="checkbox" id="cb7" class="custom-checkbox" checked />
-                    </div>
-                  </td>
-                  <td class="checkbox-cell">
-                    <div class="checkbox-wrapper">
-                      <input type="checkbox" id="cb8" class="custom-checkbox" />
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>Non-Supervisors</td>
-                  <td class="checkbox-cell">
-                    <div class="checkbox-wrapper">
-                      <input type="checkbox" id="cb9" class="custom-checkbox" />
-                    </div>
-                  </td>
-                  <td class="checkbox-cell">
-                    <div class="checkbox-wrapper">
-                      <input type="checkbox" id="cb10" class="custom-checkbox" checked />
-                    </div>
-                  </td>
-                  <td>Others (please Specify):</td>
-                  <td class="checkbox-cell">
-                    <div class="checkbox-wrapper">
-                      <input type="checkbox" id="cb11" class="custom-checkbox" />
-                    </div>
-                  </td>
-                  <td class="checkbox-cell">
-                    <div class="checkbox-wrapper">
-                      <input type="checkbox" id="cb12" class="custom-checkbox" />
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>Staff</td>
-                  <td class="checkbox-cell">
-                    <div class="checkbox-wrapper">
-                      <input type="checkbox" id="cb13" class="custom-checkbox" />
-                    </div>
-                  </td>
-                  <td class="checkbox-cell">
-                    <div class="checkbox-wrapper">
-                      <input type="checkbox" id="cb14" class="custom-checkbox" checked />
-                    </div>
-                  </td>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                </tr>
-              </tbody>
-            </table>
+          <td class="contact-option">17a. Internal</td>
+          <td class="contact-option">Occasional</td>
+          <td class="contact-option">Frequent</td>
+          <td class="contact-option">17b. External</td>
+          <td class="contact-option">Occasional</td>
+          <td class="contact-option">Frequent</td>
+        </tr>
+        <tr>
+          <td>Executive / Managerial</td>
+          <td class="checkbox-cell">
+            <div class="checkbox-wrapper">
+              <input
+                type="checkbox"
+                id="cb1"
+                class="custom-checkbox"
+                :checked="data.Contact1 === '1'"
+              />
+            </div>
+          </td>
+          <td class="checkbox-cell">
+            <div class="checkbox-wrapper">
+              <input
+                type="checkbox"
+                id="cb2"
+                class="custom-checkbox"
+                :checked="data.Contact1 === '2'"
+              />
+            </div>
+          </td>
+          <td>General Public</td>
+          <td class="checkbox-cell">
+            <div class="checkbox-wrapper">
+              <input
+                type="checkbox"
+                id="cb3"
+                class="custom-checkbox"
+                :checked="data.Contact5 === '1'"
+              />
+            </div>
+          </td>
+          <td class="checkbox-cell">
+            <div class="checkbox-wrapper">
+              <input
+                type="checkbox"
+                id="cb4"
+                class="custom-checkbox"
+                :checked="data.Contact5 === '2'"
+              />
+            </div>
           </td>
         </tr>
+        <tr>
+          <td>Supervisors</td>
+          <td class="checkbox-cell">
+            <div class="checkbox-wrapper">
+              <input
+                type="checkbox"
+                id="cb5"
+                class="custom-checkbox"
+                :checked="data.Contact2 === '1'"
+              />
+            </div>
+          </td>
+          <td class="checkbox-cell">
+            <div class="checkbox-wrapper">
+              <input
+                type="checkbox"
+                id="cb6"
+                class="custom-checkbox"
+                :checked="data.Contact2 === '2'"
+              />
+            </div>
+          </td>
+          <td>Other Agencies</td>
+          <td class="checkbox-cell">
+            <div class="checkbox-wrapper">
+              <input
+                type="checkbox"
+                id="cb7"
+                class="custom-checkbox"
+                :checked="data.Contact6 === '1'"
+              />
+            </div>
+          </td>
+          <td class="checkbox-cell">
+            <div class="checkbox-wrapper">
+              <input
+                type="checkbox"
+                id="cb8"
+                class="custom-checkbox"
+                :checked="data.Contact6 === '2'"
+              />
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>Non-Supervisors</td>
+          <td class="checkbox-cell">
+            <div class="checkbox-wrapper">
+              <input
+                type="checkbox"
+                id="cb9"
+                class="custom-checkbox"
+                :checked="data.Contact3 === '1'"
+              />
+            </div>
+          </td>
+          <td class="checkbox-cell">
+            <div class="checkbox-wrapper">
+              <input
+                type="checkbox"
+                id="cb10"
+                class="custom-checkbox"
+                :checked="data.Contact3 === '2'"
+              />
+            </div>
+          </td>
+          <td>Others (please Specify):</td>
+          <td colspan="2" class="data-cell">
+            {{ data.ContactOthers }}
+          </td>
+        </tr>
+        <tr>
+          <td>Staff</td>
+          <td class="checkbox-cell">
+            <div class="checkbox-wrapper">
+              <input
+                type="checkbox"
+                id="cb13"
+                class="custom-checkbox"
+                :checked="data.Contact4 === '1'"
+              />
+            </div>
+          </td>
+          <td class="checkbox-cell">
+            <div class="checkbox-wrapper">
+              <input
+                type="checkbox"
+                id="cb14"
+                class="custom-checkbox"
+                :checked="data.Contact4 === '2'"
+              />
+            </div>
+          </td>
+          <td colspan="3"></td>
+        </tr>
 
-        <!-- Working Condition -->
+        <!-- Working Condition Section -->
         <tr>
           <td colspan="6" class="section-header">18. WORKING CONDITION</td>
         </tr>
         <tr>
-          <td colspan="6" class="no-padding">
-            <table class="inner-table">
-              <tbody>
-                <tr>
-                  <td width="20%">Office Work</td>
-                  <td width="10%" class="checkbox-cell">
-                    <div class="checkbox-wrapper">
-                      <input type="checkbox" id="cb15" class="custom-checkbox" />
-                    </div>
-                  </td>
-                  <td width="10%" class="checkbox-cell">
-                    <div class="checkbox-wrapper">
-                      <input type="checkbox" id="cb16" class="custom-checkbox" checked />
-                    </div>
-                  </td>
-                  <td width="20%">Others (please Specify)</td>
-                  <td width="40%"></td>
-                </tr>
-                <tr>
-                  <td>Field Work</td>
-                  <td class="checkbox-cell">
-                    <div class="checkbox-wrapper">
-                      <input type="checkbox" id="cb17" class="custom-checkbox" />
-                    </div>
-                  </td>
-                  <td class="checkbox-cell">
-                    <div class="checkbox-wrapper">
-                      <input type="checkbox" id="cb18" class="custom-checkbox" checked />
-                    </div>
-                  </td>
-                  <td></td>
-                  <td></td>
-                </tr>
-              </tbody>
-            </table>
+          <td>Office Work</td>
+          <td class="checkbox-cell">
+            <div class="checkbox-wrapper">
+              <input
+                type="checkbox"
+                id="cb15"
+                class="custom-checkbox"
+                :checked="data.Working1 === '1'"
+              />
+            </div>
           </td>
+          <td class="checkbox-cell">
+            <div class="checkbox-wrapper">
+              <input
+                type="checkbox"
+                id="cb16"
+                class="custom-checkbox"
+                :checked="data.Working1 === '2'"
+              />
+            </div>
+          </td>
+          <td>Others (please Specify)</td>
+          <td colspan="2">{{ data.WorkingOthers }}</td>
+        </tr>
+        <tr>
+          <td>Field Work</td>
+          <td class="checkbox-cell">
+            <div class="checkbox-wrapper">
+              <input
+                type="checkbox"
+                id="cb17"
+                class="custom-checkbox"
+                :checked="data.Working2 === '1'"
+              />
+            </div>
+          </td>
+          <td class="checkbox-cell">
+            <div class="checkbox-wrapper">
+              <input
+                type="checkbox"
+                id="cb18"
+                class="custom-checkbox"
+                :checked="data.Working2 === '2'"
+              />
+            </div>
+          </td>
+          <td colspan="3"></td>
         </tr>
 
         <!-- Brief Description -->
@@ -345,12 +400,10 @@
         </tr>
         <tr>
           <td colspan="6" class="data-cell description-cell">
-            Review, evaluation, program customization, development and monitoring of existing and
-            upcoming information technology systems assigned to local government offices, barangay
-            offices and other government offices within the jurisdiction of this city with proper
-            gathering, categorization, assimilation, storage and responsible communication and
-            dissemination of information. Also, oversee the Internal Audit Division and City
-            Information Division operations.
+            {{
+              data.DescriptionSection ||
+              'Review, evaluation, program customization, development and monitoring of existing and upcoming information technology systems assigned to local government offices, barangay offices and other government offices within the jurisdiction of this city with proper gathering, categorization, assimilation, storage and responsible communication and dissemination of information. Also, oversee the Internal Audit Division and City Information Division operations.'
+            }}
           </td>
         </tr>
       </tbody>
@@ -369,7 +422,9 @@
           </td>
         </tr>
         <tr>
-          <td colspan="6" class="data-cell description-cell large-cell"></td>
+          <td colspan="6" class="data-cell description-cell large-cell">
+            {{ data.DescriptionFunction }}
+          </td>
         </tr>
 
         <!-- Qualification Standards -->
@@ -389,10 +444,10 @@
                   <td class="section-header">21D. ELIGIBILITY</td>
                 </tr>
                 <tr>
-                  <td class="data-cell large-empty-cell"></td>
-                  <td class="data-cell large-empty-cell"></td>
-                  <td class="data-cell large-empty-cell"></td>
-                  <td class="data-cell large-empty-cell"></td>
+                  <td class="data-cell large-empty-cell">{{ data.StandardEduc }}</td>
+                  <td class="data-cell large-empty-cell">{{ data.StandardExp }}</td>
+                  <td class="data-cell large-empty-cell">{{ data.StandardTrain }}</td>
+                  <td class="data-cell large-empty-cell">{{ data.StandardElig }}</td>
                 </tr>
               </tbody>
             </table>
@@ -405,8 +460,8 @@
           <td colspan="1" class="section-header">Competency Level</td>
         </tr>
         <tr>
-          <td colspan="5" class="data-cell"></td>
-          <td colspan="1" class="data-cell"></td>
+          <td colspan="5" class="data-cell">{{ data.Core1 }}</td>
+          <td colspan="1" class="data-cell">{{ data.Corelevel1 }}</td>
         </tr>
 
         <!-- Leadership Competencies -->
@@ -415,8 +470,8 @@
           <td colspan="1" class="section-header">Competency Level</td>
         </tr>
         <tr>
-          <td colspan="5" class="data-cell"></td>
-          <td colspan="1" class="data-cell"></td>
+          <td colspan="5" class="data-cell">{{ data.Leader1 }}</td>
+          <td colspan="1" class="data-cell">{{ data.leaderlevel1 }}</td>
         </tr>
 
         <!-- Statement of Duties and Responsibilities -->
@@ -450,13 +505,18 @@
         <tr>
           <td colspan="3" class="signature-cell">
             <div class="signature-line">
-              <div class="signature">JOGRAD M. MAHUSAY &nbsp;&nbsp;&nbsp; 08/02/2024</div>
+              <div class="signature">
+                {{ data.Name4 || 'JOGRAD M. MAHUSAY' }} &nbsp;&nbsp;&nbsp;
+                {{ data.FromDate || '08/02/2024' }}
+              </div>
               <div class="signature-label">Employee's Name, Date and Signature</div>
             </div>
           </td>
           <td colspan="3" class="signature-cell">
             <div class="signature-line">
-              <div class="signature">08/01/2024</div>
+              <div class="signature">
+                {{ data.Supervisor }} &nbsp;&nbsp;&nbsp; {{ data.ToDate || '08/01/2024' }}
+              </div>
               <div class="signature-label">Supervisor's Name, Date and Signature</div>
             </div>
           </td>
@@ -466,13 +526,17 @@
   </div>
 </template>
 
-<script>
-  export default {
-    name: 'PositionDescriptionForm',
-  };
+<script setup>
+  defineProps({
+    data: {
+      type: Object,
+      default: () => ({}),
+    },
+  });
 </script>
 
 <style scoped>
+  /* ... (keep all your existing styles) ... */
   .position-description-container {
     width: 8.5in;
     margin: 0 auto;

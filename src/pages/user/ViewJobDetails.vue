@@ -40,7 +40,7 @@
             <div class="column q-ml-md" style="flex-grow: 1">
               <div class="text-green text-h5 text-weight-bold">
                 {{ selectedJob?.Position || 'No Position' }}
-                 {{ selectedJob?.id || 'No Position' }}
+                {{ selectedJob?.id || 'No Position' }}
               </div>
               <div class="row items-center">
                 <span class="q-ml-xs text-body1 text-grey-8">
@@ -337,20 +337,18 @@
             color="green"
             @click="processSubmission"
             class="q-px-md"
-              :loading="uploadStore.isSubmitting"
+            :loading="uploadStore.isSubmitting"
           />
         </div>
       </q-card>
     </q-dialog>
-<!-- Loading Overlay -->
-<q-dialog v-model="uploadStore.isSubmitting" persistent>
-  <q-card class="q-pa-xl flex flex-center" style="min-width:200px;">
-    <q-spinner size="50px" color="primary" />
-    <div class="text-center q-mt-md text-h6">
-      Uploading your application...
-    </div>
-  </q-card>
-</q-dialog>
+    <!-- Loading Overlay -->
+    <q-dialog v-model="uploadStore.isSubmitting" persistent>
+      <q-card class="q-pa-xl flex flex-center" style="min-width: 200px">
+        <q-spinner size="50px" color="primary" />
+        <div class="text-center q-mt-md text-h6">Uploading your application...</div>
+      </q-card>
+    </q-dialog>
     <!-- Success Dialog -->
     <q-dialog v-model="successDialog" persistent>
       <q-card class="confirmation-dialog">
@@ -405,14 +403,13 @@
 
 <script setup>
   import { useRoute } from 'vue-router';
-  import { onMounted, ref,computed } from 'vue';
+  import { onMounted, ref, computed } from 'vue';
   import { useJobPostStore } from 'stores/jobPostStore';
   import { useUser_upload } from 'stores/user_upload';
 
-const uploadStore = useUser_upload();
+  const uploadStore = useUser_upload();
 
   const jobPostStore = useJobPostStore();
-
 
   const route = useRoute();
   const P_ID = route.params.PositionID;
@@ -437,12 +434,12 @@ const uploadStore = useUser_upload();
   };
 
   const successDialog = computed({
-  get: () => uploadStore.successDialog,
-  set: (val) => (uploadStore.successDialog = val),
-});
+    get: () => uploadStore.successDialog,
+    set: (val) => (uploadStore.successDialog = val),
+  });
   // Download the Excel template
   const downloadExcelForm = () => {
-    const excelFileUrl = '/public/pds.xlsx';
+    const excelFileUrl = 'pds.xlsx';
     const a = document.createElement('a');
     a.href = excelFileUrl;
 
@@ -476,63 +473,61 @@ const uploadStore = useUser_upload();
 
   // Pass file directly to Pinia store
 
-const uploadedFile = computed({
-  get: () => uploadStore.uploadedFile,
-  set: (val) => (uploadStore.uploadedFile = val),
-});
+  const uploadedFile = computed({
+    get: () => uploadStore.uploadedFile,
+    set: (val) => (uploadStore.uploadedFile = val),
+  });
 
-const submitApplication = async () => {
-  if (!uploadStore.uploadedFile) return;
-  confirmDialog.value = true;
-};
+  const submitApplication = async () => {
+    if (!uploadStore.uploadedFile) return;
+    confirmDialog.value = true;
+  };
 
+  // const processSubmission = async () => {
+  //   confirmDialog.value = false;
+  //   await uploadStore.processSubmission();
+  // };
 
-// const processSubmission = async () => {
-//   confirmDialog.value = false;
-//   await uploadStore.processSubmission();
-// };
+  //   onMounted(async () => {
+  //     // Fetch job details if needed
+  //     await jobPostStore.fetchJobPostByPositionAndItemNo(P_ID, I_No).then((job) => {
+  //       selectedJob.value = job;
+  //        uploadStore.selectedJob = job;
+  //     });
+  //     await jobPostStore.fetchCriteriaByPositionAndItemNo(P_ID, I_No).then((criteria) => {
+  //       selectedCriteria.value = criteria;
+  //     });
 
+  //   });
+  // In your component's script setup
+  const processSubmission = async () => {
+    confirmDialog.value = false;
+    try {
+      console.log('Current selected job:', uploadStore.selectedJob); // Debug log
+      const response = await uploadStore.processSubmission();
 
-//   onMounted(async () => {
-//     // Fetch job details if needed
-//     await jobPostStore.fetchJobPostByPositionAndItemNo(P_ID, I_No).then((job) => {
-//       selectedJob.value = job;
-//        uploadStore.selectedJob = job;
-//     });
-//     await jobPostStore.fetchCriteriaByPositionAndItemNo(P_ID, I_No).then((criteria) => {
-//       selectedCriteria.value = criteria;
-//     });
-
-//   });
-// In your component's script setup
-const processSubmission = async () => {
-  confirmDialog.value = false;
-  try {
-    console.log('Current selected job:', uploadStore.selectedJob); // Debug log
-    const response = await uploadStore.processSubmission();
-
-    if (response) {
-      console.log('Submission response:', response);
-      if (response.job_batch_rsp_id) {
-        console.log('Job batch response ID:', response.job_batch_rsp_id);
-        // You can now use this ID as needed
+      if (response) {
+        console.log('Submission response:', response);
+        if (response.job_batch_rsp_id) {
+          console.log('Job batch response ID:', response.job_batch_rsp_id);
+          // You can now use this ID as needed
+        }
       }
+    } catch (error) {
+      console.error('Submission process error:', error);
     }
-  } catch (error) {
-    console.error('Submission process error:', error);
-  }
-};
+  };
 
-onMounted(async () => {
-  await jobPostStore.fetchJobPostByPositionAndItemNo(P_ID, I_No).then((job) => {
-    selectedJob.value = job;
-    uploadStore.setSelectedJob(job); // Properly set the job in the upload store
-    console.log('Job loaded:', job); // Debug log
+  onMounted(async () => {
+    await jobPostStore.fetchJobPostByPositionAndItemNo(P_ID, I_No).then((job) => {
+      selectedJob.value = job;
+      uploadStore.setSelectedJob(job); // Properly set the job in the upload store
+      console.log('Job loaded:', job); // Debug log
+    });
+    await jobPostStore.fetchCriteriaByPositionAndItemNo(P_ID, I_No).then((criteria) => {
+      selectedCriteria.value = criteria;
+    });
   });
-  await jobPostStore.fetchCriteriaByPositionAndItemNo(P_ID, I_No).then((criteria) => {
-    selectedCriteria.value = criteria;
-  });
-});
 </script>
 
 <style scoped>

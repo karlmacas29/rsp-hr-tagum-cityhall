@@ -1,11 +1,17 @@
 <template>
   <div class="appointment-form-container">
-    <!-- First page -->
-    <div class="appointment-form">
+    <!-- First page - Appointment Form -->
+    <div class="appointment-form page">
       <div class="form-content">
         <div class="form-title">
           <div class="cs-form">CS Form No. 33-B</div>
-          <div class="revised">Revised 2018</div>
+          <div class="revised">Revised 2025</div>
+        </div>
+
+        <!-- Added Stamp of Date of Receipts -->
+        <div class="stamp-section">
+          <div class="stamp-line"></div>
+          <div class="stamp-label">Stamp of Date of Receipts</div>
         </div>
 
         <div class="header">
@@ -26,7 +32,7 @@
 
         <div class="body">
           <p>
-            MR./MS.:
+            {{ data.Sex === 'MALE' ? 'MR.' : 'MS.' }}:
             <strong class="underline">{{ data.Name4 || '(Name)' }}</strong>
           </p>
 
@@ -56,10 +62,8 @@
               {{ data.Renew || '(Original, Promotion, etc.)' }}
             </strong>
             vice
-            <!-- <strong class="underline">{{ data.vicecause || '(Previous Appointee/N/A)' }}</strong> -->
             <strong class="underline">{{ data.vicecause || 'N/A' }}</strong>
             , who
-            <!-- <strong class="underline">{{ data.vicecause || '(Transferred, Retired, etc.)' }}</strong> -->
             <strong class="underline">{{ data.vicecause || 'N/A' }}</strong>
             with Plantilla Item No.
             <strong class="underline">{{ data.ItemNo || '(Item No.)' }}</strong>
@@ -97,75 +101,231 @@
             Accredited/Deregulated Pursuant to
             <br />
             <span>CSC Resolution No.</span>
-            <!-- <strong class="underline">{{ data.resolution || '(Resolution No.)' }}</strong>
-            , s.
-            <strong class="underline">{{ data.resolutionYear || '(Year)' }}</strong> -->
             <strong class="underline">1701688,</strong>
             , s.
             <strong class="underline">2017</strong>
             <br />
             Dated
-            <!-- <strong class="underline">{{ formattedResolutionDate || '(Resolution Date)' }}</strong> -->
-            <strong class="underline">December 28, 1017</strong>
+            <strong class="underline">December 28, 2017</strong>
           </p>
         </div>
       </div>
     </div>
 
-    <!-- Second page (Certification page) -->
-    <CertificationPage />
+    <!-- Second page - Certification Page -->
+    <div class="certification-page page">
+      <div class="certification-section">
+        <!-- Single gray container for both certifications -->
+        <div class="certificates-container">
+          <!-- First certification with black border -->
+          <div class="certificate-box">
+            <h3 class="certification-title">Certification</h3>
+
+            <p class="certification-text">
+              This is to certify that all requirements and supporting papers pursuant to CSC MC No.
+              <span class="underline">24, s. 2017, as amended</span>
+              have been complied with, reviewed and found to be in order.
+            </p>
+            <p class="certification-text">
+              The position was published at
+              <span class="underline">CSC Website</span>
+              from
+              <span class="underline">November 22, 2024</span>
+              to
+              <span class="underline">December 7, 2024</span>
+              and posted in
+              <span class="underline">3 conspicuous places</span>
+              from
+              <span class="underline">November 22, 2024</span>
+              to
+              <span class="underline">December 7, 2024</span>
+              in consonance with RA No. 7041. The assessment by the Human Resource Merit Promotion
+              and Selection Board (HRMP&SB) started on
+              <span class="underline">December 13, 2024</span>
+            </p>
+
+            <div class="signature-container">
+              <div class="signature">
+                <div class="signature-name-container">
+                  <strong class="signature-name">JANYLENE A. PALERMO, MM</strong>
+                </div>
+                <div class="cert-signature-title">City Human Resource Mgt. Officer</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Second certification with black border -->
+          <div class="certificate-box">
+            <h3 class="certification-title">Certification</h3>
+
+            <p class="certification-text">
+              This is to certify that the appointee has been screened and found qualified by the
+              majority of the Human Resource Merit Promotion and Selection Board (HRMP&SB) during
+              the deliberation held on
+              <span class="underline">December 27, 2024</span>
+              .
+            </p>
+
+            <div class="signature-container">
+              <div class="signature">
+                <div class="signature-name-container">
+                  <strong class="signature-name">EDGAR C. DE GUZMAN</strong>
+                </div>
+                <div class="cert-signature-title">
+                  City Administrator
+                  <br />
+                  Authorized Representative of the City Mayor
+                  <br />
+                  Chairperson
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notation section with title in gray area -->
+        <div class="notation-container">
+          <h3 class="notation-title">CSC/HRMO Notation</h3>
+          <div class="notation-content">
+            <div class="notation-table">
+              <table>
+                <tbody>
+                  <tr>
+                    <td colspan="3" class="table-header">ACTION ON APPOINTMENTS</td>
+                    <td class="table-header">Recorded by</td>
+                  </tr>
+                  <tr>
+                    <td colspan="3" class="checkbox-row">
+                      <input type="checkbox" class="custom-checkbox" />
+                      Validated per RAI for the month of
+                      <span class="form-field"></span>
+                    </td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td colspan="3" class="checkbox-row">
+                      <input type="checkbox" class="custom-checkbox" />
+                      Invalidated per CSCRO/FO letter dated
+                      <span class="form-field"></span>
+                    </td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td class="checkbox-row">
+                      <input type="checkbox" class="custom-checkbox" />
+                      <span class="bold-text">Appeal</span>
+                    </td>
+                    <td class="table-header">DATE FILED</td>
+                    <td class="table-header">STATUS</td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td class="checkbox-deeper-indent">
+                      <div class="indent-wrapper">
+                        <input type="checkbox" class="custom-checkbox" />
+                        CSCRO/ CSC-Commission
+                      </div>
+                    </td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td class="checkbox-row">
+                      <input type="checkbox" class="custom-checkbox" />
+                      <span class="bold-text">Petition for Review</span>
+                    </td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td class="checkbox-deeper-indent">
+                      <div class="indent-wrapper">
+                        <input type="checkbox" class="custom-checkbox" />
+                        CSC-Commission
+                      </div>
+                    </td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td class="checkbox-deeper-indent">
+                      <div class="indent-wrapper">
+                        <input type="checkbox" class="custom-checkbox" />
+                        Court of Appeals
+                      </div>
+                    </td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td class="checkbox-deeper-indent">
+                      <div class="indent-wrapper">
+                        <input type="checkbox" class="custom-checkbox" />
+                        Supreme Court
+                      </div>
+                    </td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Acknowledgement section -->
+        <div class="acknowledgement-container">
+          <div class="acknowledgement-boxes">
+            <div class="left-box">
+              <p class="copy-text">
+                Original Copy - for the Agency
+                <br />
+                Certified True Copy - for the Civil Service Commission
+                <br />
+                Certified True Copy - for the Appointee
+              </p>
+            </div>
+            <div class="right-box">
+              <h3 class="acknowledgement-title">Acknowledgement</h3>
+              <p class="acknowledgement-text">
+                Received original of appointment on
+                <span class="form-field"></span>
+              </p>
+              <div class="appointee-signature">
+                <div class="signature-line"></div>
+                <div class="appointee-signature-title">Appointee</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
   import { computed } from 'vue';
-  import CertificationPage from 'src/components/Reports/AppoinmentNextPage.vue';
 
   const props = defineProps({
     data: {
       type: Object,
-      default: () => ({
-        // name: '',
-        // position: '',
-        // salaryGrade: '',
-        // step: '',
-        // status: '',
-        // office: '',
-        // salaryWords: '',
-        // salaryFigure: '',
-        // appointmentNature: '',
-        // vice: '',
-        // who: '',
-        // plantillaItemNo: '',
-        // page: '',
-        // mayor: '',
-        // signingDate: '',
-        // resolution: '',
-        // resolutionYear: '',
-        // resolutionDate: '',
-      }),
+      default: () => ({}),
     },
   });
-  console.log('AppointmentReport - received data:', props.data);
-  // console.log('AppointmentReport - received employee:', props.employee);
-  //   const formatDate = (dateStr) => {
-  //   if (!dateStr) return '';
-  //   const date = new Date(dateStr);
-  //   return date.toLocaleDateString('en-US', {
-  //     year: 'numeric',
-  //     month: 'long',
-  //     day: 'numeric',
-  //   });
-  // };
+
+  // Utility Functions
   const formatSalaryWords = (amount) => {
     if (!amount) return '';
 
-    // Convert to number and handle decimal places
     const numericAmount = parseFloat(amount);
     const wholeNumber = Math.floor(numericAmount);
     const decimalPart = Math.round((numericAmount - wholeNumber) * 100);
 
-    // Number to words conversion function
     const convertToWords = (num) => {
       if (num === 0) return 'ZERO';
 
@@ -250,7 +410,6 @@
 
     let result = convertToWords(wholeNumber);
 
-    // Handle decimal part (centavos) if needed
     if (decimalPart > 0) {
       result += ' AND ' + convertToWords(decimalPart) + '/100';
     }
@@ -259,7 +418,6 @@
   };
 
   const formatSalaryAmount = (amount) => {
-    // Format as currency
     return amount
       ? new Intl.NumberFormat('en-PH', {
           style: 'currency',
@@ -278,27 +436,40 @@
     });
   };
 
+  // Computed Properties
   const formattedSigningDate = computed(() => formatDate(props.data.signingDate));
-  // const formattedResolutionDate = computed(() => formatDate(props.data.resolutionDate));
+
+  console.log('AppointmentReport - received data:', props.data);
 </script>
 
 <style scoped>
+  /* Global Styles */
   .appointment-form-container {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 0;
   }
 
-  .appointment-form {
+  .page {
     width: 8.5in;
-    min-height: 12in;
-    padding: 0.3in;
-    padding-top: 0.6in;
+    min-height: 11in;
     font-family: 'Consolas', 'Courier New', Courier, monospace;
     font-size: 12pt;
     color: black;
     background: white;
     box-sizing: border-box;
+    page-break-after: always;
+    page-break-inside: avoid;
+  }
+
+  .page:last-child {
+    page-break-after: auto;
+  }
+
+  /* Page 1 - Appointment Form Styles */
+  .appointment-form {
+    padding: 0.3in;
+    padding-top: 0.6in;
     line-height: 1.5;
   }
 
@@ -333,6 +504,32 @@
     font-weight: bold;
     font-style: italic;
     font-size: 10pt;
+  }
+
+  /* New Stamp Section Styles */
+  .stamp-section {
+    position: absolute;
+    top: 0.5in;
+    right: 0.5in;
+    text-align: center;
+    font-size: 10pt;
+    line-height: 1.2;
+  }
+
+  .stamp-line {
+    width: 200px;
+    height: 10px;
+    border: none;
+    border-bottom: 1px solid black;
+    margin-bottom: 5px;
+    background-color: white;
+  }
+
+  .stamp-label {
+    font-weight: bold;
+    font-style: italic;
+    font-size: 9pt;
+    text-align: center;
   }
 
   .header {
@@ -439,5 +636,267 @@
     margin-top: 3em;
     margin-bottom: 15px;
     font-size: 11pt;
+  }
+
+  /* Page 2 - Certification Page Styles */
+  .certification-page {
+    padding: 0.3in;
+    padding-bottom: 10px;
+    padding-top: 0.3in;
+    position: relative;
+  }
+
+  .certification-section {
+    width: 100%;
+    padding: 0;
+    box-sizing: border-box;
+    position: relative;
+  }
+
+  .certificates-container {
+    width: 100%;
+    background-color: #c0c0c0;
+    padding: 20px;
+    box-sizing: border-box;
+    border: 2px solid black;
+    margin-bottom: 20px;
+  }
+
+  .certificate-box {
+    width: 100%;
+    border: 2px solid black;
+    background-color: white;
+    padding: 0.15in;
+    box-sizing: border-box;
+    margin-bottom: 20px;
+  }
+
+  .certificate-box:last-child {
+    margin-bottom: 0;
+  }
+
+  .notation-container {
+    width: 100%;
+    background-color: #c0c0c0;
+    border: 2px solid black;
+    box-sizing: border-box;
+    margin-bottom: 20px;
+    position: relative;
+    padding-top: 35px;
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-bottom: 20px;
+  }
+
+  .notation-title {
+    text-align: center;
+    font-size: 14pt;
+    font-weight: bold;
+    margin: 0;
+    position: absolute;
+    top: 5px;
+    left: 0;
+    right: 0;
+  }
+
+  .notation-content {
+    background-color: #ffff;
+    border: 2px solid black;
+    padding: 0.15in;
+    box-sizing: border-box;
+  }
+
+  .custom-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    border: 1px solid black;
+    background-color: white;
+    margin-right: 5px;
+    position: relative;
+    top: 1px;
+  }
+
+  .custom-checkbox:checked {
+    background-color: white;
+  }
+
+  .custom-checkbox:checked:after {
+    content: '✓';
+    position: absolute;
+    top: -2px;
+    left: 1px;
+    color: black;
+    font-size: 10px;
+  }
+
+  .bold-text {
+    font-weight: bold;
+  }
+
+  .acknowledgement-container {
+    width: 100%;
+    background-color: #c0c0c0;
+    border: 2px solid black;
+    box-sizing: border-box;
+    margin-bottom: 20px;
+    padding: 20px;
+  }
+
+  .acknowledgement-boxes {
+    display: flex;
+    width: 100%;
+  }
+
+  .left-box {
+    width: 50%;
+    background-color: white;
+    border: 2px solid black;
+    padding: 0.15in;
+    padding-top: 40px;
+    box-sizing: border-box;
+    border-right: none;
+  }
+
+  .right-box {
+    width: 50%;
+    background-color: white;
+    border: 2px solid black;
+    padding: 0.15in;
+    box-sizing: border-box;
+  }
+
+  .copy-text {
+    font-size: 8pt;
+    line-height: 1.5;
+  }
+
+  .certification-title {
+    text-align: center;
+    font-size: 14pt;
+    font-weight: bold;
+    margin-top: 0;
+    margin-bottom: 10px;
+  }
+
+  .acknowledgement-title {
+    text-align: center;
+    font-size: 13pt;
+    font-weight: bold;
+    margin-top: 0;
+    margin-bottom: 10px;
+  }
+
+  .certification-text {
+    text-align: justify;
+    text-indent: 2em;
+    line-height: 1.5;
+    font-size: 11pt;
+    margin-bottom: 8px;
+  }
+
+  .signature-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+    margin-bottom: 5px;
+  }
+
+  .signature {
+    display: inline-block;
+    text-align: center;
+    width: 380px;
+  }
+
+  .cert-signature-title {
+    font-size: 11pt;
+    margin-top: 3px;
+    line-height: 1.5;
+  }
+
+  .notation-table table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 auto;
+  }
+
+  .notation-table td {
+    border: 1px solid #000;
+    padding: 5px;
+    height: 25px;
+  }
+
+  .table-header {
+    text-align: center;
+    font-size: 11pt;
+    font-weight: bold;
+    background-color: #fff;
+  }
+
+  .checkbox-row {
+    padding-left: 5px;
+    font-size: 10pt;
+  }
+
+  .indent-wrapper {
+    padding-left: 40px;
+    display: flex;
+    align-items: center;
+  }
+
+  .checkbox-deeper-indent {
+    padding-left: 5px;
+    font-size: 10pt;
+  }
+
+  .form-field {
+    display: inline-block;
+    width: 150;
+    min-width: 100px;
+    border-bottom: 1px solid #000;
+  }
+
+  .acknowledgement-text {
+    text-align: left;
+    margin-bottom: 30px;
+    font-size: 8pt;
+  }
+
+  .appointee-signature {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
+  }
+
+  .appointee-signature .signature-line {
+    border-top: 1px solid #000;
+    display: block;
+    width: 200px;
+    margin: 0 auto 3px auto;
+  }
+
+  .appointee-signature-title {
+    text-align: center;
+    font-size: 10pt;
+    width: 100%;
+  }
+
+  /* Print Styles */
+  @media print {
+    .page {
+      page-break-after: always;
+      page-break-inside: avoid;
+    }
+
+    .page:last-child {
+      page-break-after: auto;
+    }
+
+    .appointment-form-container {
+      gap: 0;
+    }
   }
 </style>

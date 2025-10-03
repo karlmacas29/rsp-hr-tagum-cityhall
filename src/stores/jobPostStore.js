@@ -116,6 +116,19 @@ export const useJobPostStore = defineStore('jobPost', {
       }
     },
 
+    async fetchJobDetails(id) {
+      this.loading = true;
+      try {
+        const { data } = await adminApi.get(`/job-batches-rsp/${id}`);
+        this.jobPosts = data;
+        this.error = null;
+      } catch (err) {
+        this.error = err;
+      } finally {
+        this.loading = false;
+      }
+    },
+
     async job_post_list() {
       this.loading = true;
       try {
@@ -234,8 +247,32 @@ export const useJobPostStore = defineStore('jobPost', {
     async updateJobPost({ id, jobBatch, criteria, criteriaId }) {
       this.loading = true;
       try {
-        const { data: batch } = await adminApi.put(`/job-batches-rsp/${id}`, jobBatch);
-        await adminApi.put(`/on-criteria-job/${criteriaId}`, criteria);
+        // Create FormData instance
+        const formData = new FormData();
+
+        // Append all jobBatch fields to FormData
+        Object.keys(jobBatch).forEach((key) => {
+          if (jobBatch[key] !== null && jobBatch[key] !== undefined) {
+            formData.append(key, jobBatch[key]);
+          }
+        });
+
+        // If you need to send criteria as well, you can append it as JSON
+        // or as individual fields depending on your backend expectations
+        if (criteria) {
+          formData.append('criteria', JSON.stringify(criteria));
+          // OR append each criteria field individually:
+          // Object.keys(criteria).forEach(key => {
+          //   formData.append(key, criteria[key]);
+          // });
+        }
+
+        const { data: batch } = await adminApi.post(`/job-batches-rsp/update/${id}`, jobBatch, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        await adminApi.post(`/on-criteria-job/${criteriaId}`, criteria);
 
         this.error = null;
         return batch;

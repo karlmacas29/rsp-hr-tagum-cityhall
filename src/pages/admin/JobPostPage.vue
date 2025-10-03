@@ -103,22 +103,22 @@
         </template>
         <template v-slot:body-cell-applicants="props">
           <q-td :props="props" class="count-column">
-            <div class="text-center text-body2">{{ props.row.applicants || 0 }}</div>
+            <div class="text-center text-body2">{{ props.row.total_applicants || 0 }}</div>
           </q-td>
         </template>
         <template v-slot:body-cell-pending="props">
           <q-td :props="props" class="count-column">
-            <div class="text-center text-body2">{{ props.row.pending || 0 }}</div>
+            <div class="text-center text-body2">{{ props.row.pending_count || 0 }}</div>
           </q-td>
         </template>
         <template v-slot:body-cell-qualified="props">
           <q-td :props="props" class="count-column">
-            <div class="text-center text-body2">{{ props.row.qualified || 0 }}</div>
+            <div class="text-center text-body2">{{ props.row.qualified_count || 0 }}</div>
           </q-td>
         </template>
         <template v-slot:body-cell-unqualified="props">
           <q-td :props="props" class="count-column">
-            <div class="text-center text-body2">{{ props.row.unqualified || 0 }}</div>
+            <div class="text-center text-body2">{{ props.row.unqualified_count || 0 }}</div>
           </q-td>
         </template>
         <template v-slot:body-cell-status="props">
@@ -157,7 +157,7 @@
             </q-btn>
             <!-- Delete icon only if applicants is 0 or falsy -->
             <q-btn
-              v-if="canDeleteJob(props.row)"
+              v-if="canDeleteJob(props.row) && props.row.total_applicants === 0"
               round
               flat
               color="negative"
@@ -773,11 +773,9 @@
     try {
       showEditModal.value = true;
 
-      // Fetch detailed job post data using the store method
-      const jobData = await jobPostStore.fetchJobPostByPositionAndItemNo(
-        job.PositionID,
-        job.ItemNo,
-      );
+      // Fetch detailed job post data using the single fetchJobDetails method
+      await jobPostStore.fetchJobDetails(job.id);
+      const jobData = jobPostStore.jobPosts;
 
       // Populate edit form with fetched job data
       editJobDetails.value = {
@@ -788,19 +786,27 @@
         Unit: jobData.Unit || '',
         Position: jobData.Position || '',
         level: jobData.level || '',
-        post_date: jobData.post_date ? jobData.post_date.split(' ')[0] : '',
-        end_date: jobData.end_date || '',
+        post_date: jobData.post_date.replace(/\//g, '-'),
+        end_date: jobData.end_date.replace(/\//g, '-'),
         PageNo: parseInt(jobData.PageNo) || 0,
         PositionID: jobData.PositionID,
         ItemNo: jobData.ItemNo,
         SalaryGrade: jobData.SalaryGrade || '',
         status: jobData.status || '',
-        fileUpload: jobData.fileUpload || '',
+        fileUpload: jobData.plantilla?.fileUpload || '',
         newFile: null,
       };
 
-      // Fetch criteria data
-      await loadCriteriaData(jobData.PositionID, jobData.ItemNo);
+      // Set criteria data from the response
+      if (jobData.criteria) {
+        criteriaData.value = {
+          id: jobData.criteria.id,
+          Education: jobData.criteria.Education || '',
+          Experience: jobData.criteria.Experience || '',
+          Training: jobData.criteria.Training || '',
+          Eligibility: jobData.criteria.Eligibility || '',
+        };
+      }
     } catch (error) {
       console.error('Error loading job data for edit:', error);
       $q.notify({
@@ -862,23 +868,6 @@
     document.body.removeChild(link);
   };
 
-  const loadCriteriaData = async (positionId, itemNo) => {
-    try {
-      loadingCriteria.value = true;
-      const criteria = await jobPostStore.fetchCriteriaByPositionAndItemNo(positionId, itemNo);
-      criteriaData.value = criteria;
-    } catch (error) {
-      console.error('Error loading criteria data:', error);
-      $q.notify({
-        type: 'negative',
-        message: 'Failed to load criteria data',
-        position: 'top',
-      });
-    } finally {
-      loadingCriteria.value = false;
-    }
-  };
-
   const closeEditModal = () => {
     showEditModal.value = false;
     criteriaData.value = null;
@@ -925,7 +914,8 @@
 
       // Prepare job batch update data
       const jobBatch = {
-        end_date: editJobDetails.value.end_date,
+        post_date: editJobDetails.value.post_date.replace(/\//g, '-'),
+        end_date: editJobDetails.value.end_date.replace(/\//g, '-'),
         PageNo: editJobDetails.value.PageNo.toString(),
       };
 

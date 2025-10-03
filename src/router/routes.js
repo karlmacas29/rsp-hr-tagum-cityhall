@@ -39,7 +39,8 @@ const routes = [
       {
         path: '/reports',
         name: 'Admin Report Raters',
-        component: () => import('pages/admin/ReportsPage.vue'),
+        // component: () => import('pages/admin/ReportsPage.vue'),
+        component: () => import('src/components/Reports/CertificationReport.vue'),
         meta: { auth: true, role: 'admin' },
       },
       {
@@ -139,7 +140,7 @@ const routes = [
         meta: { auth: true, role: 'rater' },
         component: () => import('pages/rater/RatersCriteria.vue'),
       },
-        {
+      {
         path: '/rater/settings',
         name: 'rater Settings',
         component: () => import('../components/Rater/Settings.vue'),

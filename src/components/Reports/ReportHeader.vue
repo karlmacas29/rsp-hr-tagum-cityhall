@@ -75,7 +75,7 @@
     align-items: center;
     margin-top: 5px;
     margin-bottom: 30px;
-    width: calc(100% + 2.1in);
+    width: calc(100% + 2in);
     margin-left: -1in;
   }
 

@@ -157,29 +157,113 @@ export const usePlantillaStore = defineStore('plantilla', {
           // Transform the data to match your template structure
           const appointmentData = response.data[0];
 
-          // Fix: plantilla is an array, so access the first element
-          const plantillaInfo = appointmentData.plantilla?.[0]; // <- Changed this line
+          // Access the first element of each array
+          const plantillaInfo = appointmentData.active?.[0];
           const tempRegInfo = appointmentData.temp_reg_appointments?.[0];
+          const reorgExtInfo = appointmentData.temp_reg_appointment_reorg_ext?.[0];
 
           const transformedData = {
+            // Basic Info
+            SalaryAnnual: appointmentData.RateYear || '',
+            Sex: plantillaInfo?.Sex,
             Name4: plantillaInfo?.Name4 || '',
+
+            // Position Info
             NewDesignation: tempRegInfo?.NewDesignation || tempRegInfo?.Designation || '',
             SG: tempRegInfo?.SG || '',
             Step: tempRegInfo?.Step || '',
             Status: tempRegInfo?.Status || '',
             NewOffice: tempRegInfo?.NewOffice || tempRegInfo?.Office || '',
             MRate: tempRegInfo?.MRate || '',
-            Renew: tempRegInfo?.Renew || '',
-            vicecause: tempRegInfo?.vicecause || '',
-            sepcause: tempRegInfo?.sepcause || '', // Added this field
             ItemNo: tempRegInfo?.ItemNo || '',
             Pages: tempRegInfo?.Pages || '',
+
+            // Appointment Details
+            Renew: tempRegInfo?.Renew || '',
+            vicecause: tempRegInfo?.vicecause || '',
+            sepcause: tempRegInfo?.sepcause || '',
+            sepdate: tempRegInfo?.sepdate || '',
+
+            // Date Range
             FromDate: appointmentData.FromDate || '',
             ToDate: appointmentData.ToDate || '',
-            // Add more fields as needed
-            mayor: 'REY T. UY', // Default or from data
-            resolution: '', // Add if available in your data
-            resolutionYear: '', // Add if available in your data
+
+            // Extended Info from temp_reg_appointment_reorg_ext
+            PresAppro: reorgExtInfo?.PresAppro || '',
+            PrevAppro: reorgExtInfo?.PrevAppro || '',
+            SalAuthorized: reorgExtInfo?.SalAuthorized || '',
+            OtherComp: reorgExtInfo?.OtherComp || '',
+            SupPosition: reorgExtInfo?.SupPosition || '',
+            HSupPosition: reorgExtInfo?.HSupPosition || '',
+            Tool: reorgExtInfo?.Tool || '',
+
+            // Contact Requirements
+            Contact1: reorgExtInfo?.Contact1 || '',
+            Contact2: reorgExtInfo?.Contact2 || '',
+            Contact3: reorgExtInfo?.Contact3 || '',
+            Contact4: reorgExtInfo?.Contact4 || '',
+            Contact5: reorgExtInfo?.Contact5 || '',
+            Contact6: reorgExtInfo?.Contact6 || '',
+            ContactOthers: reorgExtInfo?.ContactOthers || '',
+
+            // Working Conditions
+            Working1: reorgExtInfo?.Working1 || '',
+            Working2: reorgExtInfo?.Working2 || '',
+            WorkingOthers: reorgExtInfo?.WorkingOthers || '',
+
+            // Descriptions
+            DescriptionSection: reorgExtInfo?.DescriptionSection || '',
+            DescriptionFunction: reorgExtInfo?.DescriptionFunction || '',
+
+            // Standards/Qualifications
+            StandardEduc: reorgExtInfo?.StandardEduc || '',
+            StandardExp: reorgExtInfo?.StandardExp || '',
+            StandardTrain: reorgExtInfo?.StandardTrain || '',
+            StandardElig: reorgExtInfo?.StandardElig || '',
+
+            // Supervisor
+            Supervisor: reorgExtInfo?.Supervisor || '',
+
+            // Competency Levels
+            Core1: reorgExtInfo?.Core1 || '0',
+            Core2: reorgExtInfo?.Core2 || '0',
+            Core3: reorgExtInfo?.Core3 || '0',
+            Corelevel1: reorgExtInfo?.Corelevel1 || '0',
+            Corelevel2: reorgExtInfo?.Corelevel2 || '0',
+            Corelevel3: reorgExtInfo?.Corelevel3 || '0',
+            Corelevel4: reorgExtInfo?.Corelevel4 || '0',
+
+            // Leadership Levels
+            Leader1: reorgExtInfo?.Leader1 || '0',
+            Leader2: reorgExtInfo?.Leader2 || '0',
+            Leader3: reorgExtInfo?.Leader3 || '0',
+            Leader4: reorgExtInfo?.Leader4 || '0',
+            leaderlevel1: reorgExtInfo?.leaderlevel1 || '0',
+            leaderlevel2: reorgExtInfo?.leaderlevel2 || '0',
+            leaderlevel3: reorgExtInfo?.leaderlevel3 || '0',
+            leaderlevel4: reorgExtInfo?.leaderlevel4 || '0',
+
+            // Structure ID
+            StructureID: tempRegInfo?.StructureID || reorgExtInfo?.structureid || '',
+
+            // Additional Fields
+            DivCode: tempRegInfo?.DivCode || '',
+            SecCode: tempRegInfo?.SecCode || '',
+            OffCode: tempRegInfo?.OffCode || '',
+            DesigCode: tempRegInfo?.DesigCode || '',
+            Official: tempRegInfo?.Official || '0',
+            Groupcode: tempRegInfo?.Groupcode || '',
+            group: tempRegInfo?.group || '',
+            unitcode: tempRegInfo?.unitcode || '',
+
+            // Default/Configurable Values
+            vicemayor: 'ATTY. EVA LORRAINE E. ESTABILLO',
+            cityaccountant: 'RAMIL Y. TIU, CPA',
+            HR: 'JANYLENE A. PALERMO, MM',
+            admin: 'EDGAR C. DE GUZMAN',
+            mayor: 'REY T. UY',
+            resolution: '',
+            resolutionYear: '',
           };
 
           console.log('Transformed data:', transformedData); // Debug the transformed data

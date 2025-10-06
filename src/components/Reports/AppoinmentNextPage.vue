@@ -1,4 +1,4 @@
-<template>
+<template>datafetchAppointmentData
   <div class="certification-page">
     <div class="certification-section">
       <!-- Single gray container for both certifications -->

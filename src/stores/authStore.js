@@ -83,8 +83,8 @@ export const useAuthStore = defineStore('auth', {
           this.isAuthenticated = true;
           this.user = response.data.user;
 
-          document.cookie = `admin_token=${this.token}; path=/; SameSite=None; Secure`;
-
+          // document.cookie = `admin_token=${this.token}; path=/; SameSite=None; Secure`;
+        document.cookie = `admin_token=${response.data.token}; path=/`;
           toast.success('You are now logged in!');
           this.router.push({ name: 'Admin Dashboard' });
           this.loading = false;

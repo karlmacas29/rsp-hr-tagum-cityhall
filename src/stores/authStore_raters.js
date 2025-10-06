@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { raterApi } from 'boot/axios_rater';
 import { toast } from 'src/boot/toast';
-import { useLogsStore } from 'stores/logsStore';
+import { useLogsStore } from 'stores/raterlogsStore';
 // import { usePlantillaStore } from 'stores/plantillaStore';
 
 export const useRaterAuthStore = defineStore('rater_auth', () => {
@@ -40,7 +40,8 @@ export const useRaterAuthStore = defineStore('rater_auth', () => {
         isAuthenticated.value = true;
         user.value = response.data.user;
 
-        document.cookie = `rater_token=${token.value}; path=/; SameSite=None; Secure`;
+        // document.cookie = `rater_token=${token.value}; path=/; SameSite=None; Secure`;
+             document.cookie = `rater_token=${response.data.token}; path=/`;
 
         toast.success('You are now logged in!');
         loading.value = false;

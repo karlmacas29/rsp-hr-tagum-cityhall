@@ -11,22 +11,22 @@
           <slot name="main-text">
             This is to certify all pertinent provisions of Sec 325 of RA No. 7160 (Local Government
             Code of 1991) have been complied with relative to the appointments issued on
-            {{ data.sepdate }}
+            {{ formatDateEnglish(data.sepdate) }}
           </slot>
         </p>
 
         <div class="signature-container">
           <div class="signature-section">
-            <div class="signature-name">{{ data.vicemayor }}</div>
+            <div class="signature-name">{{ signatoryName }}</div>
             <div class="signature-line"></div>
-            <div class="signature-title">City Vice Mayor</div>
+            <div class="signature-title">{{ signatoryTitle }}</div>
           </div>
         </div>
 
         <div class="left-signature-container">
           <div class="stamp">
             Date:
-            <span class="underlined">{{ data.sepdate }}</span>
+            <span class="underlined">{{ formatDateEnglish(data.sepdate) }}</span>
           </div>
         </div>
       </div>
@@ -53,7 +53,7 @@
         <div class="left-signature-container">
           <div class="stamp">
             Date:
-            <span class="underlined">{{ data.sepdate }}</span>
+            <span class="underlined">{{ formatDateEnglish(data.sepdate) }}</span>
           </div>
         </div>
       </div>
@@ -61,7 +61,9 @@
     <ReportFooter :phone="footerPhone" :email="footerEmail" />
   </div>
 
-  <!-- <div class="certification-report-container">
+  <!-- </div>
+
+  <div class="certification-report-container">
     <div class="report-content">
       <ReportHeader :officeName="officeName" />
 
@@ -110,17 +112,17 @@
         </p>
         <div class="signature-container">
           <div class="signature-section">
-            <div class="signature-name">{{ data.mayor }}</div>
+            <div class="signature-name">{{ signatoryName }}</div>
             <div class="signature-line"></div>
-            <div class="signature-title">City Mayor</div>
+            <div class="signature-title">{{ signatoryTitle }}</div>
           </div>
         </div>
       </div>
     </div>
     <ReportFooter :phone="footerPhone" :email="footerEmail" />
-  </div> -->
+  </div>
 
-  <!-- <div class="certification-report-container">
+  <div class="certification-report-container">
     <div class="report-content">
       <ReportHeader :officeName="officeName" />
 
@@ -195,7 +197,7 @@
             of
             <span class="bold underline">{{ data.NewOffice || 'NA' }}</span>
             effective
-            <span class="bold underline">{{ data.sepdate || 'NA' }}</span>
+            <span class="bold underline">{{ formatDateEnglish(data.sepdate) }}</span>
             .
           </slot>
         </p>
@@ -235,7 +237,7 @@
             <div class="signature-title">City Human Resource Mgt. Officer</div>
           </div>
           <div class="stamp" style="padding-top: 35px; padding-bottom: 40px">
-            Date: {{ data.sepdate || 'NA' }}
+            Date: {{ formatDateEnglish(data.sepdate) }}
           </div>
         </div>
 
@@ -266,8 +268,6 @@
                 <span v-html="word.eng"></span>
               </rt>
             </ruby>
-            <!-- <span v-else class="word-only">{{ word.fil }}</span>
-            <span class="word-space"></span> -->
           </template>
         </p>
 
@@ -285,16 +285,16 @@
 
         <p class="main-text indented" :style="mainTextStyle">
           <slot>
-            Nilagdaan at pinanumpaan sa harap ko ngayong ika-XX ng XX, XXXX sa Tagum City, Davao Del
-            Norte, Pilipinas.
+            Nilagdaan at pinanumpaan sa harap ko ngayong {{ formatDateTagalog(sepdate) }} sa Tagum
+            City, Davao Del Norte, Pilipinas.
           </slot>
         </p>
 
         <div class="signature-container">
           <div class="signature-section">
-            <div class="signature-name">{{ data.mayor }}</div>
+            <div class="signature-name">{{ signatoryName }}</div>
             <div class="signature-line"></div>
-            <div class="signature-title">City Mayor</div>
+            <div class="signature-title">{{ signatoryTitle }}</div>
           </div>
         </div>
       </div>
@@ -341,6 +341,95 @@
       default: '',
     },
   });
+
+  // Current date using sepdate
+  const sepdate = ref(new Date());
+
+  // Computed properties for dynamic signatory display
+  const signatoryName = computed(() => {
+    // Check if 'NewOffice' contains "VICE MAYOR" or "SANGGUNIANG PANLUNGSOD" or "SANGUNIAN"
+    if (
+      props.data.NewOffice.includes('VICE MAYOR') ||
+      props.data.NewOffice.includes('SANGGUNIANG PANLUNGSOD') ||
+      props.data.NewOffice.includes('SANGUNIAN')
+    ) {
+      return props.data.vicemayor || 'ALLAN L. RELLON';
+    } else {
+      return props.data.mayor || 'REY T. UY';
+    }
+  });
+
+  // Computed property for signatory title
+  const signatoryTitle = computed(() => {
+    // Check if 'NewOffice' contains "VICE MAYOR" or "SANGGUNIANG PANLUNGSOD" or "SANGUNIAN"
+    if (
+      props.data.NewOffice.includes('VICE MAYOR') ||
+      props.data.NewOffice.includes('SANGGUNIANG PANLUNGSOD') ||
+      props.data.NewOffice.includes('SANGUNIAN')
+    ) {
+      return 'City Vice Mayor';
+    } else {
+      return 'City Mayor';
+    }
+  });
+
+  // Date formatting functions
+  const formatDateEnglish = (date) => {
+    if (!date) return '';
+    const dateObj = new Date(date);
+    const day = dateObj.getDate();
+    const month = dateObj.toLocaleString('en-US', { month: 'long' });
+    const year = dateObj.getFullYear();
+    return `${day} ${month} ${year}`;
+  };
+
+  const formatDateTagalog = (date) => {
+    if (!date) return '';
+    const dateObj = new Date(date);
+    const day = dateObj.getDate();
+    const year = dateObj.getFullYear();
+
+    const tagalogMonths = {
+      0: 'Enero',
+      1: 'Pebrero',
+      2: 'Marso',
+      3: 'Abril',
+      4: 'Mayo',
+      5: 'Hunyo',
+      6: 'Hulyo',
+      7: 'Agosto',
+      8: 'Setyembre',
+      9: 'Oktubre',
+      10: 'Nobyembre',
+      11: 'Disyembre',
+    };
+
+    const month = tagalogMonths[dateObj.getMonth()];
+    return `ika-${day} ng ${month}, ${year}`;
+  };
+
+  const formatDayWithSuffix = (date) => {
+    const day = date.getDate();
+    if (day > 3 && day < 21) return day + 'th';
+    switch (day % 10) {
+      case 1:
+        return day + 'st';
+      case 2:
+        return day + 'nd';
+      case 3:
+        return day + 'rd';
+      default:
+        return day + 'th';
+    }
+  };
+
+  const formatMonth = (date) => {
+    return date.toLocaleString('en-US', { month: 'long' });
+  };
+
+  const formatYear = (date) => {
+    return date.getFullYear();
+  };
 
   // Make oathWords a computed property to use dynamic data
   const oathWords = computed(() => [
@@ -415,141 +504,10 @@
     { fil: '', eng: '' },
   ]);
 
-  // Current date using sepdate
-  const sepdate = ref(new Date());
-
-  const formatDayWithSuffix = (date) => {
-    const day = date.getDate();
-    if (day > 3 && day < 21) return day + 'th';
-    switch (day % 10) {
-      case 1:
-        return day + 'st';
-      case 2:
-        return day + 'nd';
-      case 3:
-        return day + 'rd';
-      default:
-        return day + 'th';
-    }
-  };
-
-  const formatMonth = (date) => {
-    return date.toLocaleString('en-US', { month: 'long' });
-  };
-
-  const formatYear = (date) => {
-    return date.getFullYear();
-  };
-
-  // const numberToWords = (num) => {
-  //   if (!num || isNaN(num)) return 'N/A';
-
-  //   const ones = ['', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE'];
-  //   const teens = [
-  //     'TEN',
-  //     'ELEVEN',
-  //     'TWELVE',
-  //     'THIRTEEN',
-  //     'FOURTEEN',
-  //     'FIFTEEN',
-  //     'SIXTEEN',
-  //     'SEVENTEEN',
-  //     'EIGHTEEN',
-  //     'NINETEEN',
-  //   ];
-  //   const tens = [
-  //     '',
-  //     '',
-  //     'TWENTY',
-  //     'THIRTY',
-  //     'FORTY',
-  //     'FIFTY',
-  //     'SIXTY',
-  //     'SEVENTY',
-  //     'EIGHTY',
-  //     'NINETY',
-  //   ];
-  //   const thousands = ['', 'THOUSAND', 'MILLION', 'BILLION'];
-
-  //   if (num === 0) return 'ZERO';
-
-  //   // Split into whole and decimal parts
-  //   const [wholePart, decimalPart = '00'] = num.toFixed(2).split('.');
-
-  //   const convertHundreds = (n) => {
-  //     let result = '';
-  //     if (n >= 100) {
-  //       result += ones[Math.floor(n / 100)] + ' HUNDRED ';
-  //       n %= 100;
-  //     }
-  //     if (n >= 20) {
-  //       result += tens[Math.floor(n / 10)] + ' ';
-  //       n %= 10;
-  //     } else if (n >= 10) {
-  //       result += teens[n - 10] + ' ';
-  //       return result;
-  //     }
-  //     if (n > 0) {
-  //       result += ones[n] + ' ';
-  //     }
-  //     return result;
-  //   };
-
-  //   let wholeNumber = parseInt(wholePart);
-  //   let result = '';
-  //   let thousandCounter = 0;
-
-  //   // Convert whole number part
-  //   if (wholeNumber === 0) {
-  //     result = 'ZERO ';
-  //   } else {
-  //     while (wholeNumber > 0) {
-  //       if (wholeNumber % 1000 !== 0) {
-  //         result = convertHundreds(wholeNumber % 1000) + thousands[thousandCounter] + ' ' + result;
-  //       }
-  //       wholeNumber = Math.floor(wholeNumber / 1000);
-  //       thousandCounter++;
-  //     }
-  //   }
-
-  //   // Add decimal part if not zero
-  //   const decimalValue = parseInt(decimalPart);
-  //   if (decimalValue > 0) {
-  //     result += 'AND ' + convertHundreds(decimalValue) + 'CENTAVOS ';
-  //   }
-
-  //   return result.trim();
-  // };
-
-  // Function to format salary in words with peso sign and number (up to 2 decimal places)
+  // Salary formatting function (keeping your existing implementation)
   // const formatSalary = (salary) => {
-  //   if (!salary) return 'N/A';
-
-  //   // Extract number from salary if it's a string with peso sign
-  //   let numericSalary;
-  //   if (typeof salary === 'string') {
-  //     // Remove peso sign, commas, and extract number
-  //     const match = salary.match(/[\d,]+\.?\d*/);
-  //     if (match) {
-  //       numericSalary = parseFloat(match[0].replace(/,/g, ''));
-  //     } else {
-  //       return salary; // Return as is if no number found
-  //     }
-  //   } else if (typeof salary === 'number') {
-  //     numericSalary = salary;
-  //   } else {
-  //     return 'N/A';
-  //   }
-
-  //   // Ensure 2 decimal places
-  //   const roundedSalary = Math.round(numericSalary * 100) / 100;
-  //   const wordsVersion = numberToWords(roundedSalary);
-  //   const formattedNumber = roundedSalary.toLocaleString('en-US', {
-  //     minimumFractionDigits: 2,
-  //     maximumFractionDigits: 2,
-  //   });
-
-  //   return `${wordsVersion} PESOS (₱${formattedNumber}) `;
+  //   // Add your existing salary formatting logic here
+  //   return salary;
   // };
 </script>
 
@@ -645,52 +603,15 @@
   }
   .word-space {
     display: inline;
-    /* white-space: pre; */
   }
   rt {
     font-size: 10px;
     font-style: italic;
     color: #7f8c8d;
-    /* ruby-align: center; */
   }
   ruby {
     ruby-position: under;
-    /* text-align: center; */
   }
-
-  /* New styles for the oath section */
-  /* .bilingual-phrase {
-    display: inline-block;
-    text-align: center;
-    margin: 0 2px;
-  }
-
-  .bilingual-phrase .filipino {
-    display: block;
-    font-weight: normal;
-  }
-
-  .bilingual-phrase .translation {
-    display: block;
-    font-size: 0.75em;
-    font-style: italic;
-    color: #444;
-  } */
-  /* .oath-section {
-      margin-bottom: 8px;
-    }
-    .filipino-text {
-      font-weight: normal;
-    }
-    .english-translation {
-      font-style: italic;
-      color: #555;
-      margin-left: 2em;
-      font-size: 0.9em;
-    }
-    .transalation {
-      display: none;
-    } */
 
   .signature-container {
     width: 100%;
@@ -739,6 +660,12 @@
 
   .signature-title {
     text-align: center;
+  }
+
+  .subtitle {
+    font-size: 14px;
+    font-weight: normal;
+    margin-top: 5px;
   }
 
   @media print {

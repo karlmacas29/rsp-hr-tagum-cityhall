@@ -503,7 +503,7 @@
 
   // Table column definitions
   const applicantColumns = [
-    { name: 'id', label: 'ID', field: 'id', align: 'center', sortable: true },
+    { name: 'id', label: 'No', field: 'id', align: 'center', sortable: true },
     { name: 'name', label: 'Name', field: 'name', align: 'left', sortable: true },
     {
       name: 'appliedDate',

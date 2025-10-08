@@ -66,6 +66,15 @@
               </div>
             </q-td>
           </template>
+          <template v-slot:body-cell-end_date="props">
+            <q-td :props="props">
+              <div style="width: 180px; white-space: normal">
+                <q-chip class="text-body1 text-weight-medium bg-red-5 text-white">
+                  {{ formatDate(props.row.end_date, 'MMM D, YYYY') }}
+                </q-chip>
+              </div>
+            </q-td>
+          </template>
           <template #body-cell-actions="props">
             <q-td align="center">
               <q-btn
@@ -130,6 +139,14 @@
       label: 'Posted Date',
       align: 'left',
       field: 'post_date',
+      sortable: true,
+      format: (val) => new Date(val).toLocaleDateString(),
+    },
+    {
+      name: 'end_date',
+      label: 'End Date',
+      align: 'left',
+      field: 'end_date',
       sortable: true,
       format: (val) => new Date(val).toLocaleDateString(),
     },

@@ -353,6 +353,7 @@
             @click="confirmSetFunded"
             :disable="fundedToggleValue === '0' && hasJobPost(fundedToggleRow)"
             unelevated
+            :loading="isLoading"
           />
         </q-card-actions>
       </q-card>
@@ -527,7 +528,11 @@
               label="Upload PDF file (Max 5MB)"
               style="width: 330px; border: 2px dashed #ccc; border-radius: 8px"
               class="q-mx-auto q-mb-md"
-              :rules="[(val) => !!val || 'Please upload the  PDF file .']"
+              :rules="[
+                (val) => !!val || 'Please upload the PDF file.',
+                (val) =>
+                  !val || val.size <= 5242880 || 'File exceeds the maximum allowed size of 5MB.',
+              ]"
             >
               <template v-slot:prepend>
                 <q-icon name="upload_file" size="2em" color="grey-7" />
@@ -551,8 +556,8 @@
 
           <q-btn
             color="primary"
-            :loading="usePlantilla.qsLoad"
-            :disabled="jobPostStore.loading || !postJobDetails.selectedFile"
+            :loading="isSubmitting"
+            :disabled="isSubmitting || jobPostStore.loading || !postJobDetails.selectedFile"
             label="Create Post"
             @click="submitJobPost"
             size="md"
@@ -601,8 +606,10 @@
   const usePlantilla = usePlantillaStore();
   const logStore = useLogsStore();
   const jobPostStore = useJobPostStore();
+  const isLoading = ref(false);
 
   const showReportModal = ref(false);
+  const isSubmitting = ref(false);
   const reportRow = ref(null);
   const showFundedConfirmModal = ref(false);
   const fundedToggleRow = ref(null);
@@ -848,6 +855,9 @@
 
   // Submit job post with proper state management
   const submitJobPost = async () => {
+    if (isSubmitting.value) return;
+    isSubmitting.value = true;
+
     if (!postJobDetails.value.selectedFile) {
       toast.error('Please upload funded plantilla PDF.');
       return;
@@ -861,11 +871,11 @@
       //   postJobDetails.value.ItemNo,
       // );
 
-      await updateFundedStatusAPI(
-        postJobDetails.value.PositionID,
-        true,
-        postJobDetails.value.ItemNo,
-      );
+      // await updateFundedStatusAPI(
+      //   postJobDetails.value.PositionID,
+      //   true,
+      //   postJobDetails.value.ItemNo,
+      // );
 
       // Then create job post
       const jobBatch = {
@@ -907,13 +917,14 @@
         jobCriteria,
       });
 
-      await updatePageNoAPI(
-        postJobDetails.value.PositionID,
-        postJobDetails.value.PageNo,
-        postJobDetails.value.ItemNo,
-      );
+      // await updatePageNoAPI(
+      //   postJobDetails.value.PositionID,
+      //   postJobDetails.value.PageNo,
+      //   postJobDetails.value.ItemNo,
+      // );
 
       showVacantPositionModal.value = false;
+      isSubmitting.value = false;
 
       logStore.logAction(
         `${authStore.user.name} created a job post for ${postJobDetails.value.position}. PositionID: ${postJobDetails.value.PositionID}, ItemNo: ${postJobDetails.value.ItemNo}`,
@@ -938,9 +949,197 @@
       toast.success('Job post successfully created, file uploaded, and details updated!');
     } catch (error) {
       console.error('Error creating job post:', error);
-      toast.error('Failed to create job post. Please try again.');
+      const errorMessage = error.response?.message || 'An unknown error occurred';
+      isSubmitting.value = false;
+      toast.error(errorMessage);
     }
   };
+
+  // const submitJobPost = async () => {
+  //   if (isSubmitting.value) return;
+  //   isSubmitting.value = true;
+
+  //   if (!postJobDetails.value.selectedFile) {
+  //     toast.error('Please upload funded plantilla PDF.');
+  //     return;
+  //   }
+
+  //   try {
+  //     const promises = [];
+
+  //     // Upload funded file first
+  //     // promises.push(
+  //     //   uploadFileToServer(
+  //     //     postJobDetails.value.selectedFile,
+  //     //     postJobDetails.value.PositionID,
+  //     //     postJobDetails.value.ItemNo,
+  //     //   )
+  //     // );
+
+  //     // Update funded status
+  //     promises.push(
+  //       updateFundedStatusAPI(postJobDetails.value.PositionID, true, postJobDetails.value.ItemNo),
+  //     );
+
+  //     // Create job post
+  //     const jobBatch = {
+  //       PositionID: parseInt(postJobDetails.value.PositionID),
+  //       Office: postJobDetails.value.office,
+  //       Office2: null,
+  //       Group: null,
+  //       tblStructureDetails_ID: postJobDetails.value.ID,
+  //       Division: postJobDetails.value.division,
+  //       Section: postJobDetails.value.section,
+  //       Unit: postJobDetails.value.unit,
+  //       Position: postJobDetails.value.position,
+  //       post_date: postJobDetails.value.startingDate.replace(/\//g, '-'),
+  //       end_date: postJobDetails.value.endedDate.replace(/\//g, '-'),
+  //       PageNo: postJobDetails.value.PageNo,
+  //       ItemNo: postJobDetails.value.ItemNo,
+  //       fileUpload: postJobDetails.value.selectedFile,
+  //       SalaryGrade: postJobDetails.value.SG,
+  //       level: postJobDetails.value.level,
+  //       salaryMin: null,
+  //       salaryMax: null,
+  //       Education: qsCriteria.value.Education,
+  //       Experience: qsCriteria.value.Experience,
+  //       Eligibility: qsCriteria.value.Eligibility,
+  //       Training: qsCriteria.value.Training,
+  //     };
+
+  //     const jobCriteria = {
+  //       ItemNo: parseInt(postJobDetails.value.ItemNo),
+  //       PositionID: parseInt(qsCriteria.value.PositionID),
+  //       Education: qsCriteria.value.Education,
+  //       Experience: qsCriteria.value.Experience,
+  //       Eligibility: qsCriteria.value.Eligibility,
+  //       Training: qsCriteria.value.Training,
+  //     };
+
+  //     promises.push(
+  //       jobPostStore.insertJobPost({
+  //         jobBatch: jobBatch,
+  //         jobCriteria,
+  //       }),
+  //     );
+
+  //     // Update page number
+  //     promises.push(
+  //       updatePageNoAPI(
+  //         postJobDetails.value.PositionID,
+  //         postJobDetails.value.PageNo,
+  //         postJobDetails.value.ItemNo,
+  //       ),
+  //     );
+
+  //     // Wait for all promises to resolve
+  //     await Promise.all(promises);
+
+  //     // Close modal and update UI
+  //     showVacantPositionModal.value = false;
+
+  //     logStore.logAction(
+  //       `${authStore.user.name} created a job post for ${postJobDetails.value.position}. PositionID: ${postJobDetails.value.PositionID}, ItemNo: ${postJobDetails.value.ItemNo}`,
+  //     );
+
+  //     // Update funded status in positions list for immediate UI feedback
+  //     const idx = positions.value.findIndex(
+  //       (p) =>
+  //         String(p.PositionID) === String(postJobDetails.value.PositionID) &&
+  //         String(p.ItemNo) === String(postJobDetails.value.ItemNo),
+  //     );
+  //     if (idx !== -1) {
+  //       positions.value[idx].Funded = '1';
+  //     }
+
+  //     // Fetch job posts from jobPostStore to update the UI
+  //     await jobPostStore.job_post();
+
+  //     // Force table to re-render
+  //     tableKey.value++;
+
+  //     toast.success('Job post successfully!');
+  //   } catch (error) {
+  //     console.error('Error creating job post:', error.message);
+  //     toast.error('Failed to create job post. Please try again.');
+  //   }
+  // };
+
+  const updateFundedStatusAPI = (positionId, isFunded, itemNo) => {
+    return new Promise((resolve, reject) => {
+      if (!positionId || !itemNo) {
+        const errorMessage = 'PositionID or ItemNo is required for updating funded status.';
+        toast.error(errorMessage);
+        return reject(new Error(errorMessage));
+      }
+
+      const token = document.cookie
+        .split('; ')
+        .find((row) => row.startsWith('admin_token='))
+        ?.split('=')[1];
+
+      const requestConfig = {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+      };
+
+      const payload = {
+        PositionID: positionId,
+        Funded: !!isFunded,
+        ItemNo: itemNo,
+      };
+
+      axios
+        .post(
+          `${process.env.VUE_APP_API_URL}/structure-details/update-funded`,
+          payload,
+          requestConfig,
+        )
+        .then((response) => {
+          resolve(response.data);
+        });
+    });
+  };
+
+  // const updatePageNoAPI = (positionId, pageNo, itemNo) => {
+  //   return new Promise((resolve, reject) => {
+  //     if (!positionId || !itemNo) {
+  //       const errorMessage = 'PositionID or ItemNo is required for updating PageNo.';
+  //       toast.error(errorMessage);
+  //       return reject(new Error(errorMessage));
+  //     }
+
+  //     const token = document.cookie
+  //       .split('; ')
+  //       .find((row) => row.startsWith('admin_token='))
+  //       ?.split('=')[1];
+
+  //     const requestConfig = {
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         ...(token && { Authorization: `Bearer ${token}` }),
+  //       },
+  //     };
+
+  //     const payload = {
+  //       PositionID: String(positionId),
+  //       PageNo: String(pageNo),
+  //       ItemNo: String(itemNo),
+  //     };
+
+  //     axios
+  //       .post(
+  //         `${process.env.VUE_APP_API_URL}/structure-details/update-pageno`,
+  //         payload,
+  //         requestConfig,
+  //       )
+  //       .then((response) => {
+  //         resolve(response.data);
+  //       });
+  //   });
+  // };
 
   const clearSearchFilters = () => {
     Object.keys(filters.value).forEach((key) => {
@@ -1002,99 +1201,6 @@
   //   });
   // };
 
-  const updateFundedStatusAPI = (positionId, isFunded, itemNo) => {
-    return new Promise((resolve, reject) => {
-      if (!positionId || !itemNo) {
-        const errorMessage = 'PositionID or ItemNo is required for updating funded status.';
-        toast.error(errorMessage);
-        return reject(new Error(errorMessage));
-      }
-
-      const token = document.cookie
-        .split('; ')
-        .find((row) => row.startsWith('admin_token='))
-        ?.split('=')[1];
-
-      const requestConfig = {
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { Authorization: `Bearer ${token}` }),
-        },
-      };
-
-      const payload = {
-        PositionID: positionId,
-        Funded: !!isFunded,
-        ItemNo: itemNo,
-      };
-
-      axios
-        .post(
-          `${process.env.VUE_APP_API_URL}/structure-details/update-funded`,
-          payload,
-          requestConfig,
-        )
-        .then((response) => {
-          resolve(response.data);
-        })
-        .catch((error) => {
-          const errorMessage =
-            error.response?.data?.message || error.message || 'Failed to update funded status.';
-          toast.error('Error -> ' + errorMessage);
-          reject(new Error(errorMessage));
-        });
-    });
-  };
-
-  const updatePageNoAPI = (positionId, pageNo, itemNo) => {
-    return new Promise((resolve, reject) => {
-      if (!positionId || !itemNo) {
-        const errorMessage = 'PositionID or ItemNo is required for updating PageNo.';
-        toast.error(errorMessage);
-        return reject(new Error(errorMessage));
-      }
-
-      const token = document.cookie
-        .split('; ')
-        .find((row) => row.startsWith('admin_token='))
-        ?.split('=')[1];
-
-      const requestConfig = {
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { Authorization: `Bearer ${token}` }),
-        },
-      };
-
-      const payload = {
-        PositionID: String(positionId),
-        PageNo: String(pageNo),
-        ItemNo: String(itemNo),
-      };
-
-      axios
-        .post(
-          `${process.env.VUE_APP_API_URL}/structure-details/update-pageno`,
-          payload,
-          requestConfig,
-        )
-        .then((response) => {
-          resolve(response.data);
-        })
-        .catch((error) => {
-          let errorMessage;
-          if (error.response?.data?.errors) {
-            errorMessage = Object.values(error.response.data.errors).flat().join('; ');
-          } else {
-            errorMessage =
-              error.response?.data?.message || error.message || 'Failed to update PageNo.';
-          }
-          toast.error('Error -> ' + errorMessage);
-          reject(new Error(errorMessage));
-        });
-    });
-  };
-
   const handleToggle = (row, val) => {
     // Don't allow toggle to unfunded if there's an active job post
     if (val === '0' && hasJobPost(row)) {
@@ -1108,6 +1214,7 @@
   };
 
   const confirmSetFunded = async () => {
+    isLoading.value = true;
     if (fundedToggleRow.value) {
       try {
         // Double-check to prevent unfunding a position with a job post
@@ -1140,6 +1247,7 @@
         console.error('Error updating funded status:', error);
         toast.error('Failed to update funded status.');
       } finally {
+        isLoading.value = false;
         showFundedConfirmModal.value = false;
       }
     }

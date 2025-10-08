@@ -235,10 +235,6 @@ export const useJobPostStore = defineStore('jobPost', {
 
         this.error = null;
         return batch;
-      } catch (err) {
-        this.error = err;
-        console.error('Error inserting job post:', err);
-        toast.error('Failed => ' + err);
       } finally {
         this.loading = false;
       }

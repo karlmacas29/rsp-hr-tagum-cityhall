@@ -579,6 +579,7 @@
   const editJobDetails = ref({
     id: null,
     Office: '',
+    tblStructureDetails_ID: null,
     Division: '',
     Section: '',
     Unit: '',
@@ -784,6 +785,7 @@
         Section: jobData.Section || '',
         Unit: jobData.Unit || '',
         Position: jobData.Position || '',
+        tblStructureDetails_ID: jobData.tblStructureDetails_ID || null,
         level: jobData.level || '',
         post_date: jobData.post_date.replace(/\//g, '-'),
         end_date: jobData.end_date.replace(/\//g, '-'),
@@ -913,9 +915,12 @@
 
       // Prepare job batch update data
       const jobBatch = {
+        PositionID: editJobDetails.value.PositionID || null,
         post_date: editJobDetails.value.post_date.replace(/\//g, '-'),
         end_date: editJobDetails.value.end_date.replace(/\//g, '-'),
         PageNo: editJobDetails.value.PageNo.toString(),
+        ItemNo: editJobDetails.value.ItemNo,
+        tblStructureDetails_ID: editJobDetails.value.tblStructureDetails_ID,
       };
 
       // Add file if a new one was selected

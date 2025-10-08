@@ -35,6 +35,7 @@
               <div class="text-body text-bold text-center q-mb-sm">
                 {{ applicantData?.name || 'John Doe' }}
               </div>
+              <q-btn label="VIEW PDS" color="primary" rounded @click="onViewPDS" />
               <q-badge
                 rounded
                 class="q-pa-xs"
@@ -115,7 +116,6 @@
                 <q-tab name="training" label="TRAINING" class="text-weight-medium" />
                 <q-tab name="eligibility" label="ELIGIBILITY" class="text-weight-medium" />
               </q-tabs>
-              <q-btn label="VIEW PDS" color="primary" rounded @click="onViewPDS" />
             </div>
 
             <q-separator />

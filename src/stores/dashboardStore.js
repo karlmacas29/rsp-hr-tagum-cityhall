@@ -4,6 +4,7 @@ import { toast } from 'src/boot/toast'; // Import toast instance
 
 export const DashboardStore = defineStore('dashboard', {
   state: () => ({
+    fundedData: null,
     vw_active: [],
     vw_status: [],
     totalMale: 0,
@@ -34,8 +35,6 @@ export const DashboardStore = defineStore('dashboard', {
         console.error('Error fetching the status:', error);
         this.error = 'Failed to fetch status summary.';
         toast.error('Failed to fetch status summary.');
-      } finally {
-        this.loading = false;
       }
     },
 
@@ -49,8 +48,17 @@ export const DashboardStore = defineStore('dashboard', {
         return response.data.data;
       } catch {
         toast.error('Failed to Load vwactive');
-      } finally {
-        this.loading = false;
+      }
+    },
+    async fetchFundedCount() {
+      this.loading = true;
+      this.error = null;
+      try {
+        const response = await adminApi.get('/plantilla/status');
+        this.fundedData = response.data;
+        return response.data;
+      } catch {
+        toast.error('Failed to Load funded data');
       }
     },
     //
@@ -67,8 +75,6 @@ export const DashboardStore = defineStore('dashboard', {
         this.loading = false;
         console.log(error.response.data?.message);
         toast.warning(error.response.data?.message);
-      } finally {
-        this.loading = false;
       }
     },
 
@@ -82,8 +88,6 @@ export const DashboardStore = defineStore('dashboard', {
         this.countAll = 0;
         console.log(error.response.data?.message);
         toast.warning(error.response.data?.message);
-      } finally {
-        this.loading = false;
       }
     },
 
@@ -105,8 +109,6 @@ export const DashboardStore = defineStore('dashboard', {
         const errorMessage = error.response?.data?.message || 'Failed to fetch sex count';
         console.log(errorMessage); // Logging error message as in other actions
         toast.warning(errorMessage); // Using toast.warning consistent with other actions
-      } finally {
-        this.loading = false;
       }
     },
   },

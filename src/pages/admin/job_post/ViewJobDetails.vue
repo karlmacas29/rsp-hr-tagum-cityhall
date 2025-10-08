@@ -1,11 +1,10 @@
 <template>
+  <q-inner-loading :showing="jobPostStore.loading">
+    <q-spinner size="32px" color="primary" />
+  </q-inner-loading>
   <div class="q-pa-md bg-grey-1">
     <!-- Job Details Card -->
     <q-card class="q-mb-lg shadow-3" flat bordered style="max-width: 1000px; margin: auto">
-      <q-inner-loading :showing="jobPostStore.loading">
-        <q-spinner size="32px" color="primary" />
-      </q-inner-loading>
-
       <q-card-section v-if="!jobPostStore.loading" class="q-pa-lg">
         <div class="row items-center justify-between q-mb-lg">
           <q-btn icon="arrow_back" round flat color="primary" @click="goBack" size="md" dense />
@@ -14,7 +13,7 @@
             color="primary"
             @click="viewFundedDocument"
             icon="description"
-            label="View Funded"
+            label="View M.O."
             size="md"
             no-caps
             flat
@@ -800,6 +799,7 @@
 
   // Fetch all data when component mounts
   onMounted(async () => {
+    jobPostStore.loading = true;
     try {
       // Fetch job details first
       const job = await jobPostStore.fetchJobPostByPositionAndItemNo(P_ID, I_No);

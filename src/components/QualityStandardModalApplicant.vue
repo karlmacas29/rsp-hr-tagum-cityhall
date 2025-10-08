@@ -62,6 +62,7 @@
                   </div>
                 </div>
               </div>
+              <q-btn class="q-mt-md" label="View PDS" color="primary" rounded @click="onViewPDS" />
             </q-card-section>
           </q-card>
 
@@ -82,7 +83,7 @@
                 <q-tab name="training" label="TRAINING" class="text-weight-medium" />
                 <q-tab name="eligibility" label="ELIGIBILITY" class="text-weight-medium" />
               </q-tabs>
-              <q-btn label="VIEW PDS" color="primary" rounded @click="onViewPDS" />
+              <!-- <q-btn label="VIEW PDS" color="primary" rounded @click="onViewPDS" /> -->
             </div>
 
             <q-separator />

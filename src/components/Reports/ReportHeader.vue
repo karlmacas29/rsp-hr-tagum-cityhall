@@ -10,7 +10,7 @@
     </div>
   </div>
   <div class="green-banner">
-    <div class="office-text">{{ officeName || 'OFFICE OF THE CITY MAYOR' }}</div>
+    <div class="office-text">{{ officeName || '' }}</div>
   </div>
 </template>
 

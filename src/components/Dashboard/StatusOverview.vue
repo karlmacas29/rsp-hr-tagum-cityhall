@@ -8,7 +8,7 @@
             <div class="row items-center no-wrap full-width">
               <div class="col stats-text">
                 <div class="label-text">Total Applicants</div>
-                <div class="value-text text-primary">{{ dashboardStore.total}}</div>
+                <div class="value-text text-primary">{{ dashboardStore.total }}</div>
               </div>
               <div class="col-auto icon-container">
                 <q-icon name="groups" size="40px" color="primary" />
@@ -22,8 +22,8 @@
           <q-card-section class="card-content">
             <div class="row items-center no-wrap full-width">
               <div class="col stats-text">
-                <div class="label-text">Pendings</div>
-                <div class="value-text text-orange">{{dashboardStore.pending }}</div>
+                <div class="label-text">Pending</div>
+                <div class="value-text text-orange">{{ dashboardStore.pending }}</div>
               </div>
               <div class="col-auto icon-container">
                 <q-icon name="pending_actions" size="40px" color="orange" />
@@ -67,8 +67,7 @@
 </template>
 
 <script setup>
-  import {onMounted } from 'vue';
-
+  import { onMounted } from 'vue';
 
   import { DashboardStore } from 'src/stores/dashboardStore';
 
@@ -76,11 +75,9 @@
 
   // Variable names updated to match labels
 
-
   onMounted(async () => {
     try {
       await dashboardStore.status();
-
     } catch (error) {
       console.error('Failed to fetch job data:', error);
     }

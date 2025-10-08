@@ -10,10 +10,12 @@
       <div class="certification-body">
         <p class="oath-content">
           <template v-for="(word, idx) in oathWords" :key="idx">
-            <span class="word-pair">
-              <span class="filipino">{{ word.fil }}</span>
-              <span class="english">{{ word.eng }}</span>
-            </span>
+            <ruby v-if="word.eng" class="word-ruby">
+              {{ word.fil }}
+              <rt>{{ word.eng }}</rt>
+            </ruby>
+            <span v-else class="word-only">{{ word.fil }}</span>
+            <span class="word-space"></span>
           </template>
         </p>
 
@@ -60,95 +62,119 @@
     footerEmail: { type: String, default: '' },
   });
 
+  
+
   const data = props.data;
 
-  // Word-by-word translation array
+  // Word-by-word translation array based on the exact text provided
   const oathWords = [
     { fil: 'Ako', eng: 'I' },
-    { fil: 'si', eng: 'am' },
-    { fil: data.Name4 || '________________,', eng: data.Name4 || '________________,' },
-    { fil: 'mula', eng: 'from' },
-    { fil: 'sa', eng: '' },
-    { fil: data.Address || '________________,', eng: data.Address || '________________,' },
+    { fil: 'si ', eng: ' ' },
+    { fil: 'HAZEL T. CABAOBAO', eng: '(Name of Appointee)' },
+    { fil: 'ng', eng: 'of' },
+    { fil: 'TAGUM CITY, DAVAO DEL NORTE', eng: '(Address)' },
+
+    { fil: 'na', eng: 'having been' },
     { fil: 'itinalaga', eng: 'appointed' },
     { fil: 'bilang', eng: 'as' },
-    {
-      fil: data.NewDesignation || '________________,',
-      eng: data.NewDesignation || '________________,',
-    },
-    { fil: 'ay', eng: '' },
+    { fil: 'EXECUTIVE ASSISTANT III', eng: 'EXECUTIVE ASSISTANT III' },
+    { fil: 'ay', eng: 'hereby' },
     { fil: 'taimtim', eng: 'solemnly' },
     { fil: 'na', eng: '' },
-    { fil: 'nanunumpa,', eng: 'swear,' },
+    { fil: 'nanunumpa', eng: 'swear' },
     { fil: 'na', eng: 'that' },
-    { fil: 'aking', eng: 'I' },
-    { fil: 'tutuparin,', eng: 'will fulfill,' },
-    { fil: 'nang', eng: 'with' },
-    { fil: 'buong', eng: 'utmost' },
-    { fil: 'husay,', eng: 'skill,' },
+    { fil: 'tutuparin', eng: 'I will faithfully discharge' },
+    { fil: 'ko', eng: '' },
+    { fil: 'nang', eng: 'to' },
+    { fil: 'buong', eng: 'the' },
+    { fil: 'husay', eng: 'best' },
     { fil: 'at', eng: 'and' },
-    { fil: 'katapatan,', eng: 'honesty,' },
+    { fil: 'katapatan,', eng: 'ability' },
+    { fil: 'sa', eng: 'of' },
+    { fil: 'abot', eng: '' },
+    { fil: 'ng', eng: 'my' },
+    { fil: 'aking', eng: '' },
+    { fil: 'kakayahan,', eng: '' },
     { fil: 'ang', eng: 'the' },
     { fil: 'mga', eng: '' },
-    { fil: 'tungkulin,', eng: 'duties,' },
-    { fil: 'na', eng: 'that' },
-    { fil: 'iniatang', eng: 'entrusted' },
-    { fil: 'sa', eng: 'to' },
-    { fil: 'akin,', eng: 'me,' },
-    { fil: 'bilang', eng: 'as' },
-    {
-      fil: data.NewDesignation || '________________,',
-      eng: data.NewDesignation || '________________,',
-    },
-    { fil: 'ng', eng: 'of' },
-    { fil: data.NewOffice || '________________,', eng: data.NewOffice || '________________,' },
+    { fil: 'katungkulang', eng: 'duties' },
+    { fil: 'pinagkatiwalaan', eng: 'of my present position' },
+    { fil: 'sa', eng: '' },
+    { fil: 'akin', eng: '' },
+    { fil: 'at', eng: 'and' },
+    { fil: 'sa', eng: 'of' },
+    { fil: 'dapat', eng: 'all' },
+    { fil: 'gampanan', eng: 'others' },
+    { fil: 'sa', eng: 'that' },
+    { fil: 'iba', eng: 'I' },
+    { fil: 'pang', eng: 'may' },
+    { fil: 'pagkakataon', eng: 'hereafter' },
+    { fil: 'nito;', eng: 'hold' },
+    { fil: 'gagampanan', eng: '' },
+    { fil: 'ko', eng: '' },
     { fil: 'sa', eng: 'under' },
     { fil: 'ilalim', eng: '' },
     { fil: 'ng', eng: 'the' },
-    { fil: 'Republika,', eng: 'Republic,' },
+    { fil: 'Republika', eng: 'Republic' },
     { fil: 'ng', eng: 'of' },
-    { fil: 'Pilipinas.', eng: 'Philippines.' },
-    { fil: 'Itataguyod', eng: 'I will uphold' },
-    { fil: 'ko,', eng: '' },
+    { fil: 'Pilipinas;', eng: 'the Philippines;' },
+    { fil: 'na', eng: 'that' },
+    { fil: 'aking', eng: 'I' },
+    { fil: 'itataguyod', eng: 'will uphold' },
     { fil: 'at', eng: 'and' },
-    { fil: 'ipagtatanggol,', eng: 'defend,' },
+    { fil: 'ipagtatanggol', eng: 'defend' },
     { fil: 'ang', eng: 'the' },
     { fil: 'Saligang', eng: '' },
-    { fil: 'Batas,', eng: 'Constitution,' },
+    { fil: 'Batas', eng: 'Constitution' },
     { fil: 'ng', eng: 'of' },
-    { fil: 'Pilipinas;', eng: 'Philippines;' },
+    { fil: 'Pilipinas,', eng: 'the Philippines;' },
+    { fil: 'na', eng: 'that' },
     { fil: 'tunay', eng: 'true' },
     { fil: 'na', eng: '' },
-    { fil: 'mananalig,', eng: 'faith,' },
+    { fil: 'magiging', eng: 'will' },
+    { fil: 'tapat', eng: 'faith' },
     { fil: 'at', eng: 'and' },
-    { fil: 'tatalima', eng: 'allegiance' },
-    { fil: 'rito;', eng: 'thereto;' },
+    { fil: 'taimtim', eng: 'allegiance' },
+    { fil: 'ako', eng: 'I' },
+    { fil: 'rito;', eng: 'to the same;' },
+    { fil: 'na', eng: 'that' },
     { fil: 'susundin', eng: 'I will obey' },
-    { fil: 'ko,', eng: '' },
+    { fil: 'ko', eng: '' },
     { fil: 'ang', eng: 'the' },
     { fil: 'mga', eng: '' },
-    { fil: 'batas,', eng: 'laws,' },
-    { fil: 'kautusan,', eng: 'orders,' },
+    { fil: 'batas', eng: 'laws' },
     { fil: 'at', eng: 'and' },
-    { fil: 'dekretong,', eng: 'decrees,' },
-    { fil: 'ipinatutupad', eng: 'promulgated' },
+    { fil: 'mga', eng: '' },
+    { fil: 'kautusang', eng: 'legal' },
+    { fil: 'legal,', eng: 'orders,' },
+    { fil: 'at', eng: 'and' },
+    { fil: 'mga', eng: '' },
+    { fil: 'dekretong', eng: 'decrees' },
+    { fil: 'pinairal', eng: 'promulgated' },
     { fil: 'ng', eng: 'by' },
-    { fil: 'awtoridad;', eng: 'authorities;' },
+    { fil: 'mga', eng: 'the' },
+    { fil: 'sadyang', eng: 'duly' },
+    { fil: 'itinakdang', eng: 'constituted' },
+    { fil: 'maykapangyarihan', eng: 'authorities' },
+    { fil: 'ng', eng: 'of' },
+    { fil: 'Republika', eng: 'the Republic' },
+    { fil: 'ng', eng: 'of' },
+    { fil: 'Pilipinas;', eng: 'the Philippines;' },
     { fil: 'at', eng: 'and' },
     { fil: 'kusa', eng: 'voluntarily' },
     { fil: 'kong', eng: 'I' },
-    { fil: 'babalikatin,', eng: 'assume,' },
+    { fil: 'babalikatin', eng: 'impose' },
     { fil: 'ang', eng: 'this' },
-    { fil: 'panunumpang', eng: '' },
-    { fil: 'ito,', eng: 'obligation,' },
-    { fil: 'ng', eng: '' },
+    { fil: 'pananagutang', eng: 'obligation' },
+    { fil: 'ito', eng: '' },
+    { fil: 'nang', eng: 'upon' },
     { fil: 'walang', eng: 'without' },
-    { fil: 'pasubali.', eng: 'reservation.' },
-    { fil: 'Kasihan', eng: 'help' },
-    { fil: 'nawa', eng: 'may' },
-    { fil: 'ako', eng: 'me' },
-    { fil: 'ng', eng: '' },
-    { fil: 'Diyos.', eng: 'God.' },
+    { fil: 'ano', eng: 'mental' },
+    { fil: 'mang', eng: '' },
+    { fil: 'pasubali', eng: 'reservation' },
+    { fil: 'o', eng: 'or' },
+    { fil: 'hangaring', eng: 'purpose' },
+    { fil: 'umiwas.', eng: 'evasion.' },
   ];
 
   const now = new Date();
@@ -184,28 +210,30 @@
   .oath-content {
     text-align: justify;
     margin-bottom: 1.5em;
-    line-height: 2;
+    line-height: 2.5;
   }
-  .word-pair {
-    display: inline-block;
-    text-align: justify;
-    vertical-align: top;
+  .word-ruby {
+    display: inline ruby;
     text-align: center;
-    min-width: 50px;
+    ruby-align: center;
   }
-  .filipino {
-    display: block;
-    text-align: justify;
-    font-weight: bold;
-    font-size: 14px;
-    color: #2c3e50;
+  .word-only {
+    display: inline;
   }
-  .english {
-    display: block;
-    text-align: justify;
+  .word-space {
+    display: inline;
+    white-space: pre;
+  }
+  rt {
+    font-size: 10px;
     font-style: italic;
     color: #7f8c8d;
-    font-size: 12px;
+    text-transform: lowercase;
+    ruby-align: center;
+  }
+  ruby {
+    ruby-position: under;
+    text-align: center;
   }
   .signature-container {
     width: 100%;
@@ -247,5 +275,26 @@
   }
   .indented {
     text-indent: 2em;
+  }
+
+  /* Fallback for browsers that don't support ruby positioning */
+  @supports not (ruby-position: under) {
+    .word-ruby {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    rt {
+      order: 2;
+      font-size: 10px;
+      font-style: italic;
+      color: #7f8c8d;
+      line-height: 1.2;
+    }
+    ruby {
+      display: inline-flex;
+      flex-direction: column;
+    }
   }
 </style>

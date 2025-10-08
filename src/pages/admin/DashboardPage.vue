@@ -39,21 +39,33 @@
           <h5 class="text-weight-bold q-ma-none">Statistics Overview</h5>
           <div class="row justify-start items-center q-gutter-x-xs">
             <q-chip dense class="q-my-xs row justify-start">
-              Total Employees:
+              Total Positions:
               <q-badge rounded dense class="text-bold q-ml-xs">
-                {{ Number(dashboardStore.countAll).toLocaleString() }}
+                {{ Number(dashboardStore.fundedData?.total || 0).toLocaleString() }}
               </q-badge>
             </q-chip>
             <q-chip dense class="q-my-xs row justify-start">
-              Female:
-              <q-badge rounded dense color="pink" class="text-bold q-ml-xs">
-                {{ Number(dashboardStore.totalFemale).toLocaleString() }}
-              </q-badge>
-            </q-chip>
-            <q-chip dense class="q-my-xs row justify-start">
-              Male:
+              Funded:
               <q-badge rounded dense color="blue" class="text-bold q-ml-xs">
-                {{ Number(dashboardStore.totalMale).toLocaleString() }}
+                {{ Number(dashboardStore.fundedData?.funded || 0).toLocaleString() }}
+              </q-badge>
+            </q-chip>
+            <q-chip dense class="q-my-xs row justify-start">
+              Unfunded:
+              <q-badge rounded dense color="orange" class="text-bold q-ml-xs">
+                {{ Number(dashboardStore.fundedData?.unfunded || 0).toLocaleString() }}
+              </q-badge>
+            </q-chip>
+            <q-chip dense class="q-my-xs row justify-start">
+              Occupied:
+              <q-badge rounded dense color="yellow-9" class="text-bold q-ml-xs">
+                {{ Number(dashboardStore.fundedData?.occupied || 0).toLocaleString() }}
+              </q-badge>
+            </q-chip>
+            <q-chip dense class="q-my-xs row justify-start">
+              Vacant Funded:
+              <q-badge rounded dense color="purple" class="text-bold q-ml-xs">
+                {{ Number(dashboardStore.fundedData?.unoccupied || 0).toLocaleString() }}
               </q-badge>
             </q-chip>
           </div>
@@ -183,8 +195,20 @@
       field: 'total_applicants',
       sortable: true,
     },
-    { name: 'pending_count', label: 'Pending', align: 'center', field: 'pending_count', sortable: true },
-    { name: 'qualified_count', label: 'Qualified', align: 'center', field: 'qualified_count', sortable: true },
+    {
+      name: 'pending_count',
+      label: 'Pending',
+      align: 'center',
+      field: 'pending_count',
+      sortable: true,
+    },
+    {
+      name: 'qualified_count',
+      label: 'Qualified',
+      align: 'center',
+      field: 'qualified_count',
+      sortable: true,
+    },
     {
       name: 'unqualified_count',
       label: 'Unqualified',
@@ -209,11 +233,7 @@
   };
 
   onMounted(async () => {
-    await Promise.all([
-    dashboardStore.fetchCountAll(),
-    dashboardStore.getSexCount(),
-
-  ]);
+    await Promise.all([dashboardStore.fetchFundedCount()]);
     await useJobPost.job_post();
     jobs.value = useJobPost.jobPosts;
   });

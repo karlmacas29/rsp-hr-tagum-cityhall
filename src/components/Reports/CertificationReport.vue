@@ -4,6 +4,68 @@
       <ReportHeader :officeName="officeName" />
 
       <div class="certification-title">
+        <h1>CERTIFICATION FOR APPOINTEMENTS ISSUED IN LOCAL GOVERNMENT UNITS (LGUs)</h1>
+      </div>
+      <div class="certification-body">
+        <p class="main-text indented" :style="mainTextStyle">
+          <slot name="main-text">
+            This is to certify all pertinent provisions of Sec 325 of RA No. 7160 (Local Government
+            Code of 1991) have been complied with relative to the appointments issued on
+            {{ data.sepdate }}
+          </slot>
+        </p>
+
+        <div class="signature-container">
+          <div class="signature-section">
+            <div class="signature-name">{{ data.vicemayor }}</div>
+            <div class="signature-line"></div>
+            <div class="signature-title">City Vice Mayor</div>
+          </div>
+        </div>
+
+        <div class="left-signature-container">
+          <div class="stamp">
+            Date:
+            <span class="underlined">{{ data.sepdate }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="certification-title">
+        <h1>CERTIFICATION ON AVAILABILITY OF FUNDS</h1>
+      </div>
+      <div class="certification-body">
+        <p class="main-text indented" :style="mainTextStyle">
+          <slot name="main-text">
+            This is to certify that funds are available pursusant to Appropriation Ordinance No. 6
+            Series of {{ formatYear(sepdate) }}
+          </slot>
+        </p>
+
+        <div class="signature-container">
+          <div class="signature-section">
+            <div class="signature-name">{{ data.cityaccountant }}</div>
+            <div class="signature-line"></div>
+            <div class="signature-title">City Accountant</div>
+          </div>
+        </div>
+
+        <div class="left-signature-container">
+          <div class="stamp">
+            Date:
+            <span class="underlined">{{ data.sepdate }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <ReportFooter :phone="footerPhone" :email="footerEmail" />
+  </div>
+
+  <!-- <div class="certification-report-container">
+    <div class="report-content">
+      <ReportHeader :officeName="officeName" />
+
+      <div class="certification-title">
         <h1>CERTIFICATION</h1>
       </div>
       <div class="certification-body">
@@ -56,9 +118,9 @@
       </div>
     </div>
     <ReportFooter :phone="footerPhone" :email="footerEmail" />
-  </div>
+  </div> -->
 
-  <div class="certification-report-container">
+  <!-- <div class="certification-report-container">
     <div class="report-content">
       <ReportHeader :officeName="officeName" />
 
@@ -114,7 +176,7 @@
       </div>
     </div>
     <ReportFooter :phone="footerPhone" :email="footerEmail" />
-  </div>
+  </div> -->
 
   <div class="certification-report-container">
     <div class="report-content">
@@ -193,163 +255,20 @@
 
       <div class="certification-title">
         <h1>PANUNUMPA SA KATUNGKULAN</h1>
+        <div class="subtitle">OATH OF OFFICE</div>
       </div>
       <div class="certification-body FS">
-        <p class="main-text oath-text">
-          <span class="bilingual-phrase indented">
-            <span class="filipino">Ako</span>
-            <span class="translation">I,</span>
-          </span>
-
-          <span class="bilingual-phrase">
-            <span class="filipino">si</span>
-            <span class="translation">&nbsp;</span>
-          </span>
-
-          <span class="bilingual-phrase">
-            <span class="filipino">{{ data.Name4 || 'Unknown' }}</span>
-            <span class="translation">(Appointee)</span>
-          </span>
-
-          <span class="bilingual-phrase">
-            <span class="filipino">{{ data.Address || 'NA' }}</span>
-            <span class="translation">(Address)</span>
-          </span>
-
-          <span class="bilingual-phrase">
-            <span class="filipino">na itinalaga bilang</span>
-            <span class="translation">have been appointed</span>
-          </span>
-
-          <span class="bilingual-phrase">
-            <span class="filipino">sa posisyong</span>
-            <span class="translation">to the position</span>
-          </span>
-
-          <span class="bilingual-phrase">
-            <span class="filipino bold underline">{{ data.NewDesignation || 'Unknown' }}</span>
-            <span class="translation bold underline">(Position)</span>
-          </span>
-
-          <span class="bilingual-phrase">
-            <span class="filipino">ay taimtim na nanunumpa</span>
-            <span class="translation">hereby solemnly swear</span>
-          </span>
-
-          <span class="bilingual-phrase">
-            <span class="filipino">na tutuparin ko nang buong husay</span>
-            <span class="translation">that I will faithfully discharge</span>
-          </span>
-
-          <span class="bilingual-phrase">
-            <span class="filipino">at katapatan,</span>
-            <span class="translation">with the best</span>
-          </span>
-
-          <span class="bilingual-phrase">
-            <span class="filipino">sa abot ng aking kakayahan,</span>
-            <span class="translation">of my ability,</span>
-          </span>
-
-          <span class="bilingual-phrase">
-            <span class="filipino">ang mga katungkulang</span>
-            <span class="translation">the duties</span>
-          </span>
-
-          <span class="bilingual-phrase">
-            <span class="filipino">pinagtalagahan sa akin</span>
-            <span class="translation">entrusted to me</span>
-          </span>
-
-          <span class="bilingual-phrase">
-            <span class="filipino">at sa mga katungkulan</span>
-            <span class="translation">and of all others</span>
-          </span>
-
-          <span class="bilingual-phrase">
-            <span class="filipino">na aking gaganapin</span>
-            <span class="translation">that I may hold</span>
-          </span>
-
-          <span class="bilingual-phrase">
-            <span class="filipino">sa ilalim ng Republika ng Pilipinas,</span>
-            <span class="translation">under the Republic of the Philippines,</span>
-          </span>
-
-          <span class="bilingual-phrase">
-            <span class="filipino">na aking itataguyod</span>
-            <span class="translation">that I will uphold</span>
-          </span>
-
-          <span class="bilingual-phrase">
-            <span class="filipino">at ipagtatangol ang Saligang Batas</span>
-            <span class="translation">and defend the Constitution</span>
-          </span>
-
-          <span class="bilingual-phrase">
-            <span class="filipino">ng Pilipinas;</span>
-            <span class="translation">of the Philippines;</span>
-          </span>
-
-          <span class="bilingual-phrase">
-            <span class="filipino">na tunay na mananalig</span>
-            <span class="translation">that I will bear true faith</span>
-          </span>
-
-          <span class="bilingual-phrase">
-            <span class="filipino">at tatalima ako rito;</span>
-            <span class="translation">and allegiance to the same</span>
-          </span>
-
-          <span class="bilingual-phrase">
-            <span class="filipino">na susundin ko</span>
-            <span class="translation">that I will obey</span>
-          </span>
-
-          <span class="bilingual-phrase">
-            <span class="filipino">ang mga batas at kautusang legal,</span>
-            <span class="translation">the laws and legal orders,</span>
-          </span>
-
-          <span class="bilingual-phrase">
-            <span class="filipino">at mga dekretong pinaiiral</span>
-            <span class="translation">and decrees promulgated</span>
-          </span>
-
-          <span class="bilingual-phrase">
-            <span class="filipino">ng mga awtoridad na itinalaga</span>
-            <span class="translation">by the duly constituted authorities</span>
-          </span>
-
-          <span class="bilingual-phrase">
-            <span class="filipino">ng Republika ng Pilipinas;</span>
-            <span class="translation">of the Republic of the Philippines;</span>
-          </span>
-
-          <span class="bilingual-phrase">
-            <span class="filipino">at kusa kong babalikatin</span>
-            <span class="translation">and that I impose</span>
-          </span>
-
-          <span class="bilingual-phrase">
-            <span class="filipino">ang panangutang ito</span>
-            <span class="translation">this obligation</span>
-          </span>
-
-          <span class="bilingual-phrase">
-            <span class="filipino">nang walang pasubali</span>
-            <span class="translation">upon myself voluntarily,</span>
-          </span>
-
-          <span class="bilingual-phrase">
-            <span class="filipino">o hangaring umiwas.</span>
-            <span class="translation">without mental reservation or purpose of evasion.</span>
-          </span>
-
-          <span class="bilingual-phrase">
-            <span class="filipino">KASIHAN NAWA AKO NG DIYOS.</span>
-            <span class="translation">SO HELP ME GOD.</span>
-          </span>
+        <p class="oath-content indented">
+          <template v-for="(word, idx) in oathWords" :key="idx">
+            <ruby class="word-ruby">
+              <span v-html="word.fil"></span>
+              <rt>
+                <span v-html="word.eng"></span>
+              </rt>
+            </ruby>
+            <!-- <span v-else class="word-only">{{ word.fil }}</span>
+            <span class="word-space"></span> -->
+          </template>
         </p>
 
         <div class="signature-container">
@@ -381,17 +300,14 @@
       </div>
     </div>
   </div>
-
-  <!-- <OathReport /> -->
 </template>
 
 <script setup>
-  import { ref } from 'vue';
+  import { ref, computed } from 'vue';
   import ReportHeader from './ReportHeader.vue';
   import ReportFooter from './ReportFooter.vue';
-  // import OathReport from './OathReport.vue';
 
-  defineProps({
+  const props = defineProps({
     data: {
       type: Object,
       default: () => ({}),
@@ -426,6 +342,79 @@
     },
   });
 
+  // Make oathWords a computed property to use dynamic data
+  const oathWords = computed(() => [
+    { fil: '<span style="color:white">*</span>Ako', eng: '<span style="color:white">*</span>I' },
+    { fil: '<span style="color:white">*</span>si', eng: '' },
+    {
+      fil: `<span style="color:white">*</span>${props.data.Name4 || 'Name of Appointee'}`,
+      eng: '<span style="color:white">*</span>(Name <span style="color:white">*</span>of <span style="color:white">*</span>Appointee)',
+    },
+    { fil: '<span style="color:white">*</span>ng', eng: '<span style="color:white">*</span>' },
+    {
+      fil: '<span style="color:white">*</span>TAGUM CITY, DAVAO DEL NORTE',
+      eng: '<span style="color:white">*</span>(Address)',
+    },
+    {
+      fil: '<span style="color:white">*</span>na <span style="color:white">*</span>itinalaga <span style="color:white">*</span>bilang',
+      eng: '<span style="color:white">*</span>having <span style="color:white">*</span>been <span style="color:white">*</span>appointed <span style="color:white">*</span>to',
+    },
+    {
+      fil: `<span style="color:white">*</span>(${props.data.NewDesignation || 'Position'})`,
+      eng: '<span style="color:white">*</span>(Position)',
+    },
+    {
+      fil: '<span style="color:white">*</span>ay <span style="color:white">*</span>taimtim <span style="color:white">*</span>na <span style="color:white">*</span>nanunumpa <span style="color:white">*</span>na',
+      eng: '<span style="color:white">*</span>hereby <span style="color:white">*</span>solemnly <span style="color:white">*</span>swear,',
+    },
+    {
+      fil: '<span style="color:white">*</span>sa <span style="color:white">*</span>abot <span style="color:white">*</span>ng <span style="color:white">*</span>aking <span style="color:white">*</span>kakayahan,',
+      eng: '<span style="color:white">*</span>to <span style="color:white">*</span>the <span style="color:white">*</span>best <span style="color:white">*</span>of <span style="color:white">*</span>my <span style="color:white">*</span>ability,',
+    },
+    {
+      fil: '<span style="color:white">*</span>ang <span style="color:white">*</span>mga <span style="color:white">*</span>katungkulang <span style="color:white">*</span>pinagtalagahan <span style="color:white">*</span>sa <span style="color:white">*</span>akin',
+      eng: '<span style="color:white">*</span>the <span style="color:white">*</span>duties <span style="color:white">*</span>of <span style="color:white">*</span>my <span style="color:white">*</span>present <span style="color:white">*</span>position',
+    },
+    {
+      fil: '<span style="color:white">*</span>at <span style="color:white">*</span>sa <span style="color:white">*</span>dapat <span style="color:white">*</span>gampanan <span style="color:white">*</span>sa <span style="color:white">*</span>iba <span style="color:white">*</span>pang <span style="color:white">*</span>pagkaraan <span style="color:white">*</span>nito\'y <span style="color:white">*</span>gagampanan <span style="color:white">*</span>ko',
+      eng: '<span style="color:white">*</span>and <span style="color:white">*</span>of <span style="color:white">*</span>all <span style="color:white">*</span>others <span style="color:white">*</span>that <span style="color:white">*</span>I <span style="color:white">*</span>may <span style="color:white">*</span>hereafter <span style="color:white">*</span>hold',
+    },
+    {
+      fil: '<span style="color:white">*</span>sa <span style="color:white">*</span>ilalim <span style="color:white">*</span>ng <span style="color:white">*</span>Republika <span style="color:white">*</span>ng <span style="color:white">*</span>Pilipinas;',
+      eng: '<span style="color:white">*</span>under <span style="color:white">*</span>the <span style="color:white">*</span>Republic <span style="color:white">*</span>of <span style="color:white">*</span>the <span style="color:white">*</span>Philippines;',
+    },
+    {
+      fil: '<span style="color:white">*</span>na <span style="color:white">*</span>aking <span style="color:white">*</span>itataguyod <span style="color:white">*</span>at <span style="color:white">*</span>ipagtatangol <span style="color:white">*</span>ang <span style="color:white">*</span>Saligang <span style="color:white">*</span>Batas <span style="color:white">*</span>ng <span style="color:white">*</span>Pilipinas;',
+      eng: '<span style="color:white">*</span>to <span style="color:white">*</span>uphold <span style="color:white">*</span>and <span style="color:white">*</span>defend <span style="color:white">*</span>the <span style="color:white">*</span>Constitution,',
+    },
+    {
+      fil: '<span style="color:white">*</span>na <span style="color:white">*</span>tunay <span style="color:white">*</span>na <span style="color:white">*</span>mananalig <span style="color:white">*</span>at <span style="color:white">*</span>tatalima <span style="color:white">*</span>ako <span style="color:white">*</span>rito;',
+      eng: '<span style="color:white">*</span>that <span style="color:white">*</span>I <span style="color:white">*</span>will <span style="color:white">*</span>bear <span style="color:white">*</span>true <span style="color:white">*</span>faith <span style="color:white">*</span>and <span style="color:white">*</span>allegiance <span style="color:white">*</span>to <span style="color:white">*</span>the <span style="color:white">*</span>same;',
+    },
+    {
+      fil: '<span style="color:white">*</span>na <span style="color:white">*</span>susundin <span style="color:white">*</span>ko <span style="color:white">*</span>ang <span style="color:white">*</span>mga <span style="color:white">*</span>batas <span style="color:white">*</span>at <span style="color:white">*</span>mga <span style="color:white">*</span>kautusang <span style="color:white">*</span>legal,',
+      eng: '<span style="color:white">*</span>that <span style="color:white">*</span>I <span style="color:white">*</span>will <span style="color:white">*</span>obey <span style="color:white">*</span>the <span style="color:white">*</span>laws, <span style="color:white">*</span>legal <span style="color:white">*</span>orders,',
+    },
+    {
+      fil: '<span style="color:white">*</span>at <span style="color:white">*</span>mga <span style="color:white">*</span>dekretong <span style="color:white">*</span>pinaiiral <span style="color:white">*</span>ng <span style="color:white">*</span>mga <span style="color:white">*</span>sadyang',
+      eng: '<span style="color:white">*</span>and <span style="color:white">*</span>decrees <span style="color:white">*</span>promulgated',
+    },
+    {
+      fil: '<span style="color:white">*</span>itinakdang <span style="color:white">*</span>maykapangyarihan <span style="color:white">*</span>ng <span style="color:white">*</span>Republika <span style="color:white">*</span>ng <span style="color:white">*</span>Pilipinas;',
+      eng: '<span style="color:white">*</span>by <span style="color:white">*</span>the <span style="color:white">*</span>duly <span style="color:white">*</span>constituted <span style="color:white">*</span>authorities <span style="color:white">*</span>of <span style="color:white">*</span>the <span style="color:white">*</span>Republic <span style="color:white">*</span>of <span style="color:white">*</span>the <span style="color:white">*</span>Philippines;',
+    },
+    {
+      fil: '<span style="color:white">*</span>at <span style="color:white">*</span>kusa <span style="color:white">*</span>kong <span style="color:white">*</span>babalikatin <span style="color:white">*</span>ang <span style="color:white">*</span>pananagutang <span style="color:white">*</span>ito',
+      eng: '<span style="color:white">*</span>and <span style="color:white">*</span>that <span style="color:white">*</span>I <span style="color:white">*</span>impose <span style="color:white">*</span>this <span style="color:white">*</span>obligation <span style="color:white">*</span>upon <span style="color:white">*</span>myself <span style="color:white">*</span>voluntarily,',
+    },
+    {
+      fil: '<span style="color:white">*</span>ng <span style="color:white">*</span>walang <span style="color:white">*</span>ano <span style="color:white">*</span>mang <span style="color:white">*</span>pasubali <span style="color:white">*</span>o <span style="color:white">*</span>hangaring <span style="color:white">*</span>umiwas.',
+      eng: '<span style="color:white">*</span>without <span style="color:white">*</span>mental <span style="color:white">*</span>reservation <span style="color:white">*</span>or <span style="color:white">*</span>purpose <span style="color:white">*</span>of <span style="color:white">*</span>evasion.',
+    },
+    { fil: '', eng: '' },
+    { fil: '', eng: '' },
+  ]);
+
   // Current date using sepdate
   const sepdate = ref(new Date());
 
@@ -452,117 +441,116 @@
     return date.getFullYear();
   };
 
-  // Function to convert number to words (including decimals)
-  const numberToWords = (num) => {
-    if (!num || isNaN(num)) return 'N/A';
+  // const numberToWords = (num) => {
+  //   if (!num || isNaN(num)) return 'N/A';
 
-    const ones = ['', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE'];
-    const teens = [
-      'TEN',
-      'ELEVEN',
-      'TWELVE',
-      'THIRTEEN',
-      'FOURTEEN',
-      'FIFTEEN',
-      'SIXTEEN',
-      'SEVENTEEN',
-      'EIGHTEEN',
-      'NINETEEN',
-    ];
-    const tens = [
-      '',
-      '',
-      'TWENTY',
-      'THIRTY',
-      'FORTY',
-      'FIFTY',
-      'SIXTY',
-      'SEVENTY',
-      'EIGHTY',
-      'NINETY',
-    ];
-    const thousands = ['', 'THOUSAND', 'MILLION', 'BILLION'];
+  //   const ones = ['', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE'];
+  //   const teens = [
+  //     'TEN',
+  //     'ELEVEN',
+  //     'TWELVE',
+  //     'THIRTEEN',
+  //     'FOURTEEN',
+  //     'FIFTEEN',
+  //     'SIXTEEN',
+  //     'SEVENTEEN',
+  //     'EIGHTEEN',
+  //     'NINETEEN',
+  //   ];
+  //   const tens = [
+  //     '',
+  //     '',
+  //     'TWENTY',
+  //     'THIRTY',
+  //     'FORTY',
+  //     'FIFTY',
+  //     'SIXTY',
+  //     'SEVENTY',
+  //     'EIGHTY',
+  //     'NINETY',
+  //   ];
+  //   const thousands = ['', 'THOUSAND', 'MILLION', 'BILLION'];
 
-    if (num === 0) return 'ZERO';
+  //   if (num === 0) return 'ZERO';
 
-    // Split into whole and decimal parts
-    const [wholePart, decimalPart = '00'] = num.toFixed(2).split('.');
+  //   // Split into whole and decimal parts
+  //   const [wholePart, decimalPart = '00'] = num.toFixed(2).split('.');
 
-    const convertHundreds = (n) => {
-      let result = '';
-      if (n >= 100) {
-        result += ones[Math.floor(n / 100)] + ' HUNDRED ';
-        n %= 100;
-      }
-      if (n >= 20) {
-        result += tens[Math.floor(n / 10)] + ' ';
-        n %= 10;
-      } else if (n >= 10) {
-        result += teens[n - 10] + ' ';
-        return result;
-      }
-      if (n > 0) {
-        result += ones[n] + ' ';
-      }
-      return result;
-    };
+  //   const convertHundreds = (n) => {
+  //     let result = '';
+  //     if (n >= 100) {
+  //       result += ones[Math.floor(n / 100)] + ' HUNDRED ';
+  //       n %= 100;
+  //     }
+  //     if (n >= 20) {
+  //       result += tens[Math.floor(n / 10)] + ' ';
+  //       n %= 10;
+  //     } else if (n >= 10) {
+  //       result += teens[n - 10] + ' ';
+  //       return result;
+  //     }
+  //     if (n > 0) {
+  //       result += ones[n] + ' ';
+  //     }
+  //     return result;
+  //   };
 
-    let wholeNumber = parseInt(wholePart);
-    let result = '';
-    let thousandCounter = 0;
+  //   let wholeNumber = parseInt(wholePart);
+  //   let result = '';
+  //   let thousandCounter = 0;
 
-    // Convert whole number part
-    if (wholeNumber === 0) {
-      result = 'ZERO ';
-    } else {
-      while (wholeNumber > 0) {
-        if (wholeNumber % 1000 !== 0) {
-          result = convertHundreds(wholeNumber % 1000) + thousands[thousandCounter] + ' ' + result;
-        }
-        wholeNumber = Math.floor(wholeNumber / 1000);
-        thousandCounter++;
-      }
-    }
+  //   // Convert whole number part
+  //   if (wholeNumber === 0) {
+  //     result = 'ZERO ';
+  //   } else {
+  //     while (wholeNumber > 0) {
+  //       if (wholeNumber % 1000 !== 0) {
+  //         result = convertHundreds(wholeNumber % 1000) + thousands[thousandCounter] + ' ' + result;
+  //       }
+  //       wholeNumber = Math.floor(wholeNumber / 1000);
+  //       thousandCounter++;
+  //     }
+  //   }
 
-    // Add decimal part if not zero
-    const decimalValue = parseInt(decimalPart);
-    if (decimalValue > 0) {
-      result += 'AND ' + convertHundreds(decimalValue) + 'CENTAVOS ';
-    }
+  //   // Add decimal part if not zero
+  //   const decimalValue = parseInt(decimalPart);
+  //   if (decimalValue > 0) {
+  //     result += 'AND ' + convertHundreds(decimalValue) + 'CENTAVOS ';
+  //   }
 
-    return result.trim();
-  };
+  //   return result.trim();
+  // };
 
   // Function to format salary in words with peso sign and number (up to 2 decimal places)
-  const formatSalary = (salary) => {
-    if (!salary) return 'N/A';
+  // const formatSalary = (salary) => {
+  //   if (!salary) return 'N/A';
 
-    // Extract number from salary if it's a string with peso sign
-    let numericSalary;
-    if (typeof salary === 'string') {
-      // Remove peso sign, commas, and extract number
-      const match = salary.match(/[\d,]+\.?\d*/);
-      if (match) {
-        numericSalary = parseFloat(match[0].replace(/,/g, ''));
-      } else {
-        return salary; // Return as is if no number found
-      }
-    } else if (typeof salary === 'number') {
-      numericSalary = salary;
-    } else {
-      return 'N/A';
-    }
+  //   // Extract number from salary if it's a string with peso sign
+  //   let numericSalary;
+  //   if (typeof salary === 'string') {
+  //     // Remove peso sign, commas, and extract number
+  //     const match = salary.match(/[\d,]+\.?\d*/);
+  //     if (match) {
+  //       numericSalary = parseFloat(match[0].replace(/,/g, ''));
+  //     } else {
+  //       return salary; // Return as is if no number found
+  //     }
+  //   } else if (typeof salary === 'number') {
+  //     numericSalary = salary;
+  //   } else {
+  //     return 'N/A';
+  //   }
 
-    // Ensure 2 decimal places
-    const roundedSalary = Math.round(numericSalary * 100) / 100;
-    const wordsVersion = numberToWords(roundedSalary);
-    const formattedNumber = roundedSalary.toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
+  //   // Ensure 2 decimal places
+  //   const roundedSalary = Math.round(numericSalary * 100) / 100;
+  //   const wordsVersion = numberToWords(roundedSalary);
+  //   const formattedNumber = roundedSalary.toLocaleString('en-US', {
+  //     minimumFractionDigits: 2,
+  //     maximumFractionDigits: 2,
+  //   });
 
-    return `${wordsVersion} PESOS (₱${formattedNumber}) `;
-  };
+  //   return `${wordsVersion} PESOS (₱${formattedNumber}) `;
+  // };
 </script>
 
 <style scoped>
@@ -581,6 +569,11 @@
     flex-direction: column;
   }
 
+  h1 {
+    margin-top: 80px;
+    line-height: 1.5;
+  }
+
   .FS {
     font-family: 'Times New Roman', Times, serif;
   }
@@ -597,7 +590,7 @@
   .certification-title h1 {
     font-size: 18px;
     font-weight: bold;
-    letter-spacing: 4px;
+    letter-spacing: 1px;
   }
   .certification-body {
     text-align: justify;
@@ -636,8 +629,37 @@
     text-decoration: underline;
   }
 
+  .oath-content {
+    text-align: justify;
+    margin-bottom: 1.5em;
+    line-height: 3;
+  }
+  .word-ruby {
+    display: inline ruby;
+    letter-spacing: 1;
+    text-align: center;
+    ruby-align: center;
+  }
+  .word-only {
+    display: inline;
+  }
+  .word-space {
+    display: inline;
+    /* white-space: pre; */
+  }
+  rt {
+    font-size: 10px;
+    font-style: italic;
+    color: #7f8c8d;
+    /* ruby-align: center; */
+  }
+  ruby {
+    ruby-position: under;
+    /* text-align: center; */
+  }
+
   /* New styles for the oath section */
-  .bilingual-phrase {
+  /* .bilingual-phrase {
     display: inline-block;
     text-align: center;
     margin: 0 2px;
@@ -653,7 +675,7 @@
     font-size: 0.75em;
     font-style: italic;
     color: #444;
-  }
+  } */
   /* .oath-section {
       margin-bottom: 8px;
     }
@@ -682,7 +704,7 @@
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    margin-top: 60px;
+    margin-top: 30px;
   }
   .stamp {
     display: flex;

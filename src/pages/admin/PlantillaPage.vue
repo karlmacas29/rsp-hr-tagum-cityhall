@@ -617,6 +617,7 @@
 
   const selectedApplicant = ref({
     id: null,
+    ID: null,
     level: '',
     PositionID: '',
     controlno: '',
@@ -637,6 +638,7 @@
     office: '',
     division: '',
     section: '',
+    ID: null,
     unit: '',
     position: '',
     startingDate: '',
@@ -789,6 +791,7 @@
     } else {
       showVacantPositionModal.value = true;
       postJobDetails.value = {
+        ID: row.ID,
         office: row.office,
         division: row.division,
         section: row.section,
@@ -870,6 +873,7 @@
         Office: postJobDetails.value.office,
         Office2: null,
         Group: null,
+        tblStructureDetails_ID: postJobDetails.value.ID,
         Division: postJobDetails.value.division,
         Section: postJobDetails.value.section,
         Unit: postJobDetails.value.unit,

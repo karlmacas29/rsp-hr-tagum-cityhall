@@ -157,7 +157,6 @@
             </q-btn>
             <!-- Delete icon only if applicants is 0 or falsy -->
             <q-btn
-              v-if="canDeleteJob(props.row) && props.row.total_applicants === 0"
               round
               flat
               color="negative"
@@ -755,11 +754,11 @@
     qualifications: [],
   });
 
-  // Helper function to determine if a job can be deleted
-  const canDeleteJob = (job) => {
-    // Job can be deleted only if it has no applicants
-    return !job.applicants || job.applicants === 0;
-  };
+  // // Helper function to determine if a job can be deleted
+  // const canDeleteJob = (job) => {
+  //   // Job can be deleted only if it has no applicants
+  //   return !job.total_applicants || job.total_applicants === 0;
+  // };
 
   const viewJobDetails = (job) => {
     router.push({

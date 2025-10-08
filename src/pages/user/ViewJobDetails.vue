@@ -166,12 +166,12 @@
                   </div>
                   <div class="step-title text-h6 text-blue">Upload Completed Form</div>
                   <div class="step-description q-mb-auto">
-                    Upload your filled application (XLSX format only)
+                    Upload your filled application (XLSM format only)
                   </div>
                   <div class="file-input full-width q-mt-md">
                     <q-file
                       v-model="uploadedFile"
-                      accept=".xlsx,.xls"
+                      accept=".xlsm,.xlsx"
                       outlined
                       class="full-width"
                       standout
@@ -426,10 +426,9 @@
   // eslint-disable-next-line no-unused-vars
   const isSubmitting = ref(false);
 
-  // Added function to close success dialog and reset state
   const closeSuccessDialog = () => {
     successDialog.value = false;
-    // Optionally reset the form if needed
+
     uploadedFile.value = null;
   };
 

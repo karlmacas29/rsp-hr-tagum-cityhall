@@ -28,35 +28,39 @@
             <q-card-section class="column justify-between items-center q-pa-md">
               <q-img
                 :src="applicantData?.image_url || 'https://placehold.co/100'"
-                class="bg-grey-4"
+                class="bg-grey-4 q-mb-md"
                 style="width: 100px; height: 100px; border-radius: 10px"
                 alt="Applicant Photo"
               />
-              <div class="text-body text-bold text-center q-mb-sm">
+              <div class="text-body text-bold text-center q-mb-xs">
                 {{ applicantData?.name || 'Please wait' }}
               </div>
-              <q-badge rounded class="q-pa-xs" :class="getStatusClass(applicantData?.status)">
+              <q-badge
+                rounded
+                class="q-pa-xs q-mb-sm"
+                :class="getStatusClass(applicantData?.status)"
+              >
                 {{ applicantData?.status || 'PENDING' }}
                 <q-icon v-if="evaluationLocked || isJobOccupied" name="lock" class="q-ml-xs" />
               </q-badge>
 
               <div class="full-width">
-                <div class="text-center q-mb-sm">
-                  <div class="text-caption text-grey-7">Applied Position</div>
+                <div class="text-center q-mb-md">
+                  <div class="text-caption text-grey-7 q-mb-xs">Applied Position</div>
                   <div class="text-body2 text-bold">
                     {{ applicantData?.position || 'Office of the ...' }}
                   </div>
                 </div>
 
                 <div class="text-center q-mb-sm">
-                  <div class="text-caption text-grey-7">Application Date</div>
+                  <div class="text-caption text-grey-7 q-mb-xs">Application Date</div>
                   <div class="text-weight-medium">
                     {{ applicantData?.appliedDate || '#### ##, ####' }}
                   </div>
                 </div>
 
                 <div v-if="overallStatus !== '#####'" class="text-center">
-                  <div class="text-caption text-grey-7">Evaluation Status</div>
+                  <div class="text-caption text-grey-7 q-mb-xs">Evaluation Status</div>
                   <div class="text-weight-medium" :class="`text-${statusColor}`">
                     {{ overallStatus }}
                   </div>
@@ -83,7 +87,15 @@
                 <q-tab name="training" label="TRAINING" class="text-weight-medium" />
                 <q-tab name="eligibility" label="ELIGIBILITY" class="text-weight-medium" />
               </q-tabs>
-              <!-- <q-btn label="VIEW PDS" color="primary" rounded @click="onViewPDS" /> -->
+
+              <q-btn
+                v-if="!applicantData?.ControlNo"
+                label="View Supporting Docs"
+                color="orange-9"
+                rounded
+                style="font-size: 8pt"
+                @click="showSupportingDocs"
+              />
             </div>
 
             <q-separator />
@@ -93,7 +105,8 @@
               <q-tab-panel name="education" class="row q-pa-none" style="display: flex">
                 <div class="col-9 q-pa-sm" style="border-right: 1px solid #e0e0e0">
                   <q-scroll-area style="height: 100%">
-                    <div class="text-subtitle3 q-mb-md">Applicant Education</div>
+                    <div class="text-subtitle3">Applicant Education</div>
+
                     <q-card class="q-ma-sm">
                       <q-table
                         :rows="formattedEducation"
@@ -156,10 +169,46 @@
               <q-tab-panel name="experience" class="row q-pa-none" style="display: flex">
                 <div class="col-9 q-pa-sm" style="border-right: 1px solid #e0e0e0">
                   <q-scroll-area style="height: 100%">
-                    <div class="text-subtitle3 q-mb-md">Applicant Experience</div>
+                    <div class="row items-center justify-between q-mb-md">
+                      <div class="text-subtitle3">Applicant Experience</div>
+                      <div class="row items-center q-gutter-sm">
+                        <q-badge
+                          color="green"
+                          class="q-px-sm q-py-xs"
+                          :label="formatTotalExperience(totalExperienceMonths)"
+                        />
+                        <q-tooltip class="bg-white text-dark shadow-4">
+                          <div class="q-pa-sm">
+                            <div class="text-weight-bold q-mb-xs">Experience Breakdown:</div>
+                            <div v-if="xExperience.length === 0" class="text-grey-6">
+                              No experience records found
+                            </div>
+                            <div v-else>
+                              <div
+                                v-for="(exp, index) in experienceWithDuration"
+                                :key="index"
+                                class="text-caption q-mb-xs"
+                              >
+                                <div class="text-weight-medium">
+                                  {{ exp.position_title || 'Untitled Position' }}
+                                </div>
+                                <div class="text-grey-7">
+                                  {{ formatDateRange(exp.work_date_from, exp.work_date_to) }}
+                                </div>
+                                <div class="text-primary">Duration: {{ exp.durationText }}</div>
+                                <q-separator class="q-my-xs" />
+                              </div>
+                              <div class="text-weight-bold q-mt-sm">
+                                Total Experience: {{ formatTotalExperience(totalExperienceMonths) }}
+                              </div>
+                            </div>
+                          </div>
+                        </q-tooltip>
+                      </div>
+                    </div>
                     <q-card class="q-ma-sm">
                       <q-table
-                        :rows="xExperience"
+                        :rows="experienceWithDuration"
                         :columns="xExperienceCol"
                         row-key="id"
                         :pagination="{ rowsPerPage: 5 }"
@@ -168,6 +217,15 @@
                         <template v-slot:body-cell-monthlySalary="props">
                           <q-td :props="props">
                             {{ formatSalary(props.row.monthly_salary) }}
+                          </q-td>
+                        </template>
+                        <template v-slot:body-cell-duration="props">
+                          <q-td :props="props" class="text-center">
+                            <q-badge
+                              :color="props.row.durationMonths > 0 ? 'positive' : 'grey'"
+                              :label="props.row.durationText"
+                              class="q-px-xs"
+                            />
                           </q-td>
                         </template>
                         <template v-slot:no-data>
@@ -220,7 +278,38 @@
               <q-tab-panel name="training" class="row q-pa-none" style="display: flex">
                 <div class="col-9 q-pa-sm" style="border-right: 1px solid #e0e0e0">
                   <q-scroll-area style="height: 100%">
-                    <div class="text-subtitle3 q-mb-md">Applicant Training</div>
+                    <div class="row items-center justify-between q-mb-md">
+                      <div class="text-subtitle3">Applicant Training</div>
+                      <div class="row items-center q-gutter-sm">
+                        <q-badge
+                          color="primary"
+                          class="q-px-sm q-py-xs"
+                          :label="`Total Hours: ${totalTrainingHours}`"
+                        />
+                        <q-tooltip class="bg-white text-dark shadow-4">
+                          <div class="q-pa-sm">
+                            <div class="text-weight-bold q-mb-xs">Training Hours Breakdown:</div>
+                            <div v-if="xTraining.length === 0" class="text-grey-6">
+                              No training records found
+                            </div>
+                            <div v-else>
+                              <div
+                                v-for="(training, index) in xTraining"
+                                :key="index"
+                                class="text-caption q-mb-xs"
+                              >
+                                {{ training.training_title || 'Untitled Training' }}:
+                                {{ parseTrainingHours(training.number_of_hours) }} hours
+                              </div>
+                              <q-separator class="q-my-xs" />
+                              <div class="text-weight-bold">
+                                Total: {{ totalTrainingHours }} hours
+                              </div>
+                            </div>
+                          </div>
+                        </q-tooltip>
+                      </div>
+                    </div>
                     <q-card class="q-ma-sm">
                       <q-table
                         :rows="xTraining"
@@ -229,6 +318,18 @@
                         :pagination="{ rowsPerPage: 5 }"
                         wrap-cells
                       >
+                        <template v-slot:body-cell-hours="props">
+                          <q-td :props="props" class="text-center">
+                            <q-badge
+                              :color="
+                                parseTrainingHours(props.row.number_of_hours) > 0
+                                  ? 'positive'
+                                  : 'grey'
+                              "
+                              :label="parseTrainingHours(props.row.number_of_hours)"
+                            />
+                          </q-td>
+                        </template>
                         <template v-slot:no-data>
                           <div class="full-width row flex-center q-pa-md text-grey">
                             <q-icon name="info" size="24px" class="q-mr-sm" />
@@ -338,6 +439,12 @@
         </div>
       </q-card-section>
 
+      <SupportingDocumentsModal
+        v-model:show="showSupportingDocsModal"
+        :applicant-name="applicantData?.name || 'Unknown Applicant'"
+        :supporting-documents="supportingDocuments"
+      />
+
       <!-- Footer Actions -->
       <q-card-section class="footer-actions bg-grey-2 q-py-sm">
         <div class="row justify-between items-center">
@@ -416,6 +523,7 @@
   import { ref, computed, watch } from 'vue';
   import { usePlantillaStore } from 'stores/plantillaStore';
   import PDSModalApplicant from './PDSModalApplicant.vue';
+  import SupportingDocumentsModal from './SuppDocs.vue';
 
   const xEdu = ref([]);
   const xEligibility = ref([]);
@@ -424,6 +532,14 @@
 
   // PDS Modal
   const showPDSModal = ref(false);
+
+  const showSupportingDocsModal = ref(false);
+  const supportingDocuments = ref({
+    training_images: [],
+    education_images: [],
+    eligibility_images: [],
+    experience_images: [],
+  });
 
   const props = defineProps({
     show: Boolean,
@@ -447,6 +563,128 @@
 
   const tab = ref('education');
   const qualificationStatus = ref('');
+
+  // Experience duration calculation functions
+  const parseDate = (dateString) => {
+    if (!dateString) return null;
+
+    // Handle various date formats
+    const date = new Date(dateString);
+    return isNaN(date.getTime()) ? null : date;
+  };
+
+  const calculateMonthsDifference = (startDate, endDate) => {
+    if (!startDate || !endDate) return 0;
+
+    const start = parseDate(startDate);
+    const end = parseDate(endDate);
+
+    if (!start || !end) return 0;
+
+    // Calculate the difference in months
+    const yearDiff = end.getFullYear() - start.getFullYear();
+    const monthDiff = end.getMonth() - start.getMonth();
+    const dayDiff = end.getDate() - start.getDate();
+
+    let totalMonths = yearDiff * 12 + monthDiff;
+
+    // If the end day is before the start day, subtract one month
+    if (dayDiff < 0) {
+      totalMonths -= 1;
+    }
+
+    return Math.max(0, totalMonths);
+  };
+
+  const formatDuration = (months) => {
+    if (months === 0) return '0 months';
+
+    const years = Math.floor(months / 12);
+    const remainingMonths = months % 12;
+
+    if (years === 0) {
+      return `${remainingMonths} month${remainingMonths !== 1 ? 's' : ''}`;
+    } else if (remainingMonths === 0) {
+      return `${years} year${years !== 1 ? 's' : ''}`;
+    } else {
+      return `${years} year${years !== 1 ? 's' : ''}, ${remainingMonths} month${remainingMonths !== 1 ? 's' : ''}`;
+    }
+  };
+
+  const formatDateRange = (startDate, endDate) => {
+    const start = parseDate(startDate);
+    const end = parseDate(endDate);
+
+    if (!start && !end) return 'Date not specified';
+    if (!start) return `Until ${end.toLocaleDateString()}`;
+    if (!end) return `From ${start.toLocaleDateString()}`;
+
+    return `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`;
+  };
+
+  const formatTotalExperience = (totalMonths) => {
+    if (totalMonths === 0) return 'No Experience';
+    return `Total: ${formatDuration(totalMonths)}`;
+  };
+
+  // Computed property for experience with duration
+  const experienceWithDuration = computed(() => {
+    if (!xExperience.value || xExperience.value.length === 0) {
+      return [];
+    }
+
+    return xExperience.value.map((exp, index) => {
+      const durationMonths = calculateMonthsDifference(exp.work_date_from, exp.work_date_to);
+      const durationText = formatDuration(durationMonths);
+
+      return {
+        ...exp,
+        id: exp.id || index,
+        durationMonths,
+        durationText,
+      };
+    });
+  });
+
+  // Computed property for total experience in months
+  const totalExperienceMonths = computed(() => {
+    return experienceWithDuration.value.reduce((total, exp) => {
+      return total + (exp.durationMonths || 0);
+    }, 0);
+  });
+
+  // Function to parse training hours from various formats
+  const parseTrainingHours = (hours) => {
+    if (!hours) return 0;
+
+    // Convert to string for consistent handling
+    const hoursStr = hours.toString().trim();
+
+    // If it's already a number, return it
+    if (!isNaN(hoursStr) && hoursStr !== '') {
+      return parseInt(hoursStr) || 0;
+    }
+
+    // Try to extract numbers from strings like "40 hours", "40hrs", "40 hrs"
+    const match = hoursStr.match(/(\d+(?:\.\d+)?)/);
+    if (match) {
+      return parseInt(match[1]) || 0;
+    }
+
+    return 0;
+  };
+
+  // Computed property for total training hours
+  const totalTrainingHours = computed(() => {
+    if (!xTraining.value || xTraining.value.length === 0) {
+      return 0;
+    }
+
+    return xTraining.value.reduce((total, training) => {
+      const hours = parseTrainingHours(training.number_of_hours);
+      return total + hours;
+    }, 0);
+  });
 
   // Computed property to check if job is occupied
   const isJobOccupied = computed(() => {
@@ -657,6 +895,12 @@
       field: 'government_service',
       align: 'center',
     },
+    {
+      name: 'duration',
+      label: 'Duration',
+      field: 'durationText',
+      align: 'center',
+    },
   ];
 
   const xTrainingCol = [
@@ -776,6 +1020,10 @@
     emit('update:show', newVal);
   });
 
+  const showSupportingDocs = () => {
+    showSupportingDocsModal.value = true;
+  };
+
   const onModalShow = async () => {
     tab.value = 'education';
 
@@ -807,6 +1055,16 @@
       xEligibility.value = personalInfo?.eligibility || personalInfo?.eligibity || [];
       xExperience.value = personalInfo?.work_experience || [];
       xTraining.value = personalInfo?.training || [];
+
+      // Set supporting documents from applicant data
+      if (props.applicantData) {
+        supportingDocuments.value = {
+          training_images: props.applicantData.training_images || [],
+          education_images: props.applicantData.education_images || [],
+          eligibility_images: props.applicantData.eligibility_images || [],
+          experience_images: props.applicantData.experience_images || [],
+        };
+      }
 
       // Set qualification status if available
       if (

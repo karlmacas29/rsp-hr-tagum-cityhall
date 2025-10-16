@@ -83,7 +83,6 @@
           <div class="text-h4 text-bold text-green">Qualification Standards/Requirements</div>
 
           <div class="q-gutter-y-md q-mt-md">
-            <!--  -->
             <div class="row justify-center q-gutter-x-md">
               <q-card flat bordered class="col">
                 <q-card-section>
@@ -99,7 +98,6 @@
                 </q-card-section>
               </q-card>
             </div>
-            <!--  -->
             <div class="row justify-center q-gutter-x-md">
               <q-card flat bordered class="col">
                 <q-card-section>
@@ -128,13 +126,13 @@
 
         <q-separator />
 
-        <!-- Application Process - Improved Design -->
+        <!-- Application Process - Updated Design with 4 steps -->
         <q-card-section class="bg-grey-1">
           <div class="text-center text-h5 text-weight-bold q-mb-xl">Application Process</div>
 
           <div class="row items-center justify-center q-col-gutter-lg">
             <!-- Step 1: Download Form -->
-            <div class="col-12 col-md-4">
+            <div class="col-12 col-md-3">
               <div class="process-card bg-white">
                 <div class="card-content">
                   <div class="step-number bg-green-1 text-green">1</div>
@@ -157,7 +155,7 @@
             </div>
 
             <!-- Step 2: Upload Completed Form -->
-            <div class="col-12 col-md-4">
+            <div class="col-12 col-md-3">
               <div class="process-card bg-white">
                 <div class="card-content">
                   <div class="step-number bg-blue-1 text-blue">2</div>
@@ -199,11 +197,67 @@
               </div>
             </div>
 
-            <!-- Step 3: Submit Application -->
-            <div class="col-12 col-md-4">
+            <!-- Step 3: Upload Supporting Documents -->
+            <div class="col-12 col-md-3">
               <div class="process-card bg-white">
                 <div class="card-content">
-                  <div class="step-number bg-purple-1 text-purple">3</div>
+                  <!-- Add info icon in top right corner -->
+                  <div class="card-header">
+                    <div class="step-number bg-orange-1 text-orange">3</div>
+                    <q-btn
+                      icon="info_outline"
+                      flat
+                      round
+                      dense
+                      size="sm"
+                      color="orange"
+                      class="info-btn"
+                      @click="showZipInstructions = true"
+                    >
+                      <q-tooltip class="bg-orange">Click for detailed instructions</q-tooltip>
+                    </q-btn>
+                  </div>
+
+                  <div class="step-icon bg-orange-1">
+                    <q-icon name="folder_zip" size="36px" color="orange" />
+                  </div>
+                  <div class="step-title text-h6 text-orange">Upload Supporting Documents</div>
+                  <div class="step-description q-mb-xs">
+                    Upload your supporting documents (ZIP format only)
+                  </div>
+                  <div class="file-input full-width q-mt-xs">
+                    <q-file
+                      v-model="uploadedZipFile"
+                      accept=".zip"
+                      outlined
+                      class="full-width"
+                      standout
+                      bottom-slots
+                      hide-bottom-space
+                      :rules="[
+                        (val) => !!val || 'Please select a ZIP file',
+                        (val) => val?.name?.endsWith('.zip') || 'Only ZIP files allowed',
+                      ]"
+                    >
+                      <template v-slot:prepend>
+                        <q-icon name="attach_file" color="orange" />
+                      </template>
+                      <template v-slot:hint>
+                        <div class="text-grey-7 text-center text-caption q-mt-xs">
+                          Select your supporting documents ZIP file
+                        </div>
+                      </template>
+                    </q-file>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 4: Submit Application -->
+            <div class="col-12 col-md-3">
+              <div class="process-card bg-white">
+                <div class="card-content">
+                  <div class="step-number bg-purple-1 text-purple">4</div>
                   <div class="step-icon bg-purple-1">
                     <q-icon name="send" size="36px" color="purple" />
                   </div>
@@ -215,7 +269,7 @@
                     label="APPLY NOW"
                     color="purple"
                     class="action-btn full-width q-mt-md"
-                    :disable="!uploadedFile"
+                    :disable="!uploadedFile || !uploadedZipFile"
                     @click="submitApplication"
                   >
                     <q-icon name="check_circle" class="q-ml-sm" />
@@ -226,57 +280,14 @@
           </div>
         </q-card-section>
       </q-card>
+
+      <!-- Loading skeleton -->
       <q-card v-else flat bordered style="width: 70vw">
-        <q-card-section>
-          <div class="row items-center q-mb-md">
-            <q-skeleton type="QAvatar" size="75px" />
-            <div class="column q-ml-md" style="flex-grow: 1">
-              <q-skeleton type="text" width="150px" height="30px" class="q-mb-xs" />
-              <q-skeleton type="text" width="200px" />
-              <q-skeleton type="text" width="180px" />
-              <q-skeleton type="text" width="160px" />
-              <q-skeleton type="text" width="140px" />
-            </div>
-          </div>
-          <q-separator />
-          <div class="q-my-md">
-            <q-skeleton type="text" width="100px" height="25px" class="q-mb-xs" />
-            <q-skeleton type="text" width="250px" />
-          </div>
-          <q-separator />
-          <div class="q-my-md">
-            <q-skeleton type="text" width="250px" height="25px" class="q-mb-xs" />
-            <q-skeleton type="text" width="150px" class="q-mb-sm" />
-            <q-skeleton type="text" width="300px" />
-            <q-skeleton type="text" width="300px" />
-            <q-skeleton type="text" width="300px" />
-            <q-skeleton type="text" width="300px" />
-          </div>
-          <q-separator />
-          <div class="q-my-md">
-            <q-skeleton type="text" width="100px" height="25px" class="q-mb-xs" />
-            <q-skeleton type="text" width="200px" />
-          </div>
-          <q-separator />
-          <div class="q-pa-md bg-grey-1">
-            <q-skeleton type="text" width="200px" height="30px" class="q-mx-auto q-mb-xl" />
-            <div class="row items-start justify-center q-col-gutter-lg">
-              <div class="col-12 col-md-4">
-                <q-skeleton height="250px" square />
-              </div>
-              <div class="col-12 col-md-4">
-                <q-skeleton height="250px" square />
-              </div>
-              <div class="col-12 col-md-4">
-                <q-skeleton height="250px" square />
-              </div>
-            </div>
-          </div>
-        </q-card-section>
+        <!-- ... existing skeleton code ... -->
       </q-card>
     </div>
 
-    <!-- UPDATED: Application Confirmation Dialog -->
+    <!-- Updated Confirmation Dialog -->
     <q-dialog v-model="confirmDialog" persistent>
       <q-card class="confirmation-dialog">
         <!-- Green header with centered icon -->
@@ -306,19 +317,34 @@
             </div>
           </div>
 
-          <!-- File section -->
-          <div class="row items-start">
-            <q-icon name="upload_file" size="16px" class="text-green q-mt-xs" />
-            <div class="q-ml-sm q-mt-xs">File:</div>
+          <!-- Excel File section -->
+          <div class="row items-start q-mb-md">
+            <q-icon name="description" size="16px" class="text-green q-mt-xs" />
+            <div class="q-ml-sm q-mt-xs">Application Form:</div>
           </div>
 
-          <!-- Fixed width file card -->
-          <div class="file-card">
+          <div class="file-card q-mb-md">
             <div class="row no-wrap">
               <q-icon name="description" size="18px" class="text-blue q-mt-xs" />
               <div class="file-details">
                 <div class="file-name">{{ uploadedFile?.name }}</div>
                 <div class="file-size">{{ formatFileSize(uploadedFile?.size || 0) }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ZIP File section -->
+          <div class="row items-start">
+            <q-icon name="folder_zip" size="16px" class="text-green q-mt-xs" />
+            <div class="q-ml-sm q-mt-xs">Supporting Documents:</div>
+          </div>
+
+          <div class="file-card">
+            <div class="row no-wrap">
+              <q-icon name="folder_zip" size="18px" class="text-orange q-mt-xs" />
+              <div class="file-details">
+                <div class="file-name">{{ uploadedZipFile?.name }}</div>
+                <div class="file-size">{{ formatFileSize(uploadedZipFile?.size || 0) }}</div>
               </div>
             </div>
           </div>
@@ -342,6 +368,7 @@
         </div>
       </q-card>
     </q-dialog>
+
     <!-- Loading Overlay -->
     <q-dialog v-model="uploadStore.isSubmitting" persistent>
       <q-card class="q-pa-xl flex flex-center" style="min-width: 200px">
@@ -349,6 +376,7 @@
         <div class="text-center q-mt-md text-h6">Uploading your application...</div>
       </q-card>
     </q-dialog>
+
     <!-- Success Dialog -->
     <q-dialog v-model="successDialog" persistent>
       <q-card class="confirmation-dialog">
@@ -386,7 +414,7 @@
           <div class="text-grey-7 q-mt-lg">Reference #: APP-{{ generateReferenceNumber() }}</div>
         </div>
 
-        <!-- Action button - Changed to close dialog instead of navigating away -->
+        <!-- Action button -->
         <div class="dialog-actions">
           <q-btn
             unelevated
@@ -398,6 +426,8 @@
         </div>
       </q-card>
     </q-dialog>
+
+    <ZipInstructionModal v-model="showZipInstructions" />
   </q-page>
 </template>
 
@@ -406,9 +436,9 @@
   import { onMounted, ref, computed } from 'vue';
   import { useJobPostStore } from 'stores/jobPostStore';
   import { useUser_upload } from 'stores/user_upload';
+  import ZipInstructionModal from 'components/ZipFileModal.vue';
 
   const uploadStore = useUser_upload();
-
   const jobPostStore = useJobPostStore();
 
   const route = useRoute();
@@ -419,31 +449,31 @@
   const selectedJob = ref([]);
   const selectedCriteria = ref([]);
 
+  const showZipInstructions = ref(false);
+
   // Application state
-
   const confirmDialog = ref(false);
-
-  // eslint-disable-next-line no-unused-vars
-  const isSubmitting = ref(false);
+  // const isSubmitting = ref(false);
 
   // Added function to close success dialog and reset state
   const closeSuccessDialog = () => {
     successDialog.value = false;
-    // Optionally reset the form if needed
+    // Reset both files
     uploadedFile.value = null;
+    uploadedZipFile.value = null;
   };
 
   const successDialog = computed({
     get: () => uploadStore.successDialog,
     set: (val) => (uploadStore.successDialog = val),
   });
+
   // Download the Excel template
   const downloadExcelForm = () => {
-    const excelFileUrl = 'pds.xlsx';
+    const excelFileUrl = '/public/pdsv2.xlsx';
     const a = document.createElement('a');
     a.href = excelFileUrl;
 
-    // Create dynamic filename based on position
     const position = selectedJob.value?.Position || 'Job';
     const formattedPosition = position.replace(/\s+/g, '_');
     a.download = `${formattedPosition}_Application_Form.xlsx`;
@@ -471,46 +501,35 @@
     return `${timestamp}-${random}`;
   };
 
-  // Pass file directly to Pinia store
-
+  // Computed properties for both files
   const uploadedFile = computed({
     get: () => uploadStore.uploadedFile,
     set: (val) => (uploadStore.uploadedFile = val),
   });
 
+  const uploadedZipFile = computed({
+    get: () => uploadStore.uploadedZipFile,
+    set: (val) => (uploadStore.uploadedZipFile = val),
+  });
+
   const submitApplication = async () => {
-    if (!uploadStore.uploadedFile) return;
+    if (!uploadStore.uploadedFile || !uploadStore.uploadedZipFile) return;
     confirmDialog.value = true;
   };
 
-  // const processSubmission = async () => {
-  //   confirmDialog.value = false;
-  //   await uploadStore.processSubmission();
-  // };
-
-  //   onMounted(async () => {
-  //     // Fetch job details if needed
-  //     await jobPostStore.fetchJobPostByPositionAndItemNo(P_ID, I_No).then((job) => {
-  //       selectedJob.value = job;
-  //        uploadStore.selectedJob = job;
-  //     });
-  //     await jobPostStore.fetchCriteriaByPositionAndItemNo(P_ID, I_No).then((criteria) => {
-  //       selectedCriteria.value = criteria;
-  //     });
-
-  //   });
-  // In your component's script setup
   const processSubmission = async () => {
     confirmDialog.value = false;
     try {
-      console.log('Current selected job:', uploadStore.selectedJob); // Debug log
+      console.log('Current selected job:', uploadStore.selectedJob);
+      console.log('Excel file:', uploadStore.uploadedFile?.name);
+      console.log('ZIP file:', uploadStore.uploadedZipFile?.name);
+
       const response = await uploadStore.processSubmission();
 
       if (response) {
         console.log('Submission response:', response);
         if (response.job_batch_rsp_id) {
           console.log('Job batch response ID:', response.job_batch_rsp_id);
-          // You can now use this ID as needed
         }
       }
     } catch (error) {
@@ -521,8 +540,8 @@
   onMounted(async () => {
     await jobPostStore.fetchJobPostByPositionAndItemNo(P_ID, I_No).then((job) => {
       selectedJob.value = job;
-      uploadStore.setSelectedJob(job); // Properly set the job in the upload store
-      console.log('Job loaded:', job); // Debug log
+      uploadStore.setSelectedJob(job);
+      console.log('Job loaded:', job);
     });
     await jobPostStore.fetchCriteriaByPositionAndItemNo(P_ID, I_No).then((criteria) => {
       selectedCriteria.value = criteria;
@@ -540,6 +559,7 @@
 
   /* Process cards styling */
   .process-card {
+    position: relative;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     transition:
@@ -552,6 +572,21 @@
   .process-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    width: 100%;
+    margin-bottom: 12px;
+  }
+
+  .info-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 2;
   }
 
   .step-number {

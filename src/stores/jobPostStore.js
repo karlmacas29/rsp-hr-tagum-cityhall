@@ -116,10 +116,27 @@ export const useJobPostStore = defineStore('jobPost', {
       }
     },
 
+    // In your jobPostStore - make sure it returns the data
     async fetchJobDetails(id) {
+      try {
+        this.loading = true;
+        const { data } = await adminApi.get(`/job-batches-rsp/${id}`);
+        this.jobPosts = data; // Store it
+        this.error = null;
+        return data; // ← MAKE SURE THIS LINE EXISTS
+      } catch (err) {
+        this.error = err;
+        this.jobPosts = null;
+        throw err; // Re-throw the error
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async updateJobStatus(id, payload) {
       this.loading = true;
       try {
-        const { data } = await adminApi.get(`/job-batches-rsp/${id}`);
+        const { data } = await adminApi.put(`/job-batches-rsp/jobpost/${id}`, payload);
         this.jobPosts = data;
         this.error = null;
       } catch (err) {
@@ -228,6 +245,47 @@ export const useJobPostStore = defineStore('jobPost', {
 
         // Send FormData with proper headers
         const { data: batch } = await adminApi.post('/job-batches-rsp', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+
+        this.error = null;
+        return batch;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async republishJobPost({ jobBatch, criteria }) {
+      console.log('result:');
+      console.log(jobBatch);
+      console.log(criteria);
+      this.loading = true;
+
+      try {
+        // Create FormData instance
+        const formData = new FormData();
+
+        // Append all jobBatch fields to FormData
+        Object.keys(jobBatch).forEach((key) => {
+          if (jobBatch[key] !== null && jobBatch[key] !== undefined) {
+            formData.append(key, jobBatch[key]);
+          }
+        });
+
+        // If you need to send criteria as well, you can append it as JSON
+        // or as individual fields depending on your backend expectations
+        if (criteria) {
+          formData.append('criteria', JSON.stringify(criteria));
+          // OR append each criteria field individually:
+          // Object.keys(criteria).forEach(key => {
+          //   formData.append(key, criteria[key]);
+          // });
+        }
+
+        // Send FormData with proper headers
+        const { data: batch } = await adminApi.post('/job-batches-rsp/republished', formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },

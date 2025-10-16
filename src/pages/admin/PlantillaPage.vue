@@ -727,25 +727,69 @@
       return [];
     }
 
+    // Helper function to check if values match (treating null/undefined/empty as equivalent)
+    const valuesMatch = (val1, val2) => {
+      const normalize = (val) => (val === null || val === undefined || val === '' ? '' : val);
+      return normalize(val1) === normalize(val2);
+    };
+
     let filtered = positions.value.filter((row) => {
       const s = currentStructure.value;
 
+      // Must match office
       if (!row.office || row.office !== s.office) return false;
 
+      // Check hierarchy matching based on what's selected
       if (s.unit) {
-        return row.division === s.division && row.section === s.section && row.unit === s.unit;
-      } else if (s.section) {
+        // Unit level selected - must match office2, group, division, section, and unit
         return (
-          row.division === s.division && row.section === s.section && (!row.unit || row.unit === '')
+          valuesMatch(row.office2, s.office2) &&
+          valuesMatch(row.group, s.group) &&
+          valuesMatch(row.division, s.division) &&
+          valuesMatch(row.section, s.section) &&
+          valuesMatch(row.unit, s.unit)
+        );
+      } else if (s.section) {
+        // Section level selected - must match office2, group, division, section, and have no unit
+        return (
+          valuesMatch(row.office2, s.office2) &&
+          valuesMatch(row.group, s.group) &&
+          valuesMatch(row.division, s.division) &&
+          valuesMatch(row.section, s.section) &&
+          (!row.unit || row.unit === '')
         );
       } else if (s.division) {
+        // Division level selected - must match office2, group, division, and have no section/unit
         return (
-          row.division === s.division &&
+          valuesMatch(row.office2, s.office2) &&
+          valuesMatch(row.group, s.group) &&
+          valuesMatch(row.division, s.division) &&
+          (!row.section || row.section === '') &&
+          (!row.unit || row.unit === '')
+        );
+      } else if (s.group) {
+        // Group level selected - must match office2, group, and have no division/section/unit
+        return (
+          valuesMatch(row.office2, s.office2) &&
+          valuesMatch(row.group, s.group) &&
+          (!row.division || row.division === '') &&
+          (!row.section || row.section === '') &&
+          (!row.unit || row.unit === '')
+        );
+      } else if (s.office2) {
+        // Office2 level selected - must match office2 and have no group/division/section/unit
+        return (
+          valuesMatch(row.office2, s.office2) &&
+          (!row.group || row.group === '') &&
+          (!row.division || row.division === '') &&
           (!row.section || row.section === '') &&
           (!row.unit || row.unit === '')
         );
       } else {
+        // Office level selected - must have no office2/group/division/section/unit
         return (
+          (!row.office2 || row.office2 === '') &&
+          (!row.group || row.group === '') &&
           (!row.division || row.division === '') &&
           (!row.section || row.section === '') &&
           (!row.unit || row.unit === '')
@@ -753,6 +797,7 @@
       }
     });
 
+    // Apply additional search filters
     return filtered.filter((row) => {
       for (const key in filters.value) {
         if (filters.value[key]) {

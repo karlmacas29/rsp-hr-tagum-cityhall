@@ -128,7 +128,7 @@
               :color="getStatusColor(props.row.status)"
               class="status-badge q-px-md q-py-xs"
             >
-              {{ props.row.status || 'Not Started' }}
+              {{ (props.row.status || 'Unknown').toLowerCase() }}
             </q-badge>
           </q-td>
         </template>
@@ -155,15 +155,27 @@
             >
               <q-tooltip>Edit Job Post</q-tooltip>
             </q-btn>
+            <q-btn
+              v-if="props.row.status == 'Unoccupied'"
+              round
+              flat
+              color="green"
+              class="bg-green-1"
+              icon="post_add"
+              @click="republishJobPost(props.row)"
+            >
+              <q-tooltip>Republish Job Post</q-tooltip>
+            </q-btn>
             <!-- Delete icon only if applicants is 0 or falsy -->
             <q-btn
+              v-if="props.row.total_applicants == 0"
               round
               flat
               color="negative"
               class="bg-red-1"
               icon="delete"
               @click="confirmDeleteJob(props.row)"
-              :loading="deletingJobId === props.row.PositionID"
+              :loading="deletingJobId === props.row.id"
             >
               <q-tooltip>Delete Job Post</q-tooltip>
             </q-btn>
@@ -428,6 +440,262 @@
       </q-card>
     </q-dialog>
 
+    <!-- Republish Job Post Modal -->
+    <q-dialog v-model="showRepublishModal">
+      <q-card
+        class="q-pa-none"
+        style="
+          width: 900px;
+          max-width: 90vw;
+          max-height: 90vh;
+          display: flex;
+          flex-direction: column;
+        "
+      >
+        <q-card-section
+          class="q-pa-md"
+          style="position: sticky; top: 0; z-index: 2; background: white"
+        >
+          <div class="row justify-between">
+            <div>
+              <div class="text-h5 text-bold">Republish Job Post</div>
+              <div class="text-body text-grey-8 text-bold">
+                {{ editJobDetails.Position }}
+              </div>
+              <q-chip dense>
+                Position Level:
+                <q-badge rounded dense color="green" class="text-white q-ml-sm">
+                  {{ editJobDetails.level }}
+                </q-badge>
+              </q-chip>
+              <div class="text-caption text-grey-6 q-mt-sm">
+                This will create a new job posting with updated details
+              </div>
+            </div>
+            <div>
+              <q-btn icon="close" rounded flat @click="closeRepublishModal" />
+            </div>
+          </div>
+        </q-card-section>
+
+        <q-scroll-area class="q-px-md" style="height: 1000px">
+          <q-card-section class="q-py-none">
+            <div class="row q-col-gutter-md">
+              <div class="col-6">
+                <q-input v-model="editJobDetails.Office" label="Office" outlined dense disable />
+              </div>
+              <div class="col-6">
+                <q-input
+                  v-model="editJobDetails.Division"
+                  label="Division"
+                  outlined
+                  dense
+                  disable
+                />
+              </div>
+            </div>
+            <div class="row q-col-gutter-md q-mt-sm">
+              <div class="col-6">
+                <q-input v-model="editJobDetails.Section" label="Section" outlined dense disable />
+              </div>
+              <div class="col-6">
+                <q-input v-model="editJobDetails.Unit" label="Unit" outlined dense disable />
+              </div>
+            </div>
+
+            <div class="row q-col-gutter-md q-mt-sm">
+              <div class="col-6">
+                <q-input
+                  v-model="editJobDetails.post_date"
+                  label="Starting Date"
+                  outlined
+                  dense
+                  mask="date"
+                />
+              </div>
+              <div class="col-6">
+                <q-input
+                  v-model="editJobDetails.end_date"
+                  label="End Date"
+                  outlined
+                  dense
+                  mask="date"
+                  :rules="[
+                    (date) =>
+                      date >= editJobDetails.post_date || 'End date cannot be before start date',
+                  ]"
+                >
+                  <template v-slot:append>
+                    <q-icon name="event" class="cursor-pointer">
+                      <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                        <q-date
+                          v-model="editJobDetails.end_date"
+                          :options="(date) => date >= editJobDetails.post_date"
+                        >
+                          <div class="row items-center justify-end">
+                            <q-btn v-close-popup label="Close" color="primary" flat />
+                          </div>
+                        </q-date>
+                      </q-popup-proxy>
+                    </q-icon>
+                  </template>
+                </q-input>
+              </div>
+            </div>
+          </q-card-section>
+
+          <q-card-section>
+            <div class="text-h5 q-mb-sm text-bold">Qualification Standard</div>
+            <q-table
+              :rows="criteriaData ? [criteriaData] : []"
+              :columns="[
+                { name: 'education', label: 'Education', field: 'Education', align: 'left' },
+                { name: 'experience', label: 'Experience', field: 'Experience', align: 'left' },
+                { name: 'training', label: 'Training', field: 'Training', align: 'left' },
+                { name: 'eligibility', label: 'Eligibility', field: 'Eligibility', align: 'left' },
+              ]"
+              row-key="id"
+              :loading="loadingCriteria"
+              hide-bottom
+            >
+              <template v-slot:body="props">
+                <q-tr :props="props">
+                  <q-td style="width: 100px; white-space: pre-line; word-break: break-word">
+                    <q-input
+                      v-model="props.row.Education"
+                      type="textarea"
+                      dense
+                      borderless
+                      autogrow
+                      class="q-pa-none"
+                    />
+                  </q-td>
+                  <q-td style="width: 100px; white-space: pre-line; word-break: break-word">
+                    <q-input
+                      v-model="props.row.Experience"
+                      type="textarea"
+                      dense
+                      borderless
+                      autogrow
+                      class="q-pa-none"
+                    />
+                  </q-td>
+                  <q-td style="width: 100px; white-space: pre-line; word-break: break-word">
+                    <q-input
+                      v-model="props.row.Training"
+                      type="textarea"
+                      dense
+                      borderless
+                      autogrow
+                      class="q-pa-none"
+                    />
+                  </q-td>
+                  <q-td style="width: 120px; white-space: pre-line; word-break: break-word">
+                    <q-input
+                      v-model="props.row.Eligibility"
+                      type="textarea"
+                      dense
+                      borderless
+                      autogrow
+                      class="q-pa-none"
+                    />
+                  </q-td>
+                </q-tr>
+              </template>
+            </q-table>
+          </q-card-section>
+
+          <!-- Current Document Display -->
+          <q-card-section v-if="editJobDetails.fileUpload">
+            <div class="text-h6 q-mb-sm">Current Document</div>
+            <div class="row items-center q-gutter-md">
+              <q-icon name="picture_as_pdf" size="md" color="red" />
+              <div class="column">
+                <div class="text-body2 text-weight-medium">
+                  {{ getFileName(editJobDetails.fileUpload) }}
+                </div>
+                <div class="text-caption text-grey-6">Current plantilla document</div>
+              </div>
+              <q-btn
+                flat
+                color="primary"
+                icon="download"
+                label="Download"
+                @click="downloadCurrentDocument"
+              />
+            </div>
+          </q-card-section>
+
+          <!-- Upload New Document Section -->
+          <q-card-section>
+            <div class="text-h6 q-mb-sm">
+              Update Plantilla Funded PDF
+              <span class="text-caption text-grey-6">
+                (Optional - leave empty to keep current document)
+              </span>
+            </div>
+            <q-file
+              v-model="editJobDetails.newFile"
+              borderless
+              clearable
+              accept=".pdf"
+              :max-files="1"
+              label="Upload new PDF file (Max 5MB)"
+              style="width: 330px; border: 2px dashed #ccc; border-radius: 8px"
+              class="q-mx-auto q-mb-md"
+              :max-file-size="5242880"
+              @rejected="onFileRejected"
+            >
+              <template v-slot:prepend>
+                <q-icon name="upload_file" size="2em" color="grey-7" />
+              </template>
+            </q-file>
+            <div class="text-caption text-grey-6 text-center" v-if="!editJobDetails.newFile">
+              No new file selected. Current document will be retained.
+            </div>
+            <div class="text-caption text-positive text-center" v-if="editJobDetails.newFile">
+              New file selected: {{ editJobDetails.newFile.name }}
+            </div>
+          </q-card-section>
+        </q-scroll-area>
+
+        <q-card-actions
+          align="center"
+          class="q-pa-md row justify-between items-center"
+          style="position: sticky; bottom: 0; z-index: 2; background: white"
+        >
+          <q-input
+            outlined
+            dense
+            label="Set Page No."
+            type="number"
+            v-model.number="editJobDetails.PageNo"
+          />
+
+          <div class="q-gutter-sm">
+            <q-btn
+              color="grey"
+              label="Cancel"
+              @click="closeRepublishModal"
+              size="md"
+              style="width: 120px"
+              rounded
+              flat
+            />
+            <q-btn
+              color="primary"
+              :loading="jobPostStore.loading"
+              label="Republish Post"
+              @click="republishJobPostAction"
+              size="md"
+              style="width: 200px"
+              rounded
+            />
+          </div>
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
     <!-- Delete Confirmation Dialog -->
     <q-dialog v-model="showDeleteConfirmation" persistent>
       <q-card style="min-width: 350px; border-radius: 6px">
@@ -573,6 +841,7 @@
 
   // Edit related state
   const showEditModal = ref(false);
+  const showRepublishModal = ref(false);
   const loadingCriteria = ref(false);
   const criteriaData = ref(null);
 
@@ -755,16 +1024,10 @@
     qualifications: [],
   });
 
-  // // Helper function to determine if a job can be deleted
-  // const canDeleteJob = (job) => {
-  //   // Job can be deleted only if it has no applicants
-  //   return !job.total_applicants || job.total_applicants === 0;
-  // };
-
-  const viewJobDetails = (job) => {
+  const viewJobDetails = (jobData) => {
     router.push({
       name: 'JobPost View',
-      params: { PositionID: job.PositionID, ItemNo: job.ItemNo },
+      params: { id: jobData.id },
     });
   };
 
@@ -816,6 +1079,67 @@
         position: 'top',
       });
       showEditModal.value = false;
+    }
+  };
+
+  // republish job post functions
+  const republishJobPost = async (job) => {
+    try {
+      showRepublishModal.value = true;
+
+      // Fetch detailed job post data using the single fetchJobDetails method
+      await jobPostStore.fetchJobDetails(job.id);
+      const jobData = jobPostStore.jobPosts;
+
+      // Set current date as default post_date for republish
+      const currentDate = new Date();
+      const formattedCurrentDate = formatDate(currentDate, 'YYYY-MM-DD');
+
+      // Set end date to 30 days from current date as default
+      const defaultEndDate = new Date();
+      defaultEndDate.setDate(defaultEndDate.getDate() + 30);
+      const formattedEndDate = formatDate(defaultEndDate, 'YYYY-MM-DD');
+
+      // Populate edit form with fetched job data
+      editJobDetails.value = {
+        id: jobData.id,
+        Office: jobData.Office || '',
+        Division: jobData.Division || '',
+        Section: jobData.Section || '',
+        Unit: jobData.Unit || '',
+        Position: jobData.Position || '',
+        tblStructureDetails_ID: jobData.tblStructureDetails_ID || null,
+        level: jobData.level || '',
+        post_date: formattedCurrentDate, // Set to current date for republishing
+        end_date: formattedEndDate, // Set to 30 days from now
+        PageNo: parseInt(jobData.PageNo) || 0,
+        PositionID: jobData.PositionID,
+        ItemNo: jobData.ItemNo,
+        SalaryGrade: jobData.SalaryGrade || '',
+        status: jobData.status || '',
+        fileUpload: jobData.plantilla?.fileUpload || '',
+        newFile: null,
+        old_job_id: jobData.id,
+      };
+
+      // Set criteria data from the response
+      if (jobData.criteria) {
+        criteriaData.value = {
+          id: jobData.criteria.id,
+          Education: jobData.criteria.Education || '',
+          Experience: jobData.criteria.Experience || '',
+          Training: jobData.criteria.Training || '',
+          Eligibility: jobData.criteria.Eligibility || '',
+        };
+      }
+    } catch (error) {
+      console.error('Error loading job data for republish:', error);
+      $q.notify({
+        type: 'negative',
+        message: 'Failed to load job data for republishing',
+        position: 'top',
+      });
+      showRepublishModal.value = false;
     }
   };
 
@@ -871,6 +1195,29 @@
 
   const closeEditModal = () => {
     showEditModal.value = false;
+    criteriaData.value = null;
+    editJobDetails.value = {
+      id: null,
+      Office: '',
+      Division: '',
+      Section: '',
+      Unit: '',
+      Position: '',
+      level: '',
+      post_date: '',
+      end_date: '',
+      PageNo: 0,
+      PositionID: '',
+      ItemNo: '',
+      SalaryGrade: '',
+      status: '',
+      fileUpload: '',
+      newFile: null,
+    };
+  };
+
+  const closeRepublishModal = () => {
+    showRepublishModal.value = false;
     criteriaData.value = null;
     editJobDetails.value = {
       id: null,
@@ -962,6 +1309,89 @@
       $q.notify({
         type: 'negative',
         message: error.response?.data?.message || 'Failed to update job post. Please try again.',
+        position: 'top',
+      });
+    }
+  };
+
+  // NEW: Republish job post action using insertJobPost
+  const republishJobPostAction = async () => {
+    try {
+      // Validate required fields
+      if (!editJobDetails.value.end_date) {
+        $q.notify({
+          type: 'negative',
+          message: 'Please select an end date',
+          position: 'top',
+        });
+        return;
+      }
+
+      if (!criteriaData.value) {
+        $q.notify({
+          type: 'negative',
+          message: 'Criteria data is missing',
+          position: 'top',
+        });
+        return;
+      }
+
+      // Prepare job batch data for new post (don't include id to create new)
+      const jobBatch = {
+        PositionID: editJobDetails.value.PositionID || null,
+        post_date: editJobDetails.value.post_date.replace(/\//g, '-'),
+        end_date: editJobDetails.value.end_date.replace(/\//g, '-'),
+        PageNo: editJobDetails.value.PageNo.toString(),
+        ItemNo: editJobDetails.value.ItemNo,
+        Position: editJobDetails.value.Position,
+        tblStructureDetails_ID: editJobDetails.value.tblStructureDetails_ID,
+        old_job_id: editJobDetails.value.old_job_id,
+      };
+
+      // Add file if a new one was selected, otherwise keep the existing one
+      if (editJobDetails.value.newFile) {
+        jobBatch.fileUpload = editJobDetails.value.newFile;
+      } else if (editJobDetails.value.fileUpload) {
+        // If no new file but there's an existing file, we might need to handle this
+        // depending on your backend implementation
+        console.log('Using existing file:', editJobDetails.value.fileUpload);
+      }
+
+      // Prepare criteria data for new post
+      const criteria = {
+        Education: criteriaData.value.Education,
+        Experience: criteriaData.value.Experience,
+        Training: criteriaData.value.Training,
+        Eligibility: criteriaData.value.Eligibility,
+      };
+
+      console.log('Republishing job post with data:', { jobBatch, criteria });
+
+      const result = await jobPostStore.republishJobPost({
+        jobBatch: jobBatch,
+        criteria: criteria,
+      });
+
+      console.log('Republish result:', result);
+
+      // Refresh the job list
+      await jobPostStore.job_post();
+      jobs.value = jobPostStore.jobPosts;
+
+      // Show success notification
+      $q.notify({
+        type: 'positive',
+        message: 'Job post republished successfully',
+        position: 'top',
+      });
+
+      // Close the modal
+      closeRepublishModal();
+    } catch (error) {
+      console.error('Error republishing job post:', error);
+      $q.notify({
+        type: 'negative',
+        message: error.response?.data?.message || 'Failed to republish job post. Please try again.',
         position: 'top',
       });
     }
@@ -1179,6 +1609,10 @@
         return 'green';
       case 'unqualified':
         return 'red';
+      case 'unoccupied':
+        return 'red-9';
+      case 'republished':
+        return 'yellow-8';
       default:
         return 'grey';
     }

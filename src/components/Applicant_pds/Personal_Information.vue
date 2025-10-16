@@ -10,30 +10,25 @@
     </div>
     <div class="col">
       <div class="form-title-container">
-        <div class="text-h6 text-bold q-px-sm flex items-center q-gutter-x-sm">
-          Employee's Name
-          <q-badge v-if="props.personal?.status" :color="getStatusColor(props.personal.status)">
-            {{ props.personal?.status }}
-          </q-badge>
-        </div>
+        <div class="text-h6 text-bold q-px-sm flex items-center q-gutter-x-sm">Employee's Name</div>
       </div>
 
       <div class="row q-col-gutter-md q-mb-lg">
         <div class="col-3">
           <div class="field-label">First Name</div>
-          <div class="field-value">{{ props.personal?.firstname}}</div>
+          <div class="field-value">{{ props.personal?.firstname || 'None' }}</div>
         </div>
         <div class="col-3">
           <div class="field-label">Last Name</div>
-          <div class="field-value">{{ props.personal?.lastname}}</div>
+          <div class="field-value">{{ props.personal?.lastname || 'None' }}</div>
         </div>
         <div class="col-3">
           <div class="field-label">Middle Name</div>
-          <div class="field-value">{{ personalInfo.middlename}}</div>
+          <div class="field-value">{{ personalInfo.middlename || 'None' }}</div>
         </div>
         <div class="col-3">
           <div class="field-label">Name Extension</div>
-          <div class="field-value">{{ props.personal?.name_extension}}</div>
+          <div class="field-value">{{ props.personal?.name_extension || 'None' }}</div>
         </div>
       </div>
     </div>
@@ -50,32 +45,32 @@
         <div class="col-12">
           <div class="field-label">Date of Birth:</div>
           <div class="field-value">
-            {{ formatDate(personalInfo.date_of_birth)}}
+            {{ formatDate(personalInfo.date_of_birth) || 'None' }}
           </div>
         </div>
         <div class="col-12 row justify-between q-gutter-x-sm">
           <div class="col-5">
             <div class="field-label">Gender Preference:</div>
             <div class="field-value">
-              {{ personalInfo.gender_preference || personalInfo.gender_preference}}
+              {{ personalInfo.gender_preference || personalInfo.gender_preference || 'None' }}
             </div>
           </div>
           <div class="col-5">
             <div class="field-label">Sex:</div>
-            <div class="field-value">{{ personalInfo.sex}}</div>
+            <div class="field-value">{{ personalInfo.sex || 'None' }}</div>
           </div>
         </div>
         <div class="col-12">
           <div class="field-label">Blood Type:</div>
-          <div class="field-value">{{ personalInfo.blood_type}}</div>
+          <div class="field-value">{{ personalInfo.blood_type || 'None' }}</div>
         </div>
         <div class="col-12">
           <div class="field-label">Cellphone Number:</div>
-          <div class="field-value">{{ personalInfo.cellphone_number}}</div>
+          <div class="field-value">{{ personalInfo.cellphone_number || 'None' }}</div>
         </div>
         <div class="col-12">
           <div class="field-label">Email:</div>
-          <div class="field-value">{{ personalInfo.email_address}}</div>
+          <div class="field-value">{{ personalInfo.email_address || 'None' }}</div>
         </div>
       </div>
     </div>
@@ -84,29 +79,29 @@
       <div class="row q-col-gutter-md">
         <div class="col-12">
           <div class="field-label">Place of Birth:</div>
-          <div class="field-value">{{ personalInfo.place_of_birth}}</div>
+          <div class="field-value">{{ personalInfo.place_of_birth || 'None' }}</div>
         </div>
         <div class="col-12 row justify-between q-gutter-x-sm">
           <div class="col-5">
             <div class="field-label">Height:</div>
             <div class="field-value">
-              {{ formatHeight(personalInfo.height) }}
+              {{ formatHeight(personalInfo.height) || 'None' }}
             </div>
           </div>
           <div class="col-5">
             <div class="field-label">Weight:</div>
             <div class="field-value">
-              {{ formatWeight(personalInfo.weight) }}
+              {{ formatWeight(personalInfo.weight) || 'None' }}
             </div>
           </div>
         </div>
         <div class="col-12">
           <div class="field-label">Civil Status:</div>
-          <div class="field-value">{{ personalInfo.civil_status}}</div>
+          <div class="field-value">{{ personalInfo.civil_status || 'None' }}</div>
         </div>
         <div class="col-12">
           <div class="field-label">Telephone Number:</div>
-          <div class="field-value">{{ personalInfo.telephone_number}}</div>
+          <div class="field-value">{{ personalInfo.telephone_number || 'None' }}</div>
         </div>
       </div>
     </div>
@@ -123,15 +118,15 @@
       <div class="row q-col-gutter-md">
         <div class="col-12">
           <div class="field-label">GSIS ID No.:</div>
-          <div class="field-value">{{ personalInfo.gsis_no}}</div>
+          <div class="field-value">{{ personalInfo.gsis_no || 'None' }}</div>
         </div>
         <div class="col-12">
           <div class="field-label">PHILHEALTH ID No.:</div>
-          <div class="field-value">{{ personalInfo.philhealth_no}}</div>
+          <div class="field-value">{{ personalInfo.philhealth_no || 'None' }}</div>
         </div>
         <div class="col-12">
           <div class="field-label">TIN No.:</div>
-          <div class="field-value">{{ personalInfo.tin_no}}</div>
+          <div class="field-value">{{ personalInfo.tin_no || 'None' }}</div>
         </div>
       </div>
     </div>
@@ -140,16 +135,16 @@
       <div class="row q-col-gutter-md">
         <div class="col-12">
           <div class="field-label">PAGIBIG ID No.:</div>
-          <div class="field-value">{{ personalInfo.pagibig_no}}</div>
+          <div class="field-value">{{ personalInfo.pagibig_no || 'None' }}</div>
         </div>
         <div class="col-12">
           <div class="field-label">SSS No.:</div>
-          <div class="field-value">{{ personalInfo.sss_no}}</div>
+          <div class="field-value">{{ personalInfo.sss_no || 'None' }}</div>
         </div>
         <div class="col-12">
           <div class="field-label">Agency Employee No.:</div>
           <div class="field-value">
-            {{ personalInfo.agency_employee_no || props.personal?.controlno}}
+            {{ personalInfo.agency_employee_no || props.personal?.controlno || 'None' }}
           </div>
         </div>
       </div>
@@ -167,19 +162,19 @@
       <div class="row q-col-gutter-md">
         <div class="col-12">
           <div class="field-label">Region:</div>
-          <div class="field-value">{{ personalInfo.residential_region}}</div>
+          <div class="field-value">{{ personalInfo.residential_region || 'None' }}</div>
         </div>
         <div class="col-12">
           <div class="field-label">City/Municipality:</div>
-          <div class="field-value">{{ personalInfo.residential_city}}</div>
+          <div class="field-value">{{ personalInfo.residential_city || 'None' }}</div>
         </div>
         <div class="col-12">
           <div class="field-label">Subdivision/Village:</div>
-          <div class="field-value">{{ personalInfo.residential_subdivision}}</div>
+          <div class="field-value">{{ personalInfo.residential_subdivision || 'None' }}</div>
         </div>
         <div class="col-12">
           <div class="field-label">House/Block/Lot No.:</div>
-          <div class="field-value">{{ personalInfo.residential_house}}</div>
+          <div class="field-value">{{ personalInfo.residential_house || 'None' }}</div>
         </div>
       </div>
     </div>
@@ -188,19 +183,19 @@
       <div class="row q-col-gutter-md">
         <div class="col-12">
           <div class="field-label">Province:</div>
-          <div class="field-value">{{ personalInfo.residential_province}}</div>
+          <div class="field-value">{{ personalInfo.residential_province || 'None' }}</div>
         </div>
         <div class="col-12">
           <div class="field-label">Barangay:</div>
-          <div class="field-value">{{ personalInfo.residential_barangay}}</div>
+          <div class="field-value">{{ personalInfo.residential_barangay || 'None' }}</div>
         </div>
         <div class="col-12">
           <div class="field-label">Street/Purok:</div>
-          <div class="field-value">{{ personalInfo.residential_street}}</div>
+          <div class="field-value">{{ personalInfo.residential_street || 'None' }}</div>
         </div>
         <div class="col-12">
           <div class="field-label">Zip Code:</div>
-          <div class="field-value">{{ personalInfo.residential_zip}}</div>
+          <div class="field-value">{{ personalInfo.residential_zip || 'None' }}</div>
         </div>
       </div>
     </div>
@@ -217,19 +212,19 @@
       <div class="row q-col-gutter-md">
         <div class="col-12">
           <div class="field-label">Region:</div>
-          <div class="field-value">{{ personalInfo.permanent_region}}</div>
+          <div class="field-value">{{ personalInfo.permanent_region || 'None' }}</div>
         </div>
         <div class="col-12">
           <div class="field-label">City/Municipality:</div>
-          <div class="field-value">{{ personalInfo.permanent_city}}</div>
+          <div class="field-value">{{ personalInfo.permanent_city || 'None' }}</div>
         </div>
         <div class="col-12">
           <div class="field-label">Subdivision/Village:</div>
-          <div class="field-value">{{ personalInfo.permanent_subdivision}}</div>
+          <div class="field-value">{{ personalInfo.permanent_subdivision || 'None' }}</div>
         </div>
         <div class="col-12">
           <div class="field-label">House/Block/Lot No.:</div>
-          <div class="field-value">{{ personalInfo.permanent_house}}</div>
+          <div class="field-value">{{ personalInfo.permanent_house || 'None' }}</div>
         </div>
       </div>
     </div>
@@ -238,19 +233,19 @@
       <div class="row q-col-gutter-md">
         <div class="col-12">
           <div class="field-label">Province:</div>
-          <div class="field-value">{{ personalInfo.permanent_province}}</div>
+          <div class="field-value">{{ personalInfo.permanent_province || 'None' }}</div>
         </div>
         <div class="col-12">
           <div class="field-label">Barangay:</div>
-          <div class="field-value">{{ personalInfo.permanent_barangay}}</div>
+          <div class="field-value">{{ personalInfo.permanent_barangay || 'None' }}</div>
         </div>
         <div class="col-12">
           <div class="field-label">Street/Purok:</div>
-          <div class="field-value">{{ personalInfo.permanent_street}}</div>
+          <div class="field-value">{{ personalInfo.permanent_street || 'None' }}</div>
         </div>
         <div class="col-12">
           <div class="field-label">Zip Code:</div>
-          <div class="field-value">{{ personalInfo.permanent_zip}}</div>
+          <div class="field-value">{{ personalInfo.permanent_zip || 'None' }}</div>
         </div>
       </div>
     </div>
@@ -267,7 +262,7 @@
       <div class="row q-col-gutter-md">
         <div class="col-12">
           <div class="field-label">Citizenship:</div>
-          <div class="field-value">{{ personalInfo.citizenship}}</div>
+          <div class="field-value">{{ personalInfo.citizenship }}</div>
         </div>
       </div>
     </div>
@@ -276,7 +271,7 @@
       <div class="row q-col-gutter-md">
         <div class="col-12">
           <div class="field-label">Religious Affiliation:</div>
-          <div class="field-value">{{ personalInfo.religion}}</div>
+          <div class="field-value">{{ personalInfo.religion }}</div>
         </div>
       </div>
     </div>
@@ -288,7 +283,7 @@
         <div class="col-12">
           <div class="field-label">Application Date:</div>
           <div class="field-value">
-            {{ formatDate(props.personal?.application_date)}}
+            {{ formatDate(props.personal?.application_date) }}
           </div>
         </div>
       </div>
@@ -298,7 +293,7 @@
       <div class="row q-col-gutter-md">
         <div class="col-12">
           <div class="field-label">Status:</div>
-          <div class="field-value">{{ props.personal?.status}}</div>
+          <div class="field-value">{{ props.personal?.status }}</div>
         </div>
       </div>
     </div>
@@ -356,20 +351,20 @@
     return isNaN(numWeight) ? weight : `${numWeight} kg`;
   };
 
-  const getStatusColor = (status) => {
-    if (!status) return 'grey';
+  // const getStatusColor = (status) => {
+  //   if (!status) return 'grey';
 
-    switch (status.toLowerCase()) {
-      case 'qualified':
-        return 'positive';
-      case 'pending':
-        return 'warning';
-      case 'disqualified':
-        return 'negative';
-      default:
-        return 'blue';
-    }
-  };
+  //   switch (status.toLowerCase()) {
+  //     case 'qualified':
+  //       return 'positive';
+  //     case 'pending':
+  //       return 'warning';
+  //     case 'disqualified':
+  //       return 'negative';
+  //     default:
+  //       return 'blue';
+  //   }
+  // };
 </script>
 
 <style scoped>

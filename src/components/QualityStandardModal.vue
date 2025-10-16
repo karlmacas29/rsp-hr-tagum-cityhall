@@ -28,17 +28,17 @@
             <q-card-section class="column justify-between items-center q-pa-md">
               <q-img
                 :src="applicantData?.Pics || 'https://placehold.co/100'"
-                class="bg-grey-4"
+                class="bg-grey-4 q-mb-md"
                 style="width: 100px; height: 100px; border-radius: 10px"
                 alt="Applicant Photo"
               />
-              <div class="text-body text-bold text-center q-mb-sm">
+              <div class="text-body text-bold text-center q-mb-xs">
                 {{ applicantData?.name || 'John Doe' }}
               </div>
-              <q-btn label="VIEW PDS" color="primary" rounded @click="onViewPDS" />
+
               <q-badge
                 rounded
-                class="q-pa-xs"
+                class="q-pa-xs q-mb-sm"
                 :class="
                   applicantData.status == 'ELECTIVE'
                     ? 'bg-blue'
@@ -64,14 +64,14 @@
               </q-badge>
 
               <div class="full-width">
-                <div class="text-center q-mb-sm">
+                <div class="text-center q-mb-md">
                   <div v-if="applicantData.status != null">
-                    <div class="text-caption text-grey-7">Position</div>
+                    <div class="text-caption text-grey-7 q-mb-xs">Position</div>
                   </div>
                   <div v-else>
-                    <div class="text-caption text-grey-7">Applied Position</div>
+                    <div class="text-caption text-grey-7 q-mb-xs">Applied Position</div>
                   </div>
-                  <div class="text-body2 text-bold">
+                  <div class="text-body2 text-bold q-mb-xs">
                     {{ applicantData?.position || 'Office of the ...' }}
                   </div>
                   <q-chip dense>
@@ -96,6 +96,7 @@
                   </div>
                 </div>
               </div>
+              <q-btn class="q-mt-md" label="View PDS" color="primary" rounded @click="onViewPDS" />
             </q-card-section>
           </q-card>
 

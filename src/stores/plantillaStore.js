@@ -161,10 +161,12 @@ export const usePlantillaStore = defineStore('plantilla', {
           const plantillaInfo = appointmentData.active?.[0];
           const tempRegInfo = appointmentData.temp_reg_appointments?.[0];
           const reorgExtInfo = appointmentData.temp_reg_appointment_reorg_ext?.[0];
+          const x_personal = appointmentData.x_personal?.[0];
 
           const transformedData = {
             // Basic Info
             SalaryAnnual: appointmentData.RateYear || '',
+            TINNo: x_personal?.TINNo || '',
             Sex: plantillaInfo?.Sex,
             Name4: plantillaInfo?.Name4 || '',
 

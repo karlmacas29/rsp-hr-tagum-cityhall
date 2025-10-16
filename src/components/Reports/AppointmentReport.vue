@@ -23,7 +23,9 @@
             <div>PROVINCE OF DAVAO DEL NORTE</div>
             <div><strong>CITY OF TAGUM</strong></div>
             <br />
-            <div class="office"><strong>OFFICE OF THE CITY MAYOR</strong></div>
+            <div class="office">
+              <strong>{{ officeTitle }}</strong>
+            </div>
           </div>
           <div class="right-logo">
             <img src="/logo.png" alt="City of Tagum Logo" />
@@ -38,15 +40,58 @@
 
           <p style="text-indent: 2em">
             You are hereby appointed as
-            <strong class="underline">{{ data.NewDesignation || '(Position Title)' }}</strong>
+            <ruby>
+              <strong class="underline">
+                <span style="color: white">*</span>
+                {{ data.NewDesignation || '(Position Title)' }}
+              </strong>
+              <rt>
+                <span style="color: white">*</span>
+                (Position
+                <span style="color: white">*</span>
+                Title)
+                <span style="color: white">*</span>
+              </rt>
+            </ruby>
             (SG/Step
-            <strong class="underline">{{ data.SG || '(SG)' }}/{{ data.Step || '(Step)' }}</strong>
-            ) under
             <strong class="underline">
-              {{ data.Status || '(Permanent, Temporary, etc.)' }}
+              <span style="color: white">*</span>
+              {{ data.SG || '(SG)' }}
+              <span style="color: white">*</span>
+              /
+              <span style="color: white">*</span>
+              {{ data.Step || '(Step)' }}
             </strong>
+            )
+            <span style="color: white">*</span>
+            under
+            <ruby>
+              <strong class="underline">
+                <span style="color: white">*</span>
+                {{ data.Status || '(Permanent, Temporary, etc.)' }}
+                <span style="color: white">*</span>
+              </strong>
+              <rt>
+                <span style="color: white">*</span>
+                (Permanent,
+                <span style="color: white">*</span>
+                Temporary,
+                <span style="color: white">*</span>
+                etc.)
+              </rt>
+            </ruby>
             status at the
-            <strong class="underline">{{ data.NewOffice || '(Office/Department/Unit)' }}</strong>
+            <ruby>
+              <strong class="underline">
+                <span style="color: white">*</span>
+                {{ data.NewOffice || '(Office/Department/Unit)' }}
+                <span style="color: white">*</span>
+              </strong>
+              <rt>
+                <span style="color: white">*</span>
+                (Office/Department/Unit)
+              </rt>
+            </ruby>
             with a compensation rate of
             <strong class="underline">
               {{ formatSalaryWords(data.MRate) || '(Salary in Words)' }}
@@ -58,13 +103,40 @@
 
           <p style="text-indent: 2em">
             The nature of this appointment is
-            <strong class="underline">
-              {{ data.Renew || '(Original, Promotion, etc.)' }}
-            </strong>
+            <ruby>
+              <strong class="underline">
+                <span style="color: white">*</span>
+                {{ data.Renew || '(Original, Promotion, etc.)' }}
+                <span style="color: white">*</span>
+              </strong>
+              <rt>
+                <span style="color: white">*</span>
+                (Original,
+                <span style="color: white">*</span>
+                Promotion,
+                <span style="color: white">*</span>
+                etc.)
+              </rt>
+            </ruby>
             vice
             <strong class="underline">{{ data.vicecause || 'N/A' }}</strong>
             , who
-            <strong class="underline">{{ data.vicecause || 'N/A' }}</strong>
+            <ruby>
+              <strong class="underline">
+                <span style="color: white">*</span>
+                {{ data.vicecause || 'N/A' }}
+                <span style="color: white">*</span>
+              </strong>
+              <rt>
+                <span style="color: white">*</span>
+                (Transferred,
+                <span style="color: white">*</span>
+                Retired,
+                <span style="color: white">*</span>
+                etc.)
+              </rt>
+            </ruby>
+            <span style="color: white">*</span>
             with Plantilla Item No.
             <strong class="underline">{{ data.ItemNo || '(Item No.)' }}</strong>
             Page
@@ -85,9 +157,9 @@
 
           <div class="signature-section">
             <div class="signature-name-container">
-              <strong class="signature-name">{{ data.mayor || 'REY T. UY' }}</strong>
+              <strong class="signature-name">{{ signatoryName }}</strong>
             </div>
-            <div class="signature-title">City Mayor</div>
+            <div class="signature-title">{{ signatoryTitle }}</div>
             <br />
             <div class="signing-date-container">
               <strong class="signing-date">{{ formattedSigningDate || 'August 1, 2024' }}</strong>
@@ -122,26 +194,27 @@
             <h3 class="certification-title">Certification</h3>
 
             <p class="certification-text">
-              This is to certify that all requirements and supporting papers pursuant to CSC MC No.
-              <span class="underline">24, s. 2017, as amended</span>
+              This is to certify that all requirements and supporting papers pursuant to the
+              <span>
+                <b>2025 Omnibus Rules on Appointments and Other Human Resource Actions,</b>
+              </span>
               have been complied with, reviewed and found to be in order.
             </p>
             <p class="certification-text">
               The position was published at
-              <span class="underline">CSC Website</span>
+              <span class="underline">{{ publishedAt }}</span>
               from
-              <span class="underline">November 22, 2024</span>
+              <span class="underline">{{ publishStartDate }}</span>
               to
-              <span class="underline">December 7, 2024</span>
-              and posted in
-              <span class="underline">3 conspicuous places</span>
-              from
-              <span class="underline">November 22, 2024</span>
+              <span class="underline">{{ publishEndDate }}</span>
+              and posted in three (3) conspicuous places from
+              <span class="underline">{{ postStartDate }}</span>
               to
-              <span class="underline">December 7, 2024</span>
-              in consonance with RA No. 7041. The assessment by the Human Resource Merit Promotion
-              and Selection Board (HRMP&SB) started on
-              <span class="underline">December 13, 2024</span>
+              <span class="underline">{{ postEndDate }}</span>
+              in consonance with Republic Act No. 7041. The assessment by the Human Resource Merit
+              Promotion and Selection Board (HRMPSB) started on
+              <span class="underline">{{ assessmentDate }}</span>
+              .
             </p>
 
             <div class="signature-container">
@@ -159,9 +232,8 @@
             <h3 class="certification-title">Certification</h3>
 
             <p class="certification-text">
-              This is to certify that the appointee has been screened and found qualified by the
-              majority of the Human Resource Merit Promotion and Selection Board (HRMP&SB) during
-              the deliberation held on
+              This is to certify that the appointee has been screened and found qualified by at
+              least the majority of the HRMPSB/Placement Committee during the deliberation held on
               <span class="underline">December 27, 2024</span>
               .
             </p>
@@ -316,6 +388,72 @@
       type: Object,
       default: () => ({}),
     },
+  });
+
+  // Computed properties for office and signatory
+  const officeTitle = computed(() => {
+    if (
+      props.data.NewOffice?.includes('VICE MAYOR') ||
+      props.data.NewOffice?.includes('SANGGUNIANG PANLUNGSOD') ||
+      props.data.NewOffice?.includes('SANGGUNIAN')
+    ) {
+      return 'OFFICE OF THE VICE MAYOR';
+    } else {
+      return 'OFFICE OF THE CITY MAYOR';
+    }
+  });
+
+  const signatoryName = computed(() => {
+    if (
+      props.data.NewOffice?.includes('VICE MAYOR') ||
+      props.data.NewOffice?.includes('SANGGUNIANG PANLUNGSOD') ||
+      props.data.NewOffice?.includes('SANGGUNIAN')
+    ) {
+      return props.data.vicemayor || 'VICE MAYOR NAME';
+    } else {
+      return props.data.mayor || 'REY T. UY';
+    }
+  });
+
+  const signatoryTitle = computed(() => {
+    if (
+      props.data.NewOffice?.includes('VICE MAYOR') ||
+      props.data.NewOffice?.includes('SANGGUNIANG PANLUNGSOD') ||
+      props.data.NewOffice?.includes('SANGGUNIAN')
+    ) {
+      return 'City Vice Mayor';
+    } else {
+      return 'City Mayor';
+    }
+  });
+
+  // Computed properties for certification dates based on status
+  const isCoterminousOrElective = computed(() => {
+    return props.data.Status === 'CO-TERMINOUS' || props.data.Status === 'Elective';
+  });
+
+  const publishedAt = computed(() => {
+    return isCoterminousOrElective.value ? 'N/A' : 'CSC Website';
+  });
+
+  const publishStartDate = computed(() => {
+    return isCoterminousOrElective.value ? 'N/A' : 'November 22, 2024';
+  });
+
+  const publishEndDate = computed(() => {
+    return isCoterminousOrElective.value ? 'N/A' : 'December 7, 2024';
+  });
+
+  const postStartDate = computed(() => {
+    return isCoterminousOrElective.value ? 'N/A' : 'November 22, 2024';
+  });
+
+  const postEndDate = computed(() => {
+    return isCoterminousOrElective.value ? 'N/A' : 'December 7, 2024';
+  });
+
+  const assessmentDate = computed(() => {
+    return isCoterminousOrElective.value ? 'N/A' : 'December 13, 2024';
   });
 
   // Utility Functions
@@ -565,10 +703,37 @@
     font-size: 11pt;
     text-align: justify;
     line-height: 3;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+
+  .body p {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    hyphens: auto;
   }
 
   .underline {
     text-decoration: underline;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+
+  /* Ruby and RT styling */
+  ruby {
+    ruby-position: under;
+    line-height: 1.8;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    display: inline-ruby;
+  }
+
+  rt {
+    font-size: 8pt;
+    font-style: italic;
+    color: #666;
+    line-height: 1;
+    text-align: center;
   }
 
   .signature-block {
@@ -595,12 +760,16 @@
     border-bottom: 2px solid black;
     padding-bottom: 3px;
     margin-bottom: 5px;
+    word-break: break-word;
+    overflow-wrap: anywhere;
   }
 
   .signature-name {
     font-weight: bold;
     text-transform: uppercase;
     font-size: 11pt;
+    word-break: break-word;
+    overflow-wrap: anywhere;
   }
 
   .signature-title {
@@ -794,6 +963,14 @@
     line-height: 1.5;
     font-size: 11pt;
     margin-bottom: 8px;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+
+  .certification-text .underline {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    white-space: normal;
   }
 
   .signature-container {
@@ -819,12 +996,15 @@
     width: 100%;
     border-collapse: collapse;
     margin: 0 auto;
+    table-layout: fixed;
   }
 
   .notation-table td {
     border: 1px solid #000;
     padding: 5px;
     height: 25px;
+    word-break: break-word;
+    overflow-wrap: anywhere;
   }
 
   .table-header {
@@ -835,14 +1015,17 @@
   }
 
   .checkbox-row {
-    padding-left: 5px;
     font-size: 10pt;
+    word-break: break-word;
+    overflow-wrap: anywhere;
   }
 
   .indent-wrapper {
-    padding-left: 40px;
+    padding-left: 20px;
     display: flex;
     align-items: center;
+    word-break: break-word;
+    overflow-wrap: anywhere;
   }
 
   .checkbox-deeper-indent {
@@ -855,6 +1038,8 @@
     width: 150;
     min-width: 100px;
     border-bottom: 1px solid #000;
+    word-break: break-word;
+    overflow-wrap: anywhere;
   }
 
   .acknowledgement-text {
@@ -897,6 +1082,13 @@
 
     .appointment-form-container {
       gap: 0;
+    }
+
+    /* Ensure text wrapping works in print mode */
+    * {
+      word-break: break-word !important;
+      overflow-wrap: anywhere !important;
+      white-space: normal !important;
     }
   }
 </style>

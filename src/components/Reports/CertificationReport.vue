@@ -276,9 +276,18 @@
         </div>
 
         <div class="left-signature-container">
-          <div class="stamp">Government ID:</div>
-          <div class="stamp">Numero ng ID:</div>
-          <div class="stamp">Araw ng Pagkakaloob:</div>
+          <div>
+            Government ID:
+            <span v-if="data?.TINNo" class="underline">TIN</span>
+          </div>
+          <div>
+            Numero ng ID:
+            <span class="underline">{{ data?.TINNo || '' }}</span>
+          </div>
+          <div>
+            Araw ng Pagkakaloob:
+            <span style="display: inline-block; width: 80px; border-bottom: 1px solid black"></span>
+          </div>
         </div>
 
         <div class="double"></div>
@@ -351,11 +360,11 @@
     if (
       props.data.NewOffice.includes('VICE MAYOR') ||
       props.data.NewOffice.includes('SANGGUNIANG PANLUNGSOD') ||
-      props.data.NewOffice.includes('SANGUNIAN')
+      props.data.NewOffice.includes('SANGGUNIAN')
     ) {
-      return props.data.vicemayor || 'ALLAN L. RELLON';
+      return props.data.vicemayor || 'NA';
     } else {
-      return props.data.mayor || 'REY T. UY';
+      return props.data.mayor || 'NA';
     }
   });
 
@@ -365,7 +374,7 @@
     if (
       props.data.NewOffice.includes('VICE MAYOR') ||
       props.data.NewOffice.includes('SANGGUNIANG PANLUNGSOD') ||
-      props.data.NewOffice.includes('SANGUNIAN')
+      props.data.NewOffice.includes('SANGGUNIAN')
     ) {
       return 'City Vice Mayor';
     } else {
@@ -449,7 +458,7 @@
       eng: '<span style="color:white">*</span>having <span style="color:white">*</span>been <span style="color:white">*</span>appointed <span style="color:white">*</span>to',
     },
     {
-      fil: `<span style="color:white">*</span>(${props.data.NewDesignation || 'Position'})`,
+      fil: `<span style="color:white">*</span>${props.data.NewDesignation || 'Position'}`,
       eng: '<span style="color:white">*</span>(Position)',
     },
     {

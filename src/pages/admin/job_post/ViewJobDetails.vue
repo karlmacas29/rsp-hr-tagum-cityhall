@@ -21,17 +21,12 @@
           />
         </div>
 
-        <div class="text-h6 text-primary text-weight-bold q-mb-xs">
+        <div class="text-h6 text-primary q-mb-xs">
           {{ selectedJob?.Position || 'Job Title' }}
-          {{ selectedJob?.id || 'Job ID' }}
-          <q-chip class="chip-padding status-chip" dense>
-            <q-icon
-              :name="selectedJob?.status === 'Occupied' ? 'warning' : 'check_circle'"
-              class="q-mr-xs"
-            />
-            <span class="chip-label">
+          <q-chip dense :color="statusColor" text-color="white" class="q-pa-sm">
+            <span>
               Status:
-              <b>{{ selectedJob?.status || 'Unknown' }}</b>
+              {{ (selectedJob?.status || 'Unknown').toLowerCase() }}
             </span>
           </q-chip>
         </div>
@@ -141,7 +136,6 @@
 
     <!-- Tabs Card for Applicants and Rating Results -->
     <q-card flat bordered class="shadow-2" style="max-width: 1000px; margin: auto">
-      <!-- Removed key attribute to fix duplicate key error -->
       <q-card-section v-if="!jobPostStore.loading" class="q-pa-md">
         <q-tabs
           v-model="activeTab"
@@ -209,11 +203,13 @@
                   <q-badge
                     rounded
                     :color="
-                      props.row.status === 'Qualified'
+                      props.row.status === 'Hired'
                         ? 'green'
-                        : props.row.status === 'Unqualified'
-                          ? 'red'
-                          : 'grey'
+                        : props.row.status === 'Qualified'
+                          ? 'yellow-8'
+                          : props.row.status === 'Unqualified'
+                            ? 'red'
+                            : 'grey'
                     "
                     class="text-caption q-px-sm"
                   >
@@ -243,6 +239,15 @@
             <div class="row items-center justify-between q-mb-sm">
               <div class="text-h6 text-primary text-bold">Rating Results</div>
               <div class="assessment-status">
+                <q-btn
+                  v-if="showUnoccupiedButton"
+                  label="Unoccupied"
+                  color="red-9"
+                  rounded
+                  class="q-mr-sm"
+                  style="font-size: 8pt"
+                  @click="unoccupiedConfirmDialog = true"
+                />
                 <q-badge class="q-pa-xs" color="primary" text-color="white">
                   <q-icon name="assessment" class="q-mr-xs" />
                   Rated: {{ ratingData.total_completed }}/{{ ratingData.total_assigned }}
@@ -371,6 +376,46 @@
       </q-card>
     </q-dialog>
 
+    <!-- Unoccupied Status Confirmation Dialog -->
+    <q-dialog v-model="unoccupiedConfirmDialog" persistent>
+      <q-card style="min-width: 350px">
+        <q-card-section>
+          <div class="text-h6 text-primary">
+            <q-icon name="warning" class="q-mr-sm" color="red-9" />
+            Confirm Status Update
+          </div>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          <p class="text-body1">
+            Are you sure you want to update this job status to
+            <strong>"Unoccupied"</strong>
+            ?
+          </p>
+          <div class="text-caption text-grey-6 q-mt-sm">
+            <strong>ID:</strong>
+            {{ selectedJob?.id || 'N/A' }}
+          </div>
+          <div class="text-caption text-grey-6 q-mt-sm">
+            <strong>Job:</strong>
+            {{ selectedJob?.Position || 'N/A' }}
+          </div>
+        </q-card-section>
+
+        <q-card-actions align="right" class="text-primary">
+          <q-btn flat label="Cancel" color="grey" v-close-popup :disable="jobPostStore.loading" />
+          <q-btn
+            unelevated
+            label="Yes, Update to Unoccupied"
+            color="negative"
+            @click="updateJobStatusToUnoccupied"
+            :loading="jobPostStore.loading"
+            :disable="jobPostStore.loading"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
     <!-- Modals -->
     <QualificationModal
       v-if="qualificationModalVisible"
@@ -411,11 +456,36 @@
   const router = useRouter();
   const route = useRoute();
   const jobPostStore = useJobPostStore();
-  const P_ID = route.params.PositionID;
-  const I_No = route.params.ItemNo;
-  const selectedJob = ref([]);
+
+  // Get job ID from route params
+  const jobId = route.params.id;
+
+  // Initialize with default/empty objects to prevent undefined errors
+  const selectedJob = ref({
+    Position: '',
+    status: '',
+    level: '',
+    PageNo: '',
+    ItemNo: '',
+    SalaryGrade: '',
+    Office: '',
+    Division: '',
+    Section: '',
+    Unit: '',
+    post_date: null,
+    end_date: null,
+    PositionID: '',
+    id: null,
+  });
+
+  const selectedCriteria = ref({
+    Education: '',
+    Experience: '',
+    Training: '',
+    Eligibility: '',
+  });
+
   const { formatDate } = date;
-  const selectedCriteria = ref([]);
 
   // Tab state with reactive keys for force re-render
   const activeTab = ref('applicants');
@@ -433,6 +503,175 @@
   const pdfFileUrl = ref('');
   const isLoadingPdf = ref(false);
   const pdfErrorMessage = ref('');
+
+  const unoccupiedConfirmDialog = ref(false);
+
+  // ✅ NEW: Create a reusable function to fetch and update job details
+  const refreshJobDetails = async (showLoading = false) => {
+    if (showLoading) {
+      jobPostStore.loading = true;
+    }
+
+    try {
+      console.log('Refreshing job details for ID:', jobId);
+
+      // Call the store method
+      let jobDetails = await jobPostStore.fetchJobDetails(jobId);
+
+      // If the store method doesn't return data, get it from the store
+      if (!jobDetails && jobPostStore.jobPosts) {
+        console.log('Using data from store.jobPosts');
+        jobDetails = jobPostStore.jobPosts;
+      }
+
+      if (!jobDetails) {
+        throw new Error('No job details returned from server');
+      }
+
+      console.log('Successfully refreshed job details:', jobDetails);
+
+      // Update job details
+      selectedJob.value = {
+        id: jobDetails.id || null,
+        Position: jobDetails.Position || 'Unknown Position',
+        status: jobDetails.status || 'Unknown',
+        level: jobDetails.level || 'N/A',
+        PageNo: jobDetails.PageNo || 'N/A',
+        ItemNo: jobDetails.ItemNo || 'N/A',
+        SalaryGrade: jobDetails.SalaryGrade || 'N/A',
+        Office: jobDetails.Office || 'Unknown Office',
+        Division: jobDetails.Division || 'N/A',
+        Section: jobDetails.Section || 'N/A',
+        Unit: jobDetails.Unit || 'N/A',
+        post_date: jobDetails.post_date || null,
+        end_date: jobDetails.end_date || null,
+        PositionID: jobDetails.PositionID || '',
+        tblStructureDetails_ID: jobDetails.tblStructureDetails_ID || null,
+        ...jobDetails,
+      };
+
+      // Update criteria
+      if (jobDetails.criteria && typeof jobDetails.criteria === 'object') {
+        selectedCriteria.value = {
+          id: jobDetails.criteria.id || null,
+          Education: jobDetails.criteria.Education || 'Not specified',
+          Experience: jobDetails.criteria.Experience || 'Not specified',
+          Training: jobDetails.criteria.Training || 'Not specified',
+          Eligibility: jobDetails.criteria.Eligibility || 'Not specified',
+        };
+      } else {
+        selectedCriteria.value = {
+          Education: 'No criteria available',
+          Experience: 'No criteria available',
+          Training: 'No criteria available',
+          Eligibility: 'No criteria available',
+        };
+      }
+
+      return jobDetails;
+    } catch (error) {
+      console.error('Error refreshing job details:', error);
+      throw error;
+    } finally {
+      if (showLoading) {
+        jobPostStore.loading = false;
+      }
+    }
+  };
+
+  // ✅ NEW: Function to refresh applicant data
+  const refreshApplicantData = async () => {
+    if (!selectedJob.value.id) return;
+
+    ratingsLoading.value = true;
+    try {
+      console.log('Refreshing applicant data for job ID:', selectedJob.value.id);
+
+      await Promise.all([
+        jobPostStore.fetch_applicant(selectedJob.value.id).catch((err) => {
+          console.warn('Failed to fetch applicants:', err);
+          return null;
+        }),
+        jobPostStore.fetch_applicant_rating(selectedJob.value.id).catch((err) => {
+          console.warn('Failed to fetch ratings:', err);
+          return null;
+        }),
+      ]);
+
+      console.log('Successfully refreshed applicant data');
+    } catch (error) {
+      console.error('Error refreshing applicant data:', error);
+      toast.error('Failed to refresh applicant data');
+    } finally {
+      ratingsLoading.value = false;
+    }
+  };
+
+  // ✅ UPDATED: Modified updateJobStatusToUnoccupied to refresh data
+  const updateJobStatusToUnoccupied = async () => {
+    if (!selectedJob.value || !selectedJob.value.id) {
+      toast.error('Job ID not found. Cannot update status.');
+      unoccupiedConfirmDialog.value = false;
+      return;
+    }
+
+    try {
+      const payload = {
+        id: selectedJob.value.id,
+        status: 'Unoccupied',
+      };
+
+      console.log('Sending payload:', payload);
+
+      await jobPostStore.updateJobStatus(selectedJob.value.id, payload);
+
+      toast.success('Job status updated to Unoccupied successfully!');
+      unoccupiedConfirmDialog.value = false;
+
+      // ✅ Refresh the job details to get the latest data
+      await refreshJobDetails();
+
+      console.log('Job status updated and data refreshed');
+    } catch (error) {
+      console.error('Error updating job status:', error);
+      toast.error('Failed to update job status. Please try again.');
+      unoccupiedConfirmDialog.value = false;
+    }
+  };
+
+  // ✅ UPDATED: Modified submitEvaluation to refresh data
+  const submitEvaluation = async (evaluationData) => {
+    try {
+      console.log('Submitting evaluation:', evaluationData);
+
+      if (!evaluationData.id) {
+        toast.error('Missing applicant ID for evaluation submission');
+        return;
+      }
+
+      if (!evaluationData.status || evaluationData.status === 'Pending') {
+        toast.warning('Please select a qualification status before submitting.');
+        return;
+      }
+
+      await jobPostStore.evaluation(evaluationData);
+      selectedApplicantData.value.status = evaluationData.status;
+      qualificationModalVisible.value = false;
+
+      // ✅ Refresh both job details and applicant data
+      await Promise.all([refreshJobDetails(), refreshApplicantData()]);
+
+      toast.success('Evaluation submitted successfully!');
+
+      // Force tabs update after modal closes
+      nextTick(() => {
+        forceTabsUpdate();
+      });
+    } catch (error) {
+      console.error('Evaluation submission error:', error);
+      toast.error('Failed to submit evaluation');
+    }
+  };
 
   // Computed property for rating data
   const ratingData = computed(() => {
@@ -592,6 +831,39 @@
     });
   });
 
+  const statusColor = computed(() => {
+    const status = (selectedJob.value?.status || '').toLowerCase();
+
+    switch (status) {
+      case 'not started':
+        return 'grey';
+      case 'pending':
+        return 'orange';
+      case 'assessed':
+        return 'blue';
+      case 'rated':
+        return 'purple';
+      case 'occupied':
+      case 'qualified':
+        return 'green';
+      case 'unqualified':
+        return 'red';
+      case 'unoccupied':
+        return 'red-9';
+      default:
+        return 'grey';
+    }
+  });
+
+  const showUnoccupiedButton = computed(() => {
+    const status = selectedJob.value?.status;
+    if (!status) return false;
+
+    // Check for various possible formats of "rated" status
+    const normalizedStatus = status.toLowerCase().trim();
+    return normalizedStatus === 'rated' || normalizedStatus === 'rating completed';
+  });
+
   // FIXED: Format applicant ratings data for the table with correct data structure handling
   const formattedApplicantRatings = computed(() => {
     if (!jobPostStore.applicant_rating) return [];
@@ -641,6 +913,7 @@
   // Updated viewApplicantDetails function to open the modal
   function viewApplicantDetails(row) {
     selectedApplicantData.value = {
+      ControlNo: row.raw?.ControlNo || row.ControlNo,
       id: row.raw?.id || row.id,
       job_batches_rsp_id: row.raw?.job_batches_rsp_id,
       status: row.status || 'Pending',
@@ -657,6 +930,10 @@
       training_remark: row.training_remark,
       eligibility_remark: row.eligibility_remark,
       education: row.education || row.raw?.education || [],
+      education_images: row.educatiuon_images || row.raw?.education_images || null,
+      experience_images: row.experience_images || row.raw?.experience_images || null,
+      training_images: row.training_images || row.raw?.training_images || null,
+      eligibility_images: row.eligibility_images || row.raw?.eligibility_images || null,
       n_personal_info: {
         education: row.education || row.raw?.education || [],
         work_experience: row.work_experience || row.raw?.work_experience || [],
@@ -751,40 +1028,6 @@
     console.log(`Qualification status changed to: ${status}`);
   };
 
-  const submitEvaluation = async (evaluationData) => {
-    try {
-      console.log('Submitting evaluation:', evaluationData);
-
-      if (!evaluationData.id) {
-        toast.error('Missing applicant ID for evaluation submission');
-        return;
-      }
-
-      if (!evaluationData.status || evaluationData.status === 'Pending') {
-        toast.warning('Please select a qualification status before submitting.');
-        return;
-      }
-
-      await jobPostStore.evaluation(evaluationData);
-      selectedApplicantData.value.status = evaluationData.status;
-      qualificationModalVisible.value = false;
-
-      if (selectedJob.value && selectedJob.value.id) {
-        await jobPostStore.fetch_applicant(selectedJob.value.id);
-      }
-
-      toast.success('Evaluation submitted successfully!');
-
-      // Force tabs update after modal closes
-      nextTick(() => {
-        forceTabsUpdate();
-      });
-    } catch (error) {
-      console.error('Evaluation submission error:', error);
-      toast.error('Failed to submit evaluation');
-    }
-  };
-
   const onCloseQualificationModal = () => {
     qualificationModalVisible.value = false;
     selectedApplicantData.value = {};
@@ -797,39 +1040,48 @@
     console.log('View PDS requested for:', selectedApplicantData.value.name);
   };
 
-  // Fetch all data when component mounts
+  // ✅ UPDATED: Initial data loading in onMounted
   onMounted(async () => {
-    jobPostStore.loading = true;
+    console.log('Component mounting, jobId:', jobId);
+
+    if (!jobId) {
+      console.error('No job ID provided in route params');
+      toast.error('No job ID provided');
+      router.push('/job-post');
+      return;
+    }
+
     try {
-      // Fetch job details first
-      const job = await jobPostStore.fetchJobPostByPositionAndItemNo(P_ID, I_No);
-      selectedJob.value = job;
+      // Load initial job details
+      await refreshJobDetails(true); // Show loading for initial load
 
-      // Fetch criteria
-      const criteria = await jobPostStore.fetchCriteriaByPositionAndItemNo(P_ID, I_No);
-      selectedCriteria.value = criteria;
+      // Load initial applicant data
+      await refreshApplicantData();
 
-      // If job exists, fetch both applicants and ratings data
-      if (job && job.id) {
-        // Start loading indicator for ratings
-        ratingsLoading.value = true;
-
-        try {
-          // Fetch applicants and ratings concurrently
-          await Promise.all([
-            jobPostStore.fetch_applicant(job.id),
-            jobPostStore.fetch_applicant_rating(job.id),
-          ]);
-        } catch (error) {
-          console.error('Error fetching applicant data:', error);
-          toast.error('Failed to load some applicant data');
-        } finally {
-          ratingsLoading.value = false;
-        }
-      }
+      console.log('Initial data loading completed');
     } catch (error) {
-      console.error('Error during component initialization:', error);
-      toast.error('Failed to load page data');
+      console.error('Error during initial data loading:', error);
+
+      let errorMessage = 'Failed to load job details';
+      if (error.response) {
+        if (error.response.status === 404) {
+          errorMessage = 'Job not found';
+        } else if (error.response.status === 403) {
+          errorMessage = 'Access denied';
+        } else {
+          errorMessage = error.response.data?.message || errorMessage;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      toast.error(errorMessage);
+
+      if (error.response?.status === 404) {
+        setTimeout(() => {
+          router.push('/job-post');
+        }, 2000);
+      }
     }
   });
 </script>

@@ -22,6 +22,7 @@
             v-model="globalSearch"
             placeholder="Search all raters..."
             clearable
+            :disable="isLoadingTable"
           >
             <template v-slot:prepend>
               <q-icon name="search" />
@@ -37,7 +38,14 @@
           </q-input>
         </div>
         <div v-if="authStore.user.permissions.isRaterM === '1'">
-          <q-btn rounded color="primary" label="Add Rater" @click="showAddModal" icon="add" />
+          <q-btn
+            rounded
+            color="primary"
+            label="Add Rater"
+            @click="showAddModal"
+            icon="add"
+            :disable="isLoadingTable"
+          />
         </div>
       </q-card-section>
       <q-separator />
@@ -49,7 +57,9 @@
           :rows="filteredRaters"
           :columns="columns"
           row-key="id"
-          :loading="isSubmitting"
+          :loading="isLoadingTable"
+          loading-label="Loading raters..."
+          no-data-label="No raters found"
         >
           <template v-slot:body-cell-job_batches_rsp="props">
             <q-td :props="props">
@@ -96,6 +106,7 @@
                 @click="viewRater(props.row)"
                 color="info"
                 class="bg-blue-1"
+                :disable="isLoadingTable"
               >
                 <q-tooltip>View</q-tooltip>
               </q-btn>
@@ -108,11 +119,23 @@
                   @click="editRater(props.row)"
                   class="q-ml-sm bg-teal-1"
                   color="positive"
+                  :disable="isLoadingTable"
                 >
                   <q-tooltip>Edit</q-tooltip>
                 </q-btn>
               </template>
             </q-td>
+          </template>
+
+          <template v-slot:no-data="{ icon, message, filter }">
+            <div class="full-width row flex-center q-gutter-sm text-grey" style="padding: 60px 0">
+              <q-icon size="2em" :name="filter ? 'filter_alt_off' : icon || 'inbox'" />
+              <span>
+                {{
+                  filter ? 'No raters match your search criteria' : message || 'No raters available'
+                }}
+              </span>
+            </div>
           </template>
         </q-table>
       </q-card-section>
@@ -179,7 +202,6 @@
                 dense
                 emit-value
                 map-options
-                :disable="selectedPositions.length === 0"
                 @update:model-value="handleOfficeChange"
               >
                 <template v-slot:prepend>
@@ -312,11 +334,7 @@
             color="primary"
             @click="isEditMode ? updateRater() : addRater()"
             :loading="isSubmitting"
-            :disable="
-              isEditMode
-                ? selectedPositions.length === 0
-                : !selectedRater || !selectedOffice || selectedPositions.length === 0
-            "
+            :disable="isEditMode ? false : !selectedRater || !selectedOffice"
           />
         </q-card-actions>
       </q-card>
@@ -501,6 +519,9 @@
   const raterJobs = ref([]);
   const isLoadingJobs = ref(false);
   const jobLoadError = ref('');
+
+  // NEW: Loading state for the main table
+  const isLoadingTable = ref(false);
 
   // Modal state
   const showModal = ref(false);
@@ -891,8 +912,7 @@
       const result = await authStore.rater_edit(raterId, userData);
 
       if (result.success) {
-        await authStore.get_all_raters();
-        raters.value = authStore.users;
+        await loadRaters(); // Use the new loadRaters method
         closeModal();
         toast.success('Rater updated successfully');
       } else {
@@ -934,8 +954,7 @@
       const result = await authStore.Rater_register(userData);
 
       if (result.success) {
-        await authStore.get_all_raters();
-        raters.value = authStore.users;
+        await loadRaters(); // Use the new loadRaters method
         closeModal();
         toast.success('Rater added successfully');
       } else {
@@ -947,6 +966,21 @@
       showError.value = true;
     } finally {
       isSubmitting.value = false;
+    }
+  };
+
+  // NEW: Centralized method to load raters with loading state
+  const loadRaters = async () => {
+    isLoadingTable.value = true;
+    try {
+      await authStore.get_all_raters();
+      raters.value = authStore.users || [];
+    } catch (error) {
+      console.error('Error loading raters:', error);
+      toast.error('Failed to load raters');
+      raters.value = [];
+    } finally {
+      isLoadingTable.value = false;
     }
   };
 
@@ -962,17 +996,18 @@
   };
 
   onMounted(async () => {
+    isLoadingTable.value = true;
     try {
       await Promise.all([
         jobPostStore.job_post_list(),
-        authStore.get_all_raters(),
-        plantillaStore.fetch_office_rater(), // loads office names
+        loadRaters(), // Use the new loadRaters method
+        plantillaStore.fetch_office_rater(),
       ]);
-
-      raters.value = authStore.users || [];
     } catch (error) {
       console.error('Initialization error:', error);
       toast.error('Failed to load initial data');
+    } finally {
+      isLoadingTable.value = false;
     }
 
     // Positions for selection

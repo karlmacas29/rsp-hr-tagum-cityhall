@@ -75,7 +75,7 @@ const routes = [
         meta: { auth: true, role: 'admin' },
       },
       {
-        path: '/job-post/view/:PositionID/:ItemNo',
+        path: '/job-post/view/:id',
         name: 'JobPost View',
         component: () => import('pages/admin/job_post/ViewJobDetails.vue'),
         meta: { auth: true, role: 'admin' },

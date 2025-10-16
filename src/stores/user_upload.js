@@ -8,22 +8,28 @@ export const useUser_upload = defineStore('user_upload', () => {
   const successDialog = ref(false);
   const errorMessage = ref('');
   const uploadedFile = ref(null);
-  const selectedJob = ref(null); // Changed from jobPostStore to selectedJob
+  const uploadedZipFile = ref(null);
+  const selectedJob = ref(null);
 
   const setSelectedJob = (job) => {
     selectedJob.value = job;
-    console.log('Job set in upload store:', job); // Debug log
+    console.log('Job set in upload store:', job);
   };
 
   const processSubmission = async () => {
     if (!uploadedFile.value) {
-      errorMessage.value = 'No file selected.';
+      errorMessage.value = 'No Excel file selected.';
+      return null;
+    }
+
+    if (!uploadedZipFile.value) {
+      errorMessage.value = 'No ZIP file selected.';
       return null;
     }
 
     if (!selectedJob.value?.id) {
       errorMessage.value = 'No job selected or missing ID';
-      console.error('Selected job:', selectedJob.value); // Debug log
+      console.error('Selected job:', selectedJob.value);
       return null;
     }
 
@@ -33,9 +39,12 @@ export const useUser_upload = defineStore('user_upload', () => {
 
     const formData = new FormData();
     formData.append('excel_file', uploadedFile.value);
+    formData.append('zip_file', uploadedZipFile.value);
     formData.append('job_batches_rsp_id', selectedJob.value.id);
 
-    console.log('Submitting with job ID:', selectedJob.value.id); // Debug log
+    console.log('Submitting with job ID:', selectedJob.value.id);
+    console.log('Excel file:', uploadedFile.value.name);
+    console.log('ZIP file:', uploadedZipFile.value.name);
 
     try {
       const response = await adminApi.post('/applicant/submissions', formData, {
@@ -63,6 +72,7 @@ export const useUser_upload = defineStore('user_upload', () => {
 
   const reset = () => {
     uploadedFile.value = null;
+    uploadedZipFile.value = null;
     successDialog.value = false;
     errorMessage.value = '';
   };
@@ -72,6 +82,7 @@ export const useUser_upload = defineStore('user_upload', () => {
     successDialog,
     errorMessage,
     uploadedFile,
+    uploadedZipFile,
     selectedJob,
     setSelectedJob,
     processSubmission,

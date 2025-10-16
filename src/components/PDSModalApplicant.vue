@@ -208,7 +208,7 @@
       case 'personal':
         return !!applicantData.value.firstname;
       case 'family':
-        return !!(applicantData.value.family && applicantData.value.family.length > 0);
+        return !!applicantData.value.family;
       case 'education':
         return applicantData.value.education && applicantData.value.education.length > 0;
       case 'civilService':

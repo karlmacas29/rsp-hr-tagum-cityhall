@@ -340,9 +340,22 @@ export const useJobPostStore = defineStore('jobPost', {
 
     async hiredApplicant(id, payload) {
       try {
-        await adminApi.post(`/hire/${id}`, payload);
+        this.loading = true;
+        const response = await adminApi.post(`/hire/${id}`, payload, {
+          validateStatus: function (status) {
+            return status < 500; // Don't throw errors for 4xx status codes
+          },
+        });
+        return response; // Return the full response object
       } catch (err) {
         console.error('Failed to hire applicant:', err);
+        // Return a structured error response
+        return {
+          data: {
+            success: false,
+            message: 'Network error occurred',
+          },
+        };
       } finally {
         this.loading = false;
       }

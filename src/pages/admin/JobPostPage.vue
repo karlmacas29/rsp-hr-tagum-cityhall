@@ -230,6 +230,18 @@
               </div>
               <div class="col-6">
                 <q-input
+                  v-model="editJobDetails.Office2"
+                  label="Sub-Office"
+                  outlined
+                  dense
+                  disable
+                />
+              </div>
+              <div class="col-6">
+                <q-input v-model="editJobDetails.Group" label="Group" outlined dense disable />
+              </div>
+              <div class="col-6">
+                <q-input
                   v-model="editJobDetails.Division"
                   label="Division"
                   outlined
@@ -483,6 +495,18 @@
             <div class="row q-col-gutter-md">
               <div class="col-6">
                 <q-input v-model="editJobDetails.Office" label="Office" outlined dense disable />
+              </div>
+              <div class="col-6">
+                <q-input
+                  v-model="editJobDetails.Office2"
+                  label="Sub-Office"
+                  outlined
+                  dense
+                  disable
+                />
+              </div>
+              <div class="col-6">
+                <q-input v-model="editJobDetails.Group" label="Group" outlined dense disable />
               </div>
               <div class="col-6">
                 <q-input
@@ -848,10 +872,11 @@
   const editJobDetails = ref({
     id: null,
     Office: '',
-    tblStructureDetails_ID: null,
+    Office2: null,
+    Group: null,
     Division: '',
-    Section: '',
-    Unit: '',
+    Section: null,
+    Unit: null,
     Position: '',
     level: '',
     post_date: '',
@@ -860,9 +885,13 @@
     PositionID: '',
     ItemNo: '',
     SalaryGrade: '',
+    salaryMin: null,
+    salaryMax: null,
     status: '',
+    tblStructureDetails_ID: null,
     fileUpload: '',
     newFile: null,
+    old_job_id: null,
   });
 
   // Track the pending status separately from the actual status
@@ -1041,12 +1070,15 @@
       const jobData = jobPostStore.jobPosts;
 
       // Populate edit form with fetched job data
+
       editJobDetails.value = {
         id: jobData.id,
         Office: jobData.Office || '',
+        Office2: jobData.Office2 || null,
+        Group: jobData.Group || null,
         Division: jobData.Division || '',
-        Section: jobData.Section || '',
-        Unit: jobData.Unit || '',
+        Section: jobData.Section || null,
+        Unit: jobData.Unit || null,
         Position: jobData.Position || '',
         tblStructureDetails_ID: jobData.tblStructureDetails_ID || null,
         level: jobData.level || '',
@@ -1054,11 +1086,14 @@
         end_date: jobData.end_date.replace(/\//g, '-'),
         PageNo: parseInt(jobData.PageNo) || 0,
         PositionID: jobData.PositionID,
-        ItemNo: jobData.ItemNo,
+        ItemNo: jobData.ItemNo || '',
         SalaryGrade: jobData.SalaryGrade || '',
+        salaryMin: jobData.salaryMin || null,
+        salaryMax: jobData.salaryMax || null,
         status: jobData.status || '',
         fileUpload: jobData.plantilla?.fileUpload || '',
         newFile: null,
+        old_job_id: jobData.id,
       };
 
       // Set criteria data from the response
@@ -1100,13 +1135,15 @@
       defaultEndDate.setDate(defaultEndDate.getDate() + 30);
       const formattedEndDate = formatDate(defaultEndDate, 'YYYY-MM-DD');
 
-      // Populate edit form with fetched job data
+      // Populate edit form with fetched job data (include all fields)
       editJobDetails.value = {
         id: jobData.id,
         Office: jobData.Office || '',
+        Office2: jobData.Office2 || null,
+        Group: jobData.Group || null,
         Division: jobData.Division || '',
-        Section: jobData.Section || '',
-        Unit: jobData.Unit || '',
+        Section: jobData.Section || null,
+        Unit: jobData.Unit || null,
         Position: jobData.Position || '',
         tblStructureDetails_ID: jobData.tblStructureDetails_ID || null,
         level: jobData.level || '',
@@ -1114,8 +1151,10 @@
         end_date: formattedEndDate, // Set to 30 days from now
         PageNo: parseInt(jobData.PageNo) || 0,
         PositionID: jobData.PositionID,
-        ItemNo: jobData.ItemNo,
+        ItemNo: jobData.ItemNo || '',
         SalaryGrade: jobData.SalaryGrade || '',
+        salaryMin: jobData.salaryMin || null,
+        salaryMax: jobData.salaryMax || null,
         status: jobData.status || '',
         fileUpload: jobData.plantilla?.fileUpload || '',
         newFile: null,
@@ -1126,6 +1165,8 @@
       if (jobData.criteria) {
         criteriaData.value = {
           id: jobData.criteria.id,
+          PositionID: jobData.criteria.PositionID || '',
+          ItemNo: jobData.criteria.ItemNo || '',
           Education: jobData.criteria.Education || '',
           Experience: jobData.criteria.Experience || '',
           Training: jobData.criteria.Training || '',
@@ -1336,16 +1377,33 @@
         return;
       }
 
-      // Prepare job batch data for new post (don't include id to create new)
+      // Prepare job batch data for new post (include all fields except id)
       const jobBatch = {
+        Office: editJobDetails.value.Office || 'null',
+        Office2: editJobDetails.value.Office2 || 'null',
+        Group: editJobDetails.value.Group || 'null',
+        Division: editJobDetails.value.Division || 'null',
+        Section: editJobDetails.value.Section || 'null',
+        Unit: editJobDetails.value.Unit || 'null',
+        Position: editJobDetails.value.Position || 'null',
         PositionID: editJobDetails.value.PositionID || null,
         post_date: editJobDetails.value.post_date.replace(/\//g, '-'),
         end_date: editJobDetails.value.end_date.replace(/\//g, '-'),
         PageNo: editJobDetails.value.PageNo.toString(),
-        ItemNo: editJobDetails.value.ItemNo,
-        Position: editJobDetails.value.Position,
-        tblStructureDetails_ID: editJobDetails.value.tblStructureDetails_ID,
-        old_job_id: editJobDetails.value.old_job_id,
+        ItemNo: editJobDetails.value.ItemNo || 'null',
+        SalaryGrade: editJobDetails.value.SalaryGrade || 'null',
+        salaryMin: editJobDetails.value.salaryMin || 'null',
+        salaryMax: editJobDetails.value.salaryMax || 'null',
+        level: editJobDetails.value.level || 'null',
+        status: 'Not Started',
+        tblStructureDetails_ID: editJobDetails.value.tblStructureDetails_ID || 'null',
+        old_job_id: editJobDetails.value.id, // Reference to the original job post
+        isOpen: '1', // Set as open for new posting
+
+        Education: criteriaData.value.Education || '',
+        Experience: criteriaData.value.Experience || '',
+        Training: criteriaData.value.Training || '',
+        Eligibility: criteriaData.value.Eligibility || '',
       };
 
       // Add file if a new one was selected, otherwise keep the existing one
@@ -1357,12 +1415,14 @@
         console.log('Using existing file:', editJobDetails.value.fileUpload);
       }
 
-      // Prepare criteria data for new post
+      // Prepare criteria data for new post (exclude id to create new criteria)
       const criteria = {
-        Education: criteriaData.value.Education,
-        Experience: criteriaData.value.Experience,
-        Training: criteriaData.value.Training,
-        Eligibility: criteriaData.value.Eligibility,
+        PositionID: editJobDetails.value.PositionID || '',
+        ItemNo: editJobDetails.value.ItemNo || '',
+        Education: criteriaData.value.Education || '',
+        Experience: criteriaData.value.Experience || '',
+        Training: criteriaData.value.Training || '',
+        Eligibility: criteriaData.value.Eligibility || '',
       };
 
       console.log('Republishing job post with data:', { jobBatch, criteria });

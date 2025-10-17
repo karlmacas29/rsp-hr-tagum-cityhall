@@ -513,25 +513,32 @@
           );
           console.log('API Response:', response);
 
-          if (response.data && typeof response.data.success === 'boolean') {
-            if (response.data.success) {
-              toast.success(response.data.message);
+          // Check if response exists and has the expected structure
+          if (response && response.data) {
+            if (response.data.success === true) {
+              toast.success(response.data.message || 'Applicant hired successfully');
               hireConfirmationDialog.value = false;
               closeModal();
             } else {
-              toast.success(response.data.message);
+              // Handle API errors where success is false
+              console.log('API returned success: false, message:', response.data.message);
+              toast.error(response.data.message || 'Failed to hire applicant');
+              hireConfirmationDialog.value = false;
             }
           } else {
+            console.log('Unexpected response structure:', response);
             toast.error('Unexpected response format.');
+            hireConfirmationDialog.value = false;
           }
         } catch (error) {
-          console.error('Error hiring applicant:', error);
-          toast.error('Failed to hire applicant. Please try again.');
+          console.error('Network or other error:', error);
+          toast.error('Network error. Please try again.');
+          hireConfirmationDialog.value = false;
         } finally {
           hiringLoading.value = false;
+          
         }
       };
-
       // Legacy function kept for backward compatibility
       const hireApplicant = async () => {
         showHireConfirmation();

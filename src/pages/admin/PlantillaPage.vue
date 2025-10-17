@@ -407,6 +407,18 @@
               </div>
               <div class="col-6">
                 <q-input
+                  v-model="postJobDetails.office2"
+                  label="Sub-Office"
+                  outlined
+                  dense
+                  disable
+                />
+              </div>
+              <div class="col-6">
+                <q-input v-model="postJobDetails.group" label="Group" outlined dense disable />
+              </div>
+              <div class="col-6">
+                <q-input
                   v-model="postJobDetails.division"
                   label="Division"
                   outlined
@@ -643,6 +655,8 @@
 
   const postJobDetails = ref({
     office: '',
+    office2: '',
+    group: '',
     division: '',
     section: '',
     ID: null,
@@ -845,6 +859,8 @@
       postJobDetails.value = {
         ID: row.ID,
         office: row.office,
+        office2: row.office2,
+        group: row.group,
         division: row.division,
         section: row.section,
         unit: row.unit,

@@ -183,10 +183,23 @@
             Position is occupied - Hiring is disabled.
           </div>
 
+          <!-- Show no permission message -->
+          <div class="text-body2 text-grey-8" v-if="!canModifyJobPost && !isJobOccupied">
+            <q-icon name="visibility" color="grey" class="q-mr-xs" />
+            View only - You do not have permission to hire applicants.
+          </div>
+
           <div>
-            <!-- Only show hire button if job is not occupied -->
+            <!-- Only show hire button if user has modify permission and job is not occupied -->
             <q-btn
-              v-if="showHireButton && !isJobOccupied"
+              v-if="
+                showHireButton &&
+                !isJobOccupied &&
+                !isRepublish &&
+                !isUnoccupied &&
+                applicant?.status != 'Unoccupied' &&
+                canModifyJobPost
+              "
               color="positive"
               icon="work"
               label="Hire"
@@ -318,6 +331,7 @@
 <script>
   import { ref, computed, watch } from 'vue';
   import { useJobPostStore } from 'stores/jobPostStore';
+  import { useAuthStore } from 'stores/authStore';
   import { toast } from 'src/boot/toast';
 
   export default {
@@ -351,6 +365,12 @@
       const hireConfirmationDialog = ref(false);
 
       const jobPostStore = useJobPostStore();
+      const authStore = useAuthStore();
+
+      // Permission check - Only for hiring operations
+      const canModifyJobPost = computed(() => {
+        return authStore.user?.permissions?.modifyJobpostAccess == '1';
+      });
 
       const applicantName = computed(() => {
         if (!props.applicant) return 'Unknown Applicant';
@@ -374,8 +394,31 @@
         );
       });
 
+      const isUnoccupied = computed(() => {
+        return (
+          props.jobDetails?.status === 'Unoccupied' ||
+          props.jobDetails?.status === 'unoccupied' ||
+          props.applicant?.Jobstatus === 'Unoccupied' ||
+          props.applicant?.Jobstatus === 'unoccupied'
+        );
+      });
+
+      const isRepublish = computed(() => {
+        return (
+          props.jobDetails?.status === 'Republished' ||
+          props.jobDetails?.status === 'republished' ||
+          props.applicant?.Jobstatus === 'Republished' ||
+          props.applicant?.Jobstatus === 'republished'
+        );
+      });
+
       // Computed property to determine if hire button should be shown
       const showHireButton = computed(() => {
+        // Check if user has modify permission
+        if (!canModifyJobPost.value) {
+          return false;
+        }
+
         // Check if all ratings are completed
         const allRatingsCompleted =
           props.ratingData.total_completed === props.ratingData.total_assigned;
@@ -384,7 +427,7 @@
         const applicantRank = parseInt(finalScores.value?.rank) || 999;
         const isTopFive = applicantRank <= 5;
 
-        // Only show if ratings are complete, applicant is in top 5, and job is not occupied
+        // Only show if user has permission, ratings are complete, applicant is in top 5, and job is not occupied
         return allRatingsCompleted && isTopFive && !isJobOccupied.value;
       });
 
@@ -491,12 +534,18 @@
       };
 
       const showHireConfirmation = () => {
-        if (!isJobOccupied.value) {
+        if (!isJobOccupied.value && canModifyJobPost.value) {
           hireConfirmationDialog.value = true;
         }
       };
 
       const confirmHireApplicant = async () => {
+        // Check permission before hiring
+        if (!canModifyJobPost.value) {
+          toast.error('You do not have permission to hire applicants');
+          return;
+        }
+
         try {
           hiringLoading.value = true;
 
@@ -536,10 +585,9 @@
           hireConfirmationDialog.value = false;
         } finally {
           hiringLoading.value = false;
-          
         }
       };
-      // Legacy function kept for backward compatibility
+
       const hireApplicant = async () => {
         showHireConfirmation();
       };
@@ -631,11 +679,14 @@
         formatScore,
         showHireButton,
         isJobOccupied,
+        isRepublish,
+        isUnoccupied,
         hireApplicant,
         hiringLoading,
         hireConfirmationDialog,
         showHireConfirmation,
         confirmHireApplicant,
+        canModifyJobPost,
       };
     },
   };

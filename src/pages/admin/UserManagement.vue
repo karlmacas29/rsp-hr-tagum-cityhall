@@ -1,4 +1,3 @@
-```vue
 <template>
   <q-page>
     <div class="q-pa-md">
@@ -10,7 +9,6 @@
               <q-icon size="1.2em" name="arrow_forward" />
             </template>
             <q-breadcrumbs-el icon="manage_accounts" label="User Management" />
-            <!-- <q-breadcrumbs-el icon="rule" label="Criteria" /> -->
           </q-breadcrumbs>
         </div>
       </div>
@@ -35,7 +33,6 @@
           </template>
           <template v-slot:top-right>
             <!-- Add User Button -->
-
             <q-btn
               rounded
               color="primary"
@@ -53,39 +50,7 @@
             </q-td>
           </template>
 
-          <!-- Permissions column
-          <template v-slot:body-cell-permissions="props">
-            <q-td :props="props">
-              <div class="row q-gutter-xs">
-                <q-badge rounded v-if="props.row.rsp_control.isFunded == '1'" color="primary">
-                  <q-icon name="paid" size="xs" />
-                  <q-tooltip>Funding Access</q-tooltip>
-                </q-badge>
-
-                <q-badge v-if="props.row.rsp_control.isUserM == '1'" color="primary">
-                  <q-icon name="manage_accounts" size="xs" />
-                  <q-tooltip>User Management</q-tooltip>
-                </q-badge>
-
-                <q-badge v-if="props.row.rsp_control.isRaterM == '1'" color="primary">
-                  <q-icon name="rate_review" size="xs" />
-                  <q-tooltip>Rater Management</q-tooltip>
-                </q-badge>
-
-                <q-badge v-if="props.row.rsp_control.isCriteria == '1'" color="primary">
-                  <q-icon name="rule" size="xs" />
-                  <q-tooltip>Criteria Access</q-tooltip>
-                </q-badge>
-
-                <q-badge v-if="props.row.rsp_control.isDashboardStat == '1'" color="primary">
-                  <q-icon name="dashboard" size="xs" />
-                  <q-tooltip>Dashboard Status Access</q-tooltip>
-                </q-badge>
-              </div>
-            </q-td>
-          </template> -->
-
-          <!-- Add body cell template for position -->
+          <!-- Add body cell template for created_at -->
           <template v-slot:body-cell-created_at="props">
             <q-td :props="props" style="width: 230px; white-space: normal">
               <q-badge rounded class="bg-blue" outline>
@@ -103,7 +68,7 @@
             </q-td>
           </template>
 
-          <!-- Add body cell template for position -->
+          <!-- Add body cell template for updated_at -->
           <template v-slot:body-cell-updated_at="props">
             <q-td :props="props" style="width: 230px; white-space: normal">
               <q-badge rounded class="bg-teal" outline>
@@ -137,21 +102,9 @@
                 <q-tooltip>Edit User</q-tooltip>
               </q-btn>
 
-              <!-- <q-btn
-                  v-if="props.row.id !== authStore.user.id"
-                  flat
-                  round
-                  color="negative"
-                  icon="delete"
-                  @click="confirmDelete(props.row.id, props.row.name)"
-                >
-                  <q-tooltip>Delete User</q-tooltip>
-                </q-btn> -->
-
               <q-badge rounded v-if="props.row.id == authStore.user.id" color="blue">You</q-badge>
             </q-td>
           </template>
-          <!-- Loading -->
         </q-table>
       </div>
     </div>
@@ -229,95 +182,141 @@
                 <div class="text-subtitle1 q-mb-sm">User Permissions</div>
                 <q-card flat bordered class="q-pa-md">
                   <div class="q-gutter-y-md">
+                    <!-- Dashboard Statistics -->
                     <q-toggle
                       true-value="1"
                       false-value="0"
-                      v-model="form.permissions.isFunded"
-                      label="Allow Plantilla Funding Access"
-                      :error="!!authStore.errors?.['permissions.isFunded']"
-                      :error-message="authStore.errors?.['permissions.isFunded']?.[0]"
-                      icon="paid"
+                      v-model="form.permissions.viewDashboardStat"
+                      label="View Dashboard Statistics"
+                      :error="!!authStore.errors?.['permissions.viewDashboardStat']"
+                      :error-message="authStore.errors?.['permissions.viewDashboardStat']?.[0]"
+                      icon="dashboard"
+                    />
+
+                    <!-- Plantilla Access -->
+                    <q-toggle
+                      true-value="1"
+                      false-value="0"
+                      v-model="form.permissions.viewPlantillaAccess"
+                      label="View Plantilla Access"
+                      :error="!!authStore.errors?.['permissions.viewPlantillaAccess']"
+                      :error-message="authStore.errors?.['permissions.viewPlantillaAccess']?.[0]"
+                      icon="visibility"
                     />
 
                     <q-toggle
                       true-value="1"
                       false-value="0"
-                      v-model="form.permissions.isUserM"
-                      label="Allow User Management Access"
-                      :error="!!authStore.errors?.['permissions.isUserM']"
-                      :error-message="authStore.errors?.['permissions.isUserM']?.[0]"
+                      v-model="form.permissions.modifyPlantillaAccess"
+                      label="Modify Plantilla Access"
+                      :error="!!authStore.errors?.['permissions.modifyPlantillaAccess']"
+                      :error-message="authStore.errors?.['permissions.modifyPlantillaAccess']?.[0]"
+                      icon="edit"
+                    />
+
+                    <!-- Job Post Access -->
+                    <q-toggle
+                      true-value="1"
+                      false-value="0"
+                      v-model="form.permissions.viewJobpostAccess"
+                      label="View Job Post Access"
+                      :error="!!authStore.errors?.['permissions.viewJobpostAccess']"
+                      :error-message="authStore.errors?.['permissions.viewJobpostAccess']?.[0]"
+                      icon="visibility"
+                    />
+
+                    <q-toggle
+                      true-value="1"
+                      false-value="0"
+                      v-model="form.permissions.modifyJobpostAccess"
+                      label="Modify Job Post Access"
+                      :error="!!authStore.errors?.['permissions.modifyJobpostAccess']"
+                      :error-message="authStore.errors?.['permissions.modifyJobpostAccess']?.[0]"
+                      icon="edit"
+                    />
+
+                    <!-- Activity Logs -->
+                    <q-toggle
+                      true-value="1"
+                      false-value="0"
+                      v-model="form.permissions.viewActivityLogs"
+                      label="View Activity Logs"
+                      :error="!!authStore.errors?.['permissions.viewActivityLogs']"
+                      :error-message="authStore.errors?.['permissions.viewActivityLogs']?.[0]"
+                      icon="history"
+                    />
+
+                    <!-- User Management -->
+                    <q-toggle
+                      true-value="1"
+                      false-value="0"
+                      v-model="form.permissions.userManagement"
+                      label="Allow Access to User Management"
+                      :error="!!authStore.errors?.['permissions.userManagement']"
+                      :error-message="authStore.errors?.['permissions.userManagement']?.[0]"
                       icon="manage_accounts"
                     />
 
+                    <!-- ========================================================================= -->
+                    <!-- RATER MANAGEMENT MODULE PERMISSIONS -->
+                    <!-- ========================================================================= -->
+
+                    <!-- View Rater -->
                     <q-toggle
                       true-value="1"
                       false-value="0"
-                      v-model="form.permissions.isRaterM"
-                      label="Allow Rater Management Access"
-                      :error="!!authStore.errors?.['permissions.isRaterM']"
-                      :error-message="authStore.errors?.['permissions.isRaterM']?.[0]"
-                      icon="rate_review"
+                      v-model="form.permissions.viewRater"
+                      label="View Rater Module Access"
+                      :error="!!authStore.errors?.['permissions.viewRater']"
+                      :error-message="authStore.errors?.['permissions.viewRater']?.[0]"
+                      icon="visibility"
                     />
 
+                    <!-- Modify Rater -->
                     <q-toggle
                       true-value="1"
                       false-value="0"
-                      v-model="form.permissions.isCriteria"
-                      label="Allow Modify Criteria"
-                      :error="!!authStore.errors?.['permissions.isCriteria']"
-                      :error-message="authStore.errors?.['permissions.isCriteria']?.[0]"
-                      icon="rule"
+                      v-model="form.permissions.modifyRater"
+                      label="Modify Rater Module Access"
+                      :error="!!authStore.errors?.['permissions.modifyRater']"
+                      :error-message="authStore.errors?.['permissions.modifyRater']?.[0]"
+                      icon="edit"
                     />
 
+                    <!-- View Criteria -->
                     <q-toggle
                       true-value="1"
                       false-value="0"
-                      v-model="form.permissions.isDashboardStat"
-                      label="Allow View Dashboard Statistics Performance"
-                      :error="!!authStore.errors?.['permissions.isDashboardStat']"
-                      :error-message="authStore.errors?.['permissions.isDashboardStat']?.[0]"
-                      icon="rule"
+                      v-model="form.permissions.viewCriteria"
+                      label="View Criteria Access"
+                      :error="!!authStore.errors?.['permissions.viewCriteria']"
+                      :error-message="authStore.errors?.['permissions.viewCriteria']?.[0]"
+                      icon="visibility"
                     />
 
+                    <!-- Modify Criteria -->
                     <q-toggle
                       true-value="1"
                       false-value="0"
-                      v-model="form.permissions.isDashboardStat"
-                      label="Allow Printing of Report"
-                      :error="!!authStore.errors?.['permissions.isDashboardStat']"
-                      :error-message="authStore.errors?.['permissions.isDashboardStat']?.[0]"
-                      icon="rule"
+                      v-model="form.permissions.modifyCriteria"
+                      label="Modify Criteria Access"
+                      :error="!!authStore.errors?.['permissions.modifyCriteria']"
+                      :error-message="authStore.errors?.['permissions.modifyCriteria']?.[0]"
+                      icon="edit"
                     />
 
+                    <!-- View Report -->
                     <q-toggle
                       true-value="1"
                       false-value="0"
-                      v-model="form.permissions.isDashboardStat"
-                      label="Allow Modifying Job Post"
-                      :error="!!authStore.errors?.['permissions.isDashboardStat']"
-                      :error-message="authStore.errors?.['permissions.isDashboardStat']?.[0]"
-                      icon="rule"
+                      v-model="form.permissions.viewReport"
+                      label="View Report Module Access"
+                      :error="!!authStore.errors?.['permissions.viewReport']"
+                      :error-message="authStore.errors?.['permissions.viewReport']?.[0]"
+                      icon="visibility"
                     />
 
-                    <q-toggle
-                      true-value="1"
-                      false-value="0"
-                      v-model="form.permissions.isDashboardStat"
-                      label="Allow Hiring Applicant"
-                      :error="!!authStore.errors?.['permissions.isDashboardStat']"
-                      :error-message="authStore.errors?.['permissions.isDashboardStat']?.[0]"
-                      icon="rule"
-                    />
-
-                    <q-toggle
-                      true-value="1"
-                      false-value="0"
-                      v-model="form.permissions.isDashboardStat"
-                      label="Allow Activity Log Access"
-                      :error="!!authStore.errors?.['permissions.isDashboardStat']"
-                      :error-message="authStore.errors?.['permissions.isDashboardStat']?.[0]"
-                      icon="rule"
-                    />
+                    <!-- ========================================================================= -->
                   </div>
                 </q-card>
               </div>
@@ -399,6 +398,7 @@
     setup() {
       const authStore = useAuthStore();
       const confirmUpdateDialog = ref(false);
+
       // Table related
       const filter = ref('');
       const pagination = ref({
@@ -414,7 +414,6 @@
         { name: 'username', align: 'left', label: 'Username', field: 'username', sortable: true },
         { name: 'position', align: 'left', label: 'Position', field: 'position', sortable: true },
         { name: 'active', align: 'left', label: 'Status', field: 'active', sortable: true },
-
         {
           name: 'created_at',
           align: 'left',
@@ -442,11 +441,18 @@
         password: '',
         active: true,
         permissions: {
-          isFunded: false,
-          isUserM: false,
-          isRaterM: false,
-          isCriteria: false,
-          isDashboardStat: false,
+          viewDashboardStat: '0',
+          viewPlantillaAccess: '0',
+          modifyPlantillaAccess: '0',
+          viewJobpostAccess: '0',
+          modifyJobpostAccess: '0',
+          viewActivityLogs: '0',
+          userManagement: '0',
+          viewRater: '0',
+          modifyRater: '0',
+          viewCriteria: '0',
+          modifyCriteria: '0',
+          viewReport: '0',
         },
       });
 
@@ -466,10 +472,18 @@
           password: '',
           active: true,
           permissions: {
-            isFunded: false,
-            isUserM: false,
-            isRaterM: false,
-            isCriteria: false,
+            viewDashboardStat: '0',
+            viewPlantillaAccess: '0',
+            modifyPlantillaAccess: '0',
+            viewJobpostAccess: '0',
+            modifyJobpostAccess: '0',
+            viewActivityLogs: '0',
+            userManagement: '0',
+            viewRater: '0',
+            modifyRater: '0',
+            viewCriteria: '0',
+            modifyCriteria: '0',
+            viewReport: '0',
           },
         };
         authStore.errors = {};
@@ -497,11 +511,18 @@
             password: '', // Empty for edit form
             active: user.active,
             permissions: {
-              isFunded: user.rsp_control?.isFunded || false,
-              isUserM: user.rsp_control?.isUserM || false,
-              isRaterM: user.rsp_control?.isRaterM || false,
-              isCriteria: user.rsp_control?.isCriteria || false,
-              isDashboardStat: user.rsp_control?.isDashboardStat || false,
+              viewDashboardStat: user.rsp_control?.viewDashboardStat || '0',
+              viewPlantillaAccess: user.rsp_control?.viewPlantillaAccess || '0',
+              modifyPlantillaAccess: user.rsp_control?.modifyPlantillaAccess || '0',
+              viewJobpostAccess: user.rsp_control?.viewJobpostAccess || '0',
+              modifyJobpostAccess: user.rsp_control?.modifyJobpostAccess || '0',
+              viewActivityLogs: user.rsp_control?.viewActivityLogs || '0',
+              userManagement: user.rsp_control?.userManagement || '0',
+              viewRater: user.rsp_control?.viewRater || '0',
+              modifyRater: user.rsp_control?.modifyRater || '0',
+              viewCriteria: user.rsp_control?.viewCriteria || '0',
+              modifyCriteria: user.rsp_control?.modifyCriteria || '0',
+              viewReport: user.rsp_control?.viewReport || '0',
             },
           };
         }

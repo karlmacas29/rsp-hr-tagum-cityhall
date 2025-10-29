@@ -108,7 +108,7 @@ const routes = [
         component: () => import('pages/user/UserJobList.vue'),
       },
       {
-        path: '/jobList/details/:PositionID/:ItemNo',
+        path: '/jobList/details/:id',
         name: 'Joblist Details',
         component: () => import('pages/user/ViewJobDetails.vue'),
       },

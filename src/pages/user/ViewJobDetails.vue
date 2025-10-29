@@ -283,7 +283,10 @@
 
       <!-- Loading skeleton -->
       <q-card v-else flat bordered style="width: 70vw">
-        <!-- ... existing skeleton code ... -->
+        <q-card-section>
+          <q-skeleton type="text" />
+          <q-skeleton type="rect" height="200px" />
+        </q-card-section>
       </q-card>
     </div>
 
@@ -432,44 +435,134 @@
 </template>
 
 <script setup>
-  import { useRoute } from 'vue-router';
-  import { onMounted, ref, computed } from 'vue';
+  import { ref, computed, onMounted } from 'vue';
+  import { useRouter, useRoute } from 'vue-router';
+  import { useQuasar } from 'quasar';
   import { useJobPostStore } from 'stores/jobPostStore';
   import { useUser_upload } from 'stores/user_upload';
+  import { toast } from 'src/boot/toast';
   import ZipInstructionModal from 'components/ZipFileModal.vue';
+
+  const $q = useQuasar();
+  const route = useRoute();
+  const router = useRouter();
 
   const uploadStore = useUser_upload();
   const jobPostStore = useJobPostStore();
 
-  const route = useRoute();
-  const P_ID = route.params.PositionID;
-  const I_No = route.params.ItemNo;
+  const id = route.params.id;
 
-  // Job details
-  const selectedJob = ref([]);
-  const selectedCriteria = ref([]);
-
+  // Local UI state
   const showZipInstructions = ref(false);
-
-  // Application state
   const confirmDialog = ref(false);
-  // const isSubmitting = ref(false);
+  const uploadingLoading = ref(false);
 
-  // Added function to close success dialog and reset state
-  const closeSuccessDialog = () => {
-    successDialog.value = false;
-    // Reset both files
-    uploadedFile.value = null;
-    uploadedZipFile.value = null;
+  // Job data refs used by the template
+  const selectedJob = ref(null);
+  const selectedCriteria = ref(null);
+
+  const refreshJobDetails = async (showLoading = false) => {
+    if (showLoading) {
+      jobPostStore.loading = true;
+    }
+
+    try {
+      console.log('Refreshing job details for ID:', id);
+
+      // Call the store method
+      let jobDetails = await jobPostStore.fetchJobDetails(id);
+
+      // If the store method doesn't return data, get it from the store
+      if (!jobDetails && jobPostStore.jobPosts) {
+        console.log('Using data from store.jobPosts');
+        jobDetails = jobPostStore.jobPosts;
+      }
+
+      if (!jobDetails) {
+        throw new Error('No job details returned from server');
+      }
+
+      console.log('Successfully refreshed job details:', jobDetails);
+
+      // Update job details
+      selectedJob.value = {
+        id: jobDetails.id || null,
+        old_job_id: jobDetails.old_job_id || null,
+        Position: jobDetails.Position || 'Unknown Position',
+        status: jobDetails.status || 'Unknown',
+        level: jobDetails.level || 'N/A',
+        PageNo: jobDetails.PageNo || 'N/A',
+        ItemNo: jobDetails.ItemNo || 'N/A',
+        SalaryGrade: jobDetails.SalaryGrade || 'N/A',
+        Office: jobDetails.Office || 'Unknown Office',
+        Division: jobDetails.Division || 'N/A',
+        Section: jobDetails.Section || 'N/A',
+        Unit: jobDetails.Unit || 'N/A',
+        post_date: jobDetails.post_date || null,
+        end_date: jobDetails.end_date || null,
+        PositionID: jobDetails.PositionID || '',
+        tblStructureDetails_ID: jobDetails.tblStructureDetails_ID || null,
+        ...jobDetails,
+      };
+
+      // Update criteria
+      if (jobDetails.criteria && typeof jobDetails.criteria === 'object') {
+        selectedCriteria.value = {
+          id: jobDetails.criteria.id || null,
+          Education: jobDetails.criteria.Education || 'Not specified',
+          Experience: jobDetails.criteria.Experience || 'Not specified',
+          Training: jobDetails.criteria.Training || 'Not specified',
+          Eligibility: jobDetails.criteria.Eligibility || 'Not specified',
+        };
+      } else {
+        selectedCriteria.value = {
+          Education: 'No criteria available',
+          Experience: 'No criteria available',
+          Training: 'No criteria available',
+          Eligibility: 'No criteria available',
+        };
+      }
+
+      return jobDetails;
+    } catch (error) {
+      console.error('Error refreshing job details:', error);
+      throw error;
+    } finally {
+      if (showLoading) {
+        jobPostStore.loading = false;
+      }
+    }
   };
 
+  // Map store state to template-accessible computed refs
+  const uploadedFile = computed({
+    get: () => uploadStore.uploadedFile,
+    set: (val) => (uploadStore.uploadedFile = val),
+  });
+
+  const uploadedZipFile = computed({
+    get: () => uploadStore.uploadedZipFile,
+    set: (val) => (uploadStore.uploadedZipFile = val),
+  });
+
+  // expose store successDialog for template
   const successDialog = computed({
     get: () => uploadStore.successDialog,
     set: (val) => (uploadStore.successDialog = val),
   });
 
-  // Download the Excel template
-  const downloadExcelForm = () => {
+  // Small helper: format file size (template calls this)
+  function formatFileSize(bytes) {
+    if (bytes === undefined || bytes === null) return '';
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  // Download template helper
+  function downloadExcelForm() {
     const excelFileUrl = '/public/pdsv2.xlsx';
     const a = document.createElement('a');
     a.href = excelFileUrl;
@@ -481,71 +574,133 @@
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-  };
+  }
 
-  // Format file size
-  const formatFileSize = (bytes) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
-
-  // Generate a random reference number
-  const generateReferenceNumber = () => {
+  // Generate a simple reference number (used in success dialog)
+  function generateReferenceNumber() {
     const timestamp = Date.now().toString().slice(-6);
     const random = Math.floor(Math.random() * 10000)
       .toString()
       .padStart(4, '0');
     return `${timestamp}-${random}`;
-  };
+  }
 
-  // Computed properties for both files
-  const uploadedFile = computed({
-    get: () => uploadStore.uploadedFile,
-    set: (val) => (uploadStore.uploadedFile = val),
-  });
+  // Reset store and local UI on success close
+  function closeSuccessDialog() {
+    uploadStore.reset();
+    successDialog.value = false;
+    // Optionally redirect back to job list
+    router.push('/jobList');
+  }
 
-  const uploadedZipFile = computed({
-    get: () => uploadStore.uploadedZipFile,
-    set: (val) => (uploadStore.uploadedZipFile = val),
-  });
-
-  const submitApplication = async () => {
-    if (!uploadStore.uploadedFile || !uploadStore.uploadedZipFile) return;
+  // Called by the "APPLY NOW" button to open confirm dialog
+  async function submitApplication() {
+    if (!uploadStore.uploadedFile || !uploadStore.uploadedZipFile) {
+      // Minor UX: show immediate notify if user managed to click without files
+      $q.notify({
+        type: 'negative',
+        message: 'Please attach both Excel and ZIP files before submitting.',
+      });
+      return;
+    }
     confirmDialog.value = true;
-  };
+  }
 
-  const processSubmission = async () => {
+  // Called when the user confirms submission in the dialog
+  async function processSubmission() {
+    // close dialog and show local uploading indicator
     confirmDialog.value = false;
+    uploadingLoading.value = true;
+
     try {
-      console.log('Current selected job:', uploadStore.selectedJob);
+      console.log('Current selected job (local):', selectedJob.value);
+      console.log('Current selected job (store):', uploadStore.selectedJob);
       console.log('Excel file:', uploadStore.uploadedFile?.name);
       console.log('ZIP file:', uploadStore.uploadedZipFile?.name);
 
+      // Call store action that handles the API request and internal state
       const response = await uploadStore.processSubmission();
+      console.log('Raw response from store:', response);
 
-      if (response) {
-        console.log('Submission response:', response);
-        if (response.job_batch_rsp_id) {
-          console.log('Job batch response ID:', response.job_batch_rsp_id);
-        }
+      // Normalize response: store returns axios response or a normalized data object
+      const data = response?.data ?? response;
+
+      // Prefer the message from the API, fallback to store.errorMessage
+      const message = data?.message ?? uploadStore.errorMessage ?? '';
+
+      if (data?.success === true) {
+        // Show positive notification and rely on store.successDialog to show success UI
+        $q.notify({ type: 'positive', message: message || 'Submission uploaded successfully' });
+        // successDialog in template is backed by computed, and the store also sets successDialog
+        // Optionally ensure it's open here if you want immediate visual:
+        // uploadStore.successDialog = true;
+      } else {
+        // Failure branches: show message from API or generic error
+        $q.notify({ type: 'negative', message: message || 'Failed to upload submission' });
+        // The store.errorMessage is set by the store; you can also display errorMessage in the template.
+        console.warn('Submission failed:', message);
       }
-    } catch (error) {
-      console.error('Submission process error:', error);
-    }
-  };
 
+      // Example of reading server returned id if present
+      if (data?.id) {
+        console.log('Job batch response ID:', data.id);
+      }
+    } catch (err) {
+      // Network/unexpected errors
+      console.error('Submission process error:', err);
+      $q.notify({ type: 'negative', message: 'Network error. Please try again.' });
+    } finally {
+      uploadingLoading.value = false;
+    }
+  }
+
+  // On mounted: load job and criteria, set the job into uploadStore (so store has selectedJob)
   onMounted(async () => {
-    await jobPostStore.fetchJobPostByPositionAndItemNo(P_ID, I_No).then((job) => {
-      selectedJob.value = job;
-      uploadStore.setSelectedJob(job);
-      console.log('Job loaded:', job);
-    });
-    await jobPostStore.fetchCriteriaByPositionAndItemNo(P_ID, I_No).then((criteria) => {
-      selectedCriteria.value = criteria;
-    });
+    if (!id) {
+      console.error('No job ID provided in route params');
+      toast.error('No job ID provided');
+      router.push('/job-post');
+      return;
+    }
+
+    try {
+      // Load initial job details
+      await refreshJobDetails(true); // Show loading for initial load
+
+      // ✅ FIX: Set the job in the upload store after loading
+      if (selectedJob.value && selectedJob.value.id) {
+        uploadStore.setSelectedJob(selectedJob.value);
+        console.log('Job set in upload store:', selectedJob.value);
+      } else {
+        console.error('Selected job is missing ID:', selectedJob.value);
+        throw new Error('Job ID is missing');
+      }
+
+      console.log('Initial data loading completed');
+    } catch (error) {
+      console.error('Error during initial data loading:', error);
+
+      let errorMessage = 'Failed to load job details';
+      if (error.response) {
+        if (error.response.status === 404) {
+          errorMessage = 'Job not found';
+        } else if (error.response.status === 403) {
+          errorMessage = 'Access denied';
+        } else {
+          errorMessage = error.response.data?.message || errorMessage;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      toast.error(errorMessage);
+
+      if (error.response?.status === 404) {
+        setTimeout(() => {
+          router.push('/job-post');
+        }, 2000);
+      }
+    }
   });
 </script>
 

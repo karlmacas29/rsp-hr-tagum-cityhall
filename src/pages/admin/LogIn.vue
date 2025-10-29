@@ -24,7 +24,10 @@
             </div>
           </q-img>
         </div>
-        <div class="col-6 grid self-center justify-center q-pa-sm">
+        <div
+          class="col-6 flex column justify-center items-center relative-position"
+          style="height: 100vh"
+        >
           <div class="q-mx-auto" style="width: 350px">
             <div class="row justify-start items-center q-ma-none" style="width: 370px">
               <div>
@@ -82,6 +85,15 @@
                 </div>
               </form>
             </div>
+          </div>
+
+          <!-- Version Info - Bottom Right Corner -->
+          <div
+            class="absolute"
+            style="bottom: 20px; right: 20px; display: flex; align-items: center; gap: 8px"
+          >
+            <q-icon name="info" size="sm" color="grey-7" />
+            <span class="text-caption text-grey-7">v 1.0.0.1</span>
           </div>
         </div>
       </q-page>

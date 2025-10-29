@@ -6,19 +6,55 @@
     <!-- Job Details Card -->
     <q-card class="q-mb-lg shadow-3" flat bordered style="max-width: 1000px; margin: auto">
       <q-card-section v-if="!jobPostStore.loading" class="q-pa-lg">
+        <!-- Search and Filter Section -->
         <div class="row items-center justify-between q-mb-lg">
           <q-btn icon="arrow_back" round flat color="primary" @click="goBack" size="md" dense />
-          <q-btn
-            rounded
-            color="primary"
-            @click="viewFundedDocument"
-            icon="description"
-            label="View M.O."
-            size="md"
-            no-caps
-            flat
-            dense
-          />
+          <div class="row items center">
+            <!-- ✅ FIXED: Only show q-select when history exists -->
+            <q-select
+              v-if="historyOptions.length > 0"
+              :model-value="displayHistoryId"
+              :options="historyOptions"
+              rounded
+              dense
+              outlined
+              class="text-subtitle1"
+              color="primary"
+              label="View Old Post"
+              option-label="label"
+              option-value="value"
+              style="width: 250px; padding-right: 15px"
+              @update:model-value="onHistoryChange"
+              emit-value
+              map-options
+            />
+            <!-- ✅ FIXED: Show placeholder text when no history -->
+            <div
+              v-else
+              class="text-subtitle1 q-pa-md"
+              style="
+                width: 250px;
+                padding-right: 15px;
+                color: #999;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+              "
+            >
+              No previous versions
+            </div>
+
+            <q-btn
+              rounded
+              color="primary"
+              @click="viewFundedDocument"
+              icon="description"
+              label="View M.O."
+              size="md"
+              no-caps
+              flat
+              dense
+            />
+          </div>
         </div>
 
         <div class="text-h6 text-primary q-mb-xs">
@@ -144,7 +180,6 @@
           active-color="primary"
           indicator-color="primary"
           align="justify"
-          :key="tabsKey"
         >
           <q-tab name="applicants" label="Applicants" />
           <q-tab name="ratings" label="Rating Results" />
@@ -152,16 +187,33 @@
 
         <q-separator />
 
-        <q-tab-panels v-model="activeTab" animated :key="tabPanelsKey">
+        <q-tab-panels v-model="activeTab" animated>
           <!-- Applicants Tab Panel -->
           <q-tab-panel name="applicants">
             <div class="row items-center justify-between q-mb-sm">
               <div class="text-h6 text-primary text-bold">Applicants</div>
-              <div class="assessment-status">
-                <q-badge class="q-pa-xs">
-                  <q-icon name="assessment" class="q-mr-xs" />
-                  Assessed: {{ assessedCount }}/{{ totalApplicants }} applicants
-                </q-badge>
+              <div class="row items-center">
+                <q-btn
+                  v-if="
+                    canModifyJobPost &&
+                    (selectedJob?.status != 'Republished' ||
+                      selectedJob?.status != 'rated' ||
+                      selectedJob?.status != 'Occupied')
+                  "
+                  label="Import Applicants"
+                  color="orange-9"
+                  rounded
+                  style="font-size: 8pt; margin-right: 15px"
+                  @click="showImportModal = true"
+                  icon="person_add"
+                />
+
+                <div class="assessment-status">
+                  <q-badge class="q-pa-xs">
+                    <q-icon name="assessment" class="q-mr-xs" />
+                    Assessed: {{ assessedCount }}/{{ totalApplicants }} applicants
+                  </q-badge>
+                </div>
               </div>
             </div>
             <q-table
@@ -240,7 +292,7 @@
               <div class="text-h6 text-primary text-bold">Rating Results</div>
               <div class="assessment-status">
                 <q-btn
-                  v-if="showUnoccupiedButton"
+                  v-if="showUnoccupiedButton && canModifyJobPost"
                   label="Unoccupied"
                   color="red-9"
                   rounded
@@ -292,7 +344,7 @@
                 </q-td>
               </template>
               <template #body-cell-performance="props">
-                <q-td :props="props">
+                <q-td :props="prop">
                   {{ props.row.performance }}
                 </q-td>
               </template>
@@ -416,7 +468,17 @@
       </q-card>
     </q-dialog>
 
-    <!-- Modals -->
+    <!-- Import Applicants Modal -->
+    <ImportApplicantsModal
+      :show="showImportModal"
+      :current-job-id="jobId"
+      :current-position="selectedJob?.Position || ''"
+      @update:show="showImportModal = $event"
+      @imported="onApplicantsImported"
+      @close="showImportModal = false"
+    />
+
+    <!-- Modals - Now accessible without permission check -->
     <QualificationModal
       v-if="qualificationModalVisible"
       :show="qualificationModalVisible"
@@ -446,21 +508,37 @@
 <script setup>
   import { useRouter, useRoute } from 'vue-router';
   import { useJobPostStore } from 'stores/jobPostStore';
-  import { onMounted, ref, computed, nextTick } from 'vue';
+  import { useAuthStore } from 'stores/authStore';
+  import { onMounted, ref, computed, watch } from 'vue';
   import { date } from 'quasar';
   import axios from 'axios';
   import { toast } from 'src/boot/toast';
   import QualificationModal from 'src/components/QualityStandardModalApplicant.vue';
   import ScoreModal from 'src/components/Rater/ApplicantScore.vue';
+  import ImportApplicantsModal from 'src/components/ImportApplicant.vue';
 
   const router = useRouter();
   const route = useRoute();
   const jobPostStore = useJobPostStore();
+  const authStore = useAuthStore();
+
+  // Permission check
+  const canModifyJobPost = computed(() => {
+    return authStore.user?.permissions?.modifyJobpostAccess == '1';
+  });
 
   // Get job ID from route params
-  const jobId = route.params.id;
+  const jobId = computed(() => route.params.id);
 
-  // Initialize with default/empty objects to prevent undefined errors
+  // ✅ FIXED: displayHistoryId shows the active option
+  const displayHistoryId = ref(null);
+
+  // ✅ Flag to prevent duplicate requests during programmatic navigation
+  const isNavigating = ref(false);
+
+  // ✅ Track the last successfully loaded route ID
+  const lastLoadedId = ref(null);
+
   const selectedJob = ref({
     Position: '',
     status: '',
@@ -476,6 +554,7 @@
     end_date: null,
     PositionID: '',
     id: null,
+    history: [],
   });
 
   const selectedCriteria = ref({
@@ -487,16 +566,15 @@
 
   const { formatDate } = date;
 
-  // Tab state with reactive keys for force re-render
+  // Tab state
   const activeTab = ref('applicants');
-  const tabsKey = ref(0);
-  const tabPanelsKey = ref(0);
   const ratingsLoading = ref(false);
 
   // Modal state
   const qualificationModalVisible = ref(false);
   const scoreModal = ref({ visible: false, applicant: null });
   const selectedApplicantData = ref({});
+  const showImportModal = ref(false);
 
   // PDF Modal state
   const pdfModalVisible = ref(false);
@@ -506,33 +584,69 @@
 
   const unoccupiedConfirmDialog = ref(false);
 
-  // ✅ NEW: Create a reusable function to fetch and update job details
-  const refreshJobDetails = async (showLoading = false) => {
-    if (showLoading) {
-      jobPostStore.loading = true;
+  // ✅ Computed property for history options
+  const historyOptions = computed(() => {
+    if (
+      !selectedJob.value ||
+      !selectedJob.value.history ||
+      selectedJob.value.history.length === 0
+    ) {
+      return [];
     }
 
+    const sortedHistory = [...selectedJob.value.history].sort((a, b) => {
+      const dateA = new Date(a.post_date);
+      const dateB = new Date(b.post_date);
+      return dateB - dateA;
+    });
+
+    return sortedHistory.map((historyItem) => ({
+      label: `${historyItem.id}: ${formatDate(historyItem.post_date, 'MMM D, YYYY')} - ${formatDate(historyItem.end_date, 'MMM D, YYYY')}`,
+      value: historyItem.id,
+      historyData: historyItem,
+    }));
+  });
+
+  // ✅ FIXED: Handle selection change
+  const onHistoryChange = (historyId) => {
+    console.log('History selected:', historyId);
+    if (!historyId) return;
+    viewJobDetails(historyId);
+  };
+
+  // ✅ FIXED: Fetch all details before navigating
+  const viewJobDetails = async (historyId) => {
+    if (!historyId || historyId === selectedJob.value.id) {
+      console.log('Same job selected or no ID provided');
+      return;
+    }
+
+    console.log('Preparing to navigate to history ID:', historyId);
+
+    // ✅ Set navigation flag
+    isNavigating.value = true;
+
     try {
-      console.log('Refreshing job details for ID:', jobId);
+      jobPostStore.loading = true;
 
-      // Call the store method
-      let jobDetails = await jobPostStore.fetchJobDetails(jobId);
-
-      // If the store method doesn't return data, get it from the store
-      if (!jobDetails && jobPostStore.jobPosts) {
-        console.log('Using data from store.jobPosts');
-        jobDetails = jobPostStore.jobPosts;
-      }
+      const jobDetails = await jobPostStore.fetchJobDetails(historyId);
 
       if (!jobDetails) {
-        throw new Error('No job details returned from server');
+        throw new Error('Failed to fetch job details');
       }
 
-      console.log('Successfully refreshed job details:', jobDetails);
+      await jobPostStore.fetch_applicant(historyId).catch((err) => {
+        console.warn('Failed to fetch applicants:', err);
+      });
 
-      // Update job details
+      await jobPostStore.fetch_applicant_rating(historyId).catch((err) => {
+        console.warn('Failed to fetch ratings:', err);
+      });
+
+      // Update state BEFORE navigation
       selectedJob.value = {
         id: jobDetails.id || null,
+        old_job_id: jobDetails.old_job_id || null,
         Position: jobDetails.Position || 'Unknown Position',
         status: jobDetails.status || 'Unknown',
         level: jobDetails.level || 'N/A',
@@ -547,10 +661,83 @@
         end_date: jobDetails.end_date || null,
         PositionID: jobDetails.PositionID || '',
         tblStructureDetails_ID: jobDetails.tblStructureDetails_ID || null,
+        history: jobDetails.history || [],
         ...jobDetails,
       };
 
-      // Update criteria
+      if (jobDetails.criteria && typeof jobDetails.criteria === 'object') {
+        selectedCriteria.value = {
+          id: jobDetails.criteria.id || null,
+          Education: jobDetails.criteria.Education || 'Not specified',
+          Experience: jobDetails.criteria.Experience || 'Not specified',
+          Training: jobDetails.criteria.Training || 'Not specified',
+          Eligibility: jobDetails.criteria.Eligibility || 'Not specified',
+        };
+      }
+
+      // ✅ Update display BEFORE navigation
+      displayHistoryId.value = historyId;
+
+      // Navigate
+      await router.push({
+        name: 'JobPost View',
+        params: { id: historyId },
+      });
+
+      // ✅ Update after successful navigation
+      lastLoadedId.value = historyId;
+    } catch (error) {
+      console.error('Error fetching job details:', error);
+      toast.error('Failed to load job details. Please try again.');
+    } finally {
+      jobPostStore.loading = false;
+      isNavigating.value = false;
+    }
+  };
+
+  const refreshJobDetails = async (showLoading = false) => {
+    if (showLoading) {
+      jobPostStore.loading = true;
+    }
+
+    try {
+      console.log('Refreshing job details for ID:', jobId.value);
+
+      let jobDetails = await jobPostStore.fetchJobDetails(jobId.value);
+
+      if (!jobDetails && jobPostStore.jobPosts) {
+        jobDetails = jobPostStore.jobPosts;
+      }
+
+      if (!jobDetails) {
+        throw new Error('No job details returned from server');
+      }
+
+      selectedJob.value = {
+        id: jobDetails.id || null,
+        old_job_id: jobDetails.old_job_id || null,
+        Position: jobDetails.Position || 'Unknown Position',
+        status: jobDetails.status || 'Unknown',
+        level: jobDetails.level || 'N/A',
+        PageNo: jobDetails.PageNo || 'N/A',
+        ItemNo: jobDetails.ItemNo || 'N/A',
+        SalaryGrade: jobDetails.SalaryGrade || 'N/A',
+        Office: jobDetails.Office || 'Unknown Office',
+        Division: jobDetails.Division || 'N/A',
+        Section: jobDetails.Section || 'N/A',
+        Unit: jobDetails.Unit || 'N/A',
+        post_date: jobDetails.post_date || null,
+        end_date: jobDetails.end_date || null,
+        PositionID: jobDetails.PositionID || '',
+        tblStructureDetails_ID: jobDetails.tblStructureDetails_ID || null,
+        history: jobDetails.history || [],
+        ...jobDetails,
+      };
+
+      // ✅ FIXED: Set displayHistoryId to show active option
+      displayHistoryId.value = jobDetails.id;
+      console.log('Set displayHistoryId to:', displayHistoryId.value);
+
       if (jobDetails.criteria && typeof jobDetails.criteria === 'object') {
         selectedCriteria.value = {
           id: jobDetails.criteria.id || null,
@@ -579,14 +766,11 @@
     }
   };
 
-  // ✅ NEW: Function to refresh applicant data
   const refreshApplicantData = async () => {
     if (!selectedJob.value.id) return;
 
     ratingsLoading.value = true;
     try {
-      console.log('Refreshing applicant data for job ID:', selectedJob.value.id);
-
       await Promise.all([
         jobPostStore.fetch_applicant(selectedJob.value.id).catch((err) => {
           console.warn('Failed to fetch applicants:', err);
@@ -607,7 +791,6 @@
     }
   };
 
-  // ✅ UPDATED: Modified updateJobStatusToUnoccupied to refresh data
   const updateJobStatusToUnoccupied = async () => {
     if (!selectedJob.value || !selectedJob.value.id) {
       toast.error('Job ID not found. Cannot update status.');
@@ -621,17 +804,10 @@
         status: 'Unoccupied',
       };
 
-      console.log('Sending payload:', payload);
-
       await jobPostStore.updateJobStatus(selectedJob.value.id, payload);
-
       toast.success('Job status updated to Unoccupied successfully!');
       unoccupiedConfirmDialog.value = false;
-
-      // ✅ Refresh the job details to get the latest data
       await refreshJobDetails();
-
-      console.log('Job status updated and data refreshed');
     } catch (error) {
       console.error('Error updating job status:', error);
       toast.error('Failed to update job status. Please try again.');
@@ -639,11 +815,14 @@
     }
   };
 
-  // ✅ UPDATED: Modified submitEvaluation to refresh data
+  const onApplicantsImported = async (importedApplicants) => {
+    console.log('Applicants imported:', importedApplicants);
+    toast.success(`Successfully imported ${importedApplicants.length} applicant(s)`);
+    await refreshApplicantData();
+  };
+
   const submitEvaluation = async (evaluationData) => {
     try {
-      console.log('Submitting evaluation:', evaluationData);
-
       if (!evaluationData.id) {
         toast.error('Missing applicant ID for evaluation submission');
         return;
@@ -658,22 +837,14 @@
       selectedApplicantData.value.status = evaluationData.status;
       qualificationModalVisible.value = false;
 
-      // ✅ Refresh both job details and applicant data
       await Promise.all([refreshJobDetails(), refreshApplicantData()]);
-
       toast.success('Evaluation submitted successfully!');
-
-      // Force tabs update after modal closes
-      nextTick(() => {
-        forceTabsUpdate();
-      });
     } catch (error) {
       console.error('Evaluation submission error:', error);
       toast.error('Failed to submit evaluation');
     }
   };
 
-  // Computed property for rating data
   const ratingData = computed(() => {
     if (!jobPostStore.applicant_rating) {
       return { total_completed: 0, total_assigned: 0 };
@@ -685,13 +856,6 @@
     };
   });
 
-  // Force re-render tabs when modal closes
-  const forceTabsUpdate = () => {
-    tabsKey.value += 1;
-    tabPanelsKey.value += 1;
-  };
-
-  // Computed properties for applicant assessment statistics
   const totalApplicants = computed(() => {
     return formattedApplicants.value.length;
   });
@@ -740,7 +904,6 @@
     }
   };
 
-  // Table column definitions
   const applicantColumns = [
     { name: 'id', label: 'No', field: 'id', align: 'center', sortable: true },
     { name: 'name', label: 'Name', field: 'name', align: 'left', sortable: true },
@@ -772,7 +935,6 @@
     },
   ];
 
-  // Updated rating columns to match the API response structure
   const ratingColumns = [
     { name: 'name', label: 'Name', field: 'name', align: 'left', sortable: true },
     { name: 'education', label: 'Education', field: 'education', align: 'center', sortable: true },
@@ -804,7 +966,6 @@
     { name: 'action', label: 'Action', field: 'action', align: 'center', sortable: false },
   ];
 
-  // Format applicants data for the table
   const formattedApplicants = computed(() => {
     if (!jobPostStore.applicant) return [];
 
@@ -850,6 +1011,8 @@
         return 'red';
       case 'unoccupied':
         return 'red-9';
+      case 'republished':
+        return 'yellow-8';
       default:
         return 'grey';
     }
@@ -859,23 +1022,19 @@
     const status = selectedJob.value?.status;
     if (!status) return false;
 
-    // Check for various possible formats of "rated" status
     const normalizedStatus = status.toLowerCase().trim();
     return normalizedStatus === 'rated' || normalizedStatus === 'rating completed';
   });
 
-  // FIXED: Format applicant ratings data for the table with correct data structure handling
   const formattedApplicantRatings = computed(() => {
     if (!jobPostStore.applicant_rating) return [];
 
-    // Handle your specific data structure: { jobpost_id, total_assigned, total_completed, applicants: { "32": {...}, "33": {...} } }
     let ratingsArray = [];
 
     if (
       jobPostStore.applicant_rating.applicants &&
       typeof jobPostStore.applicant_rating.applicants === 'object'
     ) {
-      // Extract applicants from the nested object structure
       ratingsArray = Object.values(jobPostStore.applicant_rating.applicants);
     } else if (Array.isArray(jobPostStore.applicant_rating)) {
       ratingsArray = jobPostStore.applicant_rating;
@@ -899,18 +1058,15 @@
         rank: rating.rank || '-',
         image_url: rating.image_url || 'https://placehold.co/100',
         job_batches_rsp_id: rating.job_batches_rsp_id,
-        history: rating.history || [], // ENSURE this is directly accessible
-        // Store the complete raw data for the modal
-        originalData: rating, // This contains everything including history
+        history: rating.history || [],
+        originalData: rating,
         raw: rating,
       }))
-      .sort((a, b) => parseInt(a.rank) - parseInt(b.rank)); // Sort by rank
+      .sort((a, b) => parseInt(a.rank) - parseInt(b.rank));
 
-    console.log('Formatted applicant ratings:', formatted);
     return formatted;
   });
 
-  // Updated viewApplicantDetails function to open the modal
   function viewApplicantDetails(row) {
     selectedApplicantData.value = {
       ControlNo: row.raw?.ControlNo || row.ControlNo,
@@ -945,16 +1101,9 @@
     qualificationModalVisible.value = true;
   }
 
-  // FIXED: viewApplicantScore function to properly pass all data including history
   function viewApplicantScore(applicantRow) {
-    console.log('Opening score modal for:', applicantRow);
-    console.log('Original data:', applicantRow.originalData);
-    console.log('History data:', applicantRow.history);
-
-    // Extract history from multiple possible sources
     let historyData = [];
 
-    // Try to get history from originalData first, then from direct property
     if (applicantRow.originalData && applicantRow.originalData.history) {
       historyData = applicantRow.originalData.history;
     } else if (applicantRow.history) {
@@ -962,8 +1111,6 @@
     } else if (applicantRow.raw && applicantRow.raw.history) {
       historyData = applicantRow.raw.history;
     }
-
-    console.log('Extracted history data:', historyData);
 
     scoreModal.value = {
       visible: true,
@@ -977,7 +1124,6 @@
         image_url: applicantRow.image_url,
         position: selectedJob.value?.Position || 'N/A',
         Jobstatus: selectedJob.value?.status,
-        // Individual scores (final averaged scores)
         education: applicantRow.education,
         experience: applicantRow.experience,
         training: applicantRow.training,
@@ -986,65 +1132,41 @@
         total_qs: applicantRow.total_qs,
         grand_total: applicantRow.grand_total,
         rank: applicantRow.rank,
-        // Ensure history is properly passed
         history: historyData,
       },
-      // Pass job details for the confirmation dialog
       jobDetails: selectedJob.value || {},
     };
-
-    console.log('Modal applicant data:', scoreModal.value.applicant);
-    console.log('Modal history:', scoreModal.value.applicant.history);
   }
 
-  // Fixed modal handlers
   const handleQualificationModalUpdate = (value) => {
     qualificationModalVisible.value = value;
-    if (!value) {
-      nextTick(() => {
-        forceTabsUpdate();
-      });
-    }
   };
 
   const handleScoreModalUpdate = (value) => {
     scoreModal.value.visible = value;
-    if (!value) {
-      nextTick(() => {
-        forceTabsUpdate();
-      });
-    }
   };
 
   function closeScoreModal() {
     scoreModal.value = { visible: false, applicant: null };
-    nextTick(() => {
-      forceTabsUpdate();
-    });
   }
 
   const onToggleQualification = (status) => {
     selectedApplicantData.value.status = status;
-    console.log(`Qualification status changed to: ${status}`);
   };
 
   const onCloseQualificationModal = () => {
     qualificationModalVisible.value = false;
     selectedApplicantData.value = {};
-    nextTick(() => {
-      forceTabsUpdate();
-    });
   };
 
   const onViewPDS = () => {
     console.log('View PDS requested for:', selectedApplicantData.value.name);
   };
 
-  // ✅ UPDATED: Initial data loading in onMounted
   onMounted(async () => {
-    console.log('Component mounting, jobId:', jobId);
+    console.log('Component mounting, jobId:', jobId.value);
 
-    if (!jobId) {
+    if (!jobId.value) {
       console.error('No job ID provided in route params');
       toast.error('No job ID provided');
       router.push('/job-post');
@@ -1052,11 +1174,21 @@
     }
 
     try {
-      // Load initial job details
-      await refreshJobDetails(true); // Show loading for initial load
+      isNavigating.value = false;
+      lastLoadedId.value = jobId.value;
 
-      // Load initial applicant data
+      await refreshJobDetails(true);
+
+      console.log('Loading all job posts...');
+      await jobPostStore.job_post();
+      console.log('Job posts loaded:', jobPostStore.jobPosts);
+
       await refreshApplicantData();
+
+      if (selectedJob.value.id) {
+        displayHistoryId.value = selectedJob.value.id;
+        console.log('Set displayHistoryId to:', displayHistoryId.value);
+      }
 
       console.log('Initial data loading completed');
     } catch (error) {
@@ -1084,6 +1216,42 @@
       }
     }
   });
+
+  // ✅ Watch route changes (browser back/forward)
+  watch(
+    () => route.params.id,
+    async (newId, oldId) => {
+      // Skip if navigating programmatically
+      if (isNavigating.value) {
+        console.log('Skipping watcher - programmatic navigation in progress');
+        return;
+      }
+
+      // Skip if same ID
+      if (newId === lastLoadedId.value || !newId) {
+        console.log('Skipping watcher - same ID or invalid');
+        return;
+      }
+
+      console.log('Route changed (browser navigation):', oldId, '→', newId);
+
+      try {
+        lastLoadedId.value = newId;
+
+        await refreshJobDetails(true);
+        await refreshApplicantData();
+
+        // Set display ID
+        if (selectedJob.value.id) {
+          displayHistoryId.value = selectedJob.value.id;
+          console.log('Updated displayHistoryId to:', displayHistoryId.value);
+        }
+      } catch (error) {
+        console.error('Error on route change:', error);
+        toast.error('Failed to load job details');
+      }
+    },
+  );
 </script>
 
 <style scoped>

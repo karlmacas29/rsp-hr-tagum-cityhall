@@ -37,7 +37,7 @@
             </template>
           </q-input>
         </div>
-        <div v-if="authStore.user.permissions.isRaterM === '1'">
+        <div v-if="authStore.user?.permissions?.modifyRater === '1'">
           <q-btn
             rounded
             color="primary"
@@ -110,7 +110,7 @@
               >
                 <q-tooltip>View</q-tooltip>
               </q-btn>
-              <template v-if="authStore.user.permissions.isRaterM === '1'">
+              <template v-if="authStore.user?.permissions?.modifyRater === '1'">
                 <q-btn
                   flat
                   round

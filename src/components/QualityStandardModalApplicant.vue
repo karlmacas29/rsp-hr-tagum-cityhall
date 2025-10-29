@@ -66,6 +66,7 @@
                   </div>
                 </div>
               </div>
+              <!-- View PDS button - Always accessible -->
               <q-btn class="q-mt-md" label="View PDS" color="primary" rounded @click="onViewPDS" />
             </q-card-section>
           </q-card>
@@ -88,6 +89,7 @@
                 <q-tab name="eligibility" label="ELIGIBILITY" class="text-weight-medium" />
               </q-tabs>
 
+              <!-- View Supporting Docs button - Always accessible -->
               <q-btn
                 v-if="!applicantData?.ControlNo"
                 label="View Supporting Docs"
@@ -151,6 +153,7 @@
                         </template>
                       </q-table>
                     </q-card>
+                    <!-- Remarks - Only editable if has modify permission -->
                     <q-input
                       v-model="education_remark"
                       label="Remarks"
@@ -158,8 +161,10 @@
                       outlined
                       dense
                       class="q-mt-md modern-input"
-                      :readonly="isJobOccupied || evaluationLocked"
-                      :bg-color="isJobOccupied || evaluationLocked ? 'grey-3' : 'white'"
+                      :readonly="!canModifyJobPost || isJobOccupied || evaluationLocked"
+                      :bg-color="
+                        !canModifyJobPost || isJobOccupied || evaluationLocked ? 'grey-3' : 'white'
+                      "
                     />
                   </q-scroll-area>
                 </div>
@@ -260,6 +265,7 @@
                         </template>
                       </q-table>
                     </q-card>
+                    <!-- Remarks - Only editable if has modify permission -->
                     <q-input
                       v-model="experience_remark"
                       label="Remarks"
@@ -267,8 +273,10 @@
                       outlined
                       dense
                       class="q-mt-md modern-input"
-                      :readonly="isJobOccupied || evaluationLocked"
-                      :bg-color="isJobOccupied || evaluationLocked ? 'grey-3' : 'white'"
+                      :readonly="!canModifyJobPost || isJobOccupied || evaluationLocked"
+                      :bg-color="
+                        !canModifyJobPost || isJobOccupied || evaluationLocked ? 'grey-3' : 'white'
+                      "
                     />
                   </q-scroll-area>
                 </div>
@@ -362,6 +370,7 @@
                         </template>
                       </q-table>
                     </q-card>
+                    <!-- Remarks - Only editable if has modify permission -->
                     <q-input
                       v-model="training_remark"
                       label="Remarks"
@@ -369,8 +378,10 @@
                       outlined
                       dense
                       class="q-mt-md modern-input"
-                      :readonly="isJobOccupied || evaluationLocked"
-                      :bg-color="isJobOccupied || evaluationLocked ? 'grey-3' : 'white'"
+                      :readonly="!canModifyJobPost || isJobOccupied || evaluationLocked"
+                      :bg-color="
+                        !canModifyJobPost || isJobOccupied || evaluationLocked ? 'grey-3' : 'white'
+                      "
                     />
                   </q-scroll-area>
                 </div>
@@ -421,6 +432,7 @@
                         </template>
                       </q-table>
                     </q-card>
+                    <!-- Remarks - Only editable if has modify permission -->
                     <q-input
                       v-model="eligibility_remark"
                       label="Remarks"
@@ -428,8 +440,10 @@
                       outlined
                       dense
                       class="q-mt-md modern-input"
-                      :readonly="isJobOccupied || evaluationLocked"
-                      :bg-color="isJobOccupied || evaluationLocked ? 'grey-3' : 'white'"
+                      :readonly="!canModifyJobPost || isJobOccupied || evaluationLocked"
+                      :bg-color="
+                        !canModifyJobPost || isJobOccupied || evaluationLocked ? 'grey-3' : 'white'
+                      "
                     />
                   </q-scroll-area>
                 </div>
@@ -449,21 +463,12 @@
       <q-card-section class="footer-actions bg-grey-2 q-py-sm">
         <div class="row justify-between items-center">
           <div class="row items-center">
-            <!-- <q-btn
-              flat
-              dense
-              :icon="showControlNo ? 'visibility_off' : 'visibility'"
-              @click="showControlNo = !showControlNo"
-              class="q-mr-sm"
-            />
-            <q-badge v-if="showControlNo" color="grey">
-              Control No. {{ applicantData?.id || '0' }}
-            </q-badge> -->
+            <!-- Empty space -->
           </div>
 
-          <!-- Only show qualification status selection if not plantilla, not evaluation locked, and job is not occupied -->
+          <!-- Only show qualification status selection if has modify permission, not plantilla, not evaluation locked, and job is not occupied -->
           <div
-            v-if="!props.isPlantilla && !evaluationLocked && !isJobOccupied"
+            v-if="canModifyJobPost && !props.isPlantilla && !evaluationLocked && !isJobOccupied"
             class="column items-center"
           >
             <div class="text-caption text-grey-7 q-mb-xs">Evaluation Status</div>
@@ -473,7 +478,6 @@
                 val="Qualified"
                 label="Qualified"
                 color="positive"
-                :disable="evaluationLocked || isJobOccupied"
                 class="radio-button"
               >
                 <q-tooltip>Candidate meets all requirements</q-tooltip>
@@ -483,7 +487,6 @@
                 val="Unqualified"
                 label="Unqualified"
                 color="negative"
-                :disable="evaluationLocked || isJobOccupied"
                 class="radio-button"
               >
                 <q-tooltip>Candidate doesn't meet requirements</q-tooltip>
@@ -500,10 +503,28 @@
             </q-badge>
           </div>
 
+          <!-- Show message when evaluation is locked -->
+          <div v-if="evaluationLocked && !props.isPlantilla" class="column items-center">
+            <div class="text-caption text-blue-8 q-mb-xs">Status</div>
+            <q-badge color="blue" class="text-caption q-px-sm">
+              <q-icon name="lock" class="q-mr-xs" />
+              Evaluation Submitted
+            </q-badge>
+          </div>
+
+          <!-- Show message when no modify permission -->
+          <div v-if="!canModifyJobPost && !props.isPlantilla" class="column items-center">
+            <div class="text-caption text-grey-8 q-mb-xs">Permission</div>
+            <q-badge color="grey" class="text-caption q-px-sm">
+              <q-icon name="visibility" class="q-mr-xs" />
+              View Only
+            </q-badge>
+          </div>
+
           <div class="row justify-end">
-            <!-- Only show submit button if not plantilla, not evaluation locked, and job is not occupied -->
+            <!-- Only show submit button if has modify permission, not plantilla, not evaluation locked, and job is not occupied -->
             <q-btn
-              v-if="!props.isPlantilla && !evaluationLocked && !isJobOccupied"
+              v-if="canModifyJobPost && !props.isPlantilla && !evaluationLocked && !isJobOccupied"
               label="SUBMIT EVALUATION"
               color="positive"
               @click="onSubmit"
@@ -522,6 +543,7 @@
 <script setup>
   import { ref, computed, watch } from 'vue';
   import { usePlantillaStore } from 'stores/plantillaStore';
+  import { useAuthStore } from 'stores/authStore';
   import PDSModalApplicant from './PDSModalApplicant.vue';
   import SupportingDocumentsModal from './SuppDocs.vue';
 
@@ -539,6 +561,13 @@
     education_images: [],
     eligibility_images: [],
     experience_images: [],
+  });
+
+  const authStore = useAuthStore();
+
+  // Permission check - Only for modify operations
+  const canModifyJobPost = computed(() => {
+    return authStore.user?.permissions?.modifyJobpostAccess == '1';
   });
 
   const props = defineProps({
@@ -943,7 +972,6 @@
   ];
 
   const usePlantilla = usePlantillaStore();
-  // const showControlNo = ref(false);
 
   const positionQS = ref([]);
 
@@ -1097,7 +1125,7 @@
   };
 
   const onViewPDS = () => {
-    // Show PDS Modal
+    // Show PDS Modal - Always accessible
     showPDSModal.value = true;
     // Also emit the event for parent components that may need it
     emit('view-pds');
@@ -1108,7 +1136,12 @@
   });
 
   const onSubmit = () => {
-    if (!evaluationLocked.value && qualificationStatus.value && !isJobOccupied.value) {
+    if (
+      !evaluationLocked.value &&
+      qualificationStatus.value &&
+      !isJobOccupied.value &&
+      canModifyJobPost.value
+    ) {
       emit('submit', {
         status: qualificationStatus.value,
         id: props.applicantData?.id,

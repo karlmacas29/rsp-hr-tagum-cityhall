@@ -1,6 +1,6 @@
 <template>
   <q-page>
-    <div v-if="authStore.user.permissions.isDashboardStat == '1'" class="column no-gap">
+    <div v-if="authStore.user && hasViewDashboardAccess" class="column no-gap">
       <!-- Welcome Message -->
       <q-img
         src="tgch.png"
@@ -123,7 +123,7 @@
     </div>
 
     <!-- Redesigned Minimalist Welcome with Background -->
-    <div v-else class="welcome-container">
+    <div v-else-if="authStore.user && !hasViewDashboardAccess" class="welcome-container">
       <q-img src="tagum-city-hall.webp" class="welcome-bg" style="opacity: 0.8">
         <div class="absolute-full flex flex-center">
           <q-card
@@ -166,11 +166,30 @@
         </div>
       </q-img>
     </div>
+
+    <!-- Loading Screen -->
+    <div v-else class="welcome-container">
+      <div class="absolute-full flex flex-center">
+        <q-card
+          class="welcome-card text-center q-pa-md"
+          style="
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            max-width: 450px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+          "
+        >
+          <q-spinner size="60px" color="primary" class="q-mb-md" />
+          <div class="text-h6 text-weight-bold q-mb-xs">Loading</div>
+          <div class="text-body2 text-grey-8">Please wait while we load your dashboard...</div>
+        </q-card>
+      </div>
+    </div>
   </q-page>
 </template>
 
 <script setup>
-  import { onMounted, ref } from 'vue';
+  import { onMounted, computed } from 'vue';
   import { useAuthStore } from 'src/stores/authStore';
   import StatusOverview from 'src/components/Dashboard/StatusOverview.vue';
 
@@ -184,7 +203,17 @@
   const dashboardStore = DashboardStore();
   const authStore = useAuthStore();
 
-  const jobs = ref([]);
+  // Check if user has dashboard view permission
+  const hasViewDashboardAccess = computed(() => {
+    return authStore.user?.permissions?.viewDashboardstat == '1';
+  });
+
+  // ✅ UPDATED: Use computed property instead of ref
+  const jobs = computed(() => {
+    return useJobPost.jobPosts.filter((job) => {
+      return job.status && job.status.toLowerCase() !== 'republished';
+    });
+  });
 
   const columns = [
     { name: 'jobs', label: 'Position', align: 'left', field: 'Position', sortable: true },
@@ -228,14 +257,15 @@
   const viewJob = (row) => {
     router.push({
       name: 'JobPost View',
-      params: { PositionID: row.PositionID, ItemNo: row.ItemNo },
+      params: { id: row.id },
     });
   };
 
   onMounted(async () => {
     await Promise.all([dashboardStore.fetchFundedCount()]);
     await useJobPost.job_post();
-    jobs.value = useJobPost.jobPosts;
+
+    console.log('Jobs loaded (republished jobs will be filtered out)');
   });
 </script>
 
@@ -293,5 +323,9 @@
 
   .welcome-card:hover {
     transform: scale(1.01);
+  }
+
+  .access-denied-card {
+    transition: transform 0.2s ease;
   }
 </style>

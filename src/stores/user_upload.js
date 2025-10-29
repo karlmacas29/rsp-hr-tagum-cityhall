@@ -1,4 +1,4 @@
-// stores/user_upload.js
+// Updated user_upload store with defensive checks in processSubmission
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { adminApi } from 'boot/axios_admin';
@@ -17,20 +17,22 @@ export const useUser_upload = defineStore('user_upload', () => {
   };
 
   const processSubmission = async () => {
+    // Defensive validation - return a consistent error shape so callers can handle it uniformly
     if (!uploadedFile.value) {
       errorMessage.value = 'No Excel file selected.';
-      return null;
+      return { data: { success: false, message: errorMessage.value } };
     }
 
     if (!uploadedZipFile.value) {
       errorMessage.value = 'No ZIP file selected.';
-      return null;
+      return { data: { success: false, message: errorMessage.value } };
     }
 
+    // Defensive: selectedJob might be null if consumer didn't set it
     if (!selectedJob.value?.id) {
       errorMessage.value = 'No job selected or missing ID';
-      console.error('Selected job:', selectedJob.value);
-      return null;
+      console.error('Selected job is missing in upload store:', selectedJob.value);
+      return { data: { success: false, message: errorMessage.value } };
     }
 
     isSubmitting.value = true;
@@ -51,20 +53,26 @@ export const useUser_upload = defineStore('user_upload', () => {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
+        // Accept 4xx responses so we still get response.data and can show API errors
+        validateStatus: (status) => status < 500,
       });
 
-      console.log('Submission successful, response:', response.data);
-      successDialog.value = true;
-      return response.data;
-    } catch (error) {
-      console.error('Submission error:', error);
-      if (error.response) {
-        console.error('Error details:', error.response.data);
-        errorMessage.value = error.response.data?.message || 'Upload failed.';
+      console.log('Submission response:', response);
+      if (response && response.data) {
+        if (response.data.success === true) {
+          successDialog.value = true;
+        } else {
+          errorMessage.value = response.data.message || 'Upload failed.';
+        }
       } else {
-        errorMessage.value = 'Network error or server unavailable';
+        errorMessage.value = 'Unexpected response format.';
       }
-      throw error;
+
+      return response;
+    } catch (err) {
+      console.error('Submission error:', err.message || err);
+      // Return normalized error shape instead of throwing so callers can handle uniformly
+      return { data: { success: false, message: 'An error occurred' } };
     } finally {
       isSubmitting.value = false;
     }
@@ -75,6 +83,7 @@ export const useUser_upload = defineStore('user_upload', () => {
     uploadedZipFile.value = null;
     successDialog.value = false;
     errorMessage.value = '';
+    selectedJob.value = null;
   };
 
   return {

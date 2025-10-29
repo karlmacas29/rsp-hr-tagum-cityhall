@@ -162,7 +162,7 @@
               <div class="structure-example bg-grey-1">
                 <div class="structure-header">
                   <q-icon name="folder_zip" color="orange" />
-                  <span class="q-ml-sm text-weight-bold">supporting_documents.zip</span>
+                  <span class="q-ml-sm text-weight-bold">document.zip</span>
                 </div>
                 <div class="structure-content">
                   <div class="structure-folder" v-for="folder in folders" :key="folder.name">

@@ -25,8 +25,10 @@
         </q-item-section>
         <q-item-section>{{ item.label }}</q-item-section>
       </q-item>
-      <!-- rater -->
+
+      <!-- Rater Management Expansion Item -->
       <q-expansion-item
+        v-if="hasRaterManagementAccess"
         v-model="expanded"
         dense
         style="border-radius: 20px; padding: 0; margin: 0"
@@ -39,7 +41,7 @@
             dense
             class="q-mx-xs q-my-xs"
             style="border-radius: 17px; padding: 8px 10px"
-            v-for="(item, index) in ratersManage"
+            v-for="(item, index) in filteredRatersManage"
             :key="index"
             clickable
             v-ripple
@@ -62,42 +64,117 @@
   import { onMounted, ref, computed } from 'vue';
   import { useRoute } from 'vue-router';
   import { useAuthStore } from 'stores/authStore';
-  const authStore = useAuthStore();
 
+  const authStore = useAuthStore();
   const route = useRoute();
   const drawer = ref(true);
   const expanded = ref(false);
 
+  // Check if user has any plantilla access (view or modify)
+  const hasPlantillaAccess = computed(() => {
+    return (
+      authStore.user?.permissions?.viewPlantillaAccess == '1' ||
+      authStore.user?.permissions?.modifyPlantillaAccess == '1'
+    );
+  });
+
+  // Check if user has any job post access (view or modify)
+  const hasJobPostAccess = computed(() => {
+    return (
+      authStore.user?.permissions?.viewJobpostAccess == '1' ||
+      authStore.user?.permissions?.modifyJobpostAccess == '1'
+    );
+  });
+
+  // ============================================================================
+  // RATER MANAGEMENT MODULE PERMISSIONS
+  // ============================================================================
+
+  /**
+   * Check if user has access to Raters module (view or modify)
+   */
+  const hasRatersAccess = computed(() => {
+    return (
+      authStore.user?.permissions?.viewRater === '1' ||
+      authStore.user?.permissions?.modifyRater === '1'
+    );
+  });
+
+  /**
+   * Check if user has access to Criteria module (view or modify)
+   */
+  const hasCriteriaAccess = computed(() => {
+    return (
+      authStore.user?.permissions?.viewCriteria === '1' ||
+      authStore.user?.permissions?.modifyCriteria === '1'
+    );
+  });
+
+  /**
+   * Check if user has access to Reports module (view only)
+   */
+  const hasReportsAccess = computed(() => {
+    return authStore.user?.permissions?.viewReport === '1';
+  });
+
+  const hasActivityLogsAccess = computed(() => {
+    return authStore.user?.permissions?.viewActivityLogs === '1';
+  });
+
+  /**
+   * Check if user has ANY rater management access
+   * Shows the Rater Management expansion menu if user has access to at least one module
+   */
+  const hasRaterManagementAccess = computed(() => {
+    return hasRatersAccess.value || hasCriteriaAccess.value || hasReportsAccess.value;
+  });
+
+  // ============================================================================
+  // END RATER MANAGEMENT MODULE PERMISSIONS
+  // ============================================================================
+
+  const hasUserManagementAccess = computed(() => {
+    return authStore.user?.permissions?.userManagement == '1';
+  });
+
   const filteredMenuItems = computed(() => {
     return [
       { label: 'Dashboard', route: '/dashboard', icon: 'dashboard' },
-      { label: 'Plantilla', route: '/plantilla', icon: 'domain' },
-      { label: 'Job Posts', route: '/job-post', icon: 'post_add' },
-      ...(authStore.user?.permissions?.isUserM !== '0'
+      ...(hasPlantillaAccess.value
+        ? [{ label: 'Plantilla', route: '/plantilla', icon: 'domain' }]
+        : []),
+      ...(hasJobPostAccess.value
+        ? [{ label: 'Job Posts', route: '/job-post', icon: 'post_add' }]
+        : []),
+      ...(hasUserManagementAccess.value
         ? [{ label: 'User Management', route: '/user-access', icon: 'manage_accounts' }]
         : []),
-      { label: 'Activity Log', route: '/activity-log', icon: 'history' },
+      ...(hasActivityLogsAccess.value
+        ? [{ label: 'Activity Log', route: '/activity-log', icon: 'history' }]
+        : []),
     ];
   });
-  // const menuItems = ref([
-  //   { label: 'Dashboard', route: '/dashboard', icon: 'dashboard' },
-  //   { label: 'Plantilla', route: '/plantilla', icon: 'domain' },
-  //   { label: 'Job Posts', route: '/job-post', icon: 'post_add' },
-  //   { label: 'User Management', route: '/user-access', icon: 'manage_accounts' },
-  //   { label: 'Activity Log', route: '/activity-log', icon: 'history' },
-  // ]);
 
-  const ratersManage = ref([
-    { label: 'Raters', route: '/raters', icon: 'groups' },
-    { label: 'Reports', route: '/reports', icon: 'assessment' },
-    { label: 'Criteria', route: '/criteria', icon: 'rule' },
-  ]);
+  /**
+   * Filtered rater management menu items based on user permissions
+   * Only shows modules the user has access to
+   */
+  const filteredRatersManage = computed(() => {
+    const allItems = [
+      { label: 'Raters', route: '/raters', icon: 'groups', permission: hasRatersAccess },
+      { label: 'Criteria', route: '/criteria', icon: 'rule', permission: hasCriteriaAccess },
+      { label: 'Reports', route: '/reports', icon: 'assessment', permission: hasReportsAccess },
+    ];
+
+    // Filter items based on their individual permissions
+    return allItems.filter((item) => item.permission.value);
+  });
 
   onMounted(() => {
     // Set the active menu item based on the current route
     const currentRoute = route.path;
-    // Check if the current route matches any of the main menu items
-    ratersManage.value.forEach((item) => {
+    // Check if the current route matches any of the rater management routes
+    filteredRatersManage.value.forEach((item) => {
       if (currentRoute === item.route) {
         expanded.value = true;
       }

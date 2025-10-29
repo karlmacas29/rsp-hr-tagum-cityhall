@@ -9,11 +9,142 @@ export const useJobPostStore = defineStore('jobPost', {
     applicant_rating: [],
     jobPostsrater: [],
     applicantScores: null,
+    previousApplicants: [],
     loading: false,
     error: null,
+    previousApplicantsLoading: false, // ✅ Separate loading state for modal
+    previousApplicantsError: null, // ✅ Separate error state for modal
   }),
+  getters: {
+    getJobPostsByPositionAndItemNo: (state) => (PositionID, ItemNo) => {
+      let jobPostsArray = [];
+
+      if (Array.isArray(state.jobPosts)) {
+        jobPostsArray = state.jobPosts;
+      } else if (state.jobPosts && typeof state.jobPosts === 'object') {
+        if (Array.isArray(state.jobPosts.data)) {
+          jobPostsArray = state.jobPosts.data;
+        } else if (Array.isArray(state.jobPosts.jobPosts)) {
+          jobPostsArray = state.jobPosts.jobPosts;
+        } else {
+          jobPostsArray = Object.values(state.jobPosts).filter(
+            (item) => item && typeof item === 'object' && item.PositionID,
+          );
+        }
+      }
+
+      return jobPostsArray.filter(
+        (jobPost) => jobPost.PositionID === PositionID && jobPost.ItemNo === ItemNo,
+      );
+    },
+  },
   actions: {
-    // Evaluation now expects a single object (payload)
+    // ✅ Fetch previous applicants with independent loading state
+    async fetchPreviousApplicants(jobId) {
+      this.previousApplicantsLoading = true;
+      this.previousApplicantsError = null;
+
+      try {
+        console.log('Fetching previous applicants for job ID:', jobId);
+
+        const { data } = await adminApi.get(`/export/applicant/${jobId}`);
+
+        console.log('Raw API response:', data);
+
+        if (Array.isArray(data)) {
+          this.previousApplicants = data.map((applicant) => ({
+            id: applicant.nPersonalInfo_id,
+            nPersonalInfo_id: applicant.nPersonalInfo_id,
+            firstname: applicant.firstname || '',
+            lastname: applicant.lastname || '',
+            name_extension: applicant.name_extension || '',
+            email: applicant.email || '',
+            image_url: applicant.image_url || null,
+            previousPosition: applicant.Position || 'N/A',
+            previousAppliedDate: applicant.post_date || null,
+            previousStatus:
+              applicant.status?.charAt(0).toUpperCase() +
+                applicant.status?.slice(1).toLowerCase() || 'Pending',
+            source: applicant.type === 'internal' ? 'Internal' : 'External',
+            type: applicant.type || 'external',
+            ControlNo: applicant.ControlNo || null,
+            raw: applicant,
+          }));
+        } else {
+          this.previousApplicants = [];
+        }
+
+        console.log('Processed previous applicants:', this.previousApplicants);
+        this.previousApplicantsError = null;
+        return this.previousApplicants;
+      } catch (err) {
+        console.error('Error fetching previous applicants:', err);
+        this.previousApplicantsError = err;
+        toast.error('Failed to fetch previous applicants.');
+        throw err;
+      } finally {
+        this.previousApplicantsLoading = false;
+      }
+    },
+
+    // ✅ Import applicants with independent loading state
+    async importApplicants(currentJobId, selectedApplicants) {
+      this.previousApplicantsLoading = true;
+      this.previousApplicantsError = null;
+
+      try {
+        if (!currentJobId) {
+          throw new Error('Current Job ID is required');
+        }
+
+        if (!Array.isArray(selectedApplicants) || selectedApplicants.length === 0) {
+          throw new Error('No applicants selected for import');
+        }
+
+        console.log('Importing applicants:', selectedApplicants);
+
+        const payload = {
+          job_batches_rsp_id: currentJobId,
+          applicants: selectedApplicants.map((applicant) => ({
+            id: applicant.id || applicant.nPersonalInfo_id,
+            ControlNo: applicant.ControlNo || null,
+            // firstname: applicant.firstname,
+            // lastname: applicant.lastname,
+            // name_extension: applicant.name_extension || '',
+            // email: applicant.email || '',
+            // image_url: applicant.image_url,
+            // source: applicant.source,
+            // type: applicant.type,
+          })),
+        };
+
+        const response = await adminApi.post(`/submissions/multiple`, payload);
+
+        console.log('Import response:', response.data);
+
+        if (response.data.status === 'success' || response.status === 200) {
+          await this.fetch_applicant(currentJobId);
+        }
+
+        this.previousApplicantsError = null;
+        return response.data;
+      } catch (err) {
+        console.error('Error importing applicants:', err);
+        this.previousApplicantsError = err;
+        toast.error('Failed to import applicants: ' + (err.response?.data?.message || err.message));
+        throw err;
+      } finally {
+        this.previousApplicantsLoading = false;
+      }
+    },
+
+    // ✅ Clear previous applicants from store
+    clearPreviousApplicants() {
+      this.previousApplicants = [];
+      this.previousApplicantsError = null;
+    },
+
+    // Evaluation
     async evaluation(evaluationData) {
       this.error = null;
       try {
@@ -26,7 +157,7 @@ export const useJobPostStore = defineStore('jobPost', {
             education_remark: evaluationData.education_remark,
             experience_remark: evaluationData.experience_remark,
             training_remark: evaluationData.training_remark,
-            eligibility_remark: evaluationData.eligibility_remark, // <-- correct spelling!
+            eligibility_remark: evaluationData.eligibility_remark,
           },
         );
 
@@ -74,13 +205,10 @@ export const useJobPostStore = defineStore('jobPost', {
       this.loading = true;
       try {
         const { data } = await adminApi.get(`/rater/applicant/history/score/${id}`);
-
-        // Store the complete response data, not just data.applicants
         this.applicant = data;
         this.error = null;
-
         console.log('Store - fetch_applicant_score response:', data);
-        return data; // Return the data for immediate use
+        return data;
       } catch (error) {
         this.error = error;
         toast.error('Failed to fetch applicant scores.');
@@ -116,18 +244,17 @@ export const useJobPostStore = defineStore('jobPost', {
       }
     },
 
-    // In your jobPostStore - make sure it returns the data
     async fetchJobDetails(id) {
       try {
         this.loading = true;
         const { data } = await adminApi.get(`/job-batches-rsp/${id}`);
-        this.jobPosts = data; // Store it
+        this.jobPosts = data;
         this.error = null;
-        return data; // ← MAKE SURE THIS LINE EXISTS
+        return data;
       } catch (err) {
         this.error = err;
         this.jobPosts = null;
-        throw err; // Re-throw the error
+        throw err;
       } finally {
         this.loading = false;
       }
@@ -172,14 +299,40 @@ export const useJobPostStore = defineStore('jobPost', {
       }
     },
 
-    async job_post() {
+    async getPrevEmployee(id) {
       this.loading = true;
       try {
-        const { data } = await adminApi.get('/job-post');
+        const { data } = await adminApi.get(`/export/applicant/${id}`);
         this.jobPosts = data;
         this.error = null;
       } catch (err) {
         this.error = err;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async job_post() {
+      this.loading = true;
+      try {
+        const { data } = await adminApi.get('/job-post');
+        if (Array.isArray(data)) {
+          this.jobPosts = data;
+        } else if (data && typeof data === 'object' && Array.isArray(data.data)) {
+          this.jobPosts = data.data;
+        } else if (data && typeof data === 'object' && Array.isArray(data.jobPosts)) {
+          this.jobPosts = data.jobPosts;
+        } else if (data && typeof data === 'object') {
+          this.jobPosts = Object.values(data).filter(
+            (item) => item && typeof item === 'object' && (item.PositionID || item.id),
+          );
+        } else {
+          this.jobPosts = [];
+        }
+        this.error = null;
+      } catch (err) {
+        this.error = err;
+        this.jobPosts = [];
       } finally {
         this.loading = false;
       }
@@ -223,27 +376,18 @@ export const useJobPostStore = defineStore('jobPost', {
       this.loading = true;
 
       try {
-        // Create FormData instance
         const formData = new FormData();
 
-        // Append all jobBatch fields to FormData
         Object.keys(jobBatch).forEach((key) => {
           if (jobBatch[key] !== null && jobBatch[key] !== undefined) {
             formData.append(key, jobBatch[key]);
           }
         });
 
-        // If you need to send criteria as well, you can append it as JSON
-        // or as individual fields depending on your backend expectations
         if (criteria) {
           formData.append('criteria', JSON.stringify(criteria));
-          // OR append each criteria field individually:
-          // Object.keys(criteria).forEach(key => {
-          //   formData.append(key, criteria[key]);
-          // });
         }
 
-        // Send FormData with proper headers
         const { data: batch } = await adminApi.post('/job-batches-rsp', formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
@@ -264,27 +408,18 @@ export const useJobPostStore = defineStore('jobPost', {
       this.loading = true;
 
       try {
-        // Create FormData instance
         const formData = new FormData();
 
-        // Append all jobBatch fields to FormData
         Object.keys(jobBatch).forEach((key) => {
           if (jobBatch[key] !== null && jobBatch[key] !== undefined) {
             formData.append(key, jobBatch[key]);
           }
         });
 
-        // If you need to send criteria as well, you can append it as JSON
-        // or as individual fields depending on your backend expectations
         if (criteria) {
           formData.append('criteria', JSON.stringify(criteria));
-          // OR append each criteria field individually:
-          // Object.keys(criteria).forEach(key => {
-          //   formData.append(key, criteria[key]);
-          // });
         }
 
-        // Send FormData with proper headers
         const { data: batch } = await adminApi.post('/job-batches-rsp/republished', formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
@@ -301,24 +436,16 @@ export const useJobPostStore = defineStore('jobPost', {
     async updateJobPost({ id, jobBatch, criteria, criteriaId }) {
       this.loading = true;
       try {
-        // Create FormData instance
         const formData = new FormData();
 
-        // Append all jobBatch fields to FormData
         Object.keys(jobBatch).forEach((key) => {
           if (jobBatch[key] !== null && jobBatch[key] !== undefined) {
             formData.append(key, jobBatch[key]);
           }
         });
 
-        // If you need to send criteria as well, you can append it as JSON
-        // or as individual fields depending on your backend expectations
         if (criteria) {
           formData.append('criteria', JSON.stringify(criteria));
-          // OR append each criteria field individually:
-          // Object.keys(criteria).forEach(key => {
-          //   formData.append(key, criteria[key]);
-          // });
         }
 
         const { data: batch } = await adminApi.post(`/job-batches-rsp/update/${id}`, jobBatch, {
@@ -342,20 +469,12 @@ export const useJobPostStore = defineStore('jobPost', {
       try {
         this.loading = true;
         const response = await adminApi.post(`/hire/${id}`, payload, {
-          validateStatus: function (status) {
-            return status < 500; // Don't throw errors for 4xx status codes
-          },
+          validateStatus: (status) => status < 500,
         });
-        return response; // Return the full response object
+        return response;
       } catch (err) {
-        console.error('Failed to hire applicant:', err);
-        // Return a structured error response
-        return {
-          data: {
-            success: false,
-            message: 'Network error occurred',
-          },
-        };
+        console.error('Error hiring applicant:', err.message || err);
+        return { data: { success: false, message: 'An error occurred' } };
       } finally {
         this.loading = false;
       }

@@ -144,8 +144,10 @@
             >
               <q-tooltip>View Job Details</q-tooltip>
             </q-btn>
-            <!-- Edit button -->
+
+            <!-- Edit button - only if modify permission -->
             <q-btn
+              v-if="canModifyJobPost"
               round
               flat
               color="orange"
@@ -155,8 +157,10 @@
             >
               <q-tooltip>Edit Job Post</q-tooltip>
             </q-btn>
+
+            <!-- Republish button - only if modify permission -->
             <q-btn
-              v-if="props.row.status == 'Unoccupied'"
+              v-if="canModifyJobPost && props.row.status == 'Unoccupied'"
               round
               flat
               color="green"
@@ -166,9 +170,10 @@
             >
               <q-tooltip>Republish Job Post</q-tooltip>
             </q-btn>
-            <!-- Delete icon only if applicants is 0 or falsy -->
+
+            <!-- Delete button - only if modify permission and no applicants -->
             <q-btn
-              v-if="props.row.total_applicants == 0"
+              v-if="canModifyJobPost && props.row.total_applicants == 0"
               round
               flat
               color="negative"
@@ -840,14 +845,21 @@
   import QualityStandardModal from 'components/QualityStandardModal.vue';
   import PDSModal from 'components/PDSModal.vue';
   import { useJobPostStore } from 'stores/jobPostStore';
+  import { useAuthStore } from 'stores/authStore';
   import { useRouter } from 'vue-router';
   import { useQuasar } from 'quasar';
 
   const router = useRouter();
   const jobPostStore = useJobPostStore();
+  const authStore = useAuthStore();
   const $q = useQuasar();
 
   const { formatDate } = date;
+
+  // Permission check
+  const canModifyJobPost = computed(() => {
+    return authStore.user?.permissions?.modifyJobpostAccess == '1';
+  });
 
   // Page State
   const showingDetails = ref(false);
@@ -1005,9 +1017,14 @@
 
   const jobs = ref([]);
 
-  // Add this computed property to filter jobs by date range
+  // UPDATED: Computed property to filter jobs by date range, search, AND exclude republished jobs
   const filteredJobs = computed(() => {
     let filtered = jobs.value;
+
+    // MAIN CHANGE: Filter out jobs with 'Republished' status
+    filtered = filtered.filter((job) => {
+      return job.status && job.status.toLowerCase() !== 'republished';
+    });
 
     // Apply date range filtering
     if (dateRange.value.from && dateRange.value.to) {
@@ -1070,7 +1087,6 @@
       const jobData = jobPostStore.jobPosts;
 
       // Populate edit form with fetched job data
-
       editJobDetails.value = {
         id: jobData.id,
         Office: jobData.Office || '',
@@ -1221,7 +1237,6 @@
     }
 
     // Create a download link for the current document
-    // You might need to adjust this URL based on your backend setup
     const baseUrl = process.env.VUE_APP_API_URL || '';
     const downloadUrl = `${baseUrl}/storage/${editJobDetails.value.fileUpload}`;
 
@@ -1379,26 +1394,26 @@
 
       // Prepare job batch data for new post (include all fields except id)
       const jobBatch = {
-        Office: editJobDetails.value.Office || 'null',
-        Office2: editJobDetails.value.Office2 || 'null',
-        Group: editJobDetails.value.Group || 'null',
-        Division: editJobDetails.value.Division || 'null',
-        Section: editJobDetails.value.Section || 'null',
-        Unit: editJobDetails.value.Unit || 'null',
-        Position: editJobDetails.value.Position || 'null',
-        PositionID: editJobDetails.value.PositionID || null,
+        Office: editJobDetails.value.Office,
+        Office2: editJobDetails.value.Office2,
+        Group: editJobDetails.value.Group,
+        Division: editJobDetails.value.Division,
+        Section: editJobDetails.value.Section,
+        Unit: editJobDetails.value.Unit,
+        Position: editJobDetails.value.Position,
+        PositionID: editJobDetails.value.PositionID,
         post_date: editJobDetails.value.post_date.replace(/\//g, '-'),
         end_date: editJobDetails.value.end_date.replace(/\//g, '-'),
         PageNo: editJobDetails.value.PageNo.toString(),
-        ItemNo: editJobDetails.value.ItemNo || 'null',
-        SalaryGrade: editJobDetails.value.SalaryGrade || 'null',
-        salaryMin: editJobDetails.value.salaryMin || 'null',
-        salaryMax: editJobDetails.value.salaryMax || 'null',
-        level: editJobDetails.value.level || 'null',
+        ItemNo: editJobDetails.value.ItemNo,
+        SalaryGrade: editJobDetails.value.SalaryGrade,
+        salaryMin: editJobDetails.value.salaryMin,
+        salaryMax: editJobDetails.value.salaryMax,
+        level: editJobDetails.value.level,
         status: 'Not Started',
-        tblStructureDetails_ID: editJobDetails.value.tblStructureDetails_ID || 'null',
-        old_job_id: editJobDetails.value.id, // Reference to the original job post
-        isOpen: '1', // Set as open for new posting
+        tblStructureDetails_ID: editJobDetails.value.tblStructureDetails_ID,
+        old_job_id: editJobDetails.value.id,
+        isOpen: '1',
 
         Education: criteriaData.value.Education || '',
         Experience: criteriaData.value.Experience || '',
@@ -1410,12 +1425,10 @@
       if (editJobDetails.value.newFile) {
         jobBatch.fileUpload = editJobDetails.value.newFile;
       } else if (editJobDetails.value.fileUpload) {
-        // If no new file but there's an existing file, we might need to handle this
-        // depending on your backend implementation
         console.log('Using existing file:', editJobDetails.value.fileUpload);
       }
 
-      // Prepare criteria data for new post (exclude id to create new criteria)
+      // Prepare criteria data for new post
       const criteria = {
         PositionID: editJobDetails.value.PositionID || '',
         ItemNo: editJobDetails.value.ItemNo || '',
@@ -1540,7 +1553,6 @@
   const showConfirmationModal = ref(false);
 
   const closeQualificationModal = () => {
-    // Reset pending status when closing without submitting
     pendingStatus.value = selectedApplicant.value.status;
     showQSModal.value = false;
   };
@@ -1554,14 +1566,12 @@
           status: currentApplicant.status,
           isSubmitted: currentApplicant.isSubmitted,
         };
-        // Reset pending status to match current status
         pendingStatus.value = currentApplicant.status;
       }
     }
   };
 
   const handleTemporaryQualificationToggle = (newStatus) => {
-    // Always allow switching between Qualified or Unqualified
     pendingStatus.value = newStatus;
   };
 
@@ -1576,18 +1586,14 @@
   const submitEvaluation = () => {
     const applicantIndex = applicants.value.findIndex((a) => a.id === selectedApplicant.value.id);
     if (applicantIndex !== -1) {
-      // If this is an update to an already submitted evaluation
       if (selectedApplicant.value.isSubmitted) {
-        // Get previous status to update job counts
         const previousStatus = applicants.value[applicantIndex].status;
 
-        // Update job counts if status changed
         if (previousStatus !== pendingStatus.value) {
           const jobIndex = jobs.value.findIndex((j) => j.id === selectedJob.value.id);
           if (jobIndex !== -1) {
             const job = jobs.value[jobIndex];
 
-            // Decrement previous status count
             if (previousStatus === 'Qualified') {
               job.qualified--;
             } else if (previousStatus === 'Unqualified') {
@@ -1596,7 +1602,6 @@
               job.pending--;
             }
 
-            // Increment new status count
             if (pendingStatus.value === 'Qualified') {
               job.qualified++;
             } else if (pendingStatus.value === 'Unqualified') {
@@ -1607,7 +1612,6 @@
           }
         }
       } else {
-        // This is a new submission
         const jobIndex = jobs.value.findIndex((j) => j.id === selectedJob.value.id);
         if (jobIndex !== -1) {
           const job = jobs.value[jobIndex];
@@ -1622,7 +1626,6 @@
         }
       }
 
-      // Update the applicant status and mark as submitted
       applicants.value[applicantIndex] = {
         ...applicants.value[applicantIndex],
         status: pendingStatus.value,

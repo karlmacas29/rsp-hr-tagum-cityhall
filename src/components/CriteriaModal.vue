@@ -16,30 +16,80 @@
 
       <!-- Display selected job info -->
       <q-card-section v-else-if="jobData" class="q-pa-sm">
+        <!-- Position -->
+        <q-input
+          v-model="jobData.Position"
+          label="Position"
+          dense
+          outlined
+          readonly
+          :placeholder="'-'"
+          class="q-mb-sm"
+        />
+
         <div class="row q-col-gutter-sm q-mb-sm">
-          <div class="col-12 col-md-3">
-            <div class="text-11 text-grey-8 q-mb-xs">Office</div>
-            <div class="q-pa-xs text-12 text-weight-medium bg-grey-2 rounded-borders">
-              {{ jobData.Office || '-' }}
-            </div>
+          <!-- LEFT COLUMN -->
+          <div class="col-12 col-md-6">
+            <q-input
+              v-model="jobData.Office"
+              label="Office"
+              dense
+              outlined
+              readonly
+              :placeholder="'-'"
+              class="q-mb-sm"
+            />
+
+            <q-input
+              v-model="jobData.Group"
+              label="Group"
+              dense
+              outlined
+              readonly
+              :placeholder="'-'"
+              class="q-mb-sm"
+            />
+
+            <q-input
+              v-model="jobData.Section"
+              label="Section"
+              dense
+              outlined
+              readonly
+              :placeholder="'-'"
+            />
           </div>
-          <div class="col-12 col-md-3">
-            <div class="text-11 text-grey-8 q-mb-xs">Position</div>
-            <div class="q-pa-xs text-12 text-weight-medium bg-grey-2 rounded-borders">
-              {{ jobData.Position || '-' }}
-            </div>
-          </div>
-          <div class="col-12 col-md-3">
-            <div class="text-11 text-grey-8 q-mb-xs">Division</div>
-            <div class="q-pa-xs text-12 text-weight-medium bg-grey-2 rounded-borders">
-              {{ jobData.Division || '-' }}
-            </div>
-          </div>
-          <div class="col-12 col-md-3">
-            <div class="text-11 text-grey-8 q-mb-xs">Unit</div>
-            <div class="q-pa-xs text-12 text-weight-medium bg-grey-2 rounded-borders">
-              {{ jobData.Unit || '-' }}
-            </div>
+
+          <!-- RIGHT COLUMN -->
+          <div class="col-12 col-md-6">
+            <q-input
+              v-model="jobData.Office2"
+              label="Sub-Office"
+              dense
+              outlined
+              readonly
+              :placeholder="'-'"
+              class="q-mb-sm"
+            />
+
+            <q-input
+              v-model="jobData.Division"
+              label="Division"
+              dense
+              outlined
+              readonly
+              :placeholder="'-'"
+              class="q-mb-sm"
+            />
+
+            <q-input
+              v-model="jobData.Unit"
+              label="Unit"
+              dense
+              outlined
+              readonly
+              :placeholder="'-'"
+            />
           </div>
         </div>
 
@@ -49,30 +99,50 @@
           <q-icon name="school" class="q-mr-xs" />
           Minimum Qualifications
         </div>
+
         <div class="row q-col-gutter-sm">
           <div class="col-12 col-md-3">
-            <div class="text-11 text-grey-8 q-mb-xs">Education</div>
-            <div class="q-pa-xs text-12 bg-blue-1 rounded-borders">
-              {{ qualifications.Education || 'Not specified' }}
-            </div>
+            <q-input
+              v-model="qualifications.Education"
+              label="Education"
+              dense
+              outlined
+              readonly
+              :placeholder="'Not specified'"
+            />
           </div>
+
           <div class="col-12 col-md-3">
-            <div class="text-11 text-grey-8 q-mb-xs">Experience</div>
-            <div class="q-pa-xs text-12 bg-blue-1 rounded-borders">
-              {{ qualifications.Experience || 'Not specified' }}
-            </div>
+            <q-input
+              v-model="qualifications.Experience"
+              label="Experience"
+              dense
+              outlined
+              readonly
+              :placeholder="'Not specified'"
+            />
           </div>
+
           <div class="col-12 col-md-3">
-            <div class="text-11 text-grey-8 q-mb-xs">Training</div>
-            <div class="q-pa-xs text-12 bg-blue-1 rounded-borders">
-              {{ qualifications.Training || 'Not specified' }}
-            </div>
+            <q-input
+              v-model="qualifications.Training"
+              label="Training"
+              dense
+              outlined
+              readonly
+              :placeholder="'Not specified'"
+            />
           </div>
+
           <div class="col-12 col-md-3">
-            <div class="text-11 text-grey-8 q-mb-xs">Eligibility</div>
-            <div class="q-pa-xs text-12 bg-blue-1 rounded-borders">
-              {{ qualifications.Eligibility || 'Not specified' }}
-            </div>
+            <q-input
+              v-model="qualifications.Eligibility"
+              label="Eligibility"
+              dense
+              outlined
+              readonly
+              :placeholder="'Not specified'"
+            />
           </div>
         </div>
       </q-card-section>
@@ -83,10 +153,12 @@
       <q-card-section v-if="showRatingTable && !loading" class="criteria-section">
         <div class="row q-mb-sm">
           <div class="col-12">
-            <!-- Action buttons based on mode -->
+            <!-- Action buttons based on mode and permission -->
             <div class="float-right">
+              <!-- VIEW MODE: Show Edit button only if user has modify permission -->
               <template v-if="mode === 'view'">
                 <q-btn
+                  v-if="hasPermission"
                   color="primary"
                   icon="edit"
                   label="Edit Criteria"
@@ -96,7 +168,9 @@
                   class="q-px-md q-py-xs text-12 q-mr-sm"
                 />
               </template>
-              <template v-else-if="mode === 'edit' || mode === 'create'">
+
+              <!-- EDIT/CREATE MODE: Show Save button only if user has modify permission -->
+              <template v-if="(mode === 'edit' || mode === 'create') && hasPermission">
                 <q-btn
                   color="primary"
                   icon="save"
@@ -150,7 +224,7 @@
                           outlined
                           class="weight-input text-12"
                           @update:model-value="validatePercentage(section.key)"
-                          :readonly="mode === 'view'"
+                          :readonly="mode === 'view' || !hasPermission"
                         >
                           <template v-slot:append>
                             <span class="percentage-sign">%</span>
@@ -174,19 +248,16 @@
                     outlined
                     autogrow
                     class="modern-input text-12 q-mb-xs"
-                    :readonly="mode === 'view'"
+                    :readonly="mode === 'view' || !hasPermission"
                   />
 
                   <!-- Additional Descriptions -->
-                  <template v-if="mode === 'view'">
-                    <!-- View mode: Show comma-separated descriptions as read-only -->
+                  <template v-if="mode === 'view' || !hasPermission">
+                    <!-- View mode or no permission: Show comma-separated descriptions as read-only -->
                     <div
                       v-if="getCommaSeparatedDescriptions(section.key).length > 0"
                       class="q-mt-sm"
                     >
-                      <!-- <div class="text-11 text-grey-8 q-mb-xs text-weight-medium">
-                        Additional Descriptions:
-                      </div> -->
                       <div
                         v-for="(desc, idx) in getCommaSeparatedDescriptions(section.key)"
                         :key="`${section.key}-comma-desc-${idx}`"
@@ -206,15 +277,12 @@
                     </div>
                   </template>
 
-                  <template v-else-if="mode === 'edit' || mode === 'create'">
-                    <!-- Edit/Create mode: Show editable additional fields -->
+                  <template v-else-if="(mode === 'edit' || mode === 'create') && hasPermission">
+                    <!-- Edit/Create mode with permission: Show editable additional fields -->
                     <div
                       v-if="editableCriteria[section.key].additionalFields.length > 0"
                       class="q-mt-sm"
                     >
-                      <!-- <div class="text-11 text-grey-8 q-mb-xs text-weight-medium">
-                        Additional Descriptions:
-                      </div> -->
                       <div
                         v-for="(field, idx) in editableCriteria[section.key].additionalFields"
                         :key="section.key + '-edit-desc-' + idx"
@@ -332,12 +400,30 @@
   import { useCriteriaStore } from 'stores/criteriaStore';
   import { useJobPostStore } from 'stores/jobPostStore';
 
-  // Props
+  /**
+   * Create audit log entry
+   */
+  function logAudit(action, description, status = 'SUCCESS', details = {}) {
+    const auditLog = {
+      timestamp: '2025-10-29 05:25:53',
+      user: 'dsfsgs',
+      action,
+      description,
+      module: 'Criteria_Management',
+      status,
+      details: JSON.stringify(details),
+    };
+
+    console.log('[AUDIT LOG]', auditLog);
+    // TODO: Send to server via API: await auditApi.log(auditLog);
+  }
+
+  // Props - Changed from positionId/itemNo to jobId
   const props = defineProps({
     modelValue: { type: Boolean, required: true },
-    positionId: { type: String, default: null },
-    itemNo: { type: String, default: null },
-    mode: { type: String, default: 'create' }, // 'create', 'view', 'edit'
+    jobId: { type: [String, Number], default: null },
+    mode: { type: String, default: 'create' },
+    hasPermission: { type: Boolean, default: false },
   });
 
   // Emits
@@ -350,7 +436,10 @@
   const criteriaStore = useCriteriaStore();
   const jobPostStore = useJobPostStore();
 
-  // State
+  // ============================================================================
+  // STATE
+  // ============================================================================
+
   const show = ref(props.modelValue);
   const confirmDialog = ref(false);
   const showRatingTable = ref(false);
@@ -359,6 +448,7 @@
   const qualifications = ref({});
   const existingCriteria = ref(null);
   const originalDescriptions = ref({});
+  const isDataFetched = ref(false);
 
   const baseCriteria = {
     education: { weight: 20, title: '', description: '', additionalFields: [] },
@@ -378,7 +468,14 @@
     { key: 'bei', label: 'BEI', icon: 'record_voice_over' },
   ];
 
-  // Computed
+  // ============================================================================
+  // COMPUTED PROPERTIES
+  // ============================================================================
+
+  const canModify = computed(() => {
+    return props.hasPermission === true;
+  });
+
   const totalWeight = computed(() => {
     if (!editableCriteria.value) return 0;
     return (
@@ -390,85 +487,132 @@
     );
   });
 
-  // Watchers
+  // ============================================================================
+  // WATCHERS
+  // ============================================================================
+
   watch(
     () => props.modelValue,
     (val) => {
       show.value = val;
-      if (val && props.positionId && props.itemNo) {
+      if (val && props.jobId && !isDataFetched.value) {
         fetchJobData();
+        logAudit('MODAL_OPENED', `Opening ${props.mode} criteria modal`, 'SUCCESS', {
+          jobId: props.jobId,
+          mode: props.mode,
+        });
       }
     },
   );
 
-  watch(show, (val) => emit('update:modelValue', val));
+  watch(show, (val) => {
+    emit('update:modelValue', val);
+    if (!val) {
+      isDataFetched.value = false;
+      logAudit('MODAL_CLOSED', `Closed ${props.mode} criteria modal`);
+    }
+  });
 
-  // Watch for changes in positionId and itemNo
   watch(
-    () => [props.positionId, props.itemNo],
-    ([newPositionId, newItemNo]) => {
-      if (show.value && newPositionId && newItemNo) {
+    () => [props.jobId],
+    ([newJobId]) => {
+      if (show.value && newJobId && !isDataFetched.value) {
         fetchJobData();
       }
     },
     { immediate: true },
   );
 
-  // Methods
-  async function fetchJobData() {
-    if (!props.positionId || !props.itemNo) return;
+  // ============================================================================
+  // METHODS
+  // ============================================================================
 
+  /**
+   * Fetch job data by job ID
+   */
+  async function fetchJobData() {
+    if (!props.jobId || isDataFetched.value) return;
+
+    isDataFetched.value = true;
     loading.value = true;
     showRatingTable.value = false;
 
     try {
-      // Fetch job post data
-      const jobResponse = await jobPostStore.fetchJobPostByPositionAndItemNo(
-        props.positionId,
-        props.itemNo,
-      );
-      jobData.value = jobResponse;
+      logAudit('FETCH_START', 'Starting to fetch job data by ID', 'INFO', {
+        jobId: props.jobId,
+      });
 
-      // Fetch qualifications/criteria data
-      const criteriaResponse = await jobPostStore.fetchCriteriaByPositionAndItemNo(
-        props.positionId,
-        props.itemNo,
-      );
-      qualifications.value = criteriaResponse;
+      // Fetch job details by ID
+      const jobResponse = await jobPostStore.fetchJobDetails(props.jobId);
 
-      // If in view or edit mode, try to fetch existing criteria
+      jobData.value = {
+        id: jobResponse.id,
+        Position: jobResponse.Position,
+        Office: jobResponse.Office,
+        Office2: jobResponse.Office2,
+        Group: jobResponse.Group,
+        Division: jobResponse.Division,
+        Section: jobResponse.Section,
+        Unit: jobResponse.Unit,
+      };
+
+      // Set qualifications
+      if (jobResponse.criteria) {
+        qualifications.value = {
+          Education: jobResponse.criteria.Education,
+          Experience: jobResponse.criteria.Experience,
+          Training: jobResponse.criteria.Training,
+          Eligibility: jobResponse.criteria.Eligibility,
+        };
+      } else {
+        qualifications.value = {};
+      }
+
+      logAudit('DATA_FETCHED', 'Successfully fetched job data', 'SUCCESS', {
+        jobId: props.jobId,
+        position: jobData.value?.Position,
+        office: jobData.value?.Office,
+      });
+
+      // If in view or edit mode, fetch existing criteria
       if (props.mode === 'view' || props.mode === 'edit') {
         try {
-          // Assuming there's a method to get existing criteria ratings
           const existingResponse = await criteriaStore.viewCriteria(jobData.value.id);
           existingCriteria.value = existingResponse;
           if (existingResponse) {
             editableCriteria.value = convertApiCriteriaToModalFormat(existingResponse);
+            logAudit('EXISTING_CRITERIA_LOADED', 'Loaded existing criteria', 'SUCCESS', {
+              jobId: props.jobId,
+            });
           }
         } catch {
           console.log('No existing criteria found, using default');
           editableCriteria.value = JSON.parse(JSON.stringify(baseCriteria));
+          logAudit('NO_EXISTING_CRITERIA', 'No existing criteria, using defaults');
         }
       } else {
-        // Create mode - use default criteria
         editableCriteria.value = JSON.parse(JSON.stringify(baseCriteria));
       }
 
       showRatingTable.value = true;
     } catch (error) {
       console.error('Error fetching job data:', error);
+      logAudit('FETCH_ERROR', 'Failed to fetch job data', 'FAILED', {
+        jobId: props.jobId,
+        error: error.message,
+      });
       $q.notify({
         type: 'negative',
         message: 'Failed to load job information',
       });
       showRatingTable.value = false;
+      isDataFetched.value = false;
     } finally {
       loading.value = false;
     }
   }
 
   function getCommaSeparatedDescriptions(sectionKey) {
-    // Only show comma-separated descriptions in view mode
     if (props.mode !== 'view') return [];
 
     const originalDesc = originalDescriptions.value[sectionKey];
@@ -478,7 +622,7 @@
       .split(',')
       .map((desc) => desc.trim())
       .filter((desc) => desc !== '')
-      .slice(1); // Skip the first one as it's shown in the main description field
+      .slice(1);
   }
 
   function getModalTitle() {
@@ -497,7 +641,6 @@
     const result = JSON.parse(JSON.stringify(baseCriteria));
     const criteriaKeys = ['education', 'experience', 'training', 'performance'];
 
-    // Reset original descriptions
     originalDescriptions.value = {};
 
     criteriaKeys.forEach((key) => {
@@ -513,14 +656,12 @@
           const description = criteriaItem.description || '';
           originalDescriptions.value[key] = description;
 
-          // Handle comma-separated descriptions
           if (description.includes(',')) {
             const parts = description
               .split(',')
               .map((part) => part.trim())
               .filter((part) => part !== '');
             result[key].description = parts[0] || '';
-            // Convert comma-separated parts to additionalFields for editing
             result[key].additionalFields = [...parts.slice(1)];
           } else {
             result[key].description = description;
@@ -529,7 +670,6 @@
 
           result[key].title = criteriaItem.Title || criteriaItem.title || '';
 
-          // Add any additional items from the array
           if (criteriaSection.length > 1) {
             const additionalItems = criteriaSection
               .slice(1)
@@ -544,7 +684,6 @@
           const description = criteriaSection.description || '';
           originalDescriptions.value[key] = description;
 
-          // Handle comma-separated descriptions
           if (description.includes(',')) {
             const parts = description
               .split(',')
@@ -561,7 +700,6 @@
       }
     });
 
-    // Handle BEI section similarly
     let beiSection =
       apiCriteria.behavioral || apiCriteria.Behavioral || apiCriteria.bei || apiCriteria.BEI;
 
@@ -574,7 +712,6 @@
         const description = behavioralItem.description || '';
         originalDescriptions.value.bei = description;
 
-        // Handle comma-separated descriptions
         if (description.includes(',')) {
           const parts = description
             .split(',')
@@ -601,7 +738,6 @@
         const description = beiSection.description || '';
         originalDescriptions.value.bei = description;
 
-        // Handle comma-separated descriptions
         if (description.includes(',')) {
           const parts = description
             .split(',')
@@ -620,37 +756,63 @@
     return result;
   }
 
-  // New methods for handling additional descriptions
   function addAdditionalDescription(section) {
     editableCriteria.value[section].additionalFields.push('');
   }
 
   function removeAdditionalDescription(section, idx) {
     editableCriteria.value[section].additionalFields.splice(idx, 1);
+    logAudit('DESCRIPTION_REMOVED', `Removed description ${idx + 2} from ${section}`, 'SUCCESS', {
+      jobId: props.jobId,
+      section,
+    });
   }
-
-  // Legacy methods for backward compatibility
-  // function addField(section) {
-  //   addAdditionalDescription(section);
-  // }
-
-  // function removeField(section, idx) {
-  //   removeAdditionalDescription(section, idx);
-  // }
 
   function closeModal() {
     show.value = false;
   }
 
   function switchToEditMode() {
+    if (!canModify.value) {
+      console.warn('User does not have permission to edit criteria');
+      logAudit('PERMISSION_DENIED', 'Attempted to switch to edit without permission', 'WARNING', {
+        jobId: props.jobId,
+      });
+      $q.notify({
+        type: 'warning',
+        message: 'You do not have permission to edit criteria',
+      });
+      return;
+    }
+
+    logAudit('SWITCH_TO_EDIT', 'Switching from view to edit mode', 'SUCCESS', {
+      jobId: props.jobId,
+    });
+
     closeModal();
     nextTick(() => {
-      emit('switch-to-edit', props.positionId, props.itemNo);
+      emit('switch-to-edit', props.jobId);
     });
   }
 
   function confirmSave() {
+    if (!canModify.value) {
+      console.warn('User does not have permission to save criteria');
+      logAudit('PERMISSION_DENIED', 'Attempted to save without permission', 'WARNING', {
+        jobId: props.jobId,
+      });
+      $q.notify({
+        type: 'warning',
+        message: 'You do not have permission to save criteria',
+      });
+      return;
+    }
+
     if (totalWeight.value !== 100) {
+      logAudit('VALIDATION_ERROR', 'Total weight not equal to 100%', 'WARNING', {
+        jobId: props.jobId,
+        totalWeight: totalWeight.value,
+      });
       $q.notify({
         type: 'warning',
         message: 'The total weight must equal 100% before saving.',
@@ -661,6 +823,18 @@
   }
 
   async function saveRatings() {
+    if (!canModify.value) {
+      console.warn('User does not have permission to save criteria');
+      logAudit('PERMISSION_DENIED', 'Final save attempt without permission', 'FAILED', {
+        jobId: props.jobId,
+      });
+      $q.notify({
+        type: 'warning',
+        message: 'You do not have permission to save criteria',
+      });
+      return;
+    }
+
     try {
       const jobBatchesRspIds = [jobData.value?.id].filter(Boolean);
 
@@ -668,7 +842,6 @@
         throw new Error('No valid job ID found');
       }
 
-      // Prepare criteria data for saving
       const criteriaToSave = {};
       Object.keys(editableCriteria.value).forEach((key) => {
         const criteria = editableCriteria.value[key];
@@ -685,11 +858,24 @@
         criteria: criteriaToSave,
       });
 
+      logAudit('CRITERIA_SAVED', 'Criteria saved successfully', 'SUCCESS', {
+        jobId: props.jobId,
+        position: jobData.value?.Position,
+        office: jobData.value?.Office,
+        weights: Object.fromEntries(
+          Object.entries(editableCriteria.value).map(([k, v]) => [k, v.weight]),
+        ),
+      });
+
       $q.notify({ type: 'positive', message: 'Criteria saved successfully!' });
       emit('saved');
       closeModal();
     } catch (error) {
       console.error('Save criteria error:', error);
+      logAudit('SAVE_ERROR', 'Failed to save criteria', 'FAILED', {
+        jobId: props.jobId,
+        error: error.message,
+      });
       $q.notify({
         type: 'negative',
         message: error.message || 'Failed to save criteria. Please try again.',
@@ -827,7 +1013,6 @@
     }
   }
 
-  /* Ensure proper spacing and alignment */
   .q-gutter-xs > .col {
     padding: 2px;
   }
@@ -844,7 +1029,6 @@
     margin-top: 8px;
   }
 
-  /* Make sure inputs are properly sized */
   .modern-input :deep(.q-field__control) {
     min-height: 28px;
   }

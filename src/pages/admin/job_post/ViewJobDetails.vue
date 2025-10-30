@@ -500,6 +500,7 @@
       :rating-data="ratingData"
       :job-details="scoreModal.jobDetails || selectedJob"
       @update:show="handleScoreModalUpdate"
+      @on-hired="onApplicantHired"
       @close="closeScoreModal"
     />
   </div>
@@ -868,6 +869,22 @@
 
   const goBack = () => {
     router.push('/job-post');
+  };
+
+  const onApplicantHired = async () => {
+    try {
+      // Refresh job details to update status
+      await refreshJobDetails(true);
+
+      // Refresh applicant data - this will update both the applicants and ratings tables
+      await refreshApplicantData();
+
+      // Close the score modal
+      closeScoreModal();
+    } catch (error) {
+      console.error('Error refreshing after hire:', error);
+      toast.error('Failed to refresh data after hiring.');
+    }
   };
 
   const viewFundedDocument = async () => {

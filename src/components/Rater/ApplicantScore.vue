@@ -354,7 +354,7 @@
         default: () => ({}),
       },
     },
-    emits: ['update:show', 'close'],
+    emits: ['update:show', 'close', 'on-hired'],
     setup(props, { emit }) {
       const localShow = ref(props.show);
       const raterScores = ref([]);
@@ -566,8 +566,15 @@
           if (response && response.data) {
             if (response.data.success === true) {
               toast.success(response.data.message || 'Applicant hired successfully');
-              hireConfirmationDialog.value = false;
-              closeModal();
+
+              // ✅ ADDED: Emit the 'on-hired' event to trigger parent refresh
+              emit('on-hired');
+
+              // Small delay before closing to allow event to propagate
+              setTimeout(() => {
+                hireConfirmationDialog.value = false;
+                closeModal();
+              }, 500);
             } else {
               // Handle API errors where success is false
               console.log('API returned success: false, message:', response.data.message);

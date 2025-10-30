@@ -708,14 +708,18 @@
 
   // Check if job post exists for a position by comparing with jobPostStore.jobPosts
   const hasJobPost = (row) => {
-    if (!row || !jobPostStore.jobPosts) return false;
+    if (!row || !jobPostStore.jobPosts) {
+      return false;
+    }
 
-    const exists = jobPostStore.jobPosts.some(
-      (jp) =>
-        String(jp.tblStructureDetails_ID) === String(row.tblStructureDetails_ID) &&
+    const exists = jobPostStore.jobPosts.some((jp) => {
+      const match =
+        String(jp.tblStructureDetails_ID) === String(row.ID) &&
         String(jp.PositionID) === String(row.PositionID) &&
-        String(jp.ItemNo) === String(row.ItemNo),
-    );
+        String(jp.ItemNo) === String(row.ItemNo);
+
+      return match;
+    });
 
     return exists;
   };
@@ -952,48 +956,52 @@
         Training: qsCriteria.value.Training,
       };
 
+      // Create the job post
       await jobPostStore.insertJobPost({
         jobBatch: jobBatch,
         jobCriteria,
       });
 
-      showVacantPositionModal.value = false;
-      isSubmitting.value = false;
-
+      // Log the action
       logStore.logAction(
         `${authStore.user.name} created a job post for ${postJobDetails.value.position}. PositionID: ${postJobDetails.value.PositionID}, ItemNo: ${postJobDetails.value.ItemNo}`,
       );
 
+      await jobPostStore.job_post();
+
+      // Update the position's Funded status in the local array
       const idx = positions.value.findIndex(
         (p) =>
-          String(p.tblStructureDetails_ID) ===
-            String(postJobDetails.value.tblStructureDetails_ID) &&
+          String(p.ID) === String(postJobDetails.value.ID) &&
           String(p.PositionID) === String(postJobDetails.value.PositionID) &&
           String(p.ItemNo) === String(postJobDetails.value.ItemNo),
       );
+
       if (idx !== -1) {
         positions.value[idx].Funded = '1';
+        // Force reactivity
+        positions.value = [...positions.value];
       }
 
-      await jobPostStore.job_post();
-
+      // Force table re-render
       tableKey.value++;
+
+      // Close modal after everything is done
+      showVacantPositionModal.value = false;
 
       $q.notify({
         type: 'positive',
-        message: 'Job post republished successfully',
+        message: 'Job post created successfully!',
         position: 'top',
       });
-
-      // Close the modal
     } catch (error) {
-      isSubmitting.value = false;
-      console.error('Error republishing job post:', error);
       $q.notify({
         type: 'negative',
-        message: error.response?.data?.message || 'Failed to republish job post. Please try again.',
+        message: error.response?.data?.message || 'Failed to create job post. Please try again.',
         position: 'top',
       });
+    } finally {
+      isSubmitting.value = false;
     }
   };
 

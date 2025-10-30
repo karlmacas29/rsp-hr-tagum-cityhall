@@ -451,6 +451,25 @@
               </q-td>
             </template>
 
+            <template v-slot:body-cell-status="props">
+              <q-td :props="props" class="text-center">
+                <q-chip
+                  :color="
+                    props.row.status === 'pending'
+                      ? 'amber'
+                      : props.row.status === 'complete'
+                        ? 'green'
+                        : 'grey'
+                  "
+                  text-color="white"
+                  class="q-pa-sm"
+                  outline
+                >
+                  {{ props.row.status }}
+                </q-chip>
+              </q-td>
+            </template>
+
             <template v-slot:no-data>
               <div class="full-width row flex-center q-gutter-sm text-grey">
                 <q-icon size="2em" name="inbox" />
@@ -611,7 +630,14 @@
       label: 'Applicants',
       field: 'applicant',
       align: 'center',
-      style: 'width: 25%',
+      style: 'width: 10%',
+    },
+    {
+      name: 'status',
+      label: 'Status',
+      field: 'status',
+      align: 'center',
+      style: 'width: 15',
     },
   ];
 
@@ -785,6 +811,7 @@
       name: rater.Rater,
       position: rater.Position || 'N/A',
       office: rater.Office,
+      status: rater.status,
     };
 
     isLoadingJobs.value = true;

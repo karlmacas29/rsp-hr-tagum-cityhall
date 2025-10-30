@@ -276,7 +276,7 @@ export const useJobPostStore = defineStore('jobPost', {
     async job_post_list() {
       this.loading = true;
       try {
-        const { data } = await adminApi.get('/job-batches-rsp/list');
+        const { data } = await adminApi.get('/rater/job/list');
         this.jobPosts = data;
         this.error = null;
       } catch (err) {

@@ -428,7 +428,7 @@
   async function loadJobPosts() {
     loading.value = true;
     try {
-      await jobPostStore.job_post_list();
+      await jobPostStore.criteria_list();
       jobs.value = jobPostStore.jobPosts;
       setDateRange();
     } catch (error) {

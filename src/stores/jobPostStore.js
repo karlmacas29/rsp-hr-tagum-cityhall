@@ -286,6 +286,19 @@ export const useJobPostStore = defineStore('jobPost', {
       }
     },
 
+    async criteria_list() {
+      this.loading = true;
+      try {
+        const { data } = await adminApi.get('/job-batches-rsp/list');
+        this.jobPosts = data;
+        this.error = null;
+      } catch (err) {
+        this.error = err;
+      } finally {
+        this.loading = false;
+      }
+    },
+
     async assign_job_list(id) {
       this.loading = true;
       try {

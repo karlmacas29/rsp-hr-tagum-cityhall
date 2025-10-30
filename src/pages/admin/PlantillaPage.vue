@@ -965,36 +965,22 @@
         `${authStore.user.name} created a job post for ${postJobDetails.value.position}. PositionID: ${postJobDetails.value.PositionID}, ItemNo: ${postJobDetails.value.ItemNo}`,
       );
 
+      // Close modal first
+      showVacantPositionModal.value = false;
+
+      // Add small delay to ensure modal closes
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      await usePlantilla.fetchPlantilla();
+      positions.value = usePlantilla.plantilla.map((item) => ({
+        ...item,
+        Status: item.Status || 'VACANT',
+      }));
+
       // Refresh job posts from API
       await jobPostStore.job_post();
 
-      // Find and update the position row
-      const positionIndex = positions.value.findIndex(
-        (p) =>
-          String(p.ID) === String(postJobDetails.value.ID) &&
-          String(p.PositionID) === String(postJobDetails.value.PositionID) &&
-          String(p.ItemNo) === String(postJobDetails.value.ItemNo),
-      );
-
-      if (positionIndex !== -1) {
-        // Update the entire row object
-        const updatedPosition = {
-          ...positions.value[positionIndex],
-          Funded: '1',
-          tblStructureDetails_ID: postJobDetails.value.ID,
-        };
-
-        positions.value[positionIndex] = updatedPosition;
-
-        // Force array reactivity
-        positions.value = [...positions.value];
-      }
-
       // Force table re-render
       tableKey.value++;
-
-      // Close modal
-      showVacantPositionModal.value = false;
 
       // Show success notification
       $q.notify({
@@ -1005,8 +991,6 @@
       });
     } catch (error) {
       console.error('Error creating job post:', error);
-
-      isSubmitting.value = false;
 
       $q.notify({
         type: 'negative',

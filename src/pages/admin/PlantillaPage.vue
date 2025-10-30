@@ -712,27 +712,34 @@
       return false;
     }
 
-    const exists = jobPostStore.jobPosts.some(
+    const jobPost = jobPostStore.jobPosts.find(
       (jp) =>
         String(jp.tblStructureDetails_ID) === String(row.ID) &&
         String(jp.PositionID) === String(row.PositionID) &&
         String(jp.ItemNo) === String(row.ItemNo),
     );
 
-    return exists;
+    return jobPost && jobPost.id ? true : false;
   };
 
   // Navigate to job post details page
   const viewJobPost = (row) => {
+    const jobPost = jobPostStore.jobPosts.find(
+      (jp) =>
+        String(jp.tblStructureDetails_ID) === String(row.ID) &&
+        String(jp.PositionID) === String(row.PositionID) &&
+        String(jp.ItemNo) === String(row.ItemNo),
+    );
+
+    if (!jobPost || !jobPost.id) {
+      toast.error('Job post details not found. Please try again.');
+      return;
+    }
+
     router.push({
       name: 'JobPost View',
       params: {
-        id: jobPostStore.jobPosts.find(
-          (jp) =>
-            String(jp.tblStructureDetails_ID) === String(row.tblStructureDetails_ID) &&
-            String(jp.PositionID) === String(row.PositionID) &&
-            String(jp.ItemNo) === String(row.ItemNo),
-        )?.id,
+        id: jobPost.id,
       },
     });
   };

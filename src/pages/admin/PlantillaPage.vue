@@ -710,6 +710,7 @@
 
     const exists = jobPostStore.jobPosts.some(
       (jp) =>
+        String(jp.tblStructureDetails_ID) === String(row.tblStructureDetails_ID) &&
         String(jp.PositionID) === String(row.PositionID) &&
         String(jp.ItemNo) === String(row.ItemNo),
     );
@@ -724,6 +725,7 @@
       params: {
         id: jobPostStore.jobPosts.find(
           (jp) =>
+            String(jp.tblStructureDetails_ID) === String(row.tblStructureDetails_ID) &&
             String(jp.PositionID) === String(row.PositionID) &&
             String(jp.ItemNo) === String(row.ItemNo),
         )?.id,

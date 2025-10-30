@@ -610,6 +610,7 @@
   import { toast } from 'src/boot/toast';
   import axios from 'axios';
   import { useLogsStore } from 'stores/logsStore';
+  import { useQuasar } from 'quasar';
 
   const router = useRouter();
   const authStore = useAuthStore();
@@ -617,6 +618,7 @@
   const logStore = useLogsStore();
   const jobPostStore = useJobPostStore();
   const isLoading = ref(false);
+  const $q = useQuasar();
 
   // Permission checks
   const canModifyPlantilla = computed(() => {
@@ -964,6 +966,8 @@
 
       const idx = positions.value.findIndex(
         (p) =>
+          String(p.tblStructureDetails_ID) ===
+            String(postJobDetails.value.tblStructureDetails_ID) &&
           String(p.PositionID) === String(postJobDetails.value.PositionID) &&
           String(p.ItemNo) === String(postJobDetails.value.ItemNo),
       );
@@ -975,12 +979,20 @@
 
       tableKey.value++;
 
-      toast.success('Job post successfully created, file uploaded, and details updated!');
+      $q.notify({
+        type: 'positive',
+        message: 'Job post republished successfully',
+        position: 'top',
+      });
+
+      // Close the modal
     } catch (error) {
-      console.error('Error creating job post:', error);
-      const errorMessage = error.response?.message || 'An unknown error occurred';
-      isSubmitting.value = false;
-      toast.error(errorMessage);
+      console.error('Error republishing job post:', error);
+      $q.notify({
+        type: 'negative',
+        message: error.response?.data?.message || 'Failed to republish job post. Please try again.',
+        position: 'top',
+      });
     }
   };
 

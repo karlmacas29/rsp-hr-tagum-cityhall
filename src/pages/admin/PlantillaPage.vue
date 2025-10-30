@@ -708,18 +708,16 @@
 
   // Check if job post exists for a position by comparing with jobPostStore.jobPosts
   const hasJobPost = (row) => {
-    if (!row || !jobPostStore.jobPosts) {
+    if (!row || !jobPostStore.jobPosts || jobPostStore.jobPosts.length === 0) {
       return false;
     }
 
-    const exists = jobPostStore.jobPosts.some((jp) => {
-      const match =
+    const exists = jobPostStore.jobPosts.some(
+      (jp) =>
         String(jp.tblStructureDetails_ID) === String(row.ID) &&
         String(jp.PositionID) === String(row.PositionID) &&
-        String(jp.ItemNo) === String(row.ItemNo);
-
-      return match;
-    });
+        String(jp.ItemNo) === String(row.ItemNo),
+    );
 
     return exists;
   };
@@ -967,38 +965,54 @@
         `${authStore.user.name} created a job post for ${postJobDetails.value.position}. PositionID: ${postJobDetails.value.PositionID}, ItemNo: ${postJobDetails.value.ItemNo}`,
       );
 
+      // Refresh job posts from API
       await jobPostStore.job_post();
 
-      // Update the position's Funded status in the local array
-      const idx = positions.value.findIndex(
+      // Find and update the position row
+      const positionIndex = positions.value.findIndex(
         (p) =>
           String(p.ID) === String(postJobDetails.value.ID) &&
           String(p.PositionID) === String(postJobDetails.value.PositionID) &&
           String(p.ItemNo) === String(postJobDetails.value.ItemNo),
       );
 
-      if (idx !== -1) {
-        positions.value[idx].Funded = '1';
-        // Force reactivity
+      if (positionIndex !== -1) {
+        // Update the entire row object
+        const updatedPosition = {
+          ...positions.value[positionIndex],
+          Funded: '1',
+          tblStructureDetails_ID: postJobDetails.value.ID,
+        };
+
+        positions.value[positionIndex] = updatedPosition;
+
+        // Force array reactivity
         positions.value = [...positions.value];
       }
 
       // Force table re-render
       tableKey.value++;
 
-      // Close modal after everything is done
+      // Close modal
       showVacantPositionModal.value = false;
 
+      // Show success notification
       $q.notify({
         type: 'positive',
         message: 'Job post created successfully!',
         position: 'top',
+        timeout: 2000,
       });
     } catch (error) {
+      console.error('Error creating job post:', error);
+
+      isSubmitting.value = false;
+
       $q.notify({
         type: 'negative',
         message: error.response?.data?.message || 'Failed to create job post. Please try again.',
         position: 'top',
+        timeout: 3000,
       });
     } finally {
       isSubmitting.value = false;

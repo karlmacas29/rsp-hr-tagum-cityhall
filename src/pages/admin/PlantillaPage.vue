@@ -982,7 +982,7 @@
     }
   };
 
-  const updateFundedStatusAPI = (positionId, isFunded, itemNo) => {
+  const updateFundedStatusAPI = (positionId, isFunded, itemNo, id) => {
     return new Promise((resolve, reject) => {
       if (!positionId || !itemNo) {
         const errorMessage = 'PositionID or ItemNo is required for updating funded status.';
@@ -1006,6 +1006,7 @@
         PositionID: positionId,
         Funded: !!isFunded,
         ItemNo: itemNo,
+        ID: id, // Include ID in payload
       };
 
       axios
@@ -1051,9 +1052,9 @@
       toast.warning('Cannot unfund a position with an active job post.');
       return;
     }
-
     fundedToggleRow.value = row;
     fundedToggleValue.value = val;
+    fundedToggleRow.value.ID = row.ID;
     showFundedConfirmModal.value = true;
   };
 
@@ -1073,6 +1074,7 @@
           fundedToggleRow.value.PositionID,
           fundedToggleValue.value === '1',
           fundedToggleRow.value.ItemNo,
+          fundedToggleRow.value.ID, // Include ID parameter
         );
 
         fundedToggleRow.value.Funded = fundedToggleValue.value;

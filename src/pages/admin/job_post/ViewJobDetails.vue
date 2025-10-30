@@ -882,7 +882,7 @@
     try {
       const apiUrl = process.env.VUE_APP_API_URL;
       const response = await axios.get(
-        `${apiUrl}/on-funded-plantilla/by-funded/${selectedJob.value.PositionID}/${selectedJob.value.ItemNo}`,
+        `${apiUrl}/on-funded-plantilla/by-funded/${selectedJob.value.id}`,
       );
       let apiPDF = apiUrl.replace(/\/api\/?$/, '');
       if (response.data.status === 'success' && response.data.data.fileUpload) {

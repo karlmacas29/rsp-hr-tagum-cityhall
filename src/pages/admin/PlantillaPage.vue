@@ -987,6 +987,7 @@
 
       // Close the modal
     } catch (error) {
+      isSubmitting.value = false;
       console.error('Error republishing job post:', error);
       $q.notify({
         type: 'negative',

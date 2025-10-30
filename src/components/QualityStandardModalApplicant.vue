@@ -499,7 +499,7 @@
             <div class="text-caption text-orange-8 q-mb-xs">Job Status</div>
             <q-badge color="orange" class="text-caption q-px-sm">
               <q-icon name="lock" class="q-mr-xs" />
-              Position is Occupied - Evaluation Disabled
+              Evaluation Disabled
             </q-badge>
           </div>
 
@@ -718,7 +718,11 @@
   // Computed property to check if job is occupied
   const isJobOccupied = computed(() => {
     return (
-      props.applicantData?.Jobstatus === 'Occupied' || props.applicantData?.Jobstatus === 'occupied'
+      props.applicantData?.Jobstatus === 'Occupied' ||
+      props.applicantData?.Jobstatus === 'occupied' ||
+      props.applicantData?.Jobstatus === 'rated' ||
+      props.applicantData?.Jobstatus === 'Unoccupied' ||
+      props.applicantData?.Jobstatus === 'unoccupied'
     );
   });
 
@@ -738,24 +742,25 @@
 
   const getStatusClass = (status) => {
     switch (status) {
-      case 'ELECTIVE':
-        return 'bg-blue';
-      case 'APPOINTED':
-        return 'bg-purple';
-      case 'CO-TERMINOUS':
-        return 'bg-brown';
-      case 'REGULAR':
-        return 'bg-green';
-      case 'TEMPORARY':
-        return 'bg-yellow text-black';
-      case 'CASUAL':
-        return 'bg-grey-4';
-      case 'CONTRACTUAL':
-        return 'bg-light-blue';
-      case 'HONORARIUM':
-        return 'bg-black';
+      case 'not started':
+        return 'grey';
+      case 'pending':
+        return 'orange';
+      case 'assessed':
+        return 'blue';
+      case 'rated':
+        return 'purple';
+      case 'occupied':
+      case 'qualified':
+        return 'green';
+      case 'unqualified':
+        return 'red';
+      case 'unoccupied':
+        return 'red-9';
+      case 'republished':
+        return 'yellow-8';
       default:
-        return 'bg-grey';
+        return 'grey';
     }
   };
 

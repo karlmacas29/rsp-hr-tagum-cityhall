@@ -205,7 +205,7 @@
           <template v-for="section in sections" :key="section.key">
             <div class="col">
               <q-card flat bordered class="criteria-card">
-                <q-card-section class="criteria-header bg-blue-1 q-py-xs">
+                <q-card-section class="criteria-header bg-green-1 q-py-xs">
                   <div class="row items-center justify-between">
                     <div class="col">
                       <div class="text-subtitle2 text-weight-medium text-12">

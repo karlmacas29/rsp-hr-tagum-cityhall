@@ -47,7 +47,7 @@
               rounded
               flat
               dense
-              @click="dateRange = { from: '', to: '' }"
+              @click="clearDateRange"
               v-if="dateRange.from || dateRange.to"
             />
             <q-btn label="Okay" class="bg-primary text-white" rounded flat dense v-close-popup />
@@ -65,6 +65,7 @@
           class="col-auto"
           style="max-width: 220px"
           clearable
+          @clear="globalSearch = ''"
         >
           <template v-slot:prepend>
             <q-icon name="search" color="primary" />
@@ -83,97 +84,105 @@
         row-key="id"
         flat
         bordered
-        class="minimal-table"
-        :pagination="pagination"
+        class="minimal-table wrap-layout"
+        v-model:pagination="pagination"
         :loading="loading"
         no-data-label="No jobs found"
-        table-style="min-width: 100%"
       >
         <!-- Office Column -->
         <template v-slot:body-cell-office="props">
-          <q-td class="text-weight-medium">
-            {{ props.row.office }}
+          <q-td class="col-office">
+            <div class="cell-content">{{ props.row.office || '-' }}</div>
           </q-td>
         </template>
 
         <!-- Position Column -->
         <template v-slot:body-cell-Position="props">
-          <q-td class="text-weight-medium">
-            {{ props.row.Position }}
+          <q-td class="col-position">
+            <div class="cell-content">{{ props.row.Position || '-' }}</div>
           </q-td>
         </template>
 
         <!-- Status Column -->
         <template v-slot:body-cell-status="props">
-          <q-td class="text-center">
-            <q-badge
-              :color="getStatusColor(props.row.status)"
-              :label="formatStatus(props.row.status)"
-              class="text-11"
-            />
+          <q-td class="col-status">
+            <div class="cell-content text-center">
+              <q-badge
+                :color="getStatusColor(props.row.status)"
+                :label="formatStatus(props.row.status)"
+                class="text-11"
+              />
+            </div>
           </q-td>
         </template>
 
         <!-- Raters Column -->
         <template v-slot:body-cell-raters="props">
-          <q-td class="text-center">
-            <span v-if="props.row.assigned_raters.length > 0" class="text-12">
-              {{ props.row.assigned_raters.length }} rater(s)
-            </span>
-            <span v-else class="text-grey text-12">-</span>
+          <q-td class="col-raters">
+            <div class="cell-content text-center">
+              <span
+                v-if="props.row.assigned_raters && props.row.assigned_raters.length > 0"
+                class="text-12"
+              >
+                {{ props.row.assigned_raters.length }} rater(s)
+              </span>
+              <span v-else class="text-grey text-12">-</span>
+            </div>
           </q-td>
         </template>
 
         <!-- Actions Column -->
         <template v-slot:body-cell-action="props">
-          <q-td class="text-center action-cell">
-            <!-- View Button -->
-            <q-btn
-              v-if="hasCriteria(props.row)"
-              flat
-              round
-              dense
-              size="sm"
-              icon="visibility"
-              color="info"
-              class="bg-blue-1"
-              @click="openModal(props.row, 'view')"
-              :disable="loading"
-            >
-              <q-tooltip>View Criteria</q-tooltip>
-            </q-btn>
+          <q-td class="col-action">
+            <div class="cell-content action-cell">
+              <!-- View Button -->
+              <q-btn
+                v-if="hasCriteria(props.row)"
+                flat
+                round
+                dense
+                size="sm"
+                icon="visibility"
+                color="info"
+                class="bg-blue-1"
+                @click="openModal(props.row, 'view')"
+                :disable="loading"
+              >
+                <q-tooltip>View Criteria</q-tooltip>
+              </q-btn>
 
-            <!-- Create Button -->
-            <q-btn
-              v-if="!hasCriteria(props.row) && canModify"
-              flat
-              round
-              dense
-              size="sm"
-              icon="add_circle"
-              color="positive"
-              class="bg-green-1"
-              @click="openModal(props.row, 'create')"
-              :disable="loading"
-            >
-              <q-tooltip>Create Criteria</q-tooltip>
-            </q-btn>
+              <!-- Create Button -->
+              <q-btn
+                v-if="!hasCriteria(props.row) && canModify"
+                flat
+                round
+                dense
+                size="sm"
+                icon="add_circle"
+                color="positive"
+                class="bg-green-1"
+                @click="openModal(props.row, 'create')"
+                :disable="loading"
+              >
+                <q-tooltip>Create Criteria</q-tooltip>
+              </q-btn>
 
-            <!-- Edit Button -->
-            <q-btn
-              v-if="hasCriteria(props.row) && canModify"
-              flat
-              round
-              dense
-              size="sm"
-              icon="edit"
-              color="primary"
-              class="bg-orange-1"
-              @click="openModal(props.row, 'edit')"
-              :disable="loading"
-            >
-              <q-tooltip>Edit Criteria</q-tooltip>
-            </q-btn>
+              <!-- Edit Button -->
+              <q-btn
+                v-if="hasCriteria(props.row) && canModify"
+                flat
+                round
+                dense
+                size="sm"
+                icon="edit"
+                color="primary"
+                class="bg-orange-1"
+                @click="openModal(props.row, 'edit')"
+                :disable="loading"
+              >
+                <q-tooltip>Edit Criteria</q-tooltip>
+              </q-btn>
+            </div>
           </q-td>
         </template>
 
@@ -222,7 +231,7 @@
   const dateRange = ref({ from: '', to: '' });
   const showDatePicker = ref(false);
 
-  // Modal State - Changed from positionId to jobId
+  // Modal State
   const showCriteriaModal = ref(false);
   const selectedJobId = ref(null);
   const modalMode = ref('create');
@@ -246,6 +255,7 @@
       field: 'office',
       align: 'left',
       sortable: true,
+      classes: 'col-office',
     },
     {
       name: 'Position',
@@ -253,6 +263,7 @@
       field: 'Position',
       align: 'left',
       sortable: true,
+      classes: 'col-position',
     },
     {
       name: 'status',
@@ -260,13 +271,15 @@
       field: 'status',
       align: 'center',
       sortable: false,
+      classes: 'col-status',
     },
     {
       name: 'raters',
       label: 'Raters',
-      field: (row) => row.assigned_raters.length,
+      field: (row) => row.assigned_raters?.length || 0,
       align: 'center',
       sortable: false,
+      classes: 'col-raters',
     },
     {
       name: 'action',
@@ -274,6 +287,7 @@
       field: 'action',
       align: 'center',
       sortable: false,
+      classes: 'col-action',
     },
   ];
 
@@ -293,6 +307,9 @@
    */
   const dateRangeText = computed(() => {
     if (!dateRange.value.from && !dateRange.value.to) return '';
+    if (!dateRange.value.to) {
+      return formatDate(dateRange.value.from, 'MMM D, YYYY');
+    }
     return `${formatDate(dateRange.value.from, 'MMM D, YYYY')} - ${formatDate(dateRange.value.to, 'MMM D, YYYY')}`;
   });
 
@@ -319,7 +336,8 @@
       const term = globalSearch.value.toLowerCase();
       filtered = filtered.filter((job) => {
         return (
-          job.office?.toLowerCase().includes(term) || job.Position?.toLowerCase().includes(term)
+          (job.office && job.office.toLowerCase().includes(term)) ||
+          (job.Position && job.Position.toLowerCase().includes(term))
         );
       });
     }
@@ -344,6 +362,13 @@
   }
 
   /**
+   * Clear date range
+   */
+  function clearDateRange() {
+    dateRange.value = { from: '', to: '' };
+  }
+
+  /**
    * Handle date range change
    */
   function onDateRangeChange() {
@@ -365,9 +390,15 @@
    * Get status badge color
    */
   function getStatusColor(status) {
-    switch (status?.toLowerCase()) {
+    const statusLower = status?.toLowerCase();
+    switch (statusLower) {
       case 'created':
         return 'positive';
+      case 'active':
+        return 'info';
+      case 'inactive':
+        return 'negative';
+      case 'not_created':
       case 'not created':
       default:
         return 'warning';
@@ -429,10 +460,11 @@
     loading.value = true;
     try {
       await jobPostStore.criteria_list();
-      jobs.value = jobPostStore.jobPosts;
+      jobs.value = jobPostStore.jobPosts || [];
       setDateRange();
     } catch (error) {
       console.error('Error loading job posts:', error);
+      jobs.value = [];
     } finally {
       loading.value = false;
     }
@@ -448,13 +480,18 @@
 </script>
 
 <style scoped lang="scss">
+  /* ========================================================================== */
   /* Typography */
+  /* ========================================================================== */
+
   .text-11 {
     font-size: 11px;
+    line-height: 1.4;
   }
 
   .text-12 {
     font-size: 12px;
+    line-height: 1.4;
   }
 
   .text-grey {
@@ -463,16 +500,36 @@
 
   .cursor-pointer {
     cursor: pointer;
+    user-select: none;
   }
 
+  /* ========================================================================== */
   /* Cards */
+  /* ========================================================================== */
+
   .table-card {
     border-radius: 4px;
     border: 1px solid #e0e0e0;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
   }
 
+  /* ========================================================================== */
+  /* Cell Content Wrapper */
+  /* ========================================================================== */
+
+  .cell-content {
+    word-wrap: break-word;
+    word-break: break-word;
+    white-space: normal;
+    line-height: 1.5;
+    padding: 4px 0;
+  }
+
+  /* ========================================================================== */
   /* Table Styles */
+  /* ========================================================================== */
+
   .minimal-table {
     :deep(.q-table__card) {
       box-shadow: none;
@@ -481,9 +538,18 @@
     :deep(.q-table__container) {
       border: none;
     }
+  }
+
+  .wrap-layout {
+    :deep(table) {
+      table-layout: auto;
+      width: 100%;
+      border-collapse: collapse;
+    }
 
     :deep(.q-table__row) {
-      height: 48px;
+      height: auto;
+      min-height: 48px;
     }
 
     :deep(.q-table__row--even) {
@@ -498,40 +564,250 @@
       background-color: #f5f5f5;
       font-weight: 600;
       font-size: 12px;
-      padding: 8px 12px;
+      padding: 12px 12px;
       border-bottom: 2px solid #e0e0e0;
+      white-space: nowrap;
+      vertical-align: middle;
     }
 
     :deep(.q-table td) {
       padding: 10px 12px;
       font-size: 13px;
       border-bottom: 1px solid #f0f0f0;
+      vertical-align: top;
+      word-break: break-word;
+      overflow-wrap: break-word;
     }
   }
 
+  /* ========================================================================== */
+  /* Column Width Definitions (Flexible) */
+  /* ========================================================================== */
+
+  .wrap-layout {
+    :deep(.col-office) {
+      width: 35%;
+      min-width: 120px;
+    }
+
+    :deep(.col-position) {
+      width: 35%;
+      min-width: 140px;
+    }
+
+    :deep(.col-status) {
+      width: 2150%;
+      min-width: 100px;
+    }
+
+    :deep(.col-raters) {
+      width: 10%;
+      min-width: 100px;
+    }
+
+    :deep(.col-action) {
+      width: 10%;
+      min-width: 140px;
+    }
+  }
+
+  /* ========================================================================== */
   /* Actions */
+  /* ========================================================================== */
+
   .action-cell {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 4px;
+    gap: 6px;
+    flex-wrap: wrap;
 
     :deep(.q-btn) {
-      margin: 0 2px;
+      margin: 2px;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+
+      &:hover:not(:disabled) {
+        transform: scale(1.1);
+      }
     }
   }
 
-  /* Responsive */
-  @media (max-width: 768px) {
-    .minimal-table {
+  /* ========================================================================== */
+  /* Responsive Design */
+  /* ========================================================================== */
+
+  @media (max-width: 1200px) {
+    .wrap-layout {
       :deep(.q-table th),
       :deep(.q-table td) {
-        padding: 6px 8px;
+        padding: 9px 10px;
         font-size: 12px;
       }
 
       :deep(.q-table__row) {
-        height: 44px;
+        min-height: 44px;
+      }
+
+      :deep(.col-office) {
+        width: 25%;
+        min-width: 100px;
+      }
+
+      :deep(.col-position) {
+        width: 25%;
+        min-width: 120px;
+      }
+
+      :deep(.col-status) {
+        width: 20%;
+        min-width: 90px;
+      }
+
+      :deep(.col-raters) {
+        width: 15%;
+        min-width: 90px;
+      }
+
+      :deep(.col-action) {
+        width: 15%;
+        min-width: 120px;
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
+    .wrap-layout {
+      :deep(.q-table th),
+      :deep(.q-table td) {
+        padding: 8px 8px;
+        font-size: 11px;
+      }
+
+      :deep(.q-table__row) {
+        min-height: 40px;
+      }
+
+      :deep(.col-office) {
+        width: 25%;
+        min-width: 80px;
+      }
+
+      :deep(.col-position) {
+        width: 25%;
+        min-width: 100px;
+      }
+
+      :deep(.col-status) {
+        width: 20%;
+        min-width: 80px;
+      }
+
+      :deep(.col-raters) {
+        width: 15%;
+        min-width: 80px;
+      }
+
+      :deep(.col-action) {
+        width: 15%;
+        min-width: 100px;
+      }
+    }
+
+    .cell-content {
+      font-size: 11px;
+    }
+
+    .text-11 {
+      font-size: 9px;
+    }
+
+    .text-12 {
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .wrap-layout {
+      :deep(.q-table th),
+      :deep(.q-table td) {
+        padding: 6px 6px;
+        font-size: 10px;
+      }
+
+      :deep(.q-table__row) {
+        min-height: 36px;
+      }
+
+      :deep(.col-office) {
+        width: 25%;
+        min-width: 70px;
+      }
+
+      :deep(.col-position) {
+        width: 25%;
+        min-width: 90px;
+      }
+
+      :deep(.col-status) {
+        width: 20%;
+        min-width: 70px;
+      }
+
+      :deep(.col-raters) {
+        width: 15%;
+        min-width: 70px;
+      }
+
+      :deep(.col-action) {
+        width: 15%;
+        min-width: 90px;
+      }
+    }
+
+    .action-cell {
+      gap: 4px;
+    }
+
+    .cell-content {
+      font-size: 10px;
+      line-height: 1.4;
+    }
+  }
+
+  /* ========================================================================== */
+  /* Scrollbar Styling */
+  /* ========================================================================== */
+
+  .wrap-layout {
+    :deep(.q-table__container) {
+      &::-webkit-scrollbar {
+        height: 6px;
+      }
+
+      &::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 3px;
+
+        &:hover {
+          background: #555;
+        }
+      }
+    }
+  }
+
+  /* ========================================================================== */
+  /* Print Styles */
+  /* ========================================================================== */
+
+  @media print {
+    .wrap-layout {
+      :deep(.q-table__row) {
+        page-break-inside: avoid;
       }
     }
   }

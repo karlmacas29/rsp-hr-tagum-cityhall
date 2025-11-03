@@ -196,9 +196,7 @@
                 <q-btn
                   v-if="
                     canModifyJobPost &&
-                    (selectedJob?.status != 'Republished' ||
-                      selectedJob?.status != 'rated' ||
-                      selectedJob?.status != 'Occupied')
+                    (selectedJob?.status == 'not started' || selectedJob?.status == 'pending')
                   "
                   label="Import Applicants"
                   color="orange-9"

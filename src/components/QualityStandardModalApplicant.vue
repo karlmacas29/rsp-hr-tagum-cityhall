@@ -113,7 +113,7 @@
                       <q-table
                         :rows="formattedEducation"
                         :columns="xEduCol"
-                        row-key="id"
+                        row-key="uniqueId"
                         wrap-cells
                       >
                         <template v-slot:no-data>
@@ -180,31 +180,46 @@
                         <q-badge
                           color="green"
                           class="q-px-sm q-py-xs"
-                          :label="formatTotalExperience(totalExperienceMonths)"
+                          :label="formatTotalExperience(totalSelectedExperienceMonths)"
                         />
                         <q-tooltip class="bg-white text-dark shadow-4">
                           <div class="q-pa-sm">
-                            <div class="text-weight-bold q-mb-xs">Experience Breakdown:</div>
-                            <div v-if="xExperience.length === 0" class="text-grey-6">
+                            <div class="text-weight-bold q-mb-xs">
+                              Experience Breakdown (Selected Only):
+                            </div>
+                            <div v-if="experienceWithDuration.length === 0" class="text-grey-6">
                               No experience records found
                             </div>
                             <div v-else>
                               <div
-                                v-for="(exp, index) in experienceWithDuration"
-                                :key="index"
+                                v-for="exp in experienceWithDuration"
+                                :key="exp.uniqueId"
                                 class="text-caption q-mb-xs"
                               >
-                                <div class="text-weight-medium">
+                                <q-checkbox
+                                  :model-value="selectedExperienceIds.includes(exp.uniqueId)"
+                                  @update:model-value="toggleExperienceSelection(exp.uniqueId)"
+                                  dense
+                                  size="sm"
+                                  class="q-mr-xs"
+                                />
+                                <span class="text-weight-medium">
                                   {{ exp.position_title || 'Untitled Position' }}
-                                </div>
+                                </span>
                                 <div class="text-grey-7">
                                   {{ formatDateRange(exp.work_date_from, exp.work_date_to) }}
                                 </div>
-                                <div class="text-primary">Duration: {{ exp.durationText }}</div>
+                                <div
+                                  v-if="selectedExperienceIds.includes(exp.uniqueId)"
+                                  class="text-primary"
+                                >
+                                  Duration: {{ exp.durationText }}
+                                </div>
                                 <q-separator class="q-my-xs" />
                               </div>
                               <div class="text-weight-bold q-mt-sm">
-                                Total Experience: {{ formatTotalExperience(totalExperienceMonths) }}
+                                Total Experience (Selected):
+                                {{ formatTotalExperience(totalSelectedExperienceMonths) }}
                               </div>
                             </div>
                           </div>
@@ -215,10 +230,19 @@
                       <q-table
                         :rows="experienceWithDuration"
                         :columns="xExperienceCol"
-                        row-key="id"
+                        row-key="uniqueId"
                         :pagination="{ rowsPerPage: 5 }"
                         wrap-cells
                       >
+                        <template v-slot:body-cell-select="props">
+                          <q-td :props="props">
+                            <q-checkbox
+                              :model-value="selectedExperienceIds.includes(props.row.uniqueId)"
+                              @update:model-value="toggleExperienceSelection(props.row.uniqueId)"
+                              dense
+                            />
+                          </q-td>
+                        </template>
                         <template v-slot:body-cell-monthlySalary="props">
                           <q-td :props="props">
                             {{ formatSalary(props.row.monthly_salary) }}
@@ -227,7 +251,14 @@
                         <template v-slot:body-cell-duration="props">
                           <q-td :props="props" class="text-center">
                             <q-badge
+                              v-if="selectedExperienceIds.includes(props.row.uniqueId)"
                               :color="props.row.durationMonths > 0 ? 'positive' : 'grey'"
+                              :label="props.row.durationText"
+                              class="q-px-xs"
+                            />
+                            <q-badge
+                              v-else
+                              color="grey-7"
                               :label="props.row.durationText"
                               class="q-px-xs"
                             />
@@ -292,26 +323,45 @@
                         <q-badge
                           color="primary"
                           class="q-px-sm q-py-xs"
-                          :label="`Total Hours: ${totalTrainingHours}`"
+                          :label="`Total Hours: ${totalSelectedTrainingHours}`"
                         />
                         <q-tooltip class="bg-white text-dark shadow-4">
                           <div class="q-pa-sm">
-                            <div class="text-weight-bold q-mb-xs">Training Hours Breakdown:</div>
+                            <div class="text-weight-bold q-mb-xs">
+                              Training Hours Breakdown (Selected Only):
+                            </div>
                             <div v-if="xTraining.length === 0" class="text-grey-6">
                               No training records found
                             </div>
                             <div v-else>
                               <div
-                                v-for="(training, index) in xTraining"
-                                :key="index"
+                                v-for="training in xTraining"
+                                :key="training.uniqueId"
                                 class="text-caption q-mb-xs"
                               >
-                                {{ training.training_title || 'Untitled Training' }}:
-                                {{ parseTrainingHours(training.number_of_hours) }} hours
+                                <q-checkbox
+                                  :model-value="selectedTrainingIds.includes(training.uniqueId)"
+                                  @update:model-value="toggleTrainingSelection(training.uniqueId)"
+                                  dense
+                                  size="sm"
+                                  class="q-mr-xs"
+                                />
+                                <span class="text-weight-medium">
+                                  {{ training.training_title || 'Untitled Training' }}:
+                                </span>
+                                <span
+                                  v-if="selectedTrainingIds.includes(training.uniqueId)"
+                                  class="text-primary"
+                                >
+                                  {{ parseTrainingHours(training.number_of_hours) }} hours
+                                </span>
+                                <span v-else class="text-grey-6">
+                                  {{ parseTrainingHours(training.number_of_hours) }}
+                                </span>
                               </div>
                               <q-separator class="q-my-xs" />
                               <div class="text-weight-bold">
-                                Total: {{ totalTrainingHours }} hours
+                                Total (Selected): {{ totalSelectedTrainingHours }} hours
                               </div>
                             </div>
                           </div>
@@ -322,19 +372,35 @@
                       <q-table
                         :rows="xTraining"
                         :columns="xTrainingCol"
-                        row-key="id"
+                        row-key="uniqueId"
                         :pagination="{ rowsPerPage: 5 }"
                         wrap-cells
                       >
+                        <template v-slot:body-cell-select="props">
+                          <q-td :props="props">
+                            <q-checkbox
+                              :model-value="selectedTrainingIds.includes(props.row.uniqueId)"
+                              @update:model-value="toggleTrainingSelection(props.row.uniqueId)"
+                              dense
+                            />
+                          </q-td>
+                        </template>
                         <template v-slot:body-cell-hours="props">
                           <q-td :props="props" class="text-center">
                             <q-badge
+                              v-if="selectedTrainingIds.includes(props.row.uniqueId)"
                               :color="
                                 parseTrainingHours(props.row.number_of_hours) > 0
                                   ? 'positive'
                                   : 'grey'
                               "
                               :label="parseTrainingHours(props.row.number_of_hours)"
+                            />
+                            <q-badge
+                              v-else
+                              color="grey-7"
+                              :label="parseTrainingHours(props.row.number_of_hours)"
+                              class="q-px-xs"
                             />
                           </q-td>
                         </template>
@@ -396,7 +462,7 @@
                       <q-table
                         :rows="xEligibility"
                         :columns="xEligibilityCol"
-                        row-key="id"
+                        row-key="uniqueId"
                         :pagination="{ rowsPerPage: 5 }"
                         wrap-cells
                       >
@@ -552,6 +618,10 @@
   const xExperience = ref([]);
   const xTraining = ref([]);
 
+  // Selection tracking
+  const selectedExperienceIds = ref([]);
+  const selectedTrainingIds = ref([]);
+
   // PDS Modal
   const showPDSModal = ref(false);
 
@@ -592,6 +662,25 @@
 
   const tab = ref('education');
   const qualificationStatus = ref('');
+
+  // Toggle functions for experience and training selection
+  const toggleExperienceSelection = (uniqueId) => {
+    const index = selectedExperienceIds.value.indexOf(uniqueId);
+    if (index > -1) {
+      selectedExperienceIds.value.splice(index, 1);
+    } else {
+      selectedExperienceIds.value.push(uniqueId);
+    }
+  };
+
+  const toggleTrainingSelection = (uniqueId) => {
+    const index = selectedTrainingIds.value.indexOf(uniqueId);
+    if (index > -1) {
+      selectedTrainingIds.value.splice(index, 1);
+    } else {
+      selectedTrainingIds.value.push(uniqueId);
+    }
+  };
 
   // Experience duration calculation functions
   const parseDate = (dateString) => {
@@ -656,7 +745,7 @@
     return `Total: ${formatDuration(totalMonths)}`;
   };
 
-  // Computed property for experience with duration
+  // Computed property for experience with duration and unique ID
   const experienceWithDuration = computed(() => {
     if (!xExperience.value || xExperience.value.length === 0) {
       return [];
@@ -665,20 +754,25 @@
     return xExperience.value.map((exp, index) => {
       const durationMonths = calculateMonthsDifference(exp.work_date_from, exp.work_date_to);
       const durationText = formatDuration(durationMonths);
+      // Create a unique ID for each experience record
+      const uniqueId = exp.id || `experience_${index}_${Date.now()}`;
 
       return {
         ...exp,
-        id: exp.id || index,
+        uniqueId,
         durationMonths,
         durationText,
       };
     });
   });
 
-  // Computed property for total experience in months
-  const totalExperienceMonths = computed(() => {
+  // Computed property for total experience in months (only selected)
+  const totalSelectedExperienceMonths = computed(() => {
     return experienceWithDuration.value.reduce((total, exp) => {
-      return total + (exp.durationMonths || 0);
+      if (selectedExperienceIds.value.includes(exp.uniqueId)) {
+        return total + (exp.durationMonths || 0);
+      }
+      return total;
     }, 0);
   });
 
@@ -703,15 +797,29 @@
     return 0;
   };
 
-  // Computed property for total training hours
-  const totalTrainingHours = computed(() => {
+  // Initialize training with unique IDs
+  const initializeTrainingData = (trainingData) => {
+    return trainingData.map((training, index) => {
+      const uniqueId = training.id || `training_${index}_${Date.now()}`;
+      return {
+        ...training,
+        uniqueId,
+      };
+    });
+  };
+
+  // Computed property for total training hours (only selected)
+  const totalSelectedTrainingHours = computed(() => {
     if (!xTraining.value || xTraining.value.length === 0) {
       return 0;
     }
 
     return xTraining.value.reduce((total, training) => {
-      const hours = parseTrainingHours(training.number_of_hours);
-      return total + hours;
+      if (selectedTrainingIds.value.includes(training.uniqueId)) {
+        const hours = parseTrainingHours(training.number_of_hours);
+        return total + hours;
+      }
+      return total;
     }, 0);
   });
 
@@ -741,7 +849,8 @@
   };
 
   const getStatusClass = (status) => {
-    switch (status) {
+    if (!status) return 'grey';
+    switch (status.toLowerCase()) {
       case 'not started':
         return 'grey';
       case 'pending':
@@ -766,7 +875,8 @@
 
   const formattedEducation = computed(
     () =>
-      xEdu.value?.map((e) => ({
+      xEdu.value?.map((e, index) => ({
+        uniqueId: e.uniqueId || `education_${index}`,
         level: e.level || '',
         school_name: e.school_name || '',
         degree: e.degree || '',
@@ -882,6 +992,13 @@
 
   const xExperienceCol = [
     {
+      name: 'select',
+      label: 'Select',
+      field: 'select',
+      align: 'center',
+      style: 'width: 50px',
+    },
+    {
       name: 'fromDate',
       label: 'From',
       field: 'work_date_from',
@@ -938,6 +1055,13 @@
   ];
 
   const xTrainingCol = [
+    {
+      name: 'select',
+      label: 'Select',
+      field: 'select',
+      align: 'center',
+      style: 'width: 50px',
+    },
     {
       name: 'title',
       label: 'Title',
@@ -1059,6 +1183,8 @@
 
   const onModalShow = async () => {
     tab.value = 'education';
+    selectedExperienceIds.value = [];
+    selectedTrainingIds.value = [];
 
     try {
       console.log('Applicant Data:', props.applicantData);
@@ -1087,7 +1213,13 @@
       // Set other PDS data
       xEligibility.value = personalInfo?.eligibility || personalInfo?.eligibity || [];
       xExperience.value = personalInfo?.work_experience || [];
-      xTraining.value = personalInfo?.training || [];
+      xTraining.value = initializeTrainingData(personalInfo?.training || []);
+
+      // Initialize all experience records as selected by default
+      selectedExperienceIds.value = experienceWithDuration.value.map((exp) => exp.uniqueId);
+
+      // Initialize all training records as selected by default
+      selectedTrainingIds.value = xTraining.value.map((training) => training.uniqueId);
 
       // Set supporting documents from applicant data
       if (props.applicantData) {
@@ -1127,6 +1259,8 @@
     xExperience.value = [];
     xTraining.value = [];
     qualificationStatus.value = '';
+    selectedExperienceIds.value = [];
+    selectedTrainingIds.value = [];
   };
 
   const onViewPDS = () => {
@@ -1154,6 +1288,8 @@
         experience_remark: experience_remark.value,
         training_remark: training_remark.value,
         eligibility_remark: eligibility_remark.value,
+        selectedExperienceIds: selectedExperienceIds.value,
+        selectedTrainingIds: selectedTrainingIds.value,
       });
     }
   };

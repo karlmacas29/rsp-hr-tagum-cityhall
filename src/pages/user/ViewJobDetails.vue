@@ -212,7 +212,7 @@
                       size="sm"
                       color="orange"
                       class="info-btn"
-                      @click="showZipInstructions = true"
+                      @click="openZipInstructions"
                     >
                       <q-tooltip class="bg-orange">Click for detailed instructions</q-tooltip>
                     </q-btn>
@@ -227,6 +227,7 @@
                   </div>
                   <div class="file-input full-width q-mt-xs">
                     <q-file
+                      ref="zipFileInputRef"
                       v-model="uploadedZipFile"
                       accept=".zip"
                       outlined
@@ -238,6 +239,7 @@
                         (val) => !!val || 'Please select a ZIP file',
                         (val) => val?.name?.endsWith('.zip') || 'Only ZIP files allowed',
                       ]"
+                      @mousedown="handleZipFileClick"
                     >
                       <template v-slot:prepend>
                         <q-icon name="attach_file" color="orange" />
@@ -430,12 +432,15 @@
       </q-card>
     </q-dialog>
 
-    <ZipInstructionModal v-model="showZipInstructions" />
+    <ZipInstructionModal
+      v-model="showZipInstructions"
+      @instruction-complete="handleInstructionComplete"
+    />
   </q-page>
 </template>
 
 <script setup>
-  import { ref, computed, onMounted } from 'vue';
+  import { ref, computed, onMounted, nextTick } from 'vue';
   import { useRouter, useRoute } from 'vue-router';
   import { useQuasar } from 'quasar';
   import { useJobPostStore } from 'stores/jobPostStore';
@@ -456,6 +461,9 @@
   const showZipInstructions = ref(false);
   const confirmDialog = ref(false);
   const uploadingLoading = ref(false);
+  const zipFileInputRef = ref(null);
+  const userClickedZipInput = ref(false);
+  const nativeFileInput = ref(null);
 
   // Job data refs used by the template
   const selectedJob = ref(null);
@@ -591,6 +599,77 @@
     successDialog.value = false;
     // Optionally redirect back to job list
     router.push('/jobList');
+  }
+
+  // Handle ZIP file input click - show instructions first
+  function handleZipFileClick() {
+    // Mark that user tried to click ZIP input
+    userClickedZipInput.value = true;
+
+    // Show the instruction modal instead
+    showZipInstructions.value = true;
+
+    // Store reference to native file input
+    nextTick(() => {
+      if (zipFileInputRef.value) {
+        nativeFileInput.value = zipFileInputRef.value.$el.querySelector('input[type="file"]');
+      }
+    });
+  }
+
+  // Open ZIP instructions via info button
+  function openZipInstructions() {
+    userClickedZipInput.value = false;
+    showZipInstructions.value = true;
+  }
+
+  // Handle when user completes instructions and clicks "Got it!"
+  async function handleInstructionComplete() {
+    showZipInstructions.value = false;
+
+    // If user originally clicked the file input, now trigger the file picker
+    if (userClickedZipInput.value) {
+      userClickedZipInput.value = false;
+
+      // Wait for modal to fully close
+      await nextTick();
+
+      // Small delay to ensure DOM is updated
+      setTimeout(() => {
+        try {
+          if (zipFileInputRef.value) {
+            // Try multiple methods to trigger file picker
+            const qFile = zipFileInputRef.value;
+
+            // Method 1: Direct access via DOM
+            const input = qFile.$el.querySelector('input[type="file"]');
+            if (input) {
+              console.log('Found input element, clicking it');
+              input.click();
+              return;
+            }
+
+            // Method 2: Use Quasar's internal method
+            if (qFile.pickFiles && typeof qFile.pickFiles === 'function') {
+              console.log('Using pickFiles method');
+              qFile.pickFiles();
+              return;
+            }
+
+            // Method 3: Access through $refs
+            if (qFile.$refs && qFile.$refs.input) {
+              console.log('Using $refs.input');
+              qFile.$refs.input.click();
+              return;
+            }
+
+            console.warn('Could not find file input to click');
+          }
+        } catch (error) {
+          console.error('Error opening file picker:', error);
+        }
+      }, 300);
+    }
   }
 
   // Called by the "APPLY NOW" button to open confirm dialog

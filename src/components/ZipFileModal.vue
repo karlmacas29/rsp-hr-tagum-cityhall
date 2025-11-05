@@ -192,7 +192,7 @@
             color="orange"
             size="lg"
             class="q-px-xl"
-            v-close-popup
+            @click="handleGotIt"
             unelevated
           />
         </div>
@@ -213,7 +213,7 @@
   });
 
   // Emits
-  const emit = defineEmits(['update:modelValue']);
+  const emit = defineEmits(['update:modelValue', 'instruction-complete']);
 
   // Computed for v-model
   const showModal = computed({
@@ -314,6 +314,14 @@
       icon: 'edit',
     },
   ]);
+
+  // Handle "Got it!" button click
+  function handleGotIt() {
+    // Emit event to parent to handle file picker opening
+    emit('instruction-complete');
+    // Close the modal
+    showModal.value = false;
+  }
 </script>
 
 <style scoped>

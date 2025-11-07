@@ -12,9 +12,13 @@ export const useJobPostStore = defineStore('jobPost', {
     previousApplicants: [],
     loading: false,
     error: null,
-    previousApplicantsLoading: false, // ✅ Separate loading state for modal
-    previousApplicantsError: null, // ✅ Separate error state for modal
+    previousApplicantsLoading: false,
+    previousApplicantsError: null,
+    // ✅ ADD THESE: Confirmation token state
+    confirmationToken: null,
+    confirmationExpiresAt: null,
   }),
+
   getters: {
     getJobPostsByPositionAndItemNo: (state) => (PositionID, ItemNo) => {
       let jobPostsArray = [];
@@ -37,7 +41,16 @@ export const useJobPostStore = defineStore('jobPost', {
         (jobPost) => jobPost.PositionID === PositionID && jobPost.ItemNo === ItemNo,
       );
     },
+
+    // ✅ ADD THESE: Confirmation token getters
+    getConfirmationExpiresAt: (state) => state.confirmationExpiresAt,
+
+    isConfirmationValid: (state) => {
+      if (!state.confirmationExpiresAt) return false;
+      return state.confirmationExpiresAt.getTime() > new Date().getTime();
+    },
   },
+
   actions: {
     // ✅ Fetch previous applicants with independent loading state
     async fetchPreviousApplicants(jobId) {
@@ -108,13 +121,6 @@ export const useJobPostStore = defineStore('jobPost', {
           applicants: selectedApplicants.map((applicant) => ({
             id: applicant.id || applicant.nPersonalInfo_id,
             ControlNo: applicant.ControlNo || null,
-            // firstname: applicant.firstname,
-            // lastname: applicant.lastname,
-            // name_extension: applicant.name_extension || '',
-            // email: applicant.email || '',
-            // image_url: applicant.image_url,
-            // source: applicant.source,
-            // type: applicant.type,
           })),
         };
 
@@ -491,6 +497,96 @@ export const useJobPostStore = defineStore('jobPost', {
       } finally {
         this.loading = false;
       }
+    },
+
+    /**
+     * ✅ UPDATE CONFIRMATION - Send user's choice (yes/no) to update application
+     */
+    async updateConfirmation(payload) {
+      try {
+        this.loading = true;
+
+        // Validate payload
+        if (!payload || !payload.confirmation_token) {
+          console.error('Invalid payload: missing confirmation_token');
+          return {
+            data: {
+              success: false,
+              message: 'Invalid confirmation token',
+            },
+          };
+        }
+
+        if (typeof payload.confirm_update === 'undefined') {
+          console.error('Invalid payload: missing confirm_update');
+          return {
+            data: {
+              success: false,
+              message: 'Invalid confirmation choice',
+            },
+          };
+        }
+
+        console.log('Sending confirmation payload:', payload);
+
+        const response = await adminApi.post(`/applicant/confirmation`, payload, {
+          validateStatus: (status) => status < 500,
+        });
+
+        console.log('Confirmation response:', response.data);
+
+        // If successful, clear the token
+        if (response.data?.success === true) {
+          this.clearConfirmationToken();
+        }
+
+        return response;
+      } catch (err) {
+        console.error('Error updating confirmation:', err.message || err);
+        return {
+          data: {
+            success: false,
+            message: 'An error occurred while processing confirmation',
+          },
+        };
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    /**
+     * ✅ SET CONFIRMATION TOKEN - Store token and expiration time
+     */
+    setConfirmationToken(token, expiresInMinutes) {
+      this.confirmationToken = token;
+      this.confirmationExpiresAt = new Date(Date.now() + expiresInMinutes * 60 * 1000);
+      console.log('Confirmation token set, expires at:', this.confirmationExpiresAt.toISOString());
+    },
+
+    /**
+     * ✅ CLEAR CONFIRMATION TOKEN - Remove token after use
+     */
+    clearConfirmationToken() {
+      this.confirmationToken = null;
+      this.confirmationExpiresAt = null;
+      console.log('Confirmation token cleared');
+    },
+
+    /**
+     * ✅ RESET - Clear all store state
+     */
+    reset() {
+      this.jobPosts = null;
+      this.applicant = [];
+      this.applicant_rating = [];
+      this.jobPostsrater = [];
+      this.applicantScores = null;
+      this.previousApplicants = [];
+      this.loading = false;
+      this.error = null;
+      this.previousApplicantsLoading = false;
+      this.previousApplicantsError = null;
+      this.clearConfirmationToken();
     },
 
     async deleteJobPost({ id }) {

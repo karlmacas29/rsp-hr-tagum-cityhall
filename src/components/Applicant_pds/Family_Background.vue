@@ -125,12 +125,17 @@
       required: false,
       default: () => ({}),
     },
+    children: {
+      type: Object,
+      required: false,
+      default: () => ({}),
+    },
   });
 
   // Extract family information from the props
   const familyInfo = computed(() => {
-    if (props.family?.nPersonalInfo?.family && props.family.nPersonalInfo.family.length > 0) {
-      return props.family.nPersonalInfo.family[0];
+    if (props.family && props.family.length > 0) {
+      return props.family[0];
     } else if (props.family?.family && props.family.family.length > 0) {
       return props.family.family[0];
     } else {
@@ -140,9 +145,9 @@
 
   // Extract children data from props
   const childrenData = computed(() => {
-    if (props.family?.nPersonalInfo?.children && props.family.nPersonalInfo.children.length > 0) {
-      return props.family.nPersonalInfo.children;
-    } else if (props.family?.children && props.family.children.length > 0) {
+    if (props.children && Array.isArray(props.children)) {
+      return props.children;
+    } else if (props.family?.children && Array.isArray(props.family.children)) {
       return props.family.children;
     } else {
       return [];

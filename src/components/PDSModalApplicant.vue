@@ -66,7 +66,10 @@
                   <Personal_Information :personal="applicantData" />
                 </div>
                 <div v-else-if="currentTab === 'family'" class="q-pa-md">
-                  <Family_Background :family="applicantData?.family" />
+                  <Family_Background
+                    :family="applicantData?.family"
+                    :children="applicantData?.children"
+                  />
                 </div>
                 <div v-else-if="currentTab === 'education'" class="q-pa-md">
                   <Educational_Background :educ="applicantData?.education || []" />
@@ -208,7 +211,7 @@
       case 'personal':
         return !!applicantData.value.firstname;
       case 'family':
-        return !!applicantData.value.family;
+        return !!applicantData.value.family && applicantData.value.family.length > 0;
       case 'education':
         return applicantData.value.education && applicantData.value.education.length > 0;
       case 'civilService':

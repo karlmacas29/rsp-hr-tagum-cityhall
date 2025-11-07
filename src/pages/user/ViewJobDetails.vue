@@ -292,7 +292,7 @@
       </q-card>
     </div>
 
-    <!-- Updated Confirmation Dialog -->
+    <!-- Confirmation Dialog for Initial Submission -->
     <q-dialog v-model="confirmDialog" persistent>
       <q-card class="confirmation-dialog">
         <!-- Green header with centered icon -->
@@ -382,41 +382,71 @@
       </q-card>
     </q-dialog>
 
-    <!-- Success Dialog -->
+    <!-- ✅ FLEXIBLE SUCCESS DIALOG - Shows different content for new vs updated applications -->
     <q-dialog v-model="successDialog" persistent>
       <q-card class="confirmation-dialog">
         <!-- Green header with centered icon -->
         <div class="header-green">
           <div class="icon-container">
-            <q-icon name="check_circle" size="28px" color="green" />
+            <q-icon
+              :name="successType === 'updated' ? 'refresh' : 'check_circle'"
+              size="28px"
+              color="green"
+            />
           </div>
         </div>
 
-        <!-- Success title -->
+        <!-- Success title - Dynamic based on type -->
         <div class="dialog-title">
-          <div class="text-h5 text-green text-center text-weight-bold">Application Successful!</div>
+          <div class="text-h5 text-green text-center text-weight-bold">
+            {{ successType === 'updated' ? 'Application Updated!' : 'Application Successful!' }}
+          </div>
           <div class="text-subtitle1 text-center text-grey q-mt-sm">
-            Your application has been submitted
+            {{
+              successType === 'updated'
+                ? 'Your application has been successfully updated'
+                : 'Your application has been submitted'
+            }}
           </div>
         </div>
 
         <q-separator />
 
-        <!-- Success content -->
+        <!-- Success content - Dynamic based on type -->
         <div class="dialog-content text-center">
-          <div class="q-mb-md">
-            Thank you for applying to the
-            <span class="text-green text-weight-bold">
-              {{ selectedJob?.Position || 'Computer Programmer II' }}
-            </span>
-            position.
-          </div>
+          <!-- NEW APPLICATION MESSAGE -->
+          <template v-if="successType === 'new'">
+            <div class="q-mb-md">
+              Thank you for applying to the
+              <span class="text-green text-weight-bold">
+                {{ selectedJob?.Position || 'Computer Programmer II' }}
+              </span>
+              position.
+            </div>
 
-          <div class="q-my-md">
-            We have received your application and will contact you via sms or email for updates.
-          </div>
+            <div class="q-my-md">
+              We have received your application and will contact you via sms or email for updates.
+            </div>
 
-          <div class="text-grey-7 q-mt-lg">Reference #: APP-{{ generateReferenceNumber() }}</div>
+            <div class="text-grey-7 q-mt-lg">Reference #: APP-{{ generateReferenceNumber() }}</div>
+          </template>
+
+          <!-- UPDATED APPLICATION MESSAGE -->
+          <template v-else-if="successType === 'updated'">
+            <div class="q-mb-md">
+              Your application for the
+              <span class="text-green text-weight-bold">
+                {{ selectedJob?.Position || 'Computer Programmer II' }}
+              </span>
+              position has been updated with your new files.
+            </div>
+
+            <div class="q-my-md">
+              The updated documents have been received and will be reviewed for next steps.
+            </div>
+
+            <div class="text-grey-7 q-mt-lg">Updated on: {{ getCurrentDateTime() }}</div>
+          </template>
         </div>
 
         <!-- Action button -->
@@ -432,6 +462,133 @@
       </q-card>
     </q-dialog>
 
+    <!-- ✅ NEW: Update Cancelled Dialog -->
+    <q-dialog v-model="updateCancelledDialog" persistent>
+      <q-card class="confirmation-dialog">
+        <!-- Blue header with info icon -->
+        <div class="header-blue">
+          <div class="icon-container">
+            <q-icon name="info" size="28px" color="blue" />
+          </div>
+        </div>
+
+        <!-- Cancelled title -->
+        <div class="dialog-title">
+          <div class="text-h5 text-blue text-center text-weight-bold">Update Cancelled</div>
+          <div class="text-subtitle1 text-center text-grey q-mt-sm">
+            Your previous application will remain unchanged
+          </div>
+        </div>
+
+        <q-separator />
+
+        <!-- Cancelled content -->
+        <div class="dialog-content text-center">
+          <div class="q-mb-md">
+            <q-icon name="check_circle" size="48px" color="blue" class="q-mb-md" />
+            <div class="text-body1">
+              Application update cancelled. Your previous application for
+              <span class="text-blue text-weight-bold">
+                {{ selectedJob?.Position || 'Computer Programmer II' }}
+              </span>
+              will remain unchanged.
+            </div>
+          </div>
+
+          <div class="q-my-md text-body2 text-grey-7">
+            Temporary data has been removed. You can apply to other positions or update later if
+            needed.
+          </div>
+
+          <div class="text-caption text-grey-7 q-mt-lg">
+            Cancelled at: {{ getCurrentDateTime() }}
+          </div>
+        </div>
+
+        <!-- Action button -->
+        <div class="dialog-actions">
+          <q-btn unelevated label="OK" color="blue" @click="closeCancelledDialog" class="q-px-xl" />
+        </div>
+      </q-card>
+    </q-dialog>
+
+    <!-- NEW: Update Confirmation Modal for Already Applied -->
+    <q-dialog v-model="updateConfirmationDialog" persistent @hide="stopConfirmationCountdown">
+      <q-card class="confirmation-dialog">
+        <!-- Orange header with info icon -->
+        <div class="header-orange">
+          <div class="icon-container">
+            <q-icon name="info" size="28px" color="orange" />
+          </div>
+        </div>
+
+        <!-- Confirmation title -->
+        <div class="dialog-title">
+          <div class="text-h5 text-orange text-center text-weight-bold">
+            Application Already Submitted
+          </div>
+          <div class="text-subtitle1 text-center text-grey q-mt-sm">Update Your Application?</div>
+        </div>
+
+        <q-separator />
+
+        <!-- Confirmation content -->
+        <div class="dialog-content">
+          <div class="q-mb-md text-body1">
+            {{ confirmationMessage }}
+          </div>
+
+          <!-- Expiration Timer -->
+          <div class="row items-center q-pa-md bg-orange-1 rounded-borders q-mb-md">
+            <q-icon name="schedule" size="20px" color="orange" class="q-mr-sm" />
+            <div class="text-body2">
+              <span class="text-weight-bold">Expires in:</span>
+              <span :class="isConfirmationExpired ? 'text-red' : 'text-orange'" class="q-ml-sm">
+                {{
+                  isConfirmationExpired
+                    ? 'Expired'
+                    : `${Math.floor(confirmationCountdown / 60000)}m ${Math.floor((confirmationCountdown % 60000) / 1000)}s`
+                }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Token info (optional, for transparency) -->
+          <div class="text-caption text-grey-7 q-mb-lg">
+            <span class="text-weight-bold">Confirmation Token:</span>
+            <br />
+            {{ confirmationToken.substring(0, 20) }}...
+          </div>
+
+          <div class="text-center text-grey-7">
+            Your previous application will be updated with the newly submitted files.
+          </div>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="dialog-actions">
+          <q-btn
+            flat
+            label="NO, KEEP PREVIOUS"
+            color="grey-7"
+            @click="handleConfirmationChoice(false)"
+            :disable="isConfirmationExpired || uploadingLoading"
+            class="q-px-md"
+          />
+          <q-btn
+            unelevated
+            label="YES, UPDATE"
+            color="orange"
+            @click="handleConfirmationChoice(true)"
+            :disable="isConfirmationExpired || uploadingLoading"
+            :loading="uploadingLoading"
+            class="q-px-md"
+          />
+        </div>
+      </q-card>
+    </q-dialog>
+
+    <!-- Zip Instructions Modal Component -->
     <ZipInstructionModal
       v-model="showZipInstructions"
       @instruction-complete="handleInstructionComplete"
@@ -440,7 +597,7 @@
 </template>
 
 <script setup>
-  import { ref, computed, onMounted, nextTick } from 'vue';
+  import { ref, computed, onMounted, nextTick, onBeforeUnmount } from 'vue';
   import { useRouter, useRoute } from 'vue-router';
   import { useQuasar } from 'quasar';
   import { useJobPostStore } from 'stores/jobPostStore';
@@ -457,7 +614,7 @@
 
   const id = route.params.id;
 
-  // Local UI state
+  // ==================== UI STATE ====================
   const showZipInstructions = ref(false);
   const confirmDialog = ref(false);
   const uploadingLoading = ref(false);
@@ -465,101 +622,30 @@
   const userClickedZipInput = ref(false);
   const nativeFileInput = ref(null);
 
-  // Job data refs used by the template
+  // ==================== SUCCESS DIALOG STATE ====================
+  const successType = ref('new'); // 'new' or 'updated'
+
+  // ==================== UPDATE CANCELLED DIALOG STATE ====================
+  const updateCancelledDialog = ref(false);
+
+  // ==================== UPDATE CONFIRMATION STATE ====================
+  const updateConfirmationDialog = ref(false);
+  const confirmationMessage = ref('');
+  const confirmationExpiresAt = ref(null);
+  const confirmationToken = ref('');
+  const confirmationCountdown = ref(0);
+  const isConfirmationExpired = ref(false);
+  let confirmationCountdownInterval = null;
+
+  // ==================== JOB DATA STATE ====================
   const selectedJob = ref(null);
   const selectedCriteria = ref(null);
 
-  const refreshJobDetails = async (showLoading = false) => {
-    if (showLoading) {
-      jobPostStore.loading = true;
-    }
+  // ==================== HELPER FUNCTIONS ====================
 
-    try {
-      console.log('Refreshing job details for ID:', id);
-
-      // Call the store method
-      let jobDetails = await jobPostStore.fetchJobDetails(id);
-
-      // If the store method doesn't return data, get it from the store
-      if (!jobDetails && jobPostStore.jobPosts) {
-        console.log('Using data from store.jobPosts');
-        jobDetails = jobPostStore.jobPosts;
-      }
-
-      if (!jobDetails) {
-        throw new Error('No job details returned from server');
-      }
-
-      console.log('Successfully refreshed job details:', jobDetails);
-
-      // Update job details
-      selectedJob.value = {
-        id: jobDetails.id || null,
-        old_job_id: jobDetails.old_job_id || null,
-        Position: jobDetails.Position || 'Unknown Position',
-        status: jobDetails.status || 'Unknown',
-        level: jobDetails.level || 'N/A',
-        PageNo: jobDetails.PageNo || 'N/A',
-        ItemNo: jobDetails.ItemNo || 'N/A',
-        SalaryGrade: jobDetails.SalaryGrade || 'N/A',
-        Office: jobDetails.Office || 'Unknown Office',
-        Division: jobDetails.Division || 'N/A',
-        Section: jobDetails.Section || 'N/A',
-        Unit: jobDetails.Unit || 'N/A',
-        post_date: jobDetails.post_date || null,
-        end_date: jobDetails.end_date || null,
-        PositionID: jobDetails.PositionID || '',
-        tblStructureDetails_ID: jobDetails.tblStructureDetails_ID || null,
-        ...jobDetails,
-      };
-
-      // Update criteria
-      if (jobDetails.criteria && typeof jobDetails.criteria === 'object') {
-        selectedCriteria.value = {
-          id: jobDetails.criteria.id || null,
-          Education: jobDetails.criteria.Education || 'Not specified',
-          Experience: jobDetails.criteria.Experience || 'Not specified',
-          Training: jobDetails.criteria.Training || 'Not specified',
-          Eligibility: jobDetails.criteria.Eligibility || 'Not specified',
-        };
-      } else {
-        selectedCriteria.value = {
-          Education: 'No criteria available',
-          Experience: 'No criteria available',
-          Training: 'No criteria available',
-          Eligibility: 'No criteria available',
-        };
-      }
-
-      return jobDetails;
-    } catch (error) {
-      console.error('Error refreshing job details:', error);
-      throw error;
-    } finally {
-      if (showLoading) {
-        jobPostStore.loading = false;
-      }
-    }
-  };
-
-  // Map store state to template-accessible computed refs
-  const uploadedFile = computed({
-    get: () => uploadStore.uploadedFile,
-    set: (val) => (uploadStore.uploadedFile = val),
-  });
-
-  const uploadedZipFile = computed({
-    get: () => uploadStore.uploadedZipFile,
-    set: (val) => (uploadStore.uploadedZipFile = val),
-  });
-
-  // expose store successDialog for template
-  const successDialog = computed({
-    get: () => uploadStore.successDialog,
-    set: (val) => (uploadStore.successDialog = val),
-  });
-
-  // Small helper: format file size (template calls this)
+  /**
+   * Format file size in human-readable format
+   */
   function formatFileSize(bytes) {
     if (bytes === undefined || bytes === null) return '';
     if (bytes === 0) return '0 Bytes';
@@ -569,7 +655,81 @@
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
-  // Download template helper
+  /**
+   * Get current date and time formatted
+   */
+  function getCurrentDateTime() {
+    const now = new Date();
+    return now.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    });
+  }
+
+  /**
+   * Start countdown timer for confirmation expiration
+   */
+  function startConfirmationCountdown() {
+    if (confirmationCountdownInterval) {
+      clearInterval(confirmationCountdownInterval);
+    }
+
+    confirmationCountdownInterval = setInterval(() => {
+      const now = new Date();
+      if (!confirmationExpiresAt.value) {
+        clearInterval(confirmationCountdownInterval);
+        return;
+      }
+
+      const diffMs = confirmationExpiresAt.value.getTime() - now.getTime();
+
+      if (diffMs <= 0) {
+        clearInterval(confirmationCountdownInterval);
+        isConfirmationExpired.value = true;
+        confirmationCountdown.value = 0;
+        // Auto-close modal after expiration
+        setTimeout(() => {
+          updateConfirmationDialog.value = false;
+          $q.notify({
+            type: 'negative',
+            message: 'Confirmation link has expired. Please try submitting again.',
+            position: 'top',
+          });
+        }, 2000);
+      } else {
+        confirmationCountdown.value = diffMs;
+      }
+    }, 1000);
+  }
+
+  /**
+   * Stop countdown timer
+   */
+  function stopConfirmationCountdown() {
+    if (confirmationCountdownInterval) {
+      clearInterval(confirmationCountdownInterval);
+      confirmationCountdownInterval = null;
+    }
+  }
+
+  /**
+   * Generate reference number for success display
+   */
+  function generateReferenceNumber() {
+    const timestamp = Date.now().toString().slice(-6);
+    const random = Math.floor(Math.random() * 10000)
+      .toString()
+      .padStart(4, '0');
+    return `${timestamp}-${random}`;
+  }
+
+  /**
+   * Download Excel form template
+   */
   function downloadExcelForm() {
     const excelFileUrl = '/public/pdsv2.xlsx';
     const a = document.createElement('a');
@@ -584,32 +744,13 @@
     document.body.removeChild(a);
   }
 
-  // Generate a simple reference number (used in success dialog)
-  function generateReferenceNumber() {
-    const timestamp = Date.now().toString().slice(-6);
-    const random = Math.floor(Math.random() * 10000)
-      .toString()
-      .padStart(4, '0');
-    return `${timestamp}-${random}`;
-  }
-
-  // Reset store and local UI on success close
-  function closeSuccessDialog() {
-    uploadStore.reset();
-    successDialog.value = false;
-    // Optionally redirect back to job list
-    router.push('/jobList');
-  }
-
-  // Handle ZIP file input click - show instructions first
+  /**
+   * Handle ZIP file input click - show instructions first
+   */
   function handleZipFileClick() {
-    // Mark that user tried to click ZIP input
     userClickedZipInput.value = true;
-
-    // Show the instruction modal instead
     showZipInstructions.value = true;
 
-    // Store reference to native file input
     nextTick(() => {
       if (zipFileInputRef.value) {
         nativeFileInput.value = zipFileInputRef.value.$el.querySelector('input[type="file"]');
@@ -617,28 +758,27 @@
     });
   }
 
-  // Open ZIP instructions via info button
+  /**
+   * Open ZIP instructions via info button
+   */
   function openZipInstructions() {
     userClickedZipInput.value = false;
     showZipInstructions.value = true;
   }
 
-  // Handle when user completes instructions and clicks "Got it!"
+  /**
+   * Handle when user completes ZIP instructions
+   */
   async function handleInstructionComplete() {
     showZipInstructions.value = false;
 
-    // If user originally clicked the file input, now trigger the file picker
     if (userClickedZipInput.value) {
       userClickedZipInput.value = false;
-
-      // Wait for modal to fully close
       await nextTick();
 
-      // Small delay to ensure DOM is updated
       setTimeout(() => {
         try {
           if (zipFileInputRef.value) {
-            // Try multiple methods to trigger file picker
             const qFile = zipFileInputRef.value;
 
             // Method 1: Direct access via DOM
@@ -672,22 +812,118 @@
     }
   }
 
-  // Called by the "APPLY NOW" button to open confirm dialog
+  // ==================== JOB DATA FUNCTIONS ====================
+
+  /**
+   * Refresh job details from API
+   */
+  const refreshJobDetails = async (showLoading = false) => {
+    if (showLoading) {
+      jobPostStore.loading = true;
+    }
+
+    try {
+      console.log('Refreshing job details for ID:', id);
+
+      let jobDetails = await jobPostStore.fetchJobDetails(id);
+
+      if (!jobDetails && jobPostStore.jobPosts) {
+        console.log('Using data from store.jobPosts');
+        jobDetails = jobPostStore.jobPosts;
+      }
+
+      if (!jobDetails) {
+        throw new Error('No job details returned from server');
+      }
+
+      console.log('Successfully refreshed job details:', jobDetails);
+
+      selectedJob.value = {
+        id: jobDetails.id || null,
+        old_job_id: jobDetails.old_job_id || null,
+        Position: jobDetails.Position || 'Unknown Position',
+        status: jobDetails.status || 'Unknown',
+        level: jobDetails.level || 'N/A',
+        PageNo: jobDetails.PageNo || 'N/A',
+        ItemNo: jobDetails.ItemNo || 'N/A',
+        SalaryGrade: jobDetails.SalaryGrade || 'N/A',
+        Office: jobDetails.Office || 'Unknown Office',
+        Division: jobDetails.Division || 'N/A',
+        Section: jobDetails.Section || 'N/A',
+        Unit: jobDetails.Unit || 'N/A',
+        post_date: jobDetails.post_date || null,
+        end_date: jobDetails.end_date || null,
+        PositionID: jobDetails.PositionID || '',
+        tblStructureDetails_ID: jobDetails.tblStructureDetails_ID || null,
+        ...jobDetails,
+      };
+
+      if (jobDetails.criteria && typeof jobDetails.criteria === 'object') {
+        selectedCriteria.value = {
+          id: jobDetails.criteria.id || null,
+          Education: jobDetails.criteria.Education || 'Not specified',
+          Experience: jobDetails.criteria.Experience || 'Not specified',
+          Training: jobDetails.criteria.Training || 'Not specified',
+          Eligibility: jobDetails.criteria.Eligibility || 'Not specified',
+        };
+      } else {
+        selectedCriteria.value = {
+          Education: 'No criteria available',
+          Experience: 'No criteria available',
+          Training: 'No criteria available',
+          Eligibility: 'No criteria available',
+        };
+      }
+
+      return jobDetails;
+    } catch (error) {
+      console.error('Error refreshing job details:', error);
+      throw error;
+    } finally {
+      if (showLoading) {
+        jobPostStore.loading = false;
+      }
+    }
+  };
+
+  // ==================== COMPUTED PROPERTIES ====================
+
+  const uploadedFile = computed({
+    get: () => uploadStore.uploadedFile,
+    set: (val) => (uploadStore.uploadedFile = val),
+  });
+
+  const uploadedZipFile = computed({
+    get: () => uploadStore.uploadedZipFile,
+    set: (val) => (uploadStore.uploadedZipFile = val),
+  });
+
+  const successDialog = computed({
+    get: () => uploadStore.successDialog,
+    set: (val) => (uploadStore.successDialog = val),
+  });
+
+  // ==================== APPLICATION SUBMISSION FUNCTIONS ====================
+
+  /**
+   * Called by APPLY NOW button - open confirmation dialog
+   */
   async function submitApplication() {
     if (!uploadStore.uploadedFile || !uploadStore.uploadedZipFile) {
-      // Minor UX: show immediate notify if user managed to click without files
       $q.notify({
         type: 'negative',
         message: 'Please attach both Excel and ZIP files before submitting.',
+        position: 'top',
       });
       return;
     }
     confirmDialog.value = true;
   }
 
-  // Called when the user confirms submission in the dialog
+  /**
+   * Process initial submission - sends files to API
+   */
   async function processSubmission() {
-    // close dialog and show local uploading indicator
     confirmDialog.value = false;
     uploadingLoading.value = true;
 
@@ -697,43 +933,150 @@
       console.log('Excel file:', uploadStore.uploadedFile?.name);
       console.log('ZIP file:', uploadStore.uploadedZipFile?.name);
 
-      // Call store action that handles the API request and internal state
       const response = await uploadStore.processSubmission();
       console.log('Raw response from store:', response);
 
-      // Normalize response: store returns axios response or a normalized data object
       const data = response?.data ?? response;
-
-      // Prefer the message from the API, fallback to store.errorMessage
       const message = data?.message ?? uploadStore.errorMessage ?? '';
 
       if (data?.success === true) {
-        // Show positive notification and rely on store.successDialog to show success UI
-        $q.notify({ type: 'positive', message: message || 'Submission uploaded successfully' });
-        // successDialog in template is backed by computed, and the store also sets successDialog
-        // Optionally ensure it's open here if you want immediate visual:
-        // uploadStore.successDialog = true;
+        // Success: Set type to 'new' and show success dialog (NO TOAST)
+        successType.value = 'new';
+        setTimeout(() => {
+          uploadStore.successDialog = true;
+        }, 500);
+      } else if (
+        data?.success === false &&
+        message ===
+          "You've already applied for this job. Do you want to update your previous application?"
+      ) {
+        // Already applied: Show update confirmation modal
+        console.log('Opening update confirmation dialog');
+        confirmationMessage.value = message;
+        confirmationToken.value = data?.confirmation_token || '';
+        const expiresInMinutes = data?.expires_in_minutes || 10;
+        confirmationExpiresAt.value = new Date(Date.now() + expiresInMinutes * 60 * 1000);
+        isConfirmationExpired.value = false;
+        updateConfirmationDialog.value = true;
+
+        startConfirmationCountdown();
+
+        jobPostStore.setConfirmationToken(confirmationToken.value, expiresInMinutes);
       } else {
-        // Failure branches: show message from API or generic error
-        $q.notify({ type: 'negative', message: message || 'Failed to upload submission' });
-        // The store.errorMessage is set by the store; you can also display errorMessage in the template.
+        // Other failures: Show ONLY error toast
+        $q.notify({
+          type: 'negative',
+          message: message || 'Failed to upload submission',
+          position: 'top',
+        });
         console.warn('Submission failed:', message);
       }
 
-      // Example of reading server returned id if present
       if (data?.id) {
         console.log('Job batch response ID:', data.id);
       }
     } catch (err) {
-      // Network/unexpected errors
       console.error('Submission process error:', err);
-      $q.notify({ type: 'negative', message: 'Network error. Please try again.' });
+      // Show ONLY error toast
+      $q.notify({
+        type: 'negative',
+        message: 'Network error. Please try again.',
+        position: 'top',
+      });
     } finally {
       uploadingLoading.value = false;
     }
   }
 
-  // On mounted: load job and criteria, set the job into uploadStore (so store has selectedJob)
+  /**
+   * ✅ Handle confirmation choice (Yes/No for update)
+   */
+  async function handleConfirmationChoice(confirmed) {
+    stopConfirmationCountdown();
+
+    if (isConfirmationExpired.value) {
+      $q.notify({
+        type: 'negative',
+        message: 'Confirmation link has expired. Please try submitting again.',
+        position: 'top',
+      });
+      updateConfirmationDialog.value = false;
+      return;
+    }
+
+    uploadingLoading.value = true;
+
+    try {
+      const payload = {
+        confirm_update: confirmed ? 1 : 0,
+        confirmation_token: confirmationToken.value,
+      };
+
+      console.log('Sending confirmation payload:', payload);
+
+      const response = await jobPostStore.updateConfirmation(payload);
+      const data = response?.data ?? response;
+
+      if (data?.success === true) {
+        updateConfirmationDialog.value = false;
+
+        // ✅ Check if user said YES (update) or NO (keep previous)
+        if (confirmed) {
+          // YES - UPDATE: Show update success dialog
+          successType.value = 'updated';
+          setTimeout(() => {
+            uploadStore.successDialog = true;
+          }, 500);
+        } else {
+          // NO - KEEP PREVIOUS: Show cancelled dialog
+          updateCancelledDialog.value = true;
+        }
+      } else {
+        // Failure: Show ONLY error toast
+        $q.notify({
+          type: 'negative',
+          message: data?.message || 'Failed to process confirmation',
+          position: 'top',
+        });
+      }
+    } catch (err) {
+      console.error('Error during confirmation:', err);
+      // Show ONLY error toast
+      $q.notify({
+        type: 'negative',
+        message: 'An error occurred while processing your confirmation. Please try again.',
+        position: 'top',
+      });
+    } finally {
+      uploadingLoading.value = false;
+    }
+  }
+
+  /**
+   * Close success dialog and redirect
+   */
+  function closeSuccessDialog() {
+    uploadStore.reset();
+    successDialog.value = false;
+    router.push('/jobList');
+  }
+
+  /**
+   * ✅ Close cancelled dialog and reset files
+   */
+  function closeCancelledDialog() {
+    updateCancelledDialog.value = false;
+    uploadStore.reset();
+    // Reset file inputs
+    uploadedFile.value = null;
+    uploadedZipFile.value = null;
+  }
+
+  // ==================== LIFECYCLE HOOKS ====================
+
+  /**
+   * On component mount: load job details
+   */
   onMounted(async () => {
     if (!id) {
       console.error('No job ID provided in route params');
@@ -743,10 +1086,8 @@
     }
 
     try {
-      // Load initial job details
-      await refreshJobDetails(true); // Show loading for initial load
+      await refreshJobDetails(true);
 
-      // ✅ FIX: Set the job in the upload store after loading
       if (selectedJob.value && selectedJob.value.id) {
         uploadStore.setSelectedJob(selectedJob.value);
         console.log('Job set in upload store:', selectedJob.value);
@@ -781,17 +1122,24 @@
       }
     }
   });
+
+  /**
+   * On component unmount: cleanup timers
+   */
+  onBeforeUnmount(() => {
+    stopConfirmationCountdown();
+  });
 </script>
 
 <style scoped>
-  /* Responsive adjustments */
+  /* ==================== RESPONSIVE LAYOUT ====================*/
   @media (max-width: 768px) {
     .q-card {
       margin-bottom: 20px;
     }
   }
 
-  /* Process cards styling */
+  /* ==================== PROCESS CARDS STYLING ====================*/
   .process-card {
     position: relative;
     border-radius: 12px;
@@ -823,6 +1171,15 @@
     z-index: 2;
   }
 
+  .card-content {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    height: 100%;
+  }
+
   .step-number {
     font-size: 18px;
     font-weight: 600;
@@ -843,6 +1200,16 @@
     align-items: center;
     justify-content: center;
     margin: 0 auto 16px;
+  }
+
+  .step-title {
+    margin-bottom: 12px;
+    font-weight: 600;
+  }
+
+  .step-description {
+    color: #666;
+    margin-bottom: 20px;
   }
 
   .file-input {
@@ -877,26 +1244,7 @@
     z-index: 0;
   }
 
-  .card-content {
-    padding: 24px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    height: 100%;
-  }
-
-  .step-title {
-    margin-bottom: 12px;
-    font-weight: 600;
-  }
-
-  .step-description {
-    color: #666;
-    margin-bottom: 20px;
-  }
-
-  /* Confirmation Dialog Styling */
+  /* ==================== CONFIRMATION DIALOG STYLING ====================*/
   .confirmation-dialog {
     border-radius: 12px;
     overflow: hidden;
@@ -906,6 +1254,24 @@
 
   .header-green {
     background-color: #00c853;
+    height: 100px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .header-blue {
+    background-color: #2196f3;
+    height: 100px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .header-orange {
+    background-color: #ff9800;
     height: 100px;
     position: relative;
     display: flex;
@@ -969,9 +1335,23 @@
     padding: 16px 24px;
     display: flex;
     justify-content: flex-end;
+    gap: 12px;
   }
 
   .position-text {
     font-size: 12px;
+  }
+
+  .rounded-borders {
+    border-radius: 8px;
+  }
+
+  /* ==================== UTILITY CLASSES ====================*/
+  .bg-orange-1 {
+    background-color: #ffe0b2;
+  }
+
+  .text-red {
+    color: #f44336;
   }
 </style>

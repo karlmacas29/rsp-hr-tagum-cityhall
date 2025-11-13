@@ -11,11 +11,17 @@
       name="viewport"
       content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
     />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;"
+    />
 
     <link rel="icon" type="image/png" sizes="128x128" href="icons/lgu-tagum-logo-128.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="icons/lgu-tagum-logo-32.png" />
     <link rel="icon" type="image/ico" href="icons/lgu-tagum-logo-32.png" />
-  </head>
+
+  <script src="https://www.google.com/recaptcha/enterprise.js?render=6Lf67QosAAAAACVeC6U8P2LAuTikcRvDo4c7QgxK"></script>
+
   <body>
     <!-- quasar:entry-point -->
   </body>

@@ -1,146 +1,146 @@
 <template>
-  <q-page padding>
+  <q-page class="job-details-page">
     <!-- Header with back button and title -->
-    <div class="row justify-between items-center q-my-md q-mx-xl q-px-xl">
-      <div class="row items-center">
-        <q-btn icon="arrow_back" round class="bg-black text-white" to="/jobList" />
-        <div class="column q-ml-sm">
-          <div class="text-h4 text-bold q-mb-none">Job details</div>
-          <div class="text-subtitle1 text-grey">Available Job Posts / Job details</div>
+    <div class="page-header">
+      <div class="header-content">
+        <div class="header-left">
+          <q-btn
+            icon="arrow_back"
+            round
+            class="back-btn bg-black text-white"
+            :to="{ name: 'Joblist' }"
+            :size="buttonSize"
+          />
+          <div class="header-text q-ml-sm">
+            <div class="page-title text-bold">Job details</div>
+            <div class="breadcrumb text-grey gt-xs">Available Job Posts / Job details</div>
+          </div>
         </div>
-      </div>
-      <div class="column">
-        <q-chip v-if="!jobPostStore.loading" class="text-h6 q-mb-xs text-white bg-blue">
-          Posted on
-          {{
-            selectedJob?.post_date
-              ? new Date(selectedJob.post_date).toLocaleDateString('en-US', {
-                  month: 'long',
-                  day: 'numeric',
-                  year: 'numeric',
-                })
-              : ''
-          }}
-        </q-chip>
-        <q-chip v-else class="text-h6 q-mb-xs text-white bg-blue">
-          <q-linear-progress rounded color="white" query style="width: 100px" />
-        </q-chip>
+        <div class="header-right">
+          <q-chip
+            v-if="!jobPostStore.loading"
+            class="posted-chip text-white bg-blue"
+            :size="chipSize"
+          >
+            <q-icon name="event" size="xs" class="q-mr-xs gt-xs" />
+            <span class="chip-text">
+              {{ formatPostedDate(selectedJob?.post_date) }}
+            </span>
+          </q-chip>
+          <q-chip v-else class="posted-chip text-white bg-blue" :size="chipSize">
+            <q-linear-progress rounded color="white" query class="loading-progress" />
+          </q-chip>
+        </div>
       </div>
     </div>
 
-    <div class="row justify-evenly items-center">
+    <div class="content-wrapper">
       <!-- Main content card -->
-      <q-card v-if="!jobPostStore.loading" class="col-8" flat bordered>
+      <q-card v-if="!jobPostStore.loading" class="job-details-card" flat bordered>
         <q-card-section>
           <!-- Job header with logo and info -->
-          <div class="row items-center">
-            <q-avatar color="primary" text-color="white" size="75px">
+          <div class="job-header">
+            <q-avatar color="primary" text-color="white" :size="avatarSize">
               {{ selectedJob?.Position ? selectedJob.Position.charAt(0) : 'N' }}
             </q-avatar>
-            <div class="column q-ml-md" style="flex-grow: 1">
-              <div class="text-green text-h5 text-weight-bold">
+            <div class="job-info q-ml-md">
+              <div class="job-position text-green text-weight-bold">
                 {{ selectedJob?.Position || 'No Position' }}
-                {{ selectedJob?.id || 'No Position' }}
               </div>
-              <div class="row items-center">
-                <span class="q-ml-xs text-body1 text-grey-8">
-                  {{ selectedJob?.Office || 'No Office' }}
-                </span>
-              </div>
-              <div class="row items-center">
-                <span class="q-ml-xs text-body1 text-grey-8">
-                  {{ selectedJob?.Division || 'No Division' }}
-                </span>
-              </div>
-              <div class="row items-center">
-                <span class="q-ml-xs text-body1 text-grey-8">
-                  {{ selectedJob?.Section || 'No Section' }}
-                </span>
-              </div>
-              <div class="row items-center">
-                <span class="q-ml-xs text-body1 text-grey-8">
-                  {{ selectedJob?.Unit || 'No Unit' }}
-                </span>
+              <div class="job-details-list">
+                <div class="job-detail-item" v-if="selectedJob?.Office">
+                  <q-icon name="business" size="xs" class="q-mr-xs" />
+                  <span>{{ selectedJob.Office }}</span>
+                </div>
+                <div
+                  class="job-detail-item"
+                  v-if="selectedJob?.Division && selectedJob.Division !== 'N/A'"
+                >
+                  <q-icon name="corporate_fare" size="xs" class="q-mr-xs" />
+                  <span>{{ selectedJob.Division }}</span>
+                </div>
+                <div
+                  class="job-detail-item"
+                  v-if="selectedJob?.Section && selectedJob.Section !== 'N/A'"
+                >
+                  <q-icon name="account_tree" size="xs" class="q-mr-xs" />
+                  <span>{{ selectedJob.Section }}</span>
+                </div>
+                <div class="job-detail-item" v-if="selectedJob?.Unit && selectedJob.Unit !== 'N/A'">
+                  <q-icon name="groups" size="xs" class="q-mr-xs" />
+                  <span>{{ selectedJob.Unit }}</span>
+                </div>
               </div>
             </div>
-          </div>
-        </q-card-section>
-
-        <q-separator />
-
-        <!-- Office section -->
-        <q-card-section>
-          <div class="text-h5 text-bold text-green">Office</div>
-          <div class="text-body2 text-uppercase">
-            {{ selectedJob?.Office || 'No Office' }}
           </div>
         </q-card-section>
 
         <q-separator />
 
         <!-- Qualification Standards section -->
-        <q-card-section>
-          <div class="text-h4 text-bold text-green">Qualification Standards/Requirements</div>
+        <q-card-section class="qualifications-section">
+          <div class="section-main-title text-green text-bold">
+            Qualification Standards/Requirements
+          </div>
 
-          <div class="q-gutter-y-md q-mt-md">
-            <div class="row justify-center q-gutter-x-md">
-              <q-card flat bordered class="col">
-                <q-card-section>
-                  <q-badge color="primary">Education</q-badge>
-                  <div class="text-body1">{{ selectedCriteria?.Education || 'None' }}</div>
-                </q-card-section>
-              </q-card>
+          <div class="qualifications-grid q-mt-md">
+            <q-card flat bordered class="qualification-card">
+              <q-card-section>
+                <q-badge color="primary" class="q-mb-sm">Education</q-badge>
+                <div class="qualification-text">{{ selectedCriteria?.Education || 'None' }}</div>
+              </q-card-section>
+            </q-card>
 
-              <q-card flat bordered class="col">
-                <q-card-section>
-                  <q-badge>Training</q-badge>
-                  <div class="text-body1">{{ selectedCriteria?.Training || 'None' }}</div>
-                </q-card-section>
-              </q-card>
-            </div>
-            <div class="row justify-center q-gutter-x-md">
-              <q-card flat bordered class="col">
-                <q-card-section>
-                  <q-badge>Experience</q-badge>
-                  <div class="text-body1">{{ selectedCriteria?.Experience || 'None' }}</div>
-                </q-card-section>
-              </q-card>
+            <q-card flat bordered class="qualification-card">
+              <q-card-section>
+                <q-badge color="secondary" class="q-mb-sm">Training</q-badge>
+                <div class="qualification-text">{{ selectedCriteria?.Training || 'None' }}</div>
+              </q-card-section>
+            </q-card>
 
-              <q-card flat bordered class="col">
-                <q-card-section>
-                  <q-badge>Eligibility</q-badge>
-                  <div class="text-body1">{{ selectedCriteria?.Eligibility || 'None' }}</div>
-                </q-card-section>
-              </q-card>
-            </div>
+            <q-card flat bordered class="qualification-card">
+              <q-card-section>
+                <q-badge color="accent" class="q-mb-sm">Experience</q-badge>
+                <div class="qualification-text">{{ selectedCriteria?.Experience || 'None' }}</div>
+              </q-card-section>
+            </q-card>
+
+            <q-card flat bordered class="qualification-card">
+              <q-card-section>
+                <q-badge color="positive" class="q-mb-sm">Eligibility</q-badge>
+                <div class="qualification-text">{{ selectedCriteria?.Eligibility || 'None' }}</div>
+              </q-card-section>
+            </q-card>
           </div>
         </q-card-section>
 
         <q-separator />
 
         <!-- Position section -->
-        <q-card-section>
-          <div class="text-h5 text-bold text-green">Position</div>
-          <div class="text-body2">{{ selectedJob?.Position || 'No Position' }}</div>
+        <q-card-section class="position-section">
+          <div class="section-title text-green">Position</div>
+          <div class="section-content">{{ selectedJob?.Position || 'No Position' }}</div>
         </q-card-section>
 
         <q-separator />
 
-        <!-- Application Process - Updated Design with 4 steps -->
-        <q-card-section class="bg-grey-1">
-          <div class="text-center text-h5 text-weight-bold q-mb-xl">Application Process</div>
+        <!-- Application Process -->
+        <q-card-section class="application-process-section bg-grey-1">
+          <div class="process-main-title text-center text-weight-bold q-mb-lg">
+            Application Process
+          </div>
 
-          <div class="row items-center justify-center q-col-gutter-lg">
+          <div class="process-steps">
             <!-- Step 1: Download Form -->
-            <div class="col-12 col-md-3">
+            <div class="process-step-wrapper">
               <div class="process-card bg-white">
                 <div class="card-content">
                   <div class="step-number bg-green-1 text-green">1</div>
                   <div class="step-icon bg-green-1">
-                    <q-icon name="file_download" size="36px" color="green" />
+                    <q-icon name="file_download" :size="iconSize" color="green" />
                   </div>
-                  <div class="step-title text-h6 text-green">Download Application Form</div>
-                  <div class="step-description q-mb-auto">
+                  <div class="step-title text-green">Download Application Form</div>
+                  <div class="step-description">
                     Get the application template to fill with your details
                   </div>
                   <q-btn
@@ -149,21 +149,22 @@
                     class="action-btn full-width q-mt-md"
                     outline
                     @click="downloadExcelForm"
+                    :size="buttonSize"
                   />
                 </div>
               </div>
             </div>
 
             <!-- Step 2: Upload Completed Form -->
-            <div class="col-12 col-md-3">
+            <div class="process-step-wrapper">
               <div class="process-card bg-white">
                 <div class="card-content">
                   <div class="step-number bg-blue-1 text-blue">2</div>
                   <div class="step-icon bg-blue-1">
-                    <q-icon name="upload_file" size="36px" color="blue" />
+                    <q-icon name="upload_file" :size="iconSize" color="blue" />
                   </div>
-                  <div class="step-title text-h6 text-blue">Upload Completed Form</div>
-                  <div class="step-description q-mb-auto">
+                  <div class="step-title text-blue">Upload Completed Form</div>
+                  <div class="step-description">
                     Upload your filled application (XLSX format only)
                   </div>
                   <div class="file-input full-width q-mt-md">
@@ -171,6 +172,7 @@
                       v-model="uploadedFile"
                       accept=".xlsx,.xls"
                       outlined
+                      dense
                       class="full-width"
                       standout
                       bottom-slots
@@ -198,10 +200,9 @@
             </div>
 
             <!-- Step 3: Upload Supporting Documents -->
-            <div class="col-12 col-md-3">
+            <div class="process-step-wrapper">
               <div class="process-card bg-white">
                 <div class="card-content">
-                  <!-- Add info icon in top right corner -->
                   <div class="card-header">
                     <div class="step-number bg-orange-1 text-orange">3</div>
                     <q-btn
@@ -219,18 +220,19 @@
                   </div>
 
                   <div class="step-icon bg-orange-1">
-                    <q-icon name="folder_zip" size="36px" color="orange" />
+                    <q-icon name="folder_zip" :size="iconSize" color="orange" />
                   </div>
-                  <div class="step-title text-h6 text-orange">Upload Supporting Documents</div>
-                  <div class="step-description q-mb-xs">
+                  <div class="step-title text-orange">Upload Supporting Documents</div>
+                  <div class="step-description">
                     Upload your supporting documents (ZIP format only)
                   </div>
-                  <div class="file-input full-width q-mt-xs">
+                  <div class="file-input full-width q-mt-md">
                     <q-file
                       ref="zipFileInputRef"
                       v-model="uploadedZipFile"
                       accept=".zip"
                       outlined
+                      dense
                       class="full-width"
                       standout
                       bottom-slots
@@ -256,23 +258,22 @@
             </div>
 
             <!-- Step 4: Submit Application -->
-            <div class="col-12 col-md-3">
+            <div class="process-step-wrapper">
               <div class="process-card bg-white">
                 <div class="card-content">
                   <div class="step-number bg-purple-1 text-purple">4</div>
                   <div class="step-icon bg-purple-1">
-                    <q-icon name="send" size="36px" color="purple" />
+                    <q-icon name="send" :size="iconSize" color="purple" />
                   </div>
-                  <div class="step-title text-h6 text-purple">Submit Application</div>
-                  <div class="step-description q-mb-auto">
-                    Review your application and submit when ready
-                  </div>
+                  <div class="step-title text-purple">Submit Application</div>
+                  <div class="step-description">Review your application and submit when ready</div>
                   <q-btn
                     label="APPLY NOW"
                     color="purple"
                     class="action-btn full-width q-mt-md"
                     :disable="!uploadedFile || !uploadedZipFile"
                     @click="submitApplication"
+                    :size="buttonSize"
                   >
                     <q-icon name="check_circle" class="q-ml-sm" />
                   </q-btn>
@@ -284,7 +285,7 @@
       </q-card>
 
       <!-- Loading skeleton -->
-      <q-card v-else flat bordered style="width: 70vw">
+      <q-card v-else flat bordered class="job-details-card">
         <q-card-section>
           <q-skeleton type="text" />
           <q-skeleton type="rect" height="200px" />
@@ -295,26 +296,25 @@
     <!-- Confirmation Dialog for Initial Submission -->
     <q-dialog v-model="confirmDialog" persistent>
       <q-card class="confirmation-dialog">
-        <!-- Green header with centered icon -->
         <div class="header-green">
           <div class="icon-container">
             <q-icon name="assignment" size="28px" color="green" />
           </div>
         </div>
 
-        <!-- Confirmation title -->
         <div class="dialog-title">
-          <div class="text-h5 text-green text-center text-weight-bold">Confirm Application</div>
-          <div class="text-subtitle1 text-center text-grey q-mt-sm">
+          <div class="dialog-main-title text-green text-center text-weight-bold">
+            Confirm Application
+          </div>
+          <div class="dialog-subtitle text-center text-grey q-mt-sm">
             Please verify your submission details
           </div>
         </div>
 
         <q-separator />
 
-        <!-- Position info -->
         <div class="dialog-content">
-          <div class="row items-center q-mb-md">
+          <div class="row items-center q-mb-md flex-wrap">
             <q-icon name="work" size="16px" class="text-green" />
             <div class="q-ml-sm">Position:</div>
             <div class="text-green text-weight-bold q-ml-sm position-text">
@@ -322,7 +322,6 @@
             </div>
           </div>
 
-          <!-- Excel File section -->
           <div class="row items-start q-mb-md">
             <q-icon name="description" size="16px" class="text-green q-mt-xs" />
             <div class="q-ml-sm q-mt-xs">Application Form:</div>
@@ -338,7 +337,6 @@
             </div>
           </div>
 
-          <!-- ZIP File section -->
           <div class="row items-start">
             <q-icon name="folder_zip" size="16px" class="text-green q-mt-xs" />
             <div class="q-ml-sm q-mt-xs">Supporting Documents:</div>
@@ -354,12 +352,11 @@
             </div>
           </div>
 
-          <div class="text-center text-grey-7 q-mt-lg">
+          <div class="text-center text-grey-7 q-mt-lg confirmation-note">
             By clicking Submit, you confirm that all information provided is accurate and complete.
           </div>
         </div>
 
-        <!-- Action buttons -->
         <div class="dialog-actions">
           <q-btn flat label="CANCEL" color="grey-7" v-close-popup class="q-px-md" />
           <q-btn
@@ -376,16 +373,15 @@
 
     <!-- Loading Overlay -->
     <q-dialog v-model="uploadStore.isSubmitting" persistent>
-      <q-card class="q-pa-xl flex flex-center" style="min-width: 200px">
+      <q-card class="loading-overlay flex flex-center">
         <q-spinner size="50px" color="primary" />
-        <div class="text-center q-mt-md text-h6">Uploading your application...</div>
+        <div class="text-center q-mt-md loading-text">Uploading your application...</div>
       </q-card>
     </q-dialog>
 
-    <!-- ✅ FLEXIBLE SUCCESS DIALOG - Shows different content for new vs updated applications -->
+    <!-- Success Dialog -->
     <q-dialog v-model="successDialog" persistent>
       <q-card class="confirmation-dialog">
-        <!-- Green header with centered icon -->
         <div class="header-green">
           <div class="icon-container">
             <q-icon
@@ -396,12 +392,11 @@
           </div>
         </div>
 
-        <!-- Success title - Dynamic based on type -->
         <div class="dialog-title">
-          <div class="text-h5 text-green text-center text-weight-bold">
+          <div class="dialog-main-title text-green text-center text-weight-bold">
             {{ successType === 'updated' ? 'Application Updated!' : 'Application Successful!' }}
           </div>
-          <div class="text-subtitle1 text-center text-grey q-mt-sm">
+          <div class="dialog-subtitle text-center text-grey q-mt-sm">
             {{
               successType === 'updated'
                 ? 'Your application has been successfully updated'
@@ -412,11 +407,9 @@
 
         <q-separator />
 
-        <!-- Success content - Dynamic based on type -->
         <div class="dialog-content text-center">
-          <!-- NEW APPLICATION MESSAGE -->
           <template v-if="successType === 'new'">
-            <div class="q-mb-md">
+            <div class="q-mb-md success-message">
               Thank you for applying to the
               <span class="text-green text-weight-bold">
                 {{ selectedJob?.Position || 'Computer Programmer II' }}
@@ -424,16 +417,17 @@
               position.
             </div>
 
-            <div class="q-my-md">
+            <div class="q-my-md success-message">
               We have received your application and will contact you via sms or email for updates.
             </div>
 
-            <div class="text-grey-7 q-mt-lg">Reference #: APP-{{ generateReferenceNumber() }}</div>
+            <div class="text-grey-7 q-mt-lg reference-number">
+              Reference #: APP-{{ generateReferenceNumber() }}
+            </div>
           </template>
 
-          <!-- UPDATED APPLICATION MESSAGE -->
           <template v-else-if="successType === 'updated'">
-            <div class="q-mb-md">
+            <div class="q-mb-md success-message">
               Your application for the
               <span class="text-green text-weight-bold">
                 {{ selectedJob?.Position || 'Computer Programmer II' }}
@@ -441,15 +435,16 @@
               position has been updated with your new files.
             </div>
 
-            <div class="q-my-md">
+            <div class="q-my-md success-message">
               The updated documents have been received and will be reviewed for next steps.
             </div>
 
-            <div class="text-grey-7 q-mt-lg">Updated on: {{ getCurrentDateTime() }}</div>
+            <div class="text-grey-7 q-mt-lg reference-number">
+              Updated on: {{ getCurrentDateTime() }}
+            </div>
           </template>
         </div>
 
-        <!-- Action button -->
         <div class="dialog-actions">
           <q-btn
             unelevated
@@ -462,31 +457,30 @@
       </q-card>
     </q-dialog>
 
-    <!-- ✅ NEW: Update Cancelled Dialog -->
+    <!-- Update Cancelled Dialog -->
     <q-dialog v-model="updateCancelledDialog" persistent>
       <q-card class="confirmation-dialog">
-        <!-- Blue header with info icon -->
         <div class="header-blue">
           <div class="icon-container">
             <q-icon name="info" size="28px" color="blue" />
           </div>
         </div>
 
-        <!-- Cancelled title -->
         <div class="dialog-title">
-          <div class="text-h5 text-blue text-center text-weight-bold">Update Cancelled</div>
-          <div class="text-subtitle1 text-center text-grey q-mt-sm">
+          <div class="dialog-main-title text-blue text-center text-weight-bold">
+            Update Cancelled
+          </div>
+          <div class="dialog-subtitle text-center text-grey q-mt-sm">
             Your previous application will remain unchanged
           </div>
         </div>
 
         <q-separator />
 
-        <!-- Cancelled content -->
         <div class="dialog-content text-center">
           <div class="q-mb-md">
             <q-icon name="check_circle" size="48px" color="blue" class="q-mb-md" />
-            <div class="text-body1">
+            <div class="cancelled-message">
               Application update cancelled. Your previous application for
               <span class="text-blue text-weight-bold">
                 {{ selectedJob?.Position || 'Computer Programmer II' }}
@@ -495,7 +489,7 @@
             </div>
           </div>
 
-          <div class="q-my-md text-body2 text-grey-7">
+          <div class="q-my-md cancelled-note text-grey-7">
             Temporary data has been removed. You can apply to other positions or update later if
             needed.
           </div>
@@ -505,43 +499,38 @@
           </div>
         </div>
 
-        <!-- Action button -->
         <div class="dialog-actions">
           <q-btn unelevated label="OK" color="blue" @click="closeCancelledDialog" class="q-px-xl" />
         </div>
       </q-card>
     </q-dialog>
 
-    <!-- NEW: Update Confirmation Modal for Already Applied -->
+    <!-- Update Confirmation Modal -->
     <q-dialog v-model="updateConfirmationDialog" persistent @hide="stopConfirmationCountdown">
       <q-card class="confirmation-dialog">
-        <!-- Orange header with info icon -->
         <div class="header-orange">
           <div class="icon-container">
             <q-icon name="info" size="28px" color="orange" />
           </div>
         </div>
 
-        <!-- Confirmation title -->
         <div class="dialog-title">
-          <div class="text-h5 text-orange text-center text-weight-bold">
+          <div class="dialog-main-title text-orange text-center text-weight-bold">
             Application Already Submitted
           </div>
-          <div class="text-subtitle1 text-center text-grey q-mt-sm">Update Your Application?</div>
+          <div class="dialog-subtitle text-center text-grey q-mt-sm">Update Your Application?</div>
         </div>
 
         <q-separator />
 
-        <!-- Confirmation content -->
         <div class="dialog-content">
-          <div class="q-mb-md text-body1">
+          <div class="q-mb-md update-message">
             {{ confirmationMessage }}
           </div>
 
-          <!-- Expiration Timer -->
           <div class="row items-center q-pa-md bg-orange-1 rounded-borders q-mb-md">
             <q-icon name="schedule" size="20px" color="orange" class="q-mr-sm" />
-            <div class="text-body2">
+            <div class="timer-text">
               <span class="text-weight-bold">Expires in:</span>
               <span :class="isConfirmationExpired ? 'text-red' : 'text-orange'" class="q-ml-sm">
                 {{
@@ -553,19 +542,17 @@
             </div>
           </div>
 
-          <!-- Token info (optional, for transparency) -->
-          <div class="text-caption text-grey-7 q-mb-lg">
+          <div class="text-caption text-grey-7 q-mb-lg token-info">
             <span class="text-weight-bold">Confirmation Token:</span>
             <br />
             {{ confirmationToken.substring(0, 20) }}...
           </div>
 
-          <div class="text-center text-grey-7">
+          <div class="text-center text-grey-7 update-note">
             Your previous application will be updated with the newly submitted files.
           </div>
         </div>
 
-        <!-- Action buttons -->
         <div class="dialog-actions">
           <q-btn
             flat
@@ -573,7 +560,7 @@
             color="grey-7"
             @click="handleConfirmationChoice(false)"
             :disable="isConfirmationExpired || uploadingLoading"
-            class="q-px-md"
+            class="q-px-md keep-btn"
           />
           <q-btn
             unelevated
@@ -614,6 +601,30 @@
 
   const id = route.params.id;
 
+  // ==================== RESPONSIVE COMPUTED ====================
+  const buttonSize = computed(() => {
+    if ($q.screen.xs) return 'sm';
+    if ($q.screen.sm) return 'md';
+    return 'md';
+  });
+
+  const chipSize = computed(() => {
+    if ($q.screen.xs) return 'sm';
+    return 'md';
+  });
+
+  const avatarSize = computed(() => {
+    if ($q.screen.xs) return '50px';
+    if ($q.screen.sm) return '60px';
+    return '75px';
+  });
+
+  const iconSize = computed(() => {
+    if ($q.screen.xs) return '24px';
+    if ($q.screen.sm) return '30px';
+    return '36px';
+  });
+
   // ==================== UI STATE ====================
   const showZipInstructions = ref(false);
   const confirmDialog = ref(false);
@@ -623,7 +634,7 @@
   const nativeFileInput = ref(null);
 
   // ==================== SUCCESS DIALOG STATE ====================
-  const successType = ref('new'); // 'new' or 'updated'
+  const successType = ref('new');
 
   // ==================== UPDATE CANCELLED DIALOG STATE ====================
   const updateCancelledDialog = ref(false);
@@ -643,9 +654,6 @@
 
   // ==================== HELPER FUNCTIONS ====================
 
-  /**
-   * Format file size in human-readable format
-   */
   function formatFileSize(bytes) {
     if (bytes === undefined || bytes === null) return '';
     if (bytes === 0) return '0 Bytes';
@@ -655,9 +663,6 @@
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
-  /**
-   * Get current date and time formatted
-   */
   function getCurrentDateTime() {
     const now = new Date();
     return now.toLocaleDateString('en-US', {
@@ -670,9 +675,18 @@
     });
   }
 
-  /**
-   * Start countdown timer for confirmation expiration
-   */
+  function formatPostedDate(dateString) {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    if ($q.screen.xs) {
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' });
+    }
+    return (
+      'Posted ' +
+      date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+    );
+  }
+
   function startConfirmationCountdown() {
     if (confirmationCountdownInterval) {
       clearInterval(confirmationCountdownInterval);
@@ -691,7 +705,6 @@
         clearInterval(confirmationCountdownInterval);
         isConfirmationExpired.value = true;
         confirmationCountdown.value = 0;
-        // Auto-close modal after expiration
         setTimeout(() => {
           updateConfirmationDialog.value = false;
           $q.notify({
@@ -706,9 +719,6 @@
     }, 1000);
   }
 
-  /**
-   * Stop countdown timer
-   */
   function stopConfirmationCountdown() {
     if (confirmationCountdownInterval) {
       clearInterval(confirmationCountdownInterval);
@@ -716,9 +726,6 @@
     }
   }
 
-  /**
-   * Generate reference number for success display
-   */
   function generateReferenceNumber() {
     const timestamp = Date.now().toString().slice(-6);
     const random = Math.floor(Math.random() * 10000)
@@ -727,11 +734,8 @@
     return `${timestamp}-${random}`;
   }
 
-  /**
-   * Download Excel form template
-   */
   function downloadExcelForm() {
-    const excelFileUrl = '/public/pdsv2.xlsx';
+    const excelFileUrl = '/pdsv2.xlsx';
     const a = document.createElement('a');
     a.href = excelFileUrl;
 
@@ -744,9 +748,6 @@
     document.body.removeChild(a);
   }
 
-  /**
-   * Handle ZIP file input click - show instructions first
-   */
   function handleZipFileClick() {
     userClickedZipInput.value = true;
     showZipInstructions.value = true;
@@ -758,17 +759,11 @@
     });
   }
 
-  /**
-   * Open ZIP instructions via info button
-   */
   function openZipInstructions() {
     userClickedZipInput.value = false;
     showZipInstructions.value = true;
   }
 
-  /**
-   * Handle when user completes ZIP instructions
-   */
   async function handleInstructionComplete() {
     showZipInstructions.value = false;
 
@@ -780,30 +775,19 @@
         try {
           if (zipFileInputRef.value) {
             const qFile = zipFileInputRef.value;
-
-            // Method 1: Direct access via DOM
             const input = qFile.$el.querySelector('input[type="file"]');
             if (input) {
-              console.log('Found input element, clicking it');
               input.click();
               return;
             }
-
-            // Method 2: Use Quasar's internal method
             if (qFile.pickFiles && typeof qFile.pickFiles === 'function') {
-              console.log('Using pickFiles method');
               qFile.pickFiles();
               return;
             }
-
-            // Method 3: Access through $refs
             if (qFile.$refs && qFile.$refs.input) {
-              console.log('Using $refs.input');
               qFile.$refs.input.click();
               return;
             }
-
-            console.warn('Could not find file input to click');
           }
         } catch (error) {
           console.error('Error opening file picker:', error);
@@ -814,29 +798,21 @@
 
   // ==================== JOB DATA FUNCTIONS ====================
 
-  /**
-   * Refresh job details from API
-   */
   const refreshJobDetails = async (showLoading = false) => {
     if (showLoading) {
       jobPostStore.loading = true;
     }
 
     try {
-      console.log('Refreshing job details for ID:', id);
-
       let jobDetails = await jobPostStore.fetchJobDetails(id);
 
       if (!jobDetails && jobPostStore.jobPosts) {
-        console.log('Using data from store.jobPosts');
         jobDetails = jobPostStore.jobPosts;
       }
 
       if (!jobDetails) {
         throw new Error('No job details returned from server');
       }
-
-      console.log('Successfully refreshed job details:', jobDetails);
 
       selectedJob.value = {
         id: jobDetails.id || null,
@@ -905,9 +881,6 @@
 
   // ==================== APPLICATION SUBMISSION FUNCTIONS ====================
 
-  /**
-   * Called by APPLY NOW button - open confirmation dialog
-   */
   async function submitApplication() {
     if (!uploadStore.uploadedFile || !uploadStore.uploadedZipFile) {
       $q.notify({
@@ -920,27 +893,16 @@
     confirmDialog.value = true;
   }
 
-  /**
-   * Process initial submission - sends files to API
-   */
   async function processSubmission() {
     confirmDialog.value = false;
     uploadingLoading.value = true;
 
     try {
-      console.log('Current selected job (local):', selectedJob.value);
-      console.log('Current selected job (store):', uploadStore.selectedJob);
-      console.log('Excel file:', uploadStore.uploadedFile?.name);
-      console.log('ZIP file:', uploadStore.uploadedZipFile?.name);
-
       const response = await uploadStore.processSubmission();
-      console.log('Raw response from store:', response);
-
       const data = response?.data ?? response;
       const message = data?.message ?? uploadStore.errorMessage ?? '';
 
       if (data?.success === true) {
-        // Success: Set type to 'new' and show success dialog (NO TOAST)
         successType.value = 'new';
         setTimeout(() => {
           uploadStore.successDialog = true;
@@ -950,8 +912,6 @@
         message ===
           "You've already applied for this job. Do you want to update your previous application?"
       ) {
-        // Already applied: Show update confirmation modal
-        console.log('Opening update confirmation dialog');
         confirmationMessage.value = message;
         confirmationToken.value = data?.confirmation_token || '';
         const expiresInMinutes = data?.expires_in_minutes || 10;
@@ -963,21 +923,14 @@
 
         jobPostStore.setConfirmationToken(confirmationToken.value, expiresInMinutes);
       } else {
-        // Other failures: Show ONLY error toast
         $q.notify({
           type: 'negative',
           message: message || 'Failed to upload submission',
           position: 'top',
         });
-        console.warn('Submission failed:', message);
-      }
-
-      if (data?.id) {
-        console.log('Job batch response ID:', data.id);
       }
     } catch (err) {
       console.error('Submission process error:', err);
-      // Show ONLY error toast
       $q.notify({
         type: 'negative',
         message: 'Network error. Please try again.',
@@ -988,9 +941,6 @@
     }
   }
 
-  /**
-   * ✅ Handle confirmation choice (Yes/No for update)
-   */
   async function handleConfirmationChoice(confirmed) {
     stopConfirmationCountdown();
 
@@ -1012,27 +962,21 @@
         confirmation_token: confirmationToken.value,
       };
 
-      console.log('Sending confirmation payload:', payload);
-
       const response = await jobPostStore.updateConfirmation(payload);
       const data = response?.data ?? response;
 
       if (data?.success === true) {
         updateConfirmationDialog.value = false;
 
-        // ✅ Check if user said YES (update) or NO (keep previous)
         if (confirmed) {
-          // YES - UPDATE: Show update success dialog
           successType.value = 'updated';
           setTimeout(() => {
             uploadStore.successDialog = true;
           }, 500);
         } else {
-          // NO - KEEP PREVIOUS: Show cancelled dialog
           updateCancelledDialog.value = true;
         }
       } else {
-        // Failure: Show ONLY error toast
         $q.notify({
           type: 'negative',
           message: data?.message || 'Failed to process confirmation',
@@ -1041,7 +985,6 @@
       }
     } catch (err) {
       console.error('Error during confirmation:', err);
-      // Show ONLY error toast
       $q.notify({
         type: 'negative',
         message: 'An error occurred while processing your confirmation. Please try again.',
@@ -1052,31 +995,21 @@
     }
   }
 
-  /**
-   * Close success dialog and redirect
-   */
   function closeSuccessDialog() {
     uploadStore.reset();
     successDialog.value = false;
     router.push('/jobList');
   }
 
-  /**
-   * ✅ Close cancelled dialog and reset files
-   */
   function closeCancelledDialog() {
     updateCancelledDialog.value = false;
     uploadStore.reset();
-    // Reset file inputs
     uploadedFile.value = null;
     uploadedZipFile.value = null;
   }
 
   // ==================== LIFECYCLE HOOKS ====================
 
-  /**
-   * On component mount: load job details
-   */
   onMounted(async () => {
     if (!id) {
       console.error('No job ID provided in route params');
@@ -1090,13 +1023,9 @@
 
       if (selectedJob.value && selectedJob.value.id) {
         uploadStore.setSelectedJob(selectedJob.value);
-        console.log('Job set in upload store:', selectedJob.value);
       } else {
-        console.error('Selected job is missing ID:', selectedJob.value);
         throw new Error('Job ID is missing');
       }
-
-      console.log('Initial data loading completed');
     } catch (error) {
       console.error('Error during initial data loading:', error);
 
@@ -1123,23 +1052,189 @@
     }
   });
 
-  /**
-   * On component unmount: cleanup timers
-   */
   onBeforeUnmount(() => {
     stopConfirmationCountdown();
   });
 </script>
 
 <style scoped>
-  /* ==================== RESPONSIVE LAYOUT ====================*/
-  @media (max-width: 768px) {
-    .q-card {
-      margin-bottom: 20px;
-    }
+  /* ==================== BASE LAYOUT ====================*/
+  .job-details-page {
+    padding: 0;
+    background: #f5f5f5;
   }
 
-  /* ==================== PROCESS CARDS STYLING ====================*/
+  .page-header {
+    background: white;
+    padding: 16px 24px;
+    border-bottom: 1px solid #eee;
+  }
+
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .back-btn {
+    flex-shrink: 0;
+  }
+
+  .header-text {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+    margin: 0;
+    line-height: 1.2;
+  }
+
+  .breadcrumb {
+    font-size: 0.875rem;
+    margin-top: 4px;
+    line-height: 1.2;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .posted-chip {
+    white-space: nowrap;
+  }
+
+  .chip-text {
+    font-size: 0.875rem;
+  }
+
+  .loading-progress {
+    width: 80px;
+  }
+
+  .content-wrapper {
+    max-width: 1200px;
+    margin: 24px auto;
+    padding: 0 24px;
+  }
+
+  .job-details-card {
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  /* ==================== JOB HEADER ====================*/
+  .job-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .job-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .job-position {
+    font-size: 1.5rem;
+    margin-bottom: 12px;
+    word-wrap: break-word;
+  }
+
+  .job-details-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .job-detail-item {
+    display: flex;
+    align-items: center;
+    color: #666;
+    font-size: 0.95rem;
+  }
+
+  /* ==================== SECTIONS ====================*/
+  .position-section {
+    padding: 20px 24px;
+  }
+
+  .section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .section-content {
+    font-size: 0.95rem;
+    color: #666;
+  }
+
+  .qualifications-section {
+    padding: 24px;
+  }
+
+  .section-main-title {
+    font-size: 1.5rem;
+    margin-bottom: 24px;
+  }
+
+  .qualifications-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+  }
+
+  .qualification-card {
+    border-radius: 8px;
+    transition:
+      transform 0.2s,
+      box-shadow 0.2s;
+  }
+
+  .qualification-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .qualification-text {
+    margin-top: 8px;
+    font-size: 0.95rem;
+    color: #444;
+  }
+
+  /* ==================== APPLICATION PROCESS ====================*/
+  .application-process-section {
+    padding: 32px 24px;
+  }
+
+  .process-main-title {
+    font-size: 1.75rem;
+  }
+
+  .process-steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 24px;
+  }
+
+  .process-step-wrapper {
+    min-width: 0;
+  }
+
   .process-card {
     position: relative;
     border-radius: 12px;
@@ -1203,6 +1298,7 @@
   }
 
   .step-title {
+    font-size: 1.1rem;
     margin-bottom: 12px;
     font-weight: 600;
   }
@@ -1210,6 +1306,7 @@
   .step-description {
     color: #666;
     margin-bottom: 20px;
+    font-size: 0.9rem;
   }
 
   .file-input {
@@ -1236,15 +1333,7 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   }
 
-  .progress-connector {
-    height: 4px;
-    background: #e0e0e0;
-    position: relative;
-    top: 40px;
-    z-index: 0;
-  }
-
-  /* ==================== CONFIRMATION DIALOG STYLING ====================*/
+  /* ==================== DIALOG STYLING ====================*/
   .confirmation-dialog {
     border-radius: 12px;
     overflow: hidden;
@@ -1297,6 +1386,14 @@
     padding: 0 24px 16px 24px;
   }
 
+  .dialog-main-title {
+    font-size: 1.5rem;
+  }
+
+  .dialog-subtitle {
+    font-size: 0.95rem;
+  }
+
   .dialog-content {
     padding: 24px;
   }
@@ -1323,6 +1420,7 @@
     word-break: break-all;
     white-space: normal;
     color: #1976d2;
+    font-size: 0.9rem;
   }
 
   .file-size {
@@ -1336,22 +1434,333 @@
     display: flex;
     justify-content: flex-end;
     gap: 12px;
+    flex-wrap: wrap;
   }
 
   .position-text {
-    font-size: 12px;
+    font-size: 0.95rem;
+    word-break: break-word;
+  }
+
+  .confirmation-note,
+  .success-message,
+  .cancelled-message,
+  .cancelled-note,
+  .update-message,
+  .update-note {
+    font-size: 0.95rem;
+  }
+
+  .reference-number {
+    font-size: 0.85rem;
+  }
+
+  .timer-text {
+    font-size: 0.9rem;
+  }
+
+  .token-info {
+    font-size: 0.8rem;
+    word-break: break-all;
+  }
+
+  .loading-overlay {
+    min-width: 200px;
+    padding: 48px;
+  }
+
+  .loading-text {
+    font-size: 1.1rem;
   }
 
   .rounded-borders {
     border-radius: 8px;
   }
 
-  /* ==================== UTILITY CLASSES ====================*/
   .bg-orange-1 {
     background-color: #ffe0b2;
   }
 
   .text-red {
     color: #f44336;
+  }
+
+  /* ==================== TABLET (600px - 1023px) ====================*/
+  @media (max-width: 1023px) and (min-width: 600px) {
+    .page-header {
+      padding: 16px 20px;
+    }
+
+    .content-wrapper {
+      padding: 0 20px;
+      margin: 20px auto;
+    }
+
+    .page-title {
+      font-size: 1.3rem;
+    }
+
+    .breadcrumb {
+      font-size: 0.8rem;
+    }
+
+    .job-position {
+      font-size: 1.3rem;
+    }
+
+    .section-main-title {
+      font-size: 1.3rem;
+    }
+
+    .process-main-title {
+      font-size: 1.5rem;
+    }
+
+    .qualifications-grid {
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+    }
+
+    .process-steps {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .step-title {
+      font-size: 1rem;
+    }
+
+    .dialog-main-title {
+      font-size: 1.3rem;
+    }
+  }
+
+  /* ==================== MOBILE (<600px) ====================*/
+  @media (max-width: 599px) {
+    .page-header {
+      padding: 12px 16px;
+    }
+
+    .header-content {
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .header-left {
+      flex: 1 1 auto;
+      max-width: calc(100% - 120px);
+    }
+
+    .header-right {
+      flex: 0 0 auto;
+    }
+
+    .page-title {
+      font-size: 1.1rem;
+    }
+
+    .chip-text {
+      font-size: 0.75rem;
+    }
+
+    .loading-progress {
+      width: 60px;
+    }
+
+    .content-wrapper {
+      padding: 0 16px;
+      margin: 16px auto;
+    }
+
+    .job-header {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .job-info {
+      width: 100%;
+    }
+
+    .job-position {
+      font-size: 1.15rem;
+    }
+
+    .job-details-list {
+      align-items: center;
+    }
+
+    .job-detail-item {
+      font-size: 0.875rem;
+    }
+
+    .section-title {
+      font-size: 1.1rem;
+    }
+
+    .section-main-title {
+      font-size: 1.15rem;
+    }
+
+    .qualifications-section {
+      padding: 16px;
+    }
+
+    .qualifications-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .application-process-section {
+      padding: 20px 16px;
+    }
+
+    .process-main-title {
+      font-size: 1.25rem;
+      margin-bottom: 20px !important;
+    }
+
+    .process-steps {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .card-content {
+      padding: 20px;
+    }
+
+    .step-title {
+      font-size: 0.95rem;
+    }
+
+    .step-description {
+      font-size: 0.85rem;
+    }
+
+    .dialog-main-title {
+      font-size: 1.2rem;
+    }
+
+    .dialog-subtitle {
+      font-size: 0.85rem;
+    }
+
+    .dialog-content {
+      padding: 16px;
+    }
+
+    .file-card {
+      max-width: 100%;
+      margin-left: 0;
+    }
+
+    .dialog-actions {
+      padding: 12px 16px;
+      flex-direction: column;
+    }
+
+    .dialog-actions .q-btn {
+      width: 100%;
+    }
+
+    .keep-btn {
+      order: 2;
+    }
+
+    .confirmation-note,
+    .success-message,
+    .cancelled-message,
+    .update-message {
+      font-size: 0.875rem;
+    }
+
+    .cancelled-note,
+    .update-note {
+      font-size: 0.8rem;
+    }
+  }
+
+  /* ==================== EXTRA SMALL (<360px) ====================*/
+  @media (max-width: 359px) {
+    .page-header {
+      padding: 10px 12px;
+    }
+
+    .header-left {
+      max-width: calc(100% - 100px);
+    }
+
+    .page-title {
+      font-size: 1rem;
+    }
+
+    .chip-text {
+      font-size: 0.7rem;
+    }
+
+    .content-wrapper {
+      padding: 0 12px;
+    }
+
+    .job-position {
+      font-size: 1.05rem;
+    }
+
+    .section-main-title {
+      font-size: 1.05rem;
+    }
+
+    .process-main-title {
+      font-size: 1.15rem;
+    }
+
+    .card-content {
+      padding: 16px;
+    }
+
+    .step-title {
+      font-size: 0.9rem;
+    }
+
+    .step-description {
+      font-size: 0.8rem;
+    }
+
+    .action-btn {
+      padding: 10px 16px;
+      font-size: 0.85rem;
+    }
+
+    .dialog-main-title {
+      font-size: 1.1rem;
+    }
+  }
+
+  /* ==================== LARGE DESKTOP (>1440px) ====================*/
+  @media (min-width: 1440px) {
+    .page-header {
+      padding: 20px 48px;
+    }
+
+    .content-wrapper {
+      max-width: 1400px;
+      padding: 0 48px;
+    }
+
+    .page-title {
+      font-size: 1.75rem;
+    }
+
+    .job-position {
+      font-size: 1.75rem;
+    }
+
+    .section-main-title {
+      font-size: 1.75rem;
+    }
+
+    .process-main-title {
+      font-size: 2rem;
+    }
   }
 </style>

@@ -39,7 +39,6 @@ const routes = [
       {
         path: '/reports',
         name: 'Admin Report Raters',
-        // component: () => import('pages/admin/ReportsPage.vue'),
         component: () => import('src/components/Reports/CertificationReport.vue'),
         meta: { auth: true, role: 'admin' },
       },
@@ -67,7 +66,6 @@ const routes = [
         component: () => import('pages/admin/SettingPage.vue'),
         meta: { auth: true, role: 'admin' },
       },
-      // page in a page
       {
         path: '/dashboard/status/:title/:name',
         name: 'Dashboard Status',
@@ -83,7 +81,7 @@ const routes = [
     ],
   },
 
-  // PDF report route - separate from main layout for viewing in new tab
+  // PDF report route
   {
     path: '/rater-management/reports/appointment-pdf',
     name: 'Appointment PDF',
@@ -91,26 +89,52 @@ const routes = [
     meta: { auth: true, role: 'admin' },
   },
 
-  // User Routes
+  // User Login Route (root path)
+  {
+    path: '/',
+    name: 'Email',
+    component: () => import('pages/user/UserLogin.vue'),
+    meta: {
+      guest: true,
+      role: 'user',
+    },
+  },
+
+  // User Routes (Protected) - FIXED PATHS
   {
     path: '/home',
-    name: 'Userpage',
     component: () => import('layouts/UserMainLayout.vue'),
+    meta: {
+      auth: true,
+      role: 'user',
+    },
     children: [
       {
-        path: '/',
+        path: '/page',
         name: 'Homepage',
         component: () => import('pages/user/UserHomePage.vue'),
+        meta: {
+          auth: true,
+          role: 'user',
+        },
       },
       {
-        path: '/jobList',
+        path: 'jobList', // Changed from '/jobList' to 'job-list' (relative path)
         name: 'Joblist',
         component: () => import('pages/user/UserJobList.vue'),
+        meta: {
+          auth: true,
+          role: 'user',
+        },
       },
       {
         path: '/jobList/details/:id',
         name: 'Joblist Details',
         component: () => import('pages/user/ViewJobDetails.vue'),
+        meta: {
+          auth: true,
+          role: 'user',
+        },
       },
     ],
   },
@@ -124,24 +148,23 @@ const routes = [
   },
   {
     path: '/uRater',
-    name: 'Rater Dashboard',
-    meta: { auth: true, role: 'rater' },
     component: () => import('layouts/RatersLayout.vue'),
+    meta: { auth: true, role: 'rater' },
     children: [
       {
-        path: '/uRater',
+        path: '', // Changed from '/uRater' to empty string
         name: 'Raters Homepage',
         meta: { auth: true, role: 'rater' },
         component: () => import('pages/rater/RatersHomepage.vue'),
       },
       {
-        path: '/uCriteria',
+        path: 'criteria', // Changed from '/uCriteria' to relative path
         name: 'Raters Criteria',
         meta: { auth: true, role: 'rater' },
         component: () => import('pages/rater/RatersCriteria.vue'),
       },
       {
-        path: '/rater/settings',
+        path: 'settings', // Changed from '/rater/settings' to relative path
         name: 'rater Settings',
         component: () => import('../components/Rater/Settings.vue'),
         meta: { auth: true, role: 'rater' },
@@ -149,7 +172,7 @@ const routes = [
     ],
   },
 
-  //error routes
+  // Error routes
   {
     path: '/:catchAll(.*)*',
     component: () => import('layouts/ErrorPage.vue'),

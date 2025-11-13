@@ -8,6 +8,7 @@ import {
 import routes from './routes';
 import { useAuthStore } from 'src/stores/authStore';
 import { useRaterAuthStore } from 'src/stores/authStore_raters';
+import { useEmailStore } from 'src/stores/emailStore';
 
 export default defineRouter(function (/* { store, ssrContext } */) {
   const createHistory = process.env.SERVER
@@ -25,6 +26,7 @@ export default defineRouter(function (/* { store, ssrContext } */) {
   Router.beforeEach(async (to) => {
     const authStore = useAuthStore();
     const raterAuthStore = useRaterAuthStore();
+    const emailStore = useEmailStore();
 
     // Check if route requires authentication
     if (to.meta.auth) {
@@ -40,6 +42,13 @@ export default defineRouter(function (/* { store, ssrContext } */) {
         await raterAuthStore.checkAuth_rater();
         if (!raterAuthStore.isAuthenticated) {
           return { name: 'Rater Login' };
+        }
+      }
+      // User routes
+      else if (to.meta.role === 'user') {
+        emailStore.checkAuthStatus();
+        if (!emailStore.isAuthenticated) {
+          return { name: 'Email' };
         }
       }
     }
@@ -58,6 +67,13 @@ export default defineRouter(function (/* { store, ssrContext } */) {
         await raterAuthStore.checkAuth_rater();
         if (raterAuthStore.isAuthenticated) {
           return { name: 'Raters Homepage' };
+        }
+      }
+      // User login page
+      else if (to.meta.role === 'user') {
+        emailStore.checkAuthStatus();
+        if (emailStore.isAuthenticated) {
+          return { name: 'Homepage' };
         }
       }
     }

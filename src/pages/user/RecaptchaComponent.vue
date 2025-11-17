@@ -1,33 +1,30 @@
 <template>
-  <div v-if="loading" class="loading-message">
-    <q-spinner color="primary" size="sm" />
-    <span class="loading-text">Loading reCAPTCHA...</span>
-  </div>
-  <div v-if="errorMessage" class="error-message">
-    <q-icon name="warning" size="xs" />
-    <span class="error-text">{{ errorMessage }}</span>
-  </div>
   <div class="recaptcha-component">
-    <div ref="recaptchaContainer" class="recaptcha-wrapper" :class="wrapperClass"></div>
+    <div v-if="loading" class="loading-message">
+      <q-spinner color="primary" size="sm" />
+      <span class="loading-text">Loading reCAPTCHA...</span>
+    </div>
+    <div v-if="errorMessage" class="error-message">
+      <q-icon name="warning" size="xs" />
+      <span class="error-text">{{ errorMessage }}</span>
+    </div>
+    <!-- Added id fallback so you can reference by id if ref isn't ready yet -->
+    <div
+      id="recaptcha-container"
+      ref="recaptchaContainer"
+      class="recaptcha-wrapper"
+      :class="wrapperClass"
+    ></div>
   </div>
 </template>
 
 <script setup>
-  import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
+  import { ref, onMounted, onBeforeUnmount, computed, nextTick } from 'vue';
 
   const props = defineProps({
-    sitekey: {
-      type: String,
-      required: true,
-    },
-    theme: {
-      type: String,
-      default: 'light',
-    },
-    size: {
-      type: String,
-      default: 'normal', // 'normal' or 'compact'
-    },
+    sitekey: { type: String, required: true },
+    theme: { type: String, default: 'light' },
+    size: { type: String, default: 'normal' },
   });
 
   const emit = defineEmits(['verify', 'expired', 'error']);
@@ -37,46 +34,59 @@
   const errorMessage = ref('');
   let widgetId = null;
 
-  // Computed class for wrapper based on size
-  const wrapperClass = computed(() => {
-    return `recaptcha-${props.size}`;
-  });
+  const wrapperClass = computed(() => `recaptcha-${props.size}`);
 
-  // Load reCAPTCHA script dynamically
+  const getApi = () => {
+    if (!window.grecaptcha) return null;
+    return window.grecaptcha.enterprise ? window.grecaptcha.enterprise : window.grecaptcha;
+  };
+
   const loadRecaptchaScript = () => {
     return new Promise((resolve, reject) => {
-      // Check if already loaded
-      if (window.grecaptcha && window.grecaptcha.render) {
+      const existingApi = getApi();
+      if (existingApi && typeof existingApi.render === 'function') {
         resolve();
         return;
       }
 
-      // Check if script already exists in DOM
-      const existingScript = document.querySelector('script[src*="recaptcha/api.js"]');
+      const existingScript = document.querySelector(
+        'script[src*="recaptcha/enterprise.js"], script[src*="recaptcha/api.js"]',
+      );
+
       if (existingScript) {
-        if (window.grecaptcha && window.grecaptcha.render) {
+        if (getApi() && typeof getApi().render === 'function') {
           resolve();
         } else {
-          existingScript.addEventListener('load', resolve);
-          existingScript.addEventListener('error', reject);
+          const onLoad = () => {
+            cleanup();
+            resolve();
+          };
+          const onError = () => {
+            cleanup();
+            const err = new Error('Failed to load reCAPTCHA script.');
+            errorMessage.value = err.message;
+            reject(err);
+          };
+          const cleanup = () => {
+            existingScript.removeEventListener('load', onLoad);
+            existingScript.removeEventListener('error', onError);
+          };
+          existingScript.addEventListener('load', onLoad);
+          existingScript.addEventListener('error', onError);
         }
         return;
       }
 
-      // Create and append new script
       const script = document.createElement('script');
-      script.src = 'https://www.google.com/recaptcha/api.js?render=explicit';
+      script.src = 'https://www.google.com/recaptcha/enterprise.js?render=explicit';
       script.async = true;
       script.defer = true;
-
-      script.onload = resolve;
-
+      script.onload = () => resolve();
       script.onerror = () => {
-        const error = new Error('Failed to load reCAPTCHA script.');
-        errorMessage.value = error.message;
-        reject(error);
+        const err = new Error('Failed to load reCAPTCHA script.');
+        errorMessage.value = err.message;
+        reject(err);
       };
-
       document.head.appendChild(script);
     });
   };
@@ -84,19 +94,32 @@
   const waitForRecaptcha = () => {
     return new Promise((resolve, reject) => {
       let attempts = 0;
-      const maxAttempts = 100; // 10 seconds timeout
-
-      const checkRecaptcha = setInterval(() => {
+      const maxAttempts = 200;
+      const interval = setInterval(() => {
         attempts++;
-
-        if (window.grecaptcha && window.grecaptcha.render) {
-          clearInterval(checkRecaptcha);
-          resolve();
-        } else if (attempts >= maxAttempts) {
-          clearInterval(checkRecaptcha);
-          const error = 'reCAPTCHA API not ready.';
-          errorMessage.value = error;
-          reject(new Error(error));
+        const api = getApi();
+        if (api) {
+          if (typeof api.ready === 'function') {
+            clearInterval(interval);
+            try {
+              api.ready(() => resolve());
+            } catch (err) {
+              if (typeof api.render === 'function') resolve();
+              else reject(err);
+            }
+            return;
+          }
+          if (typeof api.render === 'function') {
+            clearInterval(interval);
+            resolve();
+            return;
+          }
+        }
+        if (attempts >= maxAttempts) {
+          clearInterval(interval);
+          const errMsg = 'reCAPTCHA API not ready.';
+          errorMessage.value = errMsg;
+          reject(new Error(errMsg));
         }
       }, 100);
     });
@@ -104,15 +127,20 @@
 
   const renderRecaptcha = () => {
     if (!recaptchaContainer.value) {
-      const error = 'reCAPTCHA container not found';
-      console.error(error);
-      errorMessage.value = error;
+      const err = 'reCAPTCHA container not found';
+      console.error(err);
+      errorMessage.value = err;
       loading.value = false;
       return;
     }
 
     try {
-      widgetId = window.grecaptcha.render(recaptchaContainer.value, {
+      const api = getApi();
+      if (!api || typeof api.render !== 'function') {
+        throw new Error('reCAPTCHA render function is not available on the API.');
+      }
+
+      widgetId = api.render(recaptchaContainer.value, {
         sitekey: props.sitekey,
         theme: props.theme,
         size: props.size,
@@ -133,7 +161,7 @@
       loading.value = false;
     } catch (error) {
       console.error('reCAPTCHA render error:', error);
-      errorMessage.value = `Failed to render reCAPTCHA`;
+      errorMessage.value = `Failed to render reCAPTCHA: ${error.message || error}`;
       emit('error', error);
       loading.value = false;
     }
@@ -141,8 +169,9 @@
 
   const reset = () => {
     try {
-      if (window.grecaptcha && widgetId !== null) {
-        window.grecaptcha.reset(widgetId);
+      const api = getApi();
+      if (api && widgetId !== null && typeof api.reset === 'function') {
+        api.reset(widgetId);
         errorMessage.value = '';
       }
     } catch (error) {
@@ -152,8 +181,9 @@
 
   const getResponse = () => {
     try {
-      if (window.grecaptcha && widgetId !== null) {
-        return window.grecaptcha.getResponse(widgetId);
+      const api = getApi();
+      if (api && widgetId !== null && typeof api.getResponse === 'function') {
+        return api.getResponse(widgetId);
       }
     } catch (error) {
       console.error('Error getting reCAPTCHA response:', error);
@@ -163,35 +193,60 @@
 
   onMounted(async () => {
     try {
+      // If running under SSR, bail early (onMounted won't run on server, but guard anyway)
+      if (typeof window === 'undefined') return;
+
       await loadRecaptchaScript();
       await waitForRecaptcha();
-      setTimeout(() => {
-        renderRecaptcha();
-      }, 200);
+
+      // Ensure Vue finished mounting the template and the ref is populated.
+      await nextTick();
+
+      // Small retry loop in case the ref populates slightly later (e.g. parent v-if race)
+      let tries = 0;
+      while (!recaptchaContainer.value && tries < 5) {
+        await new Promise((r) => setTimeout(r, 100));
+        tries++;
+      }
+
+      // Fallback to DOM id if ref still missing
+      if (!recaptchaContainer.value) {
+        const fallback = document.getElementById('recaptcha-container');
+        if (fallback) recaptchaContainer.value = fallback;
+      }
+
+      if (!recaptchaContainer.value) {
+        throw new Error(
+          'reCAPTCHA container not found. Ensure the container div is present and not conditionally removed with v-if.',
+        );
+      }
+
+      // Small extra delay to avoid race with grecaptcha internals
+      setTimeout(() => renderRecaptcha(), 150);
     } catch (error) {
       console.error('reCAPTCHA setup error:', error);
       loading.value = false;
+      errorMessage.value = error?.message || String(error);
       emit('error', error);
     }
   });
 
   onBeforeUnmount(() => {
-    if (window.grecaptcha && widgetId !== null) {
-      try {
-        window.grecaptcha.reset(widgetId);
-      } catch (error) {
-        console.error('reCAPTCHA cleanup error:', error);
+    try {
+      const api = getApi();
+      if (api && widgetId !== null && typeof api.reset === 'function') {
+        api.reset(widgetId);
       }
+    } catch (error) {
+      console.error('reCAPTCHA cleanup error:', error);
     }
   });
 
-  defineExpose({
-    reset,
-    getResponse,
-  });
+  defineExpose({ reset, getResponse });
 </script>
 
 <style scoped>
+  /* (styles unchanged) */
   .recaptcha-component {
     width: 100%;
     display: flex;
@@ -199,7 +254,6 @@
     align-items: center;
     gap: 0.5rem;
   }
-
   .loading-message {
     display: flex;
     align-items: center;
@@ -208,11 +262,9 @@
     font-size: 0.875rem;
     padding: 0.5rem;
   }
-
   .loading-text {
     font-size: 0.875rem;
   }
-
   .error-message {
     display: flex;
     align-items: center;
@@ -220,61 +272,48 @@
     color: #ff5252;
     font-size: 0.8rem;
     padding: 0.5rem 0.75rem;
-    background-color: #ffebee;
+    background: #ffebee;
     border-radius: 4px;
     max-width: 100%;
     text-align: center;
     line-height: 1.4;
   }
-
   .error-text {
     font-size: 0.8rem;
   }
-
   .recaptcha-wrapper {
-    display: inline-block; /* Changed from inline-flex */
+    display: inline-block;
     position: relative;
-    overflow: visible; /* Changed from default */
+    overflow: visible;
   }
-
-  /* Normal size */
   .recaptcha-normal {
     width: 304px;
-    height: 78px; /* Set explicit height instead of min-height */
+    height: 78px;
   }
-
-  /* Compact size */
   .recaptcha-compact {
     width: 164px;
-    height: 144px; /* Set explicit height instead of min-height */
+    height: 144px;
   }
-
-  /* Ensure iframe doesn't overflow */
   .recaptcha-wrapper :deep(iframe) {
     max-width: 100%;
     border: none;
   }
-
-  /* Responsive text only */
   @media (max-width: 599px) {
     .loading-message,
     .loading-text {
       font-size: 0.8rem;
     }
-
     .error-message,
     .error-text {
       font-size: 0.75rem;
       padding: 0.375rem 0.625rem;
     }
   }
-
   @media (max-width: 359px) {
     .loading-message,
     .loading-text {
       font-size: 0.75rem;
     }
-
     .error-message,
     .error-text {
       font-size: 0.7rem;
@@ -282,6 +321,3 @@
     }
   }
 </style>
-
-/* For compact size */ @media (max-width: 599px) { .recaptcha-section { min-height: 160px; /*
-Increased for compact reCAPTCHA */ } }

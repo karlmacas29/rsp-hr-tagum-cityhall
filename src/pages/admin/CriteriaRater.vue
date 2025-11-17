@@ -2,10 +2,26 @@
   <q-page class="q-pa-md">
     <!-- Header -->
     <div class="q-mb-lg">
-      <h5 class="text-h5 q-ma-none text-weight-bold">Criteria Management</h5>
-      <p class="text-caption text-grey q-mt-sm q-mb-none">
-        Create, view, and manage rating criteria for job positions
-      </p>
+      <div class="row justify-between items-center">
+        <div>
+          <h5 class="text-h5 q-ma-none text-weight-bold">Criteria Management</h5>
+          <p class="text-caption text-grey q-mt-sm q-mb-none">
+            Create, view, and manage rating criteria for job positions
+          </p>
+        </div>
+
+        <!-- SG Criteria Navigation Button -->
+        <q-btn
+          unelevated
+          color="purple"
+          icon="workspace_premium"
+          label="Salary Grade Criteria"
+          @click="goToSGCriteria"
+          class="text-white"
+        >
+          <q-tooltip>Switch to Criteria Management by Salary Grade</q-tooltip>
+        </q-btn>
+      </div>
     </div>
 
     <!-- Filters -->
@@ -213,10 +229,12 @@
 <script setup>
   import { ref, computed, onMounted, nextTick } from 'vue';
   import { date } from 'quasar';
+  import { useRouter } from 'vue-router';
   import { useAuthStore } from 'stores/authStore';
   import { useJobPostStore } from 'stores/jobPostStore';
   import CriteriaRaterModal from 'src/components/CriteriaModal.vue';
 
+  const router = useRouter();
   const authStore = useAuthStore();
   const jobPostStore = useJobPostStore();
   const { formatDate } = date;
@@ -348,6 +366,13 @@
   // ============================================================================
   // METHODS
   // ============================================================================
+
+  /**
+   * Navigate to SG Criteria page
+   */
+  function goToSGCriteria() {
+    router.push('/criteria/sg');
+  }
 
   /**
    * Set date range to current year
@@ -596,7 +621,7 @@
     }
 
     :deep(.col-status) {
-      width: 2150%;
+      width: 15%;
       min-width: 100px;
     }
 

@@ -95,6 +95,30 @@ export const usePlantillaStore = defineStore('plantilla', {
       }
     },
 
+    async fetchEmployeeList() {
+      this.loading = true;
+      this.error = null;
+      try {
+        const response = await adminApi.get('/employee/list');
+
+        // console.log(response.data) // Debugging
+
+        if (Array.isArray(response.data)) {
+          this.plantillaData = response.data;
+        } else {
+          console.error('Unexpected response format', response.data);
+          this.plantillaData = [];
+        }
+      } catch (error) {
+        console.error('Fetch error:', error); // Debugging
+        toast.error('Failed to Load Plantilla Data');
+        this.error = error;
+        this.loading = false;
+      } finally {
+        this.loading = false;
+      }
+    },
+
     async fetchPlantillaData() {
       this.loading = true;
       this.error = null;

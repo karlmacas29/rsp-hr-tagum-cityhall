@@ -46,18 +46,15 @@
               </q-input>
             </div>
 
-            <!-- CAPTCHA at Email Stage -->
-            <div class="recaptcha-section">
-              <RecaptchaComponent
-                ref="emailCaptchaRef"
-                :sitekey="recaptchaSiteKey"
-                @verify="onEmailCaptchaVerified"
-                @expired="onEmailCaptchaExpired"
-                @error="onCaptchaError"
-                theme="light"
-                :size="captchaSize"
-              />
-            </div>
+            <RecaptchaComponent
+              ref="emailCaptchaRef"
+              :sitekey="recaptchaSiteKey"
+              @verify="onEmailCaptchaVerified"
+              @expired="onEmailCaptchaExpired"
+              @error="onCaptchaError"
+              theme="light"
+              :size="captchaSize"
+            />
 
             <q-btn
               label="Send Verification Code"

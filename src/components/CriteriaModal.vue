@@ -36,6 +36,7 @@
               dense
               outlined
               readonly
+              autogrow
               :placeholder="'-'"
               class="q-mb-sm"
             />
@@ -46,6 +47,7 @@
               dense
               outlined
               readonly
+              autogrow
               :placeholder="'-'"
               class="q-mb-sm"
             />
@@ -56,6 +58,7 @@
               dense
               outlined
               readonly
+              autogrow
               :placeholder="'-'"
             />
           </div>
@@ -68,6 +71,7 @@
               dense
               outlined
               readonly
+              autogrow
               :placeholder="'-'"
               class="q-mb-sm"
             />
@@ -78,6 +82,7 @@
               dense
               outlined
               readonly
+              autogrow
               :placeholder="'-'"
               class="q-mb-sm"
             />
@@ -88,6 +93,7 @@
               dense
               outlined
               readonly
+              autogrow
               :placeholder="'-'"
             />
           </div>
@@ -108,6 +114,7 @@
               dense
               outlined
               readonly
+              autogrow
               :placeholder="'Not specified'"
             />
           </div>
@@ -119,6 +126,7 @@
               dense
               outlined
               readonly
+              autogrow
               :placeholder="'Not specified'"
             />
           </div>
@@ -130,6 +138,7 @@
               dense
               outlined
               readonly
+              autogrow
               :placeholder="'Not specified'"
             />
           </div>
@@ -141,6 +150,7 @@
               dense
               outlined
               readonly
+              autogrow
               :placeholder="'Not specified'"
             />
           </div>

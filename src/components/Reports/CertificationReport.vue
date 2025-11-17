@@ -270,6 +270,17 @@
             </ruby>
           </template>
         </p>
+        <div class="indented">
+          <ruby class="word-ruby">
+            <span>KASIHAN NAWA AKO NG DIYOS.</span>
+            <rt>
+              <span>
+                <span style="color: white">*</span>
+                SO HELP ME GOD
+              </span>
+            </rt>
+          </ruby>
+        </div>
 
         <div class="signature-container">
           <div class="signature-name">{{ data.Name4 }}</div>

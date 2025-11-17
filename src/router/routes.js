@@ -61,6 +61,12 @@ const routes = [
         meta: { auth: true, role: 'admin' },
       },
       {
+        path: '/criteria/sg',
+        name: 'SG Criteria',
+        component: () => import('pages/admin/CriteriaSG.vue'),
+        meta: { auth: true, role: 'admin' },
+      },
+      {
         path: '/settings',
         name: 'Admin Settings',
         component: () => import('pages/admin/SettingPage.vue'),

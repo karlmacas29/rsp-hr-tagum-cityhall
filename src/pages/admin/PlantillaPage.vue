@@ -980,7 +980,7 @@
       await usePlantilla.fetchPlantilla();
       positions.value = usePlantilla.plantilla.map((item) => ({
         ...item,
-        Status: item.Status || 'VACANT',
+        Status: item.designationStatus || 'VACANT',
       }));
 
       // Refresh job posts from API
@@ -1134,7 +1134,7 @@
       await usePlantilla.fetchPlantilla();
       positions.value = usePlantilla.plantilla.map((item) => ({
         ...item,
-        Status: item.Status || 'VACANT',
+        Status: item.designationStatus || 'VACANT',
       }));
 
       await jobPostStore.job_post();

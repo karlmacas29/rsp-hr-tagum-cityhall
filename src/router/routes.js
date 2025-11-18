@@ -25,6 +25,12 @@ const routes = [
         meta: { auth: true, role: 'admin' },
       },
       {
+        path: '/applicant',
+        name: 'Applicant List',
+        component: () => import('pages/admin/ApplicantPage.vue'),
+        meta: { auth: true, role: 'admin' },
+      },
+      {
         path: '/plantilla',
         name: 'Admin Plantilla',
         component: () => import('pages/admin/PlantillaPage.vue'),

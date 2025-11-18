@@ -146,6 +146,7 @@
       ...(hasJobPostAccess.value
         ? [{ label: 'Job Posts', route: '/job-post', icon: 'post_add' }]
         : []),
+      { label: 'Applicant', route: '/applicant', icon: 'group' },
       ...(hasUserManagementAccess.value
         ? [{ label: 'User Management', route: '/user-access', icon: 'manage_accounts' }]
         : []),

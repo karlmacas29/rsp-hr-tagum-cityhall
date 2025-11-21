@@ -91,24 +91,24 @@
     switch (tabName) {
       case 'appointment':
         component = AppointmentReport;
-        // Pass the appointment data correctly
         componentProps = {
           data: props.employee.appointmentData || {},
-          employee: props.employee,
         };
         break;
       case 'certification':
         component = CertificationPage;
         componentProps = {
           data: props.employee.appointmentData || {},
-          employee: props.employee,
+          officeName:
+            props.employee.office ||
+            props.employee.appointmentData?.NewOffice ||
+            'OFFICE OF THE CITY MAYOR',
         };
         break;
       case 'position':
         component = PositionDescriptionForm;
         componentProps = {
           data: props.employee.appointmentData || {},
-          employee: props.employee,
         };
         break;
     }

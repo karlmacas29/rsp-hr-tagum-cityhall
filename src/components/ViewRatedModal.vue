@@ -47,106 +47,6 @@
         </div>
       </q-card-section>
 
-      <!-- Criteria Header (Sticky) -->
-      <q-card-section class="criteria-section sticky-criteria q-pa-sm q-pb-none">
-        <table class="rating-table">
-          <thead>
-            <tr>
-              <th style="width: 200px">Name of Applicant</th>
-              <th style="width: 110px">
-                Education
-                <div class="text-caption">{{ education.Rate || '25' }}%</div>
-              </th>
-              <th style="width: 110px">
-                Experience
-                <div class="text-caption">{{ experience.Rate || '25' }}%</div>
-              </th>
-              <th style="width: 110px">
-                Training
-                <div class="text-caption">{{ training.Rate || '15' }}%</div>
-              </th>
-              <th style="width: 110px">
-                Performance
-                <div class="text-caption">{{ performance.Rate || '10' }}%</div>
-              </th>
-              <th style="width: 110px">
-                BEI
-                <div class="text-caption">{{ behavioral.Rate || '25' }}%</div>
-              </th>
-              <th style="width: 80px" class="text-center">
-                QS Total
-                <div class="text-caption">({{ qsMaxRate }}%)</div>
-              </th>
-              <th style="width: 80px" class="text-center">
-                Grand Total
-                <div class="text-caption">({{ totalMaxRate }}%)</div>
-              </th>
-              <th style="width: 80px" class="text-center">Rank</th>
-            </tr>
-          </thead>
-          <tbody class="criteria-description">
-            <tr class="bg-grey-2">
-              <td>
-                <div class="text-weight-bold text-caption">Criteria</div>
-              </td>
-              <td>
-                <div class="text-weight-bold text-caption">REQUIRED:</div>
-                <div
-                  v-for="(item, index) in formatDescription(education.description)"
-                  :key="'edu-' + index"
-                  class="text-caption"
-                >
-                  {{ item }}
-                </div>
-              </td>
-              <td>
-                <div class="text-weight-bold text-caption">REQUIRED:</div>
-                <div
-                  v-for="(item, index) in formatDescription(experience.description)"
-                  :key="'exp-' + index"
-                  class="text-caption"
-                >
-                  {{ item }}
-                </div>
-              </td>
-              <td>
-                <div class="text-weight-bold text-caption">REQUIRED:</div>
-                <div
-                  v-for="(item, index) in formatDescription(training.description)"
-                  :key="'train-' + index"
-                  class="text-caption"
-                >
-                  {{ item }}
-                </div>
-              </td>
-              <td>
-                <div class="text-weight-bold text-caption">REQUIRED:</div>
-                <div
-                  v-for="(item, index) in formatDescription(performance.description)"
-                  :key="'perf-' + index"
-                  class="text-caption"
-                >
-                  {{ item }}
-                </div>
-              </td>
-              <td>
-                <div class="text-weight-bold text-caption">REQUIRED:</div>
-                <div
-                  v-for="(item, index) in formatDescription(behavioral.description)"
-                  :key="'bei-' + index"
-                  class="text-caption"
-                >
-                  {{ item }}
-                </div>
-              </td>
-              <td></td>
-              <td></td>
-              <td></td>
-            </tr>
-          </tbody>
-        </table>
-      </q-card-section>
-
       <!-- Scrollable Content -->
       <q-card-section class="content-section scrollable-content">
         <div v-if="loading" class="text-center q-pa-md">
@@ -161,6 +61,104 @@
 
         <div v-else>
           <table class="rating-table">
+            <!-- Criteria Header (Sticky) -->
+            <thead class="sticky-criteria">
+              <tr>
+                <th style="width: 200px">Name of Applicant</th>
+                <th style="width: 110px">
+                  Education
+                  <span class="text-caption">{{ educationMaxRate }}%</span>
+                </th>
+                <th style="width: 110px">
+                  Experience
+                  <span class="text-caption">{{ experienceMaxRate }}%</span>
+                </th>
+                <th style="width: 110px">
+                  Training
+                  <span class="text-caption">{{ trainingMaxRate }}%</span>
+                </th>
+                <th style="width: 110px">
+                  Performance
+                  <span class="text-caption">{{ performanceMaxRate }}%</span>
+                </th>
+                <th style="width: 110px">
+                  BEI
+                  <span class="text-caption">{{ behavioralMaxRate }}%</span>
+                </th>
+                <th style="width: 80px" class="text-center">
+                  QS Total
+                  <div class="text-caption">({{ qsMaxRate }}%)</div>
+                </th>
+                <th style="width: 80px" class="text-center">
+                  Grand Total
+                  <div class="text-caption">({{ totalMaxRate }}%)</div>
+                </th>
+                <th style="width: 80px" class="text-center">Rank</th>
+              </tr>
+              <tr class="bg-grey-2 criteria-description">
+                <td>
+                  <div class="text-weight-bold text-caption">Criteria</div>
+                </td>
+                <td>
+                  <div class="text-weight-bold text-caption q-mb-xs">EDUCATION CRITERIA:</div>
+                  <div
+                    v-for="(item, index) in education.items"
+                    :key="'edu-' + index"
+                    class="text-caption q-mb-xs criteria-item"
+                  >
+                    <span class="criteria-percentage">{{ item.percentage }}%</span>
+                    - {{ item.description }}
+                  </div>
+                </td>
+                <td>
+                  <div class="text-weight-bold text-caption q-mb-xs">EXPERIENCE CRITERIA:</div>
+                  <div
+                    v-for="(item, index) in experience.items"
+                    :key="'exp-' + index"
+                    class="text-caption q-mb-xs criteria-item"
+                  >
+                    <span class="criteria-percentage">{{ item.percentage }}%</span>
+                    - {{ item.description }}
+                  </div>
+                </td>
+                <td>
+                  <div class="text-weight-bold text-caption q-mb-xs">TRAINING CRITERIA:</div>
+                  <div
+                    v-for="(item, index) in training.items"
+                    :key="'train-' + index"
+                    class="text-caption q-mb-xs criteria-item"
+                  >
+                    <span class="criteria-percentage">{{ item.percentage }}%</span>
+                    - {{ item.description }}
+                  </div>
+                </td>
+                <td>
+                  <div class="text-weight-bold text-caption q-mb-xs">PERFORMANCE CRITERIA:</div>
+                  <div
+                    v-for="(item, index) in performance.items"
+                    :key="'perf-' + index"
+                    class="text-caption q-mb-xs criteria-item"
+                  >
+                    <span class="criteria-percentage">{{ item.percentage }}%</span>
+                    - {{ item.description }}
+                  </div>
+                </td>
+                <td>
+                  <div class="text-weight-bold text-caption q-mb-xs">BEI CRITERIA:</div>
+                  <div
+                    v-for="(item, index) in behavioral.items"
+                    :key="'bei-' + index"
+                    class="text-caption q-mb-xs criteria-item"
+                  >
+                    <span class="criteria-percentage">{{ item.percentage }}%</span>
+                    - {{ item.description }}
+                  </div>
+                </td>
+                <td></td>
+                <td></td>
+                <td></td>
+              </tr>
+            </thead>
             <tbody>
               <template v-for="applicant in filteredApplicants" :key="applicant.id">
                 <tr class="applicant-row" :class="{ expanded: expandedApplicant === applicant.id }">
@@ -181,52 +179,57 @@
 
                   <td style="width: 110px">
                     <q-input
-                      :model-value="applicant.educationScore"
-                      type="number"
+                      :model-value="formatScore(applicant.educationScore)"
+                      type="text"
                       dense
                       borderless
                       readonly
                       class="score-input"
+                      placeholder="-"
                     />
                   </td>
                   <td style="width: 110px">
                     <q-input
-                      :model-value="applicant.experienceScore"
-                      type="number"
+                      :model-value="formatScore(applicant.experienceScore)"
+                      type="text"
                       dense
                       borderless
                       readonly
                       class="score-input"
+                      placeholder="-"
                     />
                   </td>
                   <td style="width: 110px">
                     <q-input
-                      :model-value="applicant.trainingScore"
-                      type="number"
+                      :model-value="formatScore(applicant.trainingScore)"
+                      type="text"
                       dense
                       borderless
                       readonly
                       class="score-input"
+                      placeholder="-"
                     />
                   </td>
                   <td style="width: 110px">
                     <q-input
-                      :model-value="applicant.performanceScore"
-                      type="number"
+                      :model-value="formatScore(applicant.performanceScore)"
+                      type="text"
                       dense
                       borderless
                       readonly
                       class="score-input"
+                      placeholder="-"
                     />
                   </td>
                   <td style="width: 110px">
                     <q-input
-                      :model-value="applicant.behavioralScore"
-                      type="number"
+                      :model-value="formatScore(applicant.behavioralScore)"
+                      type="text"
                       dense
                       borderless
                       readonly
                       class="score-input"
+                      placeholder="-"
                     />
                   </td>
                   <td style="width: 80px" class="text-center">
@@ -347,11 +350,7 @@
       </q-card-section>
 
       <!-- Footer (Sticky) -->
-      <q-card-section class="footer-section sticky-footer">
-        <!-- <div class="row justify-end q-gutter-sm">
-          <q-btn color="primary" label="Close" @click="closeForm" dense />
-        </div> -->
-      </q-card-section>
+      <q-card-section class="footer-section sticky-footer"></q-card-section>
     </q-card>
   </q-dialog>
 </template>
@@ -377,17 +376,52 @@
     set: (value) => emit('update:modelValue', value),
   });
 
-  const education = computed(() => props.criteria.education || {});
-  const experience = computed(() => props.criteria.experience || {});
-  const training = computed(() => props.criteria.training || {});
-  const performance = computed(() => props.criteria.performance || {});
-  const behavioral = computed(() => props.criteria.behavioral || {});
+  // Transform criteria structure to include items array
+  const education = computed(() => {
+    const edu = props.criteria.education || {};
+    return {
+      Rate: edu.Rate || '20',
+      items: edu.items || [],
+    };
+  });
 
-  const educationMaxRate = computed(() => parseFloat(education.value.Rate || 25));
-  const experienceMaxRate = computed(() => parseFloat(experience.value.Rate || 25));
-  const trainingMaxRate = computed(() => parseFloat(training.value.Rate || 15));
-  const performanceMaxRate = computed(() => parseFloat(performance.value.Rate || 10));
-  const behavioralMaxRate = computed(() => parseFloat(behavioral.value.Rate || 25));
+  const experience = computed(() => {
+    const exp = props.criteria.experience || {};
+    return {
+      Rate: exp.Rate || '20',
+      items: exp.items || [],
+    };
+  });
+
+  const training = computed(() => {
+    const train = props.criteria.training || {};
+    return {
+      Rate: train.Rate || '15',
+      items: train.items || [],
+    };
+  });
+
+  const performance = computed(() => {
+    const perf = props.criteria.performance || {};
+    return {
+      Rate: perf.Rate || '15',
+      items: perf.items || [],
+    };
+  });
+
+  const behavioral = computed(() => {
+    const beh = props.criteria.behavioral || {};
+    return {
+      Rate: beh.Rate || '30',
+      items: beh.items || [],
+    };
+  });
+
+  const educationMaxRate = computed(() => parseFloat(education.value.Rate));
+  const experienceMaxRate = computed(() => parseFloat(experience.value.Rate));
+  const trainingMaxRate = computed(() => parseFloat(training.value.Rate));
+  const performanceMaxRate = computed(() => parseFloat(performance.value.Rate));
+  const behavioralMaxRate = computed(() => parseFloat(behavioral.value.Rate));
 
   const qsMaxRate = computed(
     () =>
@@ -483,20 +517,40 @@
   };
 
   const calculateQS = (applicant) => {
-    if (!applicant) return '0.00';
+    if (!applicant) return '-';
     const eduScore = parseFloat(applicant.educationScore) || 0;
     const expScore = parseFloat(applicant.experienceScore) || 0;
     const trainingScore = parseFloat(applicant.trainingScore) || 0;
     const perfScore = parseFloat(applicant.performanceScore) || 0;
+
+    if (eduScore === 0 && expScore === 0 && trainingScore === 0 && perfScore === 0) {
+      return '-';
+    }
+
     const qsScore = eduScore + expScore + trainingScore + perfScore;
     return Math.min(qsScore, qsMaxRate.value).toFixed(2);
   };
 
   const calculateTotal = (applicant) => {
-    if (!applicant) return '0.00';
-    const qsScore = parseFloat(calculateQS(applicant));
+    if (!applicant) return '-';
+    const qsScoreRaw = calculateQS(applicant);
+    if (qsScoreRaw === '-') return '-';
+
+    const qsScore = parseFloat(qsScoreRaw);
     const beiScore = parseFloat(applicant.behavioralScore) || 0;
+
+    if (qsScore === 0 && beiScore === 0) {
+      return '-';
+    }
+
     return Math.min(qsScore + beiScore, totalMaxRate.value).toFixed(2);
+  };
+
+  const formatScore = (score) => {
+    if (score === null || score === undefined || score === 0) {
+      return '';
+    }
+    return score.toString();
   };
 
   const calculateAllRankings = () => {
@@ -539,12 +593,6 @@
     }
   };
 
-  const formatDescription = (description) => {
-    if (!description) return [];
-    if (Array.isArray(description)) return description;
-    return description.split(',').map((item) => item.trim());
-  };
-
   const closeForm = () => {
     isOpen.value = false;
     emit('close');
@@ -578,7 +626,7 @@
 
 <style lang="scss" scoped>
   .rating-modal {
-    width: 1000px;
+    width: 1700px;
     max-width: 95vw;
     max-height: 90vh;
     display: flex;
@@ -594,21 +642,18 @@
       min-height: 32px;
     }
   }
-  .criteria-section {
-    background-color: #f9f9f9;
-  }
   .sticky-header {
     position: sticky;
     top: 0;
     z-index: 10;
     background-color: #f5f5f5;
   }
-  .sticky-criteria {
-    position: sticky;
-    top: 112px;
-    z-index: 9;
-    background-color: #f9f9f9;
-  }
+  // .sticky-criteria {
+  //   position: sticky;
+  //   top: 0;
+  //   z-index: 9;
+  //   background-color: #f9f9f9;
+  // }
   .sticky-footer {
     position: sticky;
     bottom: 0;
@@ -620,7 +665,7 @@
     flex: 1;
     overflow-y: auto;
     padding: 8px;
-    max-height: calc(90vh - 250px);
+    max-height: calc(90vh - 200px);
   }
   .rating-table {
     width: 100%;
@@ -638,6 +683,19 @@
       font-weight: 500;
       text-align: center;
     }
+  }
+  .criteria-description {
+    background-color: #f9f9f9;
+  }
+  .criteria-item {
+    line-height: 1.3;
+    margin-bottom: 4px;
+  }
+  .criteria-percentage {
+    font-weight: bold;
+    color: #2e7d32;
+    display: inline-block;
+    min-width: 35px;
   }
   .applicant-row {
     cursor: pointer;

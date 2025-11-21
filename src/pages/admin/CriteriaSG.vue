@@ -4,23 +4,37 @@
     <div class="q-mb-lg">
       <div class="row justify-between items-center">
         <div>
-          <h5 class="text-h5 q-ma-none text-weight-bold">Criteria Management by Salary Grade</h5>
+          <h5 class="text-h5 q-ma-none text-weight-bold">Criteria Library by Salary Grade</h5>
           <p class="text-caption text-grey q-mt-sm q-mb-none">
-            Create, view, and manage rating criteria grouped by salary grade
+            Manage rating criteria templates grouped by salary grade ranges
           </p>
         </div>
 
-        <!-- Back to Position View Button -->
-        <q-btn
-          unelevated
-          color="primary"
-          icon="arrow_back"
-          label="Back to Position View"
-          @click="goToPositionView"
-          class="text-white"
-        >
-          <q-tooltip>Switch to Criteria Management by Position</q-tooltip>
-        </q-btn>
+        <!-- Back Button -->
+        <div class="row q-gutter-sm">
+          <q-btn
+            v-if="canModify"
+            unelevated
+            color="positive"
+            icon="add"
+            label="Create New Criteria"
+            @click="openCreateModal"
+            class="text-white"
+          >
+            <q-tooltip>Create New Salary Grade Criteria</q-tooltip>
+          </q-btn>
+
+          <q-btn
+            unelevated
+            color="primary"
+            icon="arrow_back"
+            label="Back to Position View"
+            @click="goToPositionView"
+            class="text-white"
+          >
+            <q-tooltip>Switch to Criteria Management by Position</q-tooltip>
+          </q-btn>
+        </div>
       </div>
     </div>
 
@@ -95,93 +109,46 @@
       <q-linear-progress v-if="loading" indeterminate color="primary" />
 
       <q-table
-        :rows="filteredSalaryGrades"
+        :rows="filteredCriteria"
         :columns="columns"
-        row-key="salary_grade"
+        row-key="id"
         flat
         bordered
         class="minimal-table wrap-layout"
         v-model:pagination="pagination"
         :loading="loading"
-        no-data-label="No salary grades found"
+        no-data-label="No salary grade criteria found"
       >
-        <!-- Salary Grade Column -->
-        <template v-slot:body-cell-salaryGrade="props">
-          <q-td class="col-salary-grade">
-            <div class="cell-content">
-              <q-badge
-                color="purple"
-                :label="`SG ${props.row.salary_grade}`"
-                class="text-weight-bold"
-              />
-            </div>
-          </q-td>
-        </template>
-
-        <!-- Position Count Column -->
-        <template v-slot:body-cell-positionCount="props">
-          <q-td class="col-position-count">
+        <!-- Salary Grade Range Column -->
+        <template v-slot:body-cell-salaryGradeRange="props">
+          <q-td class="col-sg-range">
             <div class="cell-content text-center">
-              <q-chip dense color="blue-2" text-color="blue-9">
-                {{ props.row.position_count }} position(s)
-              </q-chip>
+              <q-badge color="purple" text-color="white" class="text-weight-bold text-12">
+                SG {{ props.row.sg_min }} - {{ props.row.sg_max }}
+              </q-badge>
             </div>
           </q-td>
         </template>
 
-        <!-- Positions Column -->
-        <template v-slot:body-cell-positions="props">
-          <q-td class="col-positions">
-            <div class="cell-content">
-              <div class="positions-list">
-                <q-chip
-                  v-for="(position, index) in props.row.positions.slice(0, 3)"
-                  :key="index"
-                  dense
-                  size="sm"
-                  color="grey-3"
-                  text-color="grey-8"
-                  class="q-mr-xs q-mb-xs"
-                >
-                  {{ position }}
-                </q-chip>
-                <q-chip
-                  v-if="props.row.positions.length > 3"
-                  dense
-                  size="sm"
-                  color="primary"
-                  text-color="white"
-                  clickable
-                  @click="showPositions(props.row)"
-                >
-                  +{{ props.row.positions.length - 3 }} more
-                </q-chip>
+        <!-- Created Date Column -->
+        <template v-slot:body-cell-createdDate="props">
+          <q-td class="col-created-date">
+            <div class="cell-content text-center">
+              <div class="text-12">
+                <q-icon name="event" size="xs" class="q-mr-xs text-grey-6" />
+                {{ formatCreatedDate(props.row.created_at) }}
               </div>
             </div>
           </q-td>
         </template>
 
-        <!-- Status Column -->
-        <template v-slot:body-cell-status="props">
-          <q-td class="col-status">
+        <!-- Updated Date Column -->
+        <template v-slot:body-cell-updatedDate="props">
+          <q-td class="col-updated-date">
             <div class="cell-content text-center">
-              <q-badge
-                :color="getStatusColor(props.row.status)"
-                :label="formatStatus(props.row.status)"
-                class="text-11"
-              />
-            </div>
-          </q-td>
-        </template>
-
-        <!-- Raters Column -->
-        <template v-slot:body-cell-raters="props">
-          <q-td class="col-raters">
-            <div class="cell-content text-center">
-              <span v-if="props.row.total_raters && props.row.total_raters > 0" class="text-12">
-                {{ props.row.total_raters }} rater(s)
-              </span>
-              <span v-else class="text-grey text-12">-</span>
+              <div class="text-12 text-grey-7">
+                {{ formatCreatedDate(props.row.updated_at) }}
+              </div>
             </div>
           </q-td>
         </template>
@@ -192,7 +159,6 @@
             <div class="cell-content action-cell">
               <!-- View Button -->
               <q-btn
-                v-if="hasCriteria(props.row)"
                 flat
                 round
                 dense
@@ -200,31 +166,15 @@
                 icon="visibility"
                 color="info"
                 class="bg-blue-1"
-                @click="openModal(props.row, 'view')"
+                @click="openViewModal(props.row)"
                 :disable="loading"
               >
                 <q-tooltip>View Criteria</q-tooltip>
               </q-btn>
 
-              <!-- Create Button -->
-              <q-btn
-                v-if="!hasCriteria(props.row) && canModify"
-                flat
-                round
-                dense
-                size="sm"
-                icon="add_circle"
-                color="positive"
-                class="bg-green-1"
-                @click="openModal(props.row, 'create')"
-                :disable="loading"
-              >
-                <q-tooltip>Create Criteria</q-tooltip>
-              </q-btn>
-
               <!-- Edit Button -->
               <q-btn
-                v-if="hasCriteria(props.row) && canModify"
+                v-if="canModify"
                 flat
                 round
                 dense
@@ -232,10 +182,26 @@
                 icon="edit"
                 color="primary"
                 class="bg-orange-1"
-                @click="openModal(props.row, 'edit')"
+                @click="openEditModal(props.row)"
                 :disable="loading"
               >
                 <q-tooltip>Edit Criteria</q-tooltip>
+              </q-btn>
+
+              <!-- Delete Button -->
+              <q-btn
+                v-if="canModify"
+                flat
+                round
+                dense
+                size="sm"
+                icon="delete"
+                color="negative"
+                class="bg-red-1"
+                @click="confirmDelete(props.row)"
+                :disable="loading"
+              >
+                <q-tooltip>Delete Criteria</q-tooltip>
               </q-btn>
             </div>
           </q-td>
@@ -246,68 +212,79 @@
           <div class="full-width row flex-center q-pa-lg text-grey">
             <div class="text-center">
               <q-icon name="inbox" size="2rem" class="q-mb-sm" />
-              <div>No salary grades found</div>
+              <div>No salary grade criteria found</div>
+              <q-btn
+                v-if="canModify"
+                color="primary"
+                label="Create First Criteria"
+                unelevated
+                class="q-mt-md"
+                @click="openCreateModal"
+              />
             </div>
           </div>
         </template>
       </q-table>
     </q-card>
 
-    <!-- Positions List Dialog -->
-    <q-dialog v-model="showPositionsDialog">
-      <q-card style="min-width: 400px; max-width: 600px">
-        <q-card-section class="row items-center q-pb-none bg-primary text-white">
-          <div class="text-h6">
-            Positions - Salary Grade {{ selectedSalaryGradeData?.salary_grade }}
-          </div>
-          <q-space />
-          <q-btn icon="close" flat round dense v-close-popup color="white" />
-        </q-card-section>
-
-        <q-card-section>
-          <q-list bordered separator>
-            <q-item v-for="(position, index) in selectedSalaryGradeData?.positions" :key="index">
-              <q-item-section avatar>
-                <q-icon name="work" color="primary" />
-              </q-item-section>
-              <q-item-section>
-                <q-item-label>{{ position }}</q-item-label>
-              </q-item-section>
-            </q-item>
-          </q-list>
-        </q-card-section>
-
-        <q-card-actions align="right" class="q-pa-md">
-          <q-btn flat label="Close" color="primary" v-close-popup />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-
-    <!-- Criteria Modal for Salary Grade -->
-    <criteria-rater-modal
+    <!-- Criteria Modal -->
+    <criteria-sg-modal
       v-model="showCriteriaModal"
-      :job-id="selectedJobIds"
-      :salary-grade="selectedSalaryGrade"
+      :criteria-id="selectedCriteriaId"
+      :sg-min="selectedSgMin"
+      :sg-max="selectedSgMax"
       :mode="modalMode"
       :has-permission="canModify"
-      :is-salary-grade-mode="true"
       @saved="onCriteriaSaved"
       @switch-to-edit="handleSwitchToEdit"
     />
+
+    <!-- Delete Confirmation Dialog -->
+    <q-dialog v-model="showDeleteDialog" persistent>
+      <q-card style="min-width: 400px">
+        <q-card-section class="row items-center bg-negative text-white">
+          <q-icon name="warning" size="md" class="q-mr-sm" />
+          <span class="text-h6">Confirm Delete</span>
+        </q-card-section>
+
+        <q-card-section>
+          <p class="text-body1">
+            Are you sure you want to delete the criteria for Salary Grade
+            <strong>
+              {{ selectedCriteriaToDelete?.sg_min }} - {{ selectedCriteriaToDelete?.sg_max }}
+            </strong>
+            ?
+          </p>
+          <p class="text-caption text-grey-7">This action cannot be undone.</p>
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="Cancel" color="grey-7" v-close-popup />
+          <q-btn
+            unelevated
+            label="Delete"
+            color="negative"
+            @click="deleteCriteria"
+            :loading="deleting"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
 <script setup>
   import { ref, computed, onMounted, nextTick } from 'vue';
-  import { date } from 'quasar';
+  import { date, useQuasar } from 'quasar';
   import { useRouter } from 'vue-router';
   import { useAuthStore } from 'stores/authStore';
-  import { useJobPostStore } from 'stores/jobPostStore';
-  import CriteriaRaterModal from 'src/components/CriteriaModal.vue';
+  import { useCriteriaStore } from 'stores/criteriaStore';
+  import CriteriaSgModal from 'src/components/CriteriaSGModal.vue';
 
   const router = useRouter();
+  const $q = useQuasar();
   const authStore = useAuthStore();
-  const jobPostStore = useJobPostStore();
+  const criteriaStore = useCriteriaStore();
   const { formatDate } = date;
 
   // ============================================================================
@@ -315,24 +292,26 @@
   // ============================================================================
 
   const loading = ref(false);
-  const salaryGrades = ref([]);
+  const deleting = ref(false);
+  const criteriaList = ref([]);
   const globalSearch = ref('');
   const dateRange = ref({ from: '', to: '' });
   const showDatePicker = ref(false);
 
   // Modal State
   const showCriteriaModal = ref(false);
-  const selectedSalaryGrade = ref(null);
-  const selectedSalaryGradeData = ref(null);
-  const selectedJobIds = ref([]);
+  const selectedCriteriaId = ref(null);
+  const selectedSgMin = ref(null);
+  const selectedSgMax = ref(null);
   const modalMode = ref('create');
 
-  // Positions Dialog
-  const showPositionsDialog = ref(false);
+  // Delete Dialog
+  const showDeleteDialog = ref(false);
+  const selectedCriteriaToDelete = ref(null);
 
   // Pagination
   const pagination = ref({
-    sortBy: 'salary_grade',
+    sortBy: 'sg_min',
     descending: false,
     page: 1,
     rowsPerPage: 10,
@@ -344,44 +323,28 @@
 
   const columns = [
     {
-      name: 'salaryGrade',
-      label: 'Salary Grade',
-      field: 'salary_grade',
-      align: 'left',
-      sortable: true,
-      classes: 'col-salary-grade',
-    },
-    {
-      name: 'positionCount',
-      label: 'Positions',
-      field: 'position_count',
+      name: 'salaryGradeRange',
+      label: 'Salary Grade Range',
+      field: 'sg_range',
       align: 'center',
       sortable: true,
-      classes: 'col-position-count',
+      classes: 'col-sg-range',
     },
     {
-      name: 'positions',
-      label: 'Position Names',
-      field: 'positions',
-      align: 'left',
-      sortable: false,
-      classes: 'col-positions',
-    },
-    {
-      name: 'status',
-      label: 'Status',
-      field: 'status',
+      name: 'createdDate',
+      label: 'Created Date',
+      field: 'created_at',
       align: 'center',
-      sortable: false,
-      classes: 'col-status',
+      sortable: true,
+      classes: 'col-created-date',
     },
     {
-      name: 'raters',
-      label: 'Raters',
-      field: 'total_raters',
+      name: 'updatedDate',
+      label: 'Last Updated',
+      field: 'updated_at',
       align: 'center',
-      sortable: false,
-      classes: 'col-raters',
+      sortable: true,
+      classes: 'col-updated-date',
     },
     {
       name: 'action',
@@ -410,37 +373,35 @@
   const dateRangeText = computed(() => {
     if (!dateRange.value.from && !dateRange.value.to) return '';
     if (!dateRange.value.to) {
-      return formatDate(dateRange.value.from, 'MMM D, YYYY');
+      return formatDate(dateRange.value.from, 'MMMM D, YYYY');
     }
-    return `${formatDate(dateRange.value.from, 'MMM D, YYYY')} - ${formatDate(dateRange.value.to, 'MMM D, YYYY')}`;
+    return `${formatDate(dateRange.value.from, 'MMMM D, YYYY')} - ${formatDate(dateRange.value.to, 'MMMM D, YYYY')}`;
   });
 
   /**
-   * Filter salary grades by date range and search term
+   * Filter criteria by date range and search term
    */
-  const filteredSalaryGrades = computed(() => {
-    let filtered = salaryGrades.value;
+  const filteredCriteria = computed(() => {
+    let filtered = criteriaList.value;
 
     // Date range filter
     if (dateRange.value.from && dateRange.value.to) {
-      filtered = filtered.filter((sg) => {
-        if (!sg.created_at) return true;
-        const sgDate = new Date(sg.created_at);
+      filtered = filtered.filter((item) => {
+        if (!item.created_at) return true;
+        const itemDate = new Date(item.created_at);
         const from = new Date(dateRange.value.from);
         const to = new Date(dateRange.value.to);
         to.setHours(23, 59, 59, 999);
-        return sgDate >= from && sgDate <= to;
+        return itemDate >= from && itemDate <= to;
       });
     }
 
     // Search filter
     if (globalSearch.value) {
       const term = globalSearch.value.toLowerCase();
-      filtered = filtered.filter((sg) => {
-        return (
-          (sg.salary_grade && sg.salary_grade.toLowerCase().includes(term)) ||
-          (sg.positions && sg.positions.some((pos) => pos.toLowerCase().includes(term)))
-        );
+      filtered = filtered.filter((item) => {
+        const sgRange = `${item.sg_min} - ${item.sg_max}`.toLowerCase();
+        return sgRange.includes(term);
       });
     }
 
@@ -456,6 +417,14 @@
    */
   function goToPositionView() {
     router.push('/criteria');
+  }
+
+  /**
+   * Format created date
+   */
+  function formatCreatedDate(dateString) {
+    if (!dateString) return '-';
+    return formatDate(dateString, 'MMMM D, YYYY');
   }
 
   /**
@@ -485,76 +454,108 @@
   }
 
   /**
-   * Show positions dialog
+   * Open create modal
    */
-  function showPositions(salaryGradeData) {
-    selectedSalaryGradeData.value = salaryGradeData;
-    showPositionsDialog.value = true;
-  }
-
-  /**
-   * Format status for display
-   */
-  function formatStatus(status) {
-    if (!status) return 'Not Created';
-    return status
-      .split('_')
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
-  }
-
-  /**
-   * Get status badge color
-   */
-  function getStatusColor(status) {
-    const statusLower = status?.toLowerCase();
-    switch (statusLower) {
-      case 'created':
-        return 'positive';
-      case 'active':
-        return 'info';
-      case 'inactive':
-        return 'negative';
-      case 'not_created':
-      case 'not created':
-      default:
-        return 'warning';
-    }
-  }
-
-  /**
-   * Check if salary grade has criteria
-   */
-  function hasCriteria(salaryGradeData) {
-    return salaryGradeData.has_criteria === true;
-  }
-
-  /**
-   * Open criteria modal
-   */
-  async function openModal(salaryGradeData, mode) {
-    // Permission check
-    if ((mode === 'create' || mode === 'edit') && !canModify.value) {
-      console.warn(`User does not have permission to ${mode} criteria`);
+  function openCreateModal() {
+    if (!canModify.value) {
+      $q.notify({
+        type: 'warning',
+        message: 'You do not have permission to create criteria',
+      });
       return;
     }
 
-    selectedSalaryGrade.value = salaryGradeData.salary_grade;
-    selectedSalaryGradeData.value = salaryGradeData;
-    selectedJobIds.value = salaryGradeData.job_ids || [];
-    modalMode.value = mode;
+    selectedCriteriaId.value = null;
+    selectedSgMin.value = null;
+    selectedSgMax.value = null;
+    modalMode.value = 'create';
     showCriteriaModal.value = true;
+  }
+
+  /**
+   * Open view modal
+   */
+  function openViewModal(criteria) {
+    selectedCriteriaId.value = criteria.id;
+    selectedSgMin.value = criteria.sg_min;
+    selectedSgMax.value = criteria.sg_max;
+    modalMode.value = 'view';
+    showCriteriaModal.value = true;
+  }
+
+  /**
+   * Open edit modal
+   */
+  function openEditModal(criteria) {
+    if (!canModify.value) {
+      $q.notify({
+        type: 'warning',
+        message: 'You do not have permission to edit criteria',
+      });
+      return;
+    }
+
+    selectedCriteriaId.value = criteria.id;
+    selectedSgMin.value = criteria.sg_min;
+    selectedSgMax.value = criteria.sg_max;
+    modalMode.value = 'edit';
+    showCriteriaModal.value = true;
+  }
+
+  /**
+   * Confirm delete
+   */
+  function confirmDelete(criteria) {
+    if (!canModify.value) {
+      $q.notify({
+        type: 'warning',
+        message: 'You do not have permission to delete criteria',
+      });
+      return;
+    }
+
+    selectedCriteriaToDelete.value = criteria;
+    showDeleteDialog.value = true;
+  }
+
+  /**
+   * Delete criteria
+   */
+  async function deleteCriteria() {
+    if (!selectedCriteriaToDelete.value) return;
+
+    deleting.value = true;
+    try {
+      await criteriaStore.deleteCriteriaSG(selectedCriteriaToDelete.value.id);
+
+      $q.notify({
+        type: 'positive',
+        message: 'Criteria deleted successfully',
+      });
+
+      showDeleteDialog.value = false;
+      selectedCriteriaToDelete.value = null;
+      loadCriteria();
+    } catch (error) {
+      console.error('Error deleting criteria:', error);
+      $q.notify({
+        type: 'negative',
+        message: error.message || 'Failed to delete criteria',
+      });
+    } finally {
+      deleting.value = false;
+    }
   }
 
   /**
    * Handle criteria saved
    */
   function onCriteriaSaved() {
-    loadSalaryGrades();
+    loadCriteria();
     showCriteriaModal.value = false;
-    selectedSalaryGrade.value = null;
-    selectedSalaryGradeData.value = null;
-    selectedJobIds.value = [];
+    selectedCriteriaId.value = null;
+    selectedSgMin.value = null;
+    selectedSgMax.value = null;
   }
 
   /**
@@ -562,7 +563,10 @@
    */
   function handleSwitchToEdit() {
     if (!canModify.value) {
-      console.warn('User does not have permission to edit criteria');
+      $q.notify({
+        type: 'warning',
+        message: 'You do not have permission to edit criteria',
+      });
       return;
     }
 
@@ -574,63 +578,21 @@
   }
 
   /**
-   * Load and group job posts by salary grade
+   * Load salary grade criteria
    */
-  async function loadSalaryGrades() {
+  async function loadCriteria() {
     loading.value = true;
     try {
-      await jobPostStore.criteria_list();
-      const jobs = jobPostStore.jobPosts || [];
-
-      // Group jobs by salary grade
-      const groupedData = jobs.reduce((acc, job) => {
-        const sg = job.salary_grade || 'Unspecified';
-
-        if (!acc[sg]) {
-          acc[sg] = {
-            salary_grade: sg,
-            positions: [],
-            position_count: 0,
-            status: 'not_created',
-            total_raters: 0,
-            has_criteria: false,
-            created_at: job.created_at,
-            job_ids: [],
-          };
-        }
-
-        // Add position
-        if (job.Position) {
-          acc[sg].positions.push(job.Position);
-        }
-
-        // Add job ID
-        acc[sg].job_ids.push(job.id);
-
-        // Update raters count
-        if (job.assigned_raters && job.assigned_raters.length > 0) {
-          acc[sg].total_raters += job.assigned_raters.length;
-        }
-
-        // Update criteria status
-        if (job.criteria_ratings && job.criteria_ratings.length > 0) {
-          acc[sg].has_criteria = true;
-          acc[sg].status = 'created';
-        }
-
-        return acc;
-      }, {});
-
-      // Convert to array and calculate position count
-      salaryGrades.value = Object.values(groupedData).map((sg) => ({
-        ...sg,
-        position_count: sg.positions.length,
-      }));
-
+      const data = await criteriaStore.fetchAllCriteriaSG();
+      criteriaList.value = data || [];
       setDateRange();
     } catch (error) {
-      console.error('Error loading salary grades:', error);
-      salaryGrades.value = [];
+      console.error('Error loading criteria:', error);
+      criteriaList.value = [];
+      $q.notify({
+        type: 'negative',
+        message: 'Failed to load criteria',
+      });
     } finally {
       loading.value = false;
     }
@@ -641,7 +603,7 @@
   // ============================================================================
 
   onMounted(() => {
-    loadSalaryGrades();
+    loadCriteria();
   });
 </script>
 
@@ -692,12 +654,6 @@
     padding: 4px 0;
   }
 
-  .positions-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-  }
-
   /* ========================================================================== */
   /* Table Styles */
   /* ========================================================================== */
@@ -746,9 +702,7 @@
       padding: 10px 12px;
       font-size: 13px;
       border-bottom: 1px solid #f0f0f0;
-      vertical-align: top;
-      word-break: break-word;
-      overflow-wrap: break-word;
+      vertical-align: middle;
     }
   }
 
@@ -757,34 +711,24 @@
   /* ========================================================================== */
 
   .wrap-layout {
-    :deep(.col-salary-grade) {
-      width: 12%;
-      min-width: 100px;
+    :deep(.col-sg-range) {
+      width: 30%;
+      min-width: 150px;
     }
 
-    :deep(.col-position-count) {
-      width: 12%;
-      min-width: 100px;
+    :deep(.col-created-date) {
+      width: 25%;
+      min-width: 150px;
     }
 
-    :deep(.col-positions) {
-      width: 38%;
-      min-width: 200px;
-    }
-
-    :deep(.col-status) {
-      width: 13%;
-      min-width: 100px;
-    }
-
-    :deep(.col-raters) {
-      width: 10%;
-      min-width: 100px;
+    :deep(.col-updated-date) {
+      width: 25%;
+      min-width: 150px;
     }
 
     :deep(.col-action) {
-      width: 15%;
-      min-width: 140px;
+      width: 20%;
+      min-width: 150px;
     }
   }
 
@@ -821,10 +765,6 @@
         padding: 9px 10px;
         font-size: 12px;
       }
-
-      :deep(.q-table__row) {
-        min-height: 44px;
-      }
     }
   }
 
@@ -835,82 +775,10 @@
         padding: 8px 8px;
         font-size: 11px;
       }
-
-      :deep(.q-table__row) {
-        min-height: 40px;
-      }
     }
 
     .cell-content {
       font-size: 11px;
-    }
-
-    .text-11 {
-      font-size: 9px;
-    }
-
-    .text-12 {
-      font-size: 10px;
-    }
-  }
-
-  @media (max-width: 480px) {
-    .wrap-layout {
-      :deep(.q-table th),
-      :deep(.q-table td) {
-        padding: 6px 6px;
-        font-size: 10px;
-      }
-
-      :deep(.q-table__row) {
-        min-height: 36px;
-      }
-    }
-
-    .action-cell {
-      gap: 4px;
-    }
-
-    .cell-content {
-      font-size: 10px;
-      line-height: 1.4;
-    }
-  }
-
-  /* ========================================================================== */
-  /* Scrollbar Styling */
-  /* ========================================================================== */
-
-  .wrap-layout {
-    :deep(.q-table__container) {
-      &::-webkit-scrollbar {
-        height: 6px;
-      }
-
-      &::-webkit-scrollbar-track {
-        background: #f1f1f1;
-      }
-
-      &::-webkit-scrollbar-thumb {
-        background: #888;
-        border-radius: 3px;
-
-        &:hover {
-          background: #555;
-        }
-      }
-    }
-  }
-
-  /* ========================================================================== */
-  /* Print Styles */
-  /* ========================================================================== */
-
-  @media print {
-    .wrap-layout {
-      :deep(.q-table__row) {
-        page-break-inside: avoid;
-      }
     }
   }
 </style>

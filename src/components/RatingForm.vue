@@ -1,8 +1,7 @@
 <template>
   <q-dialog v-model="isOpen" persistent>
     <q-card class="rating-modal">
-      <!-- Header (Sticky) -->
-      <q-card-section class="header sticky-header">
+      <q-card-section class="header">
         <div class="row items-center justify-between">
           <div>
             <h6 class="q-ma-none text-weight-bold">Rating Form for Qualification Standards</h6>
@@ -49,106 +48,6 @@
         </div>
       </q-card-section>
 
-      <!-- Criteria Header (Sticky) -->
-      <q-card-section class="criteria-section sticky-criteria q-pa-sm q-pb-none">
-        <table class="rating-table">
-          <thead>
-            <tr>
-              <th style="width: 200px">Name of Applicant</th>
-              <th style="width: 110px">
-                Education
-                <div class="text-caption">{{ education.Rate || '25' }}%</div>
-              </th>
-              <th style="width: 110px">
-                Experience
-                <div class="text-caption">{{ experience.Rate || '25' }}%</div>
-              </th>
-              <th style="width: 110px">
-                Training
-                <div class="text-caption">{{ training.Rate || '15' }}%</div>
-              </th>
-              <th style="width: 110px">
-                Performance
-                <div class="text-caption">{{ performance.Rate || '10' }}%</div>
-              </th>
-              <th style="width: 110px">
-                BEI
-                <div class="text-caption">{{ behavioral.Rate || '25' }}%</div>
-              </th>
-              <th style="width: 80px" class="text-center">
-                QS Total
-                <div class="text-caption">({{ qsMaxRate }}%)</div>
-              </th>
-              <th style="width: 80px" class="text-center">
-                Grand Total
-                <div class="text-caption">({{ totalMaxRate }}%)</div>
-              </th>
-              <th style="width: 80px" class="text-center">Rank</th>
-            </tr>
-          </thead>
-          <tbody class="criteria-description">
-            <tr class="bg-grey-2">
-              <td>
-                <div class="text-weight-bold text-caption">Criteria</div>
-              </td>
-              <td>
-                <div class="text-weight-bold text-caption">REQUIRED:</div>
-                <div
-                  v-for="(item, index) in formatDescription(education.description)"
-                  :key="'edu-' + index"
-                  class="text-caption"
-                >
-                  {{ item }}
-                </div>
-              </td>
-              <td>
-                <div class="text-weight-bold text-caption">REQUIRED:</div>
-                <div
-                  v-for="(item, index) in formatDescription(experience.description)"
-                  :key="'exp-' + index"
-                  class="text-caption"
-                >
-                  {{ item }}
-                </div>
-              </td>
-              <td>
-                <div class="text-weight-bold text-caption">REQUIRED:</div>
-                <div
-                  v-for="(item, index) in formatDescription(training.description)"
-                  :key="'train-' + index"
-                  class="text-caption"
-                >
-                  {{ item }}
-                </div>
-              </td>
-              <td>
-                <div class="text-weight-bold text-caption">REQUIRED:</div>
-                <div
-                  v-for="(item, index) in formatDescription(performance.description)"
-                  :key="'perf-' + index"
-                  class="text-caption"
-                >
-                  {{ item }}
-                </div>
-              </td>
-              <td>
-                <div class="text-weight-bold text-caption">REQUIRED:</div>
-                <div
-                  v-for="(item, index) in formatDescription(behavioral.description)"
-                  :key="'bei-' + index"
-                  class="text-caption"
-                >
-                  {{ item }}
-                </div>
-              </td>
-              <td></td>
-              <td></td>
-              <td></td>
-            </tr>
-          </tbody>
-        </table>
-      </q-card-section>
-
       <!-- Scrollable Content -->
       <q-card-section class="content-section scrollable-content">
         <div v-if="loading" class="text-center q-pa-md">
@@ -163,6 +62,104 @@
 
         <div v-else>
           <table class="rating-table">
+            <!-- Criteria Header (Sticky) -->
+            <thead class="sticky-criteria">
+              <tr>
+                <th style="width: 200px">Name of Applicant</th>
+                <th style="width: 110px">
+                  Education
+                  <span class="text-caption">{{ educationMaxRate }}%</span>
+                </th>
+                <th style="width: 110px">
+                  Experience
+                  <span class="text-caption">{{ experienceMaxRate }}%</span>
+                </th>
+                <th style="width: 110px">
+                  Training
+                  <span class="text-caption">{{ trainingMaxRate }}%</span>
+                </th>
+                <th style="width: 110px">
+                  Performance
+                  <span class="text-caption">{{ performanceMaxRate }}%</span>
+                </th>
+                <th style="width: 110px">
+                  BEI
+                  <span class="text-caption">{{ behavioralMaxRate }}%</span>
+                </th>
+                <th style="width: 80px" class="text-center">
+                  QS Total
+                  <div class="text-caption">({{ qsMaxRate }}%)</div>
+                </th>
+                <th style="width: 80px" class="text-center">
+                  Grand Total
+                  <div class="text-caption">({{ totalMaxRate }}%)</div>
+                </th>
+                <th style="width: 80px" class="text-center">Rank</th>
+              </tr>
+              <tr class="bg-grey-2 criteria-description">
+                <td>
+                  <div class="text-weight-bold text-caption">Criteria</div>
+                </td>
+                <td>
+                  <div class="text-weight-bold text-caption q-mb-xs">EDUCATION CRITERIA:</div>
+                  <div
+                    v-for="(item, index) in education.items"
+                    :key="'edu-' + index"
+                    class="text-caption q-mb-xs criteria-item"
+                  >
+                    <span class="criteria-percentage">{{ item.percentage }}%</span>
+                    - {{ item.description }}
+                  </div>
+                </td>
+                <td>
+                  <div class="text-weight-bold text-caption q-mb-xs">EXPERIENCE CRITERIA:</div>
+                  <div
+                    v-for="(item, index) in experience.items"
+                    :key="'exp-' + index"
+                    class="text-caption q-mb-xs criteria-item"
+                  >
+                    <span class="criteria-percentage">{{ item.percentage }}%</span>
+                    - {{ item.description }}
+                  </div>
+                </td>
+                <td>
+                  <div class="text-weight-bold text-caption q-mb-xs">TRAINING CRITERIA:</div>
+                  <div
+                    v-for="(item, index) in training.items"
+                    :key="'train-' + index"
+                    class="text-caption q-mb-xs criteria-item"
+                  >
+                    <span class="criteria-percentage">{{ item.percentage }}%</span>
+                    - {{ item.description }}
+                  </div>
+                </td>
+                <td>
+                  <div class="text-weight-bold text-caption q-mb-xs">PERFORMANCE CRITERIA:</div>
+                  <div
+                    v-for="(item, index) in performance.items"
+                    :key="'perf-' + index"
+                    class="text-caption q-mb-xs criteria-item"
+                  >
+                    <span class="criteria-percentage">{{ item.percentage }}%</span>
+                    - {{ item.description }}
+                  </div>
+                </td>
+                <td>
+                  <div class="text-weight-bold text-caption q-mb-xs">BEI CRITERIA:</div>
+                  <div
+                    v-for="(item, index) in behavioral.items"
+                    :key="'bei-' + index"
+                    class="text-caption q-mb-xs criteria-item"
+                  >
+                    <span class="criteria-percentage">{{ item.percentage }}%</span>
+                    - {{ item.description }}
+                  </div>
+                </td>
+                <td></td>
+                <td></td>
+                <td></td>
+              </tr>
+            </thead>
             <tbody>
               <template v-for="applicant in filteredApplicants" :key="applicant.id">
                 <tr class="applicant-row" :class="{ expanded: expandedApplicant === applicant.id }">
@@ -183,99 +180,72 @@
 
                   <td style="width: 110px">
                     <q-input
-                      v-model.number="applicant.educationScore"
-                      type="number"
+                      v-model="applicant.educationScore"
+                      type="text"
                       dense
                       outlined
-                      :min="0"
-                      :max="parseFloat(education.Rate || 25)"
-                      step="0.1"
                       class="score-input"
-                      :rules="[
-                        (val) =>
-                          val <= parseFloat(education.Rate || 25) ||
-                          'Exceeds maximum allowed score',
-                      ]"
-                      @update:model-value="updateRating(applicant.id, 'educationScore', $event)"
+                      placeholder="-"
+                      @input="handleInput(applicant, 'educationScore', $event)"
+                      @blur="validateScore(applicant, 'educationScore', educationMaxRate, false)"
                       @click.stop
                     />
                   </td>
 
                   <td style="width: 110px">
                     <q-input
-                      v-model.number="applicant.experienceScore"
-                      type="number"
+                      v-model="applicant.experienceScore"
+                      type="text"
                       dense
                       outlined
-                      :min="0"
-                      :max="parseFloat(experience.Rate || 25)"
-                      step="0.1"
                       class="score-input"
-                      :rules="[
-                        (val) =>
-                          val <= parseFloat(experience.Rate || 25) ||
-                          'Exceeds maximum allowed score',
-                      ]"
-                      @update:model-value="updateRating(applicant.id, 'experienceScore', $event)"
+                      placeholder="-"
+                      @input="handleInput(applicant, 'experienceScore', $event)"
+                      @blur="validateScore(applicant, 'experienceScore', experienceMaxRate, false)"
                       @click.stop
                     />
                   </td>
 
                   <td style="width: 110px">
                     <q-input
-                      v-model.number="applicant.trainingScore"
-                      type="number"
+                      v-model="applicant.trainingScore"
+                      type="text"
                       dense
                       outlined
-                      :min="0"
-                      :max="parseFloat(training.Rate || 15)"
-                      step="0.1"
                       class="score-input"
-                      :rules="[
-                        (val) =>
-                          val <= parseFloat(training.Rate || 15) || 'Exceeds maximum allowed score',
-                      ]"
-                      @update:model-value="updateRating(applicant.id, 'trainingScore', $event)"
+                      placeholder="-"
+                      @input="handleInput(applicant, 'trainingScore', $event)"
+                      @blur="validateScore(applicant, 'trainingScore', trainingMaxRate, false)"
                       @click.stop
                     />
                   </td>
 
                   <td style="width: 110px">
                     <q-input
-                      v-model.number="applicant.performanceScore"
-                      type="number"
+                      v-model="applicant.performanceScore"
+                      type="text"
                       dense
                       outlined
-                      :min="0"
-                      :max="parseFloat(performance.Rate || 10)"
-                      step="0.1"
                       class="score-input"
-                      :rules="[
-                        (val) =>
-                          val <= parseFloat(performance.Rate || 10) ||
-                          'Exceeds maximum allowed score',
-                      ]"
-                      @update:model-value="updateRating(applicant.id, 'performanceScore', $event)"
+                      placeholder="-"
+                      @input="handleInput(applicant, 'performanceScore', $event)"
+                      @blur="
+                        validateScore(applicant, 'performanceScore', performanceMaxRate, false)
+                      "
                       @click.stop
                     />
                   </td>
 
                   <td style="width: 110px">
                     <q-input
-                      v-model.number="applicant.behavioralScore"
-                      type="number"
+                      v-model="applicant.behavioralScore"
+                      type="text"
                       dense
                       outlined
-                      :min="0"
-                      :max="parseFloat(behavioral.Rate || 25)"
-                      step="0.1"
                       class="score-input"
-                      :rules="[
-                        (val) =>
-                          val <= parseFloat(behavioral.Rate || 25) ||
-                          'Exceeds maximum allowed score',
-                      ]"
-                      @update:model-value="updateRating(applicant.id, 'behavioralScore', $event)"
+                      placeholder="-"
+                      @input="handleInput(applicant, 'behavioralScore', $event)"
+                      @blur="validateScore(applicant, 'behavioralScore', behavioralMaxRate, true)"
                       @click.stop
                     />
                   </td>
@@ -295,6 +265,7 @@
                 <tr v-if="expandedApplicant === applicant.id">
                   <td colspan="9" class="applicant-details">
                     <div class="row q-col-gutter-sm q-py-sm">
+                      <div></div>
                       <!-- Education Details -->
                       <div class="col-3">
                         <div class="detail-panel">
@@ -460,19 +431,53 @@
     set: (value) => emit('update:modelValue', value),
   });
 
-  const education = computed(() => props.criteria.education || {});
-  const experience = computed(() => props.criteria.experience || {});
-  const training = computed(() => props.criteria.training || {});
-  const performance = computed(() => props.criteria.performance || {});
-  const behavioral = computed(() => props.criteria.behavioral || {});
+  // Transform criteria structure to include items array
+  const education = computed(() => {
+    const edu = props.criteria.education || {};
+    return {
+      Rate: edu.Rate || '20',
+      items: edu.items || [],
+    };
+  });
 
-  const educationMaxRate = computed(() => parseFloat(education.value.Rate || 25));
-  const experienceMaxRate = computed(() => parseFloat(experience.value.Rate || 25));
-  const trainingMaxRate = computed(() => parseFloat(training.value.Rate || 15));
-  const performanceMaxRate = computed(() => parseFloat(performance.value.Rate || 10));
-  const behavioralMaxRate = computed(() => parseFloat(behavioral.value.Rate || 25));
+  const experience = computed(() => {
+    const exp = props.criteria.experience || {};
+    return {
+      Rate: exp.Rate || '20',
+      items: exp.items || [],
+    };
+  });
 
-  // Dynamic QS max rate (sum of all QS criteria rates)
+  const training = computed(() => {
+    const train = props.criteria.training || {};
+    return {
+      Rate: train.Rate || '15',
+      items: train.items || [],
+    };
+  });
+
+  const performance = computed(() => {
+    const perf = props.criteria.performance || {};
+    return {
+      Rate: perf.Rate || '15',
+      items: perf.items || [],
+    };
+  });
+
+  const behavioral = computed(() => {
+    const beh = props.criteria.behavioral || {};
+    return {
+      Rate: beh.Rate || '30',
+      items: beh.items || [],
+    };
+  });
+
+  const educationMaxRate = computed(() => parseFloat(education.value.Rate));
+  const experienceMaxRate = computed(() => parseFloat(experience.value.Rate));
+  const trainingMaxRate = computed(() => parseFloat(training.value.Rate));
+  const performanceMaxRate = computed(() => parseFloat(performance.value.Rate));
+  const behavioralMaxRate = computed(() => parseFloat(behavioral.value.Rate));
+
   const qsMaxRate = computed(
     () =>
       educationMaxRate.value +
@@ -481,8 +486,24 @@
       performanceMaxRate.value,
   );
 
-  // Dynamic total max rate (QS + BEI)
   const totalMaxRate = computed(() => qsMaxRate.value + behavioralMaxRate.value);
+
+  // Helper function to check if a value is empty or just '-'
+  const isEmpty = (value) => {
+    return !value || value === '' || value === '-';
+  };
+
+  // Helper function to format number
+  const formatNumber = (num) => {
+    const number = parseFloat(num);
+    if (isNaN(number)) return num;
+
+    if (number % 1 === 0) {
+      return String(Math.round(number));
+    } else {
+      return number.toFixed(2);
+    }
+  };
 
   // Check if all applicants have been rated
   const allApplicantsRated = computed(() => {
@@ -491,36 +512,43 @@
     }
 
     return applicantsData.value.every((applicant) => {
-      return (
-        isValidScore(applicant.educationScore) &&
-        isValidScore(applicant.experienceScore) &&
-        isValidScore(applicant.trainingScore) &&
-        isValidScore(applicant.performanceScore) &&
-        isValidScore(applicant.behavioralScore)
-      );
+      const requiredFieldsValid =
+        isValidScore(applicant.educationScore, false) &&
+        isValidScore(applicant.experienceScore, false) &&
+        isValidScore(applicant.trainingScore, false) &&
+        isValidScore(applicant.performanceScore, false);
+
+      const behavioralValid = isValidScore(applicant.behavioralScore, true);
+
+      return requiredFieldsValid && behavioralValid;
     });
   });
 
-  // Count how many applicants have been rated
   const ratedApplicantsCount = computed(() => {
     if (!applicantsData.value || applicantsData.value.length === 0) {
       return 0;
     }
 
     return applicantsData.value.filter((applicant) => {
-      return (
-        isValidScore(applicant.educationScore) &&
-        isValidScore(applicant.experienceScore) &&
-        isValidScore(applicant.trainingScore) &&
-        isValidScore(applicant.performanceScore) &&
-        isValidScore(applicant.behavioralScore)
-      );
+      const requiredFieldsValid =
+        isValidScore(applicant.educationScore, false) &&
+        isValidScore(applicant.experienceScore, false) &&
+        isValidScore(applicant.trainingScore, false) &&
+        isValidScore(applicant.performanceScore, false);
+
+      const behavioralValid = isValidScore(applicant.behavioralScore, true);
+
+      return requiredFieldsValid && behavioralValid;
     }).length;
   });
 
-  // Helper function to check if a score is valid (not null, undefined, empty string, or NaN)
-  const isValidScore = (score) => {
-    return score !== null && score !== undefined && score !== '' && !isNaN(score) && score >= 0;
+  const isValidScore = (score, allowEmpty = false) => {
+    if (isEmpty(score)) {
+      return allowEmpty;
+    }
+
+    const numScore = parseFloat(score);
+    return !isNaN(numScore) && numScore >= 0;
   };
 
   // State
@@ -574,8 +602,8 @@
           break;
 
         default:
-          aValue = parseFloat(a[sortBy.value.value]) || 0;
-          bValue = parseFloat(b[sortBy.value.value]) || 0;
+          aValue = isEmpty(a[sortBy.value.value]) ? -1 : parseFloat(a[sortBy.value.value]) || 0;
+          bValue = isEmpty(b[sortBy.value.value]) ? -1 : parseFloat(b[sortBy.value.value]) || 0;
       }
 
       return sortOrder.value === 'asc' ? aValue - bValue : bValue - aValue;
@@ -592,25 +620,40 @@
         return {
           ...applicant,
           educationScore:
-            draftScore.education_score !== null && draftScore.education_score !== undefined
-              ? parseFloat(draftScore.education_score)
-              : null,
+            draftScore.education_score !== null &&
+            draftScore.education_score !== undefined &&
+            draftScore.education_score !== 0 &&
+            draftScore.education_score !== '-'
+              ? formatNumber(draftScore.education_score)
+              : '',
           experienceScore:
-            draftScore.experience_score !== null && draftScore.experience_score !== undefined
-              ? parseFloat(draftScore.experience_score)
-              : null,
+            draftScore.experience_score !== null &&
+            draftScore.experience_score !== undefined &&
+            draftScore.experience_score !== 0 &&
+            draftScore.experience_score !== '-'
+              ? formatNumber(draftScore.experience_score)
+              : '',
           trainingScore:
-            draftScore.training_score !== null && draftScore.training_score !== undefined
-              ? parseFloat(draftScore.training_score)
-              : null,
+            draftScore.training_score !== null &&
+            draftScore.training_score !== undefined &&
+            draftScore.training_score !== 0 &&
+            draftScore.training_score !== '-'
+              ? formatNumber(draftScore.training_score)
+              : '',
           performanceScore:
-            draftScore.performance_score !== null && draftScore.performance_score !== undefined
-              ? parseFloat(draftScore.performance_score)
-              : null,
+            draftScore.performance_score !== null &&
+            draftScore.performance_score !== undefined &&
+            draftScore.performance_score !== 0 &&
+            draftScore.performance_score !== '-'
+              ? formatNumber(draftScore.performance_score)
+              : '',
           behavioralScore:
-            draftScore.behavioral_score !== null && draftScore.behavioral_score !== undefined
-              ? parseFloat(draftScore.behavioral_score)
-              : null,
+            draftScore.behavioral_score !== null &&
+            draftScore.behavioral_score !== undefined &&
+            draftScore.behavioral_score !== 0 &&
+            draftScore.behavioral_score !== '-'
+              ? formatNumber(draftScore.behavioral_score)
+              : '',
           name: `${applicant.firstname} ${applicant.lastname}`,
           ranking: draftScore.ranking || null,
         };
@@ -622,44 +665,76 @@
     }
   };
 
+  const handleInput = (applicant, field) => {
+    let value = applicant[field];
+    value = value.replace(/[^0-9.]/g, '');
+    const parts = value.split('.');
+    if (parts.length > 2) {
+      value = parts[0] + '.' + parts.slice(1).join('');
+    }
+    applicant[field] = value;
+  };
+
   const calculateQS = (applicant) => {
-    if (!applicant) return '0.00';
+    if (!applicant) return '-';
 
-    // Calculate QS based on criteria rates
-    const eduScore = parseFloat(applicant.educationScore) || 0;
-    const expScore = parseFloat(applicant.experienceScore) || 0;
-    const trainingScore = parseFloat(applicant.trainingScore) || 0;
-    const perfScore = parseFloat(applicant.performanceScore) || 0;
+    const eduScore = isEmpty(applicant.educationScore)
+      ? 0
+      : parseFloat(applicant.educationScore) || 0;
+    const expScore = isEmpty(applicant.experienceScore)
+      ? 0
+      : parseFloat(applicant.experienceScore) || 0;
+    const trainingScore = isEmpty(applicant.trainingScore)
+      ? 0
+      : parseFloat(applicant.trainingScore) || 0;
+    const perfScore = isEmpty(applicant.performanceScore)
+      ? 0
+      : parseFloat(applicant.performanceScore) || 0;
 
-    // Sum all QS criteria scores (already weighted by their max percentage)
+    if (
+      isEmpty(applicant.educationScore) &&
+      isEmpty(applicant.experienceScore) &&
+      isEmpty(applicant.trainingScore) &&
+      isEmpty(applicant.performanceScore)
+    ) {
+      return '-';
+    }
+
     const qsScore = eduScore + expScore + trainingScore + perfScore;
-
-    // Ensure it doesn't exceed the max QS rate
-    return Math.min(qsScore, qsMaxRate.value).toFixed(2);
+    const result = Math.min(qsScore, qsMaxRate.value);
+    return formatNumber(result);
   };
 
   const calculateTotal = (applicant) => {
-    if (!applicant) return '0.00';
+    if (!applicant) return '-';
 
-    // QS score is already calculated
-    const qsScore = parseFloat(calculateQS(applicant));
+    const qsScore = calculateQS(applicant);
 
-    // BEI score is directly entered as weighted percentage
-    const beiScore = parseFloat(applicant.behavioralScore) || 0;
+    if (qsScore === '-') {
+      return '-';
+    }
 
-    // Total is QS + BEI (max totalMaxRate)
-    return Math.min(qsScore + beiScore, totalMaxRate.value).toFixed(2);
+    const qsScoreNum = parseFloat(qsScore);
+    const beiScore = isEmpty(applicant.behavioralScore)
+      ? 0
+      : parseFloat(applicant.behavioralScore) || 0;
+
+    const result = Math.min(qsScoreNum + beiScore, totalMaxRate.value);
+    return formatNumber(result);
   };
 
   const calculateAllRankings = () => {
     if (!applicantsData.value.length) return;
 
-    // Sort by total score (descending)
-    const sortedApplicants = [...applicantsData.value].sort((a, b) => {
+    const applicantsWithScores = applicantsData.value.filter((applicant) => {
+      const total = calculateTotal(applicant);
+      return total !== '-';
+    });
+
+    const sortedApplicants = [...applicantsWithScores].sort((a, b) => {
       return parseFloat(calculateTotal(b)) - parseFloat(calculateTotal(a));
     });
 
-    // Map scores to rankings
     const scoreMap = {};
     sortedApplicants.forEach((applicant, index) => {
       const totalScore = calculateTotal(applicant);
@@ -672,7 +747,10 @@
       scoreMap[totalScore].count++;
     });
 
-    // Assign rankings
+    applicantsData.value.forEach((applicant) => {
+      applicant.ranking = null;
+    });
+
     sortedApplicants.forEach((applicant) => {
       const totalScore = calculateTotal(applicant);
       const position = scoreMap[totalScore].firstPosition;
@@ -684,47 +762,74 @@
     });
   };
 
-  const toggleApplicant = (applicantId) => {
-    expandedApplicant.value = expandedApplicant.value === applicantId ? null : applicantId;
-  };
+  const validateScore = (applicant, field, maxValue, allowEmpty = false) => {
+    const value = applicant[field];
 
-  const updateRating = (applicantId, field, value) => {
-    const applicant = applicantsData.value.find((a) => a.id === applicantId);
-    if (applicant) {
-      // Get the maximum allowed value for this field
-      let maxValue;
-      switch (field) {
-        case 'educationScore':
-          maxValue = educationMaxRate.value;
-          break;
-        case 'experienceScore':
-          maxValue = experienceMaxRate.value;
-          break;
-        case 'trainingScore':
-          maxValue = trainingMaxRate.value;
-          break;
-        case 'performanceScore':
-          maxValue = performanceMaxRate.value;
-          break;
-        case 'behavioralScore':
-          maxValue = behavioralMaxRate.value;
-          break;
-        default:
-          maxValue = 100;
-      }
-
-      // Convert to number and validate
-      const numValue = value === '' ? null : parseFloat(value);
-      if (numValue === null || !isNaN(numValue)) {
-        // Ensure the value doesn't exceed the max allowed
-        applicant[field] = numValue !== null ? Math.min(numValue, maxValue) : null;
-
-        // Add debug logging to verify values are being updated
-        console.log(`Updated ${field} for applicant ${applicant.id} to ${applicant[field]}`);
-
+    if (isEmpty(value)) {
+      if (allowEmpty) {
         calculateAllRankings();
+        return;
+      } else {
+        $q.notify({
+          color: 'warning',
+          message: 'This field requires a numeric value',
+          icon: 'warning',
+          position: 'top',
+          timeout: 2000,
+        });
+        return;
       }
     }
+
+    const numValue = parseFloat(value);
+
+    if (isNaN(numValue)) {
+      $q.notify({
+        color: 'warning',
+        message: allowEmpty
+          ? 'Please enter a valid number or leave empty'
+          : 'Please enter a valid number',
+        icon: 'warning',
+        position: 'top',
+        timeout: 2000,
+      });
+      applicant[field] = '';
+      calculateAllRankings();
+      return;
+    }
+
+    if (numValue < 0) {
+      $q.notify({
+        color: 'warning',
+        message: 'Score cannot be negative',
+        icon: 'warning',
+        position: 'top',
+        timeout: 2000,
+      });
+      applicant[field] = '';
+      calculateAllRankings();
+      return;
+    }
+
+    if (numValue > maxValue) {
+      $q.notify({
+        color: 'warning',
+        message: `Score cannot exceed ${maxValue}`,
+        icon: 'warning',
+        position: 'top',
+        timeout: 2000,
+      });
+      applicant[field] = formatNumber(maxValue);
+      calculateAllRankings();
+      return;
+    }
+
+    applicant[field] = formatNumber(numValue);
+    calculateAllRankings();
+  };
+
+  const toggleApplicant = (applicantId) => {
+    expandedApplicant.value = expandedApplicant.value === applicantId ? null : applicantId;
   };
 
   const formatDate = (dateString) => {
@@ -738,49 +843,37 @@
     }
   };
 
-  const formatDescription = (description) => {
-    if (!description) return [];
-    if (Array.isArray(description)) return description;
-
-    return description.split(',').map((item) => item.trim());
-  };
-
-  // Create a new function for saving as draft
   const saveDraft = () => {
-    // Create a formatted payload similar to submitRatings
     const formattedData = applicantsData.value.map((applicant) => {
-      // Calculate QS and total scores
-      const qsScore = parseFloat(calculateQS(applicant));
-      const totalScore = parseFloat(calculateTotal(applicant));
+      const qsScore = calculateQS(applicant);
+      const totalScore = calculateTotal(applicant);
 
       return {
         id: applicant.id,
         nPersonalInfo_id: applicant.nPersonalInfo_id,
         ControlNo: applicant.ControlNo,
-        // Parse all values as numbers to ensure proper data types, but allow null values
-        education_score:
-          applicant.educationScore !== null ? Number(applicant.educationScore || null) : null,
-        experience_score:
-          applicant.experienceScore !== null ? Number(applicant.experienceScore || null) : null,
-        training_score:
-          applicant.trainingScore !== null ? Number(applicant.trainingScore || null) : null,
-        performance_score:
-          applicant.performanceScore !== null ? Number(applicant.performanceScore || null) : null,
-        behavioral_score:
-          applicant.behavioralScore !== null ? Number(applicant.behavioralScore || null) : null,
-        total_qs: Number(qsScore),
-        grand_total: Number(totalScore),
+        education_score: isEmpty(applicant.educationScore) ? '-' : Number(applicant.educationScore),
+        experience_score: isEmpty(applicant.experienceScore)
+          ? '-'
+          : Number(applicant.experienceScore),
+        training_score: isEmpty(applicant.trainingScore) ? '-' : Number(applicant.trainingScore),
+        performance_score: isEmpty(applicant.performanceScore)
+          ? '-'
+          : Number(applicant.performanceScore),
+        behavioral_score: isEmpty(applicant.behavioralScore)
+          ? '-'
+          : Number(applicant.behavioralScore),
+        total_qs: qsScore === '-' ? 0 : Number(qsScore),
+        grand_total: totalScore === '-' ? 0 : Number(totalScore),
         ranking: applicant.ranking || null,
       };
     });
 
-    // Log the data being sent to help debug
     console.log(
       'Saving draft ratings with formatted data:',
       JSON.stringify(formattedData, null, 2),
     );
 
-    // Emit an event to the parent component
     emit('save-draft', {
       positionId: props.position.id,
       applicants: formattedData,
@@ -796,11 +889,11 @@
   };
 
   const submitRatings = () => {
-    // Only allow submission if all applicants are rated
     if (!allApplicantsRated.value) {
       $q.notify({
         color: 'warning',
-        message: 'Please rate all applicants before submitting.',
+        message:
+          'Please rate all required fields (Education, Experience, Training, Performance) before submitting. BEI can be left empty.',
         icon: 'warning',
         position: 'top',
         timeout: 3000,
@@ -808,9 +901,7 @@
       return;
     }
 
-    // Create a formatted payload with all the necessary fields and proper values
     const formattedData = applicantsData.value.map((applicant) => {
-      // Calculate QS and total scores
       const qsScore = parseFloat(calculateQS(applicant));
       const totalScore = parseFloat(calculateTotal(applicant));
 
@@ -818,23 +909,21 @@
         id: applicant.id,
         nPersonalInfo_id: applicant.nPersonalInfo_id,
         ControlNo: applicant.ControlNo,
-        // Make sure to parse all values as floats to ensure they are numbers
-        education_score: Number(applicant.educationScore || null),
-        experience_score: Number(applicant.experienceScore || null),
-        training_score: Number(applicant.trainingScore || null),
-        performance_score: Number(applicant.performanceScore || null),
-        behavioral_score: Number(applicant.behavioralScore || null),
+        education_score: Number(applicant.educationScore),
+        experience_score: Number(applicant.experienceScore),
+        training_score: Number(applicant.trainingScore),
+        performance_score: Number(applicant.performanceScore),
+        behavioral_score: isEmpty(applicant.behavioralScore)
+          ? '-'
+          : Number(applicant.behavioralScore),
         total_qs: Number(qsScore),
         grand_total: Number(totalScore),
         ranking: applicant.ranking || null,
-        // status: 'rated',
       };
     });
 
-    // Log the data being sent to help debug
     console.log('Submitting ratings with formatted data:', JSON.stringify(formattedData, null, 2));
 
-    // Pass this data to the parent component
     emit('submit-ratings', {
       positionId: props.position.id,
       applicants: formattedData,
@@ -883,7 +972,7 @@
 
 <style lang="scss" scoped>
   .rating-modal {
-    width: 1000px;
+    width: 1700px;
     max-width: 95vw;
     max-height: 90vh;
     display: flex;
@@ -902,24 +991,12 @@
     }
   }
 
-  .criteria-section {
-    background-color: #f9f9f9;
-  }
-
-  /* Sticky header and footer styles */
-  .sticky-header {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background-color: #f5f5f5;
-  }
-
-  .sticky-criteria {
-    position: sticky;
-    top: 112px; /* Adjust this value based on the header's height */
-    z-index: 9;
-    background-color: #f9f9f9;
-  }
+  // .sticky-criteria {
+  //   position: sticky;
+  //   top: 0;
+  //   z-index: 9;
+  //   background-color: #f9f9f9;
+  // }
 
   .sticky-footer {
     position: sticky;
@@ -933,7 +1010,7 @@
     flex: 1;
     overflow-y: auto;
     padding: 8px;
-    max-height: calc(90vh - 250px); /* Adjust based on header and footer heights */
+    max-height: calc(90vh - 200px);
   }
 
   .rating-table {
@@ -954,6 +1031,22 @@
       font-weight: 500;
       text-align: center;
     }
+  }
+
+  .criteria-description {
+    background-color: #f9f9f9;
+  }
+
+  .criteria-item {
+    line-height: 1.3;
+    margin-bottom: 4px;
+  }
+
+  .criteria-percentage {
+    font-weight: bold;
+    color: #1976d2;
+    display: inline-block;
+    min-width: 35px;
   }
 
   .applicant-row {
@@ -979,6 +1072,12 @@
 
     :deep(input) {
       font-size: 0.85rem;
+      text-align: center;
+    }
+
+    :deep(input::placeholder) {
+      text-align: center;
+      color: #999;
     }
   }
 

@@ -1,320 +1,226 @@
 <template>
-  <div class="certification-report-container">
-    <div class="report-content">
-      <ReportHeader :officeName="officeName" />
+  <div class="certification-report-wrapper">
+    <div class="certification-report-container">
+      <div class="report-content">
+        <ReportHeader />
 
-      <div class="certification-title">
-        <h1>CERTIFICATION FOR APPOINTEMENTS ISSUED IN LOCAL GOVERNMENT UNITS (LGUs)</h1>
-      </div>
-      <div class="certification-body">
-        <p class="main-text indented" :style="mainTextStyle">
-          <slot name="main-text">
-            This is to certify all pertinent provisions of Sec 325 of RA No. 7160 (Local Government
-            Code of 1991) have been complied with relative to the appointments issued on
-            {{ formatDateEnglish(data.sepdate) }}
-          </slot>
-        </p>
+        <div class="certification-title">
+          <h1>CERTIFICATION FOR APPOINTEMENTS ISSUED IN LOCAL GOVERNMENT UNITS (LGUs)</h1>
+        </div>
+        <div class="certification-body">
+          <p class="main-text indented" :style="mainTextStyle">
+            <slot name="main-text">
+              This is to certify all pertinent provisions of Sec 325 of RA No. 7160 (Local
+              Government Code of 1991) have been complied with relative to the appointments issued
+              on
+              {{ formatDateEnglish(data.sepdate) }}
+            </slot>
+          </p>
 
-        <div class="signature-container">
-          <div class="signature-section">
-            <div class="signature-name">{{ signatoryName }}</div>
-            <div class="signature-line"></div>
-            <div class="signature-title">{{ signatoryTitle }}</div>
+          <div class="signature-container">
+            <div class="signature-section">
+              <div class="signature-name">{{ signatoryName }}</div>
+              <div class="signature-line"></div>
+              <div class="signature-title">{{ signatoryTitle }}</div>
+            </div>
+          </div>
+
+          <div class="left-signature-container">
+            <div class="stamp">
+              Date:
+              <span class="underlined">{{ formatDateEnglish(data.sepdate) }}</span>
+            </div>
           </div>
         </div>
 
-        <div class="left-signature-container">
+        <div class="certification-title">
+          <h1>CERTIFICATION ON AVAILABILITY OF FUNDS</h1>
+        </div>
+        <div class="certification-body">
+          <p class="main-text indented" :style="mainTextStyle">
+            <slot name="main-text">
+              This is to certify that funds are available pursusant to Appropriation Ordinance No. 6
+              Series of {{ formatYear(data.sepdate) }}
+            </slot>
+          </p>
+
+          <div class="signature-container">
+            <div class="signature-section">
+              <div class="signature-name">{{ data.cityaccountant }}</div>
+              <div class="signature-line"></div>
+              <div class="signature-title">City Accountant</div>
+            </div>
+          </div>
+
+          <div class="left-signature-container">
+            <div class="stamp">
+              Date:
+              <span class="underlined">{{ formatDateEnglish(data.sepdate) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ReportFooter :phone="footerPhone" :email="footerEmail" />
+    </div>
+
+    <div class="certification-report-container">
+      <div class="report-content">
+        <ReportHeader />
+
+        <div class="certification-title">
+          <h1>CERTIFICATION OF ASSUMPTION TO DUTY</h1>
+        </div>
+        <div class="certification-body">
+          <p class="main-text indented" :style="mainTextStyle">
+            <slot name="main-text">
+              This is to certify that
+              {{ data.Sex === 'MALE' ? 'Mr.' : 'Ms.' }}
+              <span class="bold underline">{{ data.Name4 || 'Unknown' }}</span>
+              has assumed the duties and responsibilities as
+              <span class="bold underline">{{ data.NewDesignation || 'NA' }}</span>
+              of
+              <span class="bold underline">{{ data.NewOffice || 'NA' }}</span>
+              effective
+              <span class="bold underline">{{ formatDateEnglish(data.sepdate) }}</span>
+              .
+            </slot>
+          </p>
+
+          <p class="main-text indented" :style="mainTextStyle">
+            <slot name="main-text">
+              This certification is being issued in connection with the issuance of the appointment
+              of
+              {{ data.Sex === 'MALE' ? 'Mr.' : 'Ms.' }}
+              <span class="bold underline">{{ data.Name4 || 'Unknown' }}</span>
+              as
+              <span class="bold underline">{{ data.NewDesignation || 'NA' }}</span>
+              .
+            </slot>
+          </p>
+
+          <p class="issuance-text indented" :style="issuanceTextStyle">
+            <slot name="issuance-text">
+              Done this {{ formatDayWithSuffix(data.sepdate) }} day of
+              {{ formatMonth(data.sepdate) }}, {{ formatYear(data.sepdate) }} at the City Government
+              Center, JV Ayala Avenue, Apokon, Tagum City, Davao del Norte.
+            </slot>
+          </p>
+          <div class="signature-container">
+            <div class="signature-section">
+              <div class="signature-name">{{ data.admin }}</div>
+              <div class="signature-line"></div>
+              <div class="signature-title">City Administrator</div>
+            </div>
+          </div>
+
+          <div class="left-signature-container">
+            <div class="stamp">Attested by:</div>
+            <div class="signature-section">
+              <div class="signature-name">{{ data.HR }}</div>
+              <div class="signature-line"></div>
+              <div class="signature-title">City Human Resource Mgt. Officer</div>
+            </div>
+            <div class="stamp" style="padding-top: 35px; padding-bottom: 40px">
+              Date: {{ formatDateEnglish(data.sepdate) }}
+            </div>
+          </div>
+
           <div class="stamp">
-            Date:
-            <span class="underlined">{{ formatDateEnglish(data.sepdate) }}</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="certification-title">
-        <h1>CERTIFICATION ON AVAILABILITY OF FUNDS</h1>
-      </div>
-      <div class="certification-body">
-        <p class="main-text indented" :style="mainTextStyle">
-          <slot name="main-text">
-            This is to certify that funds are available pursusant to Appropriation Ordinance No. 6
-            Series of {{ formatYear(sepdate) }}
-          </slot>
-        </p>
-
-        <div class="signature-container">
-          <div class="signature-section">
-            <div class="signature-name">{{ data.cityaccountant }}</div>
-            <div class="signature-line"></div>
-            <div class="signature-title">City Accountant</div>
-          </div>
-        </div>
-
-        <div class="left-signature-container">
-          <div class="stamp">
-            Date:
-            <span class="underlined">{{ formatDateEnglish(data.sepdate) }}</span>
+            <div>201 file</div>
+            <div>Admin</div>
+            <div>COA</div>
+            <div>CSC</div>
           </div>
         </div>
       </div>
     </div>
-    <ReportFooter :phone="footerPhone" :email="footerEmail" />
-  </div>
 
-  <!-- </div>
-
-  <div class="certification-report-container">
-    <div class="report-content">
-      <ReportHeader :officeName="officeName" />
-
-      <div class="certification-title">
-        <h1>CERTIFICATION</h1>
-      </div>
-      <div class="certification-body">
-        <p class="concern-text">TO WHOM IT MAY CONCERN:</p>
-        <p class="main-text indented" :style="mainTextStyle">
-          <slot name="main-text">
-            In connection with the {{ data.Renew }} of
-            <span class="bold">{{ data.Name4 || 'Unknown' }}</span>
-            as
-            <span class="bold">{{ data.NewDesignation || 'NA' }},</span>
-            SG {{ data.SG || 'NA' }} of the
-            <span class="bold">
-              {{ data.NewOffice || 'NA' }}
-            </span>
-            this City at the rate of
-            <span class="bold">
-              {{ formatSalary(data.SalaryAnnual) }}
-            </span>
-            per annum, it is hereby certified:
-          </slot>
-        </p>
-        <slot name="list">
-          <ol class="certification-list">
-            <li>That the position herein is under LBC 61, s. 1996/BC 2004-3/LBC 137, s. 2021;</li>
-            <li>That there is no pending administrative or criminal case against the appointee;</li>
-            <li>
-              That this appointment is issued in accordance with the personal services limitations
-              provided for under Sec. 325(a) of R.A. 7160; and
-            </li>
-            <li>
-              That the provisions of law, rules and regulations on appointment and nepotism have
-              been observed.
-            </li>
-          </ol>
-        </slot>
-        <p class="issuance-text indented" :style="issuanceTextStyle">
-          <slot name="issuance-text">
-            Issued this {{ formatDayWithSuffix(sepdate) }} day of {{ formatMonth(sepdate) }},
-            {{ formatYear(sepdate) }} at the City Government Center, JV Ayala Avenue, Apokon, Tagum
-            City, Davao del Norte.
-          </slot>
-        </p>
-        <div class="signature-container">
-          <div class="signature-section">
-            <div class="signature-name">{{ signatoryName }}</div>
-            <div class="signature-line"></div>
-            <div class="signature-title">{{ signatoryTitle }}</div>
-          </div>
+    <div class="certification-report-container">
+      <div class="report-content">
+        <ReportHeader />
+        <div class="oathcontainer">
+          <div class="oathstamp"><b>SS Porma Blg. 32</b></div>
+          <div class="oathstamp"><i>CS Form No. 32</i></div>
         </div>
-      </div>
-    </div>
-    <ReportFooter :phone="footerPhone" :email="footerEmail" />
-  </div>
 
-  <div class="certification-report-container">
-    <div class="report-content">
-      <ReportHeader :officeName="officeName" />
-
-      <div class="certification-title">
-        <h1>CERTIFICATION</h1>
-      </div>
-      <div class="certification-body">
-        <p class="concern-text">TO WHOM IT MAY CONCERN:</p>
-        <p class="main-text indented" :style="mainTextStyle">
-          <slot name="main-text">
-            THIS IS TO CERTIFY that funds are available for the position of
-            <span class="bold">{{ data.NewDesignation || 'NA' }}</span>
-            SG
-            <span class="bold">{{ data.SG || 'NA' }},</span>
-            Item No.
-            <span class="bold">{{ data.ItemNo || 'NA' }},</span>
-            of the
-            <span class="bold">
-              {{ data.NewOffice || 'NA' }}
-            </span>
-            in the amount of
-            <span class="bold">
-              {{ formatSalary(data.SalaryAnnual) }}
-            </span>
-            annually based on Appropriation Ordinance No. 06 series of 2024.
-          </slot>
-        </p>
-
-        <p class="main-text indented" :style="mainTextStyle">
-          <slot name="main-text">
-            This certification is being issued in connection with the
-            <span class="bold">{{ data.Renew }}</span>
-            of
-            <span class="bold">{{ data.Name4 || 'Unknown' }}</span>
-            .
-          </slot>
-        </p>
-
-        <p class="issuance-text indented" :style="issuanceTextStyle">
-          <slot name="issuance-text">
-            Issued this {{ formatDayWithSuffix(sepdate) }} day of {{ formatMonth(sepdate) }},
-            {{ formatYear(sepdate) }} at the City Government Center, JV Ayala Avenue, Apokon, Tagum
-            City, Davao del Norte.
-          </slot>
-        </p>
-        <div class="signature-container">
-          <div class="signature-section">
-            <div class="signature-name">{{ data.cityaccountant }}</div>
-            <div class="signature-line"></div>
-            <div class="signature-title">City Accountant</div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <ReportFooter :phone="footerPhone" :email="footerEmail" />
-  </div> -->
-
-  <div class="certification-report-container">
-    <div class="report-content">
-      <ReportHeader />
-
-      <div class="certification-title">
-        <h1>CERTIFICATION OF ASSUMPTION TO DUTY</h1>
-      </div>
-      <div class="certification-body">
-        <p class="main-text indented" :style="mainTextStyle">
-          <slot name="main-text">
-            This is to certify that Mr.
-            <span class="bold underline">{{ data.Name4 || 'Unknown' }}</span>
-            has assumed the duties and responsibilities as
-            <span class="bold underline">{{ data.NewDesignation || 'NA' }}</span>
-            of
-            <span class="bold underline">{{ data.NewOffice || 'NA' }}</span>
-            effective
-            <span class="bold underline">{{ formatDateEnglish(data.sepdate) }}</span>
-            .
-          </slot>
-        </p>
-
-        <p class="main-text indented" :style="mainTextStyle">
-          <slot name="main-text">
-            This certification is being issued in connection with the issuance of the appointment of
-            Ms.
-            <span class="bold underline">{{ data.Name4 || 'Unknown' }}</span>
-
-            as
-            <span class="bold underline">{{ data.NewDesignation || 'NA' }}</span>
-            .
-          </slot>
-        </p>
-
-        <p class="issuance-text indented" :style="issuanceTextStyle">
-          <slot name="issuance-text">
-            Done this {{ formatDayWithSuffix(sepdate) }} day of {{ formatMonth(sepdate) }},
-            {{ formatYear(sepdate) }} at the City Government Center, JV Ayala Avenue, Apokon, Tagum
-            City, Davao del Norte.
-          </slot>
-        </p>
-        <div class="signature-container">
-          <div class="signature-section">
-            <div class="signature-name">{{ data.admin }}</div>
-            <div class="signature-line"></div>
-            <div class="signature-title">City Administrator</div>
+        <div class="oathcontainer">
+          <div class="oathstamp"><b>Narebisa 2025</b></div>
+          <div class="oathstamp">
+            <i>Revised 2025</i>
           </div>
         </div>
 
-        <div class="left-signature-container">
-          <div class="stamp">Attested by:</div>
-          <div class="signature-section">
-            <div class="signature-name">{{ data.HR }}</div>
-            <div class="signature-line"></div>
-            <div class="signature-title">City Human Resource Mgt. Officer</div>
-          </div>
-          <div class="stamp" style="padding-top: 35px; padding-bottom: 40px">
-            Date: {{ formatDateEnglish(data.sepdate) }}
-          </div>
+        <div class="certification-title">
+          <h1 style="margin-top: 30px">PANUNUMPA SA KATUNGKULAN</h1>
+          <div class="subtitle">OATH OF OFFICE</div>
         </div>
-
-        <div class="stamp">
-          <div>201 file</div>
-          <div>Admin</div>
-          <div>COA</div>
-          <div>CSC</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="certification-report-container">
-    <div class="report-content">
-      <ReportHeader />
-
-      <div class="certification-title">
-        <h1>PANUNUMPA SA KATUNGKULAN</h1>
-        <div class="subtitle">OATH OF OFFICE</div>
-      </div>
-      <div class="certification-body FS">
-        <p class="oath-content indented">
-          <template v-for="(word, idx) in oathWords" :key="idx">
+        <div class="certification-body FS">
+          <p class="oath-content indented">
+            <template v-for="(word, idx) in oathWords" :key="idx">
+              <ruby class="word-ruby">
+                <span v-html="word.fil"></span>
+                <rt>
+                  <span v-html="word.eng"></span>
+                </rt>
+              </ruby>
+            </template>
+          </p>
+          <div class="indented">
             <ruby class="word-ruby">
-              <span v-html="word.fil"></span>
+              <span>KASIHAN NAWA AKO NG DIYOS.</span>
               <rt>
-                <span v-html="word.eng"></span>
+                <span>
+                  <span style="color: white">*</span>
+                  SO HELP ME GOD
+                </span>
               </rt>
             </ruby>
-          </template>
-        </p>
-        <div class="indented">
-          <ruby class="word-ruby">
-            <span>KASIHAN NAWA AKO NG DIYOS.</span>
-            <rt>
-              <span>
-                <span style="color: white">*</span>
-                SO HELP ME GOD
+          </div>
+
+          <div class="signature-container">
+            <div class="signature-name">{{ data.Name4 }}</div>
+          </div>
+
+          <div class="left-signature-container">
+            <div>
+              Government ID:
+              <span v-if="data?.TINNo" class="underline">TIN</span>
+              <span v-else class="underline">
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
               </span>
-            </rt>
-          </ruby>
-        </div>
-
-        <div class="signature-container">
-          <div class="signature-name">{{ data.Name4 }}</div>
-        </div>
-
-        <div class="left-signature-container">
-          <div>
-            Government ID:
-            <span v-if="data?.TINNo" class="underline">TIN</span>
+            </div>
+            <div>
+              Numero ng ID:
+              <span class="underline">
+                {{
+                  data?.TINNo ||
+                  '  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'
+                }}
+              </span>
+            </div>
+            <div>
+              Araw ng Pagkakaloob:
+              <span
+                style="display: inline-block; width: 80px; border-bottom: 1px solid black"
+              ></span>
+            </div>
           </div>
-          <div>
-            Numero ng ID:
-            <span class="underline">{{ data?.TINNo || '' }}</span>
-          </div>
-          <div>
-            Araw ng Pagkakaloob:
-            <span style="display: inline-block; width: 80px; border-bottom: 1px solid black"></span>
-          </div>
-        </div>
 
-        <div class="double"></div>
+          <div class="double"></div>
 
-        <p class="main-text indented" :style="mainTextStyle">
-          <slot>
-            Nilagdaan at pinanumpaan sa harap ko ngayong {{ formatDateTagalog(sepdate) }} sa Tagum
-            City, Davao Del Norte, Pilipinas.
-          </slot>
-        </p>
+          <p class="main-text indented" :style="mainTextStyle">
+            <slot>
+              Nilagdaan at pinanumpaan sa harap ko ngayong {{ formatDateTagalog(data.sepdate) }} sa
+              Tagum City, Davao Del Norte, Pilipinas.
+            </slot>
+          </p>
 
-        <div class="signature-container">
-          <div class="signature-section">
-            <div class="signature-name">{{ signatoryName }}</div>
-            <div class="signature-line"></div>
-            <div class="signature-title">{{ signatoryTitle }}</div>
+          <div class="signature-container">
+            <div class="signature-section">
+              <div class="signature-name">{{ signatoryName }}</div>
+              <div class="signature-line"></div>
+              <div class="signature-title">{{ signatoryTitle }}</div>
+            </div>
           </div>
         </div>
       </div>
@@ -323,9 +229,8 @@
 </template>
 
 <script setup>
-  import { ref, computed } from 'vue';
+  import { computed } from 'vue';
   import ReportHeader from './ReportHeader.vue';
-  import ReportFooter from './ReportFooter.vue';
 
   const props = defineProps({
     data: {
@@ -362,16 +267,13 @@
     },
   });
 
-  // Current date using sepdate
-  const sepdate = ref(new Date());
-
   // Computed properties for dynamic signatory display
   const signatoryName = computed(() => {
     // Check if 'NewOffice' contains "VICE MAYOR" or "SANGGUNIANG PANLUNGSOD" or "SANGUNIAN"
     if (
-      props.data.NewOffice.includes('VICE MAYOR') ||
-      props.data.NewOffice.includes('SANGGUNIANG PANLUNGSOD') ||
-      props.data.NewOffice.includes('SANGGUNIAN')
+      props.data.NewOffice?.includes('VICE MAYOR') ||
+      props.data.NewOffice?.includes('SANGGUNIANG PANLUNGSOD') ||
+      props.data.NewOffice?.includes('SANGGUNIAN')
     ) {
       return props.data.vicemayor || 'NA';
     } else {
@@ -383,9 +285,9 @@
   const signatoryTitle = computed(() => {
     // Check if 'NewOffice' contains "VICE MAYOR" or "SANGGUNIANG PANLUNGSOD" or "SANGUNIAN"
     if (
-      props.data.NewOffice.includes('VICE MAYOR') ||
-      props.data.NewOffice.includes('SANGGUNIANG PANLUNGSOD') ||
-      props.data.NewOffice.includes('SANGGUNIAN')
+      props.data.NewOffice?.includes('VICE MAYOR') ||
+      props.data.NewOffice?.includes('SANGGUNIANG PANLUNGSOD') ||
+      props.data.NewOffice?.includes('SANGGUNIAN')
     ) {
       return 'City Vice Mayor';
     } else {
@@ -429,7 +331,9 @@
   };
 
   const formatDayWithSuffix = (date) => {
-    const day = date.getDate();
+    if (!date) return '';
+    const dateObj = new Date(date);
+    const day = dateObj.getDate();
     if (day > 3 && day < 21) return day + 'th';
     switch (day % 10) {
       case 1:
@@ -444,11 +348,15 @@
   };
 
   const formatMonth = (date) => {
-    return date.toLocaleString('en-US', { month: 'long' });
+    if (!date) return '';
+    const dateObj = new Date(date);
+    return dateObj.toLocaleString('en-US', { month: 'long' });
   };
 
   const formatYear = (date) => {
-    return date.getFullYear();
+    if (!date) return '';
+    const dateObj = new Date(date);
+    return dateObj.getFullYear();
   };
 
   // Make oathWords a computed property to use dynamic data
@@ -456,12 +364,12 @@
     { fil: '<span style="color:white">*</span>Ako', eng: '<span style="color:white">*</span>I' },
     { fil: '<span style="color:white">*</span>si', eng: '' },
     {
-      fil: `<span style="color:white">*</span>${props.data.Name4 || 'Name of Appointee'}`,
+      fil: `<span style="color:white">*</span><span style="font-weight:bold; text-decoration:underline;">${props.data.Name4 || 'Name of Appointee'}</span>`,
       eng: '<span style="color:white">*</span>(Name <span style="color:white">*</span>of <span style="color:white">*</span>Appointee)',
     },
     { fil: '<span style="color:white">*</span>ng', eng: '<span style="color:white">*</span>' },
     {
-      fil: '<span style="color:white">*</span>TAGUM CITY, DAVAO DEL NORTE',
+      fil: '<span style="color:white">*</span><span style="font-weight:bold; text-decoration:underline;">TAGUM CITY, DAVAO DEL NORTE</span>',
       eng: '<span style="color:white">*</span>(Address)',
     },
     {
@@ -469,7 +377,7 @@
       eng: '<span style="color:white">*</span>having <span style="color:white">*</span>been <span style="color:white">*</span>appointed <span style="color:white">*</span>to',
     },
     {
-      fil: `<span style="color:white">*</span>${props.data.NewDesignation || 'Position'}`,
+      fil: `<span style="color:white">*</span><span style="font-weight:bold; text-decoration:underline;">${props.data.NewDesignation || 'Position'}</span>`,
       eng: '<span style="color:white">*</span>(Position)',
     },
     {
@@ -523,15 +431,10 @@
     { fil: '', eng: '' },
     { fil: '', eng: '' },
   ]);
-
-  // Salary formatting function (keeping your existing implementation)
-  // const formatSalary = (salary) => {
-  //   // Add your existing salary formatting logic here
-  //   return salary;
-  // };
 </script>
 
 <style scoped>
+  /* ... (all existing styles remain the same) ... */
   .certification-report-container {
     width: 8.5in;
     min-height: 11in;
@@ -582,7 +485,7 @@
     line-height: 1.8;
   }
   .indented {
-    text-indent: 2em; /* Adds indentation to the first line */
+    text-indent: 2em;
   }
   .certification-list {
     padding-left: 40px;
@@ -638,7 +541,6 @@
     display: flex;
     justify-content: flex-end;
     margin-top: 60px;
-    margin-bottom: 60px;
   }
   .left-signature-container {
     width: 100%;
@@ -653,10 +555,18 @@
     align-items: flex-start;
   }
 
+  .oathcontainer {
+    padding-bottom: 10px;
+  }
+  .oathstamp {
+    font-size: 8pt;
+  }
+
   .double {
     width: 100%;
-    height: 0;
-    border-top: 3px double black;
+    height: 6px;
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
     margin: 20px 0;
   }
   .signature-section {

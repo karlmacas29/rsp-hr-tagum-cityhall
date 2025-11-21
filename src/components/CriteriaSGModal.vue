@@ -3,7 +3,10 @@
     <q-card style="max-width: 1600px; width: 95vw">
       <!-- Sticky Header -->
       <q-card-section class="row items-center q-pa-sm bg-primary text-white sticky-header">
-        <div class="text-h6">{{ getModalTitle() }} Rating Criteria</div>
+        <div class="text-h6">
+          {{ getModalTitle() }} Rating Criteria
+          <span v-if="sgMin && sgMax" class="q-ml-sm">(SG {{ sgMin }} - {{ sgMax }})</span>
+        </div>
         <q-space />
         <q-btn icon="close" flat dense @click="closeModal" />
       </q-card-section>
@@ -11,147 +14,44 @@
       <!-- Loading State -->
       <div v-if="loading" class="q-pa-xl text-center">
         <q-spinner size="2rem" color="primary" class="q-mb-sm" />
-        <div class="text-subtitle2">Loading job information...</div>
+        <div class="text-subtitle2">Loading criteria information...</div>
       </div>
 
-      <!-- Display selected job info -->
-      <q-card-section v-else-if="jobData" class="q-pa-sm">
-        <!-- Position -->
-        <q-input
-          v-model="jobData.Position"
-          label="Position"
-          dense
-          outlined
-          readonly
-          :placeholder="'-'"
-          class="q-mb-sm"
-        />
-
+      <!-- Salary Grade Range Section -->
+      <q-card-section v-else-if="showCriteriaForm" class="q-pa-sm">
         <div class="row q-col-gutter-sm q-mb-sm">
-          <!-- LEFT COLUMN -->
+          <!-- Salary Grade Min -->
           <div class="col-12 col-md-6">
             <q-input
-              v-model="jobData.Office"
-              label="Office"
+              v-model="salaryGradeData.sg_min"
+              label="Salary Grade (Min)"
+              type="number"
+              min="1"
+              max="33"
               dense
               outlined
-              readonly
-              autogrow
-              :placeholder="'-'"
+              :readonly="mode === 'view' || mode === 'edit'"
+              :rules="[(val) => !!val || 'Minimum SG is required']"
               class="q-mb-sm"
-            />
-
-            <q-input
-              v-model="jobData.Group"
-              label="Group"
-              dense
-              outlined
-              readonly
-              autogrow
-              :placeholder="'-'"
-              class="q-mb-sm"
-            />
-
-            <q-input
-              v-model="jobData.Section"
-              label="Section"
-              dense
-              outlined
-              readonly
-              autogrow
-              :placeholder="'-'"
             />
           </div>
 
-          <!-- RIGHT COLUMN -->
+          <!-- Salary Grade Max -->
           <div class="col-12 col-md-6">
             <q-input
-              v-model="jobData.Office2"
-              label="Sub-Office"
+              v-model="salaryGradeData.sg_max"
+              label="Salary Grade (Max)"
+              type="number"
+              min="1"
+              max="33"
               dense
               outlined
-              readonly
-              autogrow
-              :placeholder="'-'"
+              :readonly="mode === 'view' || mode === 'edit'"
+              :rules="[
+                (val) => !!val || 'Maximum SG is required',
+                (val) => parseInt(val) >= parseInt(salaryGradeData.sg_min) || 'Max must be >= Min',
+              ]"
               class="q-mb-sm"
-            />
-
-            <q-input
-              v-model="jobData.Division"
-              label="Division"
-              dense
-              outlined
-              readonly
-              autogrow
-              :placeholder="'-'"
-              class="q-mb-sm"
-            />
-
-            <q-input
-              v-model="jobData.Unit"
-              label="Unit"
-              dense
-              outlined
-              readonly
-              autogrow
-              :placeholder="'-'"
-            />
-          </div>
-        </div>
-
-        <!-- Qualifications Section -->
-        <q-separator class="q-my-sm" />
-        <div class="text-subtitle2 q-mb-sm text-weight-medium">
-          <q-icon name="school" class="q-mr-xs" />
-          Minimum Qualifications
-        </div>
-
-        <div class="row q-col-gutter-sm">
-          <div class="col-12 col-md-3">
-            <q-input
-              v-model="qualifications.Education"
-              label="Education"
-              dense
-              outlined
-              readonly
-              autogrow
-              :placeholder="'Not specified'"
-            />
-          </div>
-
-          <div class="col-12 col-md-3">
-            <q-input
-              v-model="qualifications.Experience"
-              label="Experience"
-              dense
-              outlined
-              readonly
-              autogrow
-              :placeholder="'Not specified'"
-            />
-          </div>
-
-          <div class="col-12 col-md-3">
-            <q-input
-              v-model="qualifications.Training"
-              label="Training"
-              dense
-              outlined
-              readonly
-              autogrow
-              :placeholder="'Not specified'"
-            />
-          </div>
-
-          <div class="col-12 col-md-3">
-            <q-input
-              v-model="qualifications.Eligibility"
-              label="Eligibility"
-              dense
-              outlined
-              readonly
-              autogrow
-              :placeholder="'Not specified'"
             />
           </div>
         </div>
@@ -160,7 +60,7 @@
       <q-separator></q-separator>
 
       <!-- Criteria -->
-      <q-card-section v-if="showRatingTable && !loading" class="criteria-section">
+      <q-card-section v-if="showCriteriaForm && !loading" class="criteria-section">
         <div class="row q-mb-sm">
           <div class="col-12">
             <!-- Action buttons based on mode and permission -->
@@ -186,7 +86,7 @@
                   icon="save"
                   label="Save Criteria"
                   :loading="criteriaStore.loading"
-                  :disable="totalWeight !== 100"
+                  :disable="!isFormValid"
                   @click="confirmSave"
                   unelevated
                   dense
@@ -380,12 +280,12 @@
       </q-card-section>
 
       <q-card-section
-        v-if="!showRatingTable && !loading"
+        v-if="!showCriteriaForm && !loading"
         class="text-center q-pa-md bg-blue-1 rounded-borders empty-state-card"
       >
         <q-icon name="tune" size="2rem" color="primary" class="q-mb-xs" />
         <div class="text-h6 q-mb-xs text-12">No available data</div>
-        <div class="text-caption">Please ensure job data is loaded properly</div>
+        <div class="text-caption">Please ensure criteria data is loaded properly</div>
       </q-card-section>
     </q-card>
 
@@ -406,20 +306,13 @@
           <q-list dense>
             <q-item>
               <q-item-section avatar>
-                <q-icon name="work" color="primary" />
+                <q-icon name="star" color="primary" />
               </q-item-section>
               <q-item-section>
-                <q-item-label caption class="text-12">Position</q-item-label>
-                <q-item-label class="text-12">{{ jobData?.Position }}</q-item-label>
-              </q-item-section>
-            </q-item>
-            <q-item>
-              <q-item-section avatar>
-                <q-icon name="business" color="primary" />
-              </q-item-section>
-              <q-item-section>
-                <q-item-label caption class="text-12">Office</q-item-label>
-                <q-item-label class="text-12">{{ jobData?.Office }}</q-item-label>
+                <q-item-label caption class="text-12">Salary Grade Range</q-item-label>
+                <q-item-label class="text-12">
+                  SG {{ salaryGradeData.sg_min }} - {{ salaryGradeData.sg_max }}
+                </q-item-label>
               </q-item-section>
             </q-item>
           </q-list>
@@ -482,18 +375,17 @@
   import { ref, computed, watch, nextTick } from 'vue';
   import { useQuasar } from 'quasar';
   import { useCriteriaStore } from 'stores/criteriaStore';
-  import { useJobPostStore } from 'stores/jobPostStore';
 
   /**
    * Create audit log entry
    */
   function logAudit(action, description, status = 'SUCCESS', details = {}) {
     const auditLog = {
-      timestamp: '2025-11-20 06:46:26',
+      timestamp: '2025-11-20 06:10:14',
       user: 'dsfsgs',
       action,
       description,
-      module: 'Criteria_Management',
+      module: 'Criteria_SG_Management',
       status,
       details: JSON.stringify(details),
     };
@@ -505,7 +397,9 @@
   // Props
   const props = defineProps({
     modelValue: { type: Boolean, required: true },
-    jobId: { type: [String, Number], default: null },
+    criteriaId: { type: [String, Number], default: null },
+    sgMin: { type: [String, Number], default: null },
+    sgMax: { type: [String, Number], default: null },
     mode: { type: String, default: 'create' },
     hasPermission: { type: Boolean, default: false },
   });
@@ -518,7 +412,6 @@
 
   // Store
   const criteriaStore = useCriteriaStore();
-  const jobPostStore = useJobPostStore();
 
   // ============================================================================
   // STATE
@@ -526,13 +419,14 @@
 
   const show = ref(props.modelValue);
   const confirmDialog = ref(false);
-  const showRatingTable = ref(false);
+  const showCriteriaForm = ref(false);
   const loading = ref(false);
-  const jobData = ref(null);
-  const qualifications = ref({});
+  const salaryGradeData = ref({
+    sg_min: '',
+    sg_max: '',
+  });
   const existingCriteria = ref(null);
   const isDataFetched = ref(false);
-  const suggestedCriteriaLoaded = ref(false);
 
   const baseCriteria = {
     education: {
@@ -591,6 +485,15 @@
     );
   });
 
+  const isFormValid = computed(() => {
+    return (
+      totalWeight.value === 100 &&
+      salaryGradeData.value.sg_min &&
+      salaryGradeData.value.sg_max &&
+      parseInt(salaryGradeData.value.sg_max) >= parseInt(salaryGradeData.value.sg_min)
+    );
+  });
+
   // ============================================================================
   // VALIDATION METHODS
   // ============================================================================
@@ -622,12 +525,8 @@
     () => props.modelValue,
     (val) => {
       show.value = val;
-      if (val && props.jobId && !isDataFetched.value) {
-        fetchJobData();
-        logAudit('MODAL_OPENED', `Opening ${props.mode} criteria modal`, 'SUCCESS', {
-          jobId: props.jobId,
-          mode: props.mode,
-        });
+      if (val && !isDataFetched.value) {
+        initializeModal();
       }
     },
   );
@@ -636,16 +535,16 @@
     emit('update:modelValue', val);
     if (!val) {
       isDataFetched.value = false;
-      suggestedCriteriaLoaded.value = false;
-      logAudit('MODAL_CLOSED', `Closed ${props.mode} criteria modal`);
+      resetForm();
+      logAudit('MODAL_CLOSED', `Closed ${props.mode} criteria SG modal`);
     }
   });
 
   watch(
-    () => [props.jobId],
-    ([newJobId]) => {
-      if (show.value && newJobId && !isDataFetched.value) {
-        fetchJobData();
+    () => [props.criteriaId, props.sgMin, props.sgMax],
+    () => {
+      if (show.value && !isDataFetched.value) {
+        initializeModal();
       }
     },
     { immediate: true },
@@ -656,86 +555,60 @@
   // ============================================================================
 
   /**
-   * Fetch job data by job ID
+   * Initialize modal based on mode
    */
-  async function fetchJobData() {
-    if (!props.jobId || isDataFetched.value) return;
-
+  async function initializeModal() {
     isDataFetched.value = true;
     loading.value = true;
-    showRatingTable.value = false;
+    showCriteriaForm.value = false;
 
     try {
-      logAudit('FETCH_START', 'Starting to fetch job data by ID', 'INFO', {
-        jobId: props.jobId,
+      logAudit('MODAL_OPENED', `Opening ${props.mode} criteria SG modal`, 'SUCCESS', {
+        criteriaId: props.criteriaId,
+        mode: props.mode,
       });
 
-      // Fetch job details by ID
-      const jobResponse = await jobPostStore.fetchJobDetails(props.jobId);
-
-      jobData.value = {
-        id: jobResponse.id,
-        Position: jobResponse.Position,
-        Office: jobResponse.Office,
-        Office2: jobResponse.Office2,
-        Group: jobResponse.Group,
-        Division: jobResponse.Division,
-        Section: jobResponse.Section,
-        Unit: jobResponse.Unit,
-        SalaryGrade: jobResponse.SalaryGrade || jobResponse.salary_grade,
-      };
-
-      // Set qualifications
-      if (jobResponse.criteria) {
-        qualifications.value = {
-          Education: jobResponse.criteria.Education,
-          Experience: jobResponse.criteria.Experience,
-          Training: jobResponse.criteria.Training,
-          Eligibility: jobResponse.criteria.Eligibility,
+      if (props.mode === 'create') {
+        // Create mode: Initialize with defaults
+        salaryGradeData.value = {
+          sg_min: props.sgMin || '',
+          sg_max: props.sgMax || '',
         };
-      } else {
-        qualifications.value = {};
-      }
-
-      logAudit('DATA_FETCHED', 'Successfully fetched job data', 'SUCCESS', {
-        jobId: props.jobId,
-        position: jobData.value?.Position,
-        office: jobData.value?.Office,
-        salaryGrade: jobData.value?.SalaryGrade,
-      });
-
-      // If in view or edit mode, fetch existing criteria
-      if (props.mode === 'view' || props.mode === 'edit') {
-        try {
-          const existingResponse = await criteriaStore.viewCriteria(jobData.value.id);
-          existingCriteria.value = existingResponse;
-          if (existingResponse) {
-            editableCriteria.value = convertApiCriteriaToModalFormat(existingResponse);
-            logAudit('EXISTING_CRITERIA_LOADED', 'Loaded existing criteria', 'SUCCESS', {
-              jobId: props.jobId,
-            });
-          }
-        } catch {
-          console.log('No existing criteria found, trying to load suggested criteria');
-          await loadSuggestedCriteria();
+        editableCriteria.value = JSON.parse(JSON.stringify(baseCriteria));
+        showCriteriaForm.value = true;
+      } else if (props.mode === 'view' || props.mode === 'edit') {
+        // View/Edit mode: Fetch existing criteria
+        if (!props.criteriaId) {
+          throw new Error('Criteria ID is required for view/edit mode');
         }
-      } else if (props.mode === 'create') {
-        // In create mode, try to load suggested criteria based on salary grade
-        await loadSuggestedCriteria();
-      }
 
-      showRatingTable.value = true;
+        const response = await criteriaStore.fetchCriteriaSGDetail(props.criteriaId);
+        existingCriteria.value = response;
+
+        salaryGradeData.value = {
+          sg_min: response.sg_min,
+          sg_max: response.sg_max,
+        };
+
+        editableCriteria.value = convertApiCriteriaToModalFormat(response);
+
+        logAudit('EXISTING_CRITERIA_LOADED', 'Loaded existing SG criteria', 'SUCCESS', {
+          criteriaId: props.criteriaId,
+        });
+
+        showCriteriaForm.value = true;
+      }
     } catch (error) {
-      console.error('Error fetching job data:', error);
-      logAudit('FETCH_ERROR', 'Failed to fetch job data', 'FAILED', {
-        jobId: props.jobId,
+      console.error('Error initializing modal:', error);
+      logAudit('INIT_ERROR', 'Failed to initialize modal', 'FAILED', {
+        criteriaId: props.criteriaId,
         error: error.message,
       });
       $q.notify({
         type: 'negative',
-        message: 'Failed to load job information',
+        message: error.message || 'Failed to load criteria information',
       });
-      showRatingTable.value = false;
+      showCriteriaForm.value = false;
       isDataFetched.value = false;
     } finally {
       loading.value = false;
@@ -743,54 +616,15 @@
   }
 
   /**
-   * Load suggested criteria based on salary grade
+   * Reset form to default state
    */
-  async function loadSuggestedCriteria() {
-    if (!jobData.value?.SalaryGrade || suggestedCriteriaLoaded.value) {
-      // If no salary grade or already loaded, use default criteria
-      editableCriteria.value = JSON.parse(JSON.stringify(baseCriteria));
-      return;
-    }
-
-    try {
-      logAudit('FETCH_SUGGESTED_START', 'Fetching suggested criteria by salary grade', 'INFO', {
-        salaryGrade: jobData.value.SalaryGrade,
-      });
-
-      const suggestedCriteria = await criteriaStore.fetchSuggestedCriteria(
-        jobData.value.SalaryGrade,
-      );
-
-      if (suggestedCriteria) {
-        // Convert and use suggested criteria
-        editableCriteria.value = convertApiCriteriaToModalFormat(suggestedCriteria);
-        suggestedCriteriaLoaded.value = true;
-
-        logAudit('SUGGESTED_CRITERIA_LOADED', 'Loaded suggested criteria', 'SUCCESS', {
-          salaryGrade: jobData.value.SalaryGrade,
-        });
-
-        $q.notify({
-          type: 'info',
-          message: `Loaded suggested criteria template for Salary Grade ${jobData.value.SalaryGrade}`,
-          position: 'top',
-          timeout: 3000,
-        });
-      } else {
-        // No suggested criteria found, use defaults
-        editableCriteria.value = JSON.parse(JSON.stringify(baseCriteria));
-        logAudit('NO_SUGGESTED_CRITERIA', 'No suggested criteria found, using defaults', 'INFO', {
-          salaryGrade: jobData.value.SalaryGrade,
-        });
-      }
-    } catch (error) {
-      console.log('Error loading suggested criteria, using defaults:', error);
-      editableCriteria.value = JSON.parse(JSON.stringify(baseCriteria));
-      logAudit('SUGGESTED_CRITERIA_ERROR', 'Error loading suggested criteria', 'WARNING', {
-        salaryGrade: jobData.value.SalaryGrade,
-        error: error.message,
-      });
-    }
+  function resetForm() {
+    salaryGradeData.value = {
+      sg_min: '',
+      sg_max: '',
+    };
+    editableCriteria.value = JSON.parse(JSON.stringify(baseCriteria));
+    existingCriteria.value = null;
   }
 
   function getModalTitle() {
@@ -813,15 +647,14 @@
     const criteriaKeys = ['education', 'experience', 'training', 'performance'];
 
     criteriaKeys.forEach((key) => {
-      let criteriaSection =
-        apiCriteria[key] || apiCriteria[key.charAt(0).toUpperCase() + key.slice(1)];
+      let criteriaSection = apiCriteria[key];
 
       if (criteriaSection && Array.isArray(criteriaSection) && criteriaSection.length > 0) {
         // Get the main weight from the first item
         const firstItem = criteriaSection[0];
         result[key].weight = parseInt(firstItem.weight || 0);
 
-        // Map all items to breakdownFields with their individual percentages
+        // Map all items to breakdownFields with their individual percentages and IDs
         result[key].breakdownFields = criteriaSection.map((item) => ({
           id: item.id,
           criteria_library_id: item.criteria_library_id,
@@ -832,14 +665,13 @@
     });
 
     // Handle BEI/Behavioral section
-    let beiSection =
-      apiCriteria.behavioral || apiCriteria.Behavioral || apiCriteria.bei || apiCriteria.BEI;
+    let beiSection = apiCriteria.behavioral;
 
     if (beiSection && Array.isArray(beiSection) && beiSection.length > 0) {
       const firstItem = beiSection[0];
       result.bei.weight = parseInt(firstItem.weight || 0);
 
-      // Map all items to breakdownFields with their individual percentages
+      // Map all items to breakdownFields with their individual percentages and IDs
       result.bei.breakdownFields = beiSection.map((item) => ({
         id: item.id,
         criteria_library_id: item.criteria_library_id,
@@ -854,45 +686,50 @@
   /**
    * Convert modal format to API format for saving
    */
-  function convertModalFormatToApiPayload(modalCriteria, jobId) {
+  function convertModalFormatToApiPayload(modalCriteria) {
     const payload = {
-      job_batches_rsp_id: jobId,
-      education: [],
-      experience: [],
-      training: [],
-      performance: [],
-      behavioral: [],
+      sg_min: String(salaryGradeData.value.sg_min),
+      sg_max: String(salaryGradeData.value.sg_max),
     };
 
-    // Helper to convert each section
-    const convertSection = (sectionKey, apiKey) => {
+    // If editing, include the ID
+    if (props.mode === 'edit' && props.criteriaId) {
+      payload.id = props.criteriaId;
+    }
+
+    // Helper to convert section to array of objects
+    const convertSection = (sectionKey) => {
       const section = modalCriteria[sectionKey];
+      const sectionWeight = String(section.weight);
 
       if (section.breakdownFields && section.breakdownFields.length > 0) {
-        // Map each breakdown field to an API item
-        payload[apiKey] = section.breakdownFields.map((field) => ({
-          weight: String(section.weight),
-          description: field.description,
+        return section.breakdownFields.map((field) => ({
+          weight: sectionWeight,
+          description: field.description || '',
           percentage: String(field.weight),
         }));
       } else {
-        // If no breakdown fields, create a single item
-        payload[apiKey] = [
+        // If no breakdown fields, return array with one item
+        return [
           {
-            weight: String(section.weight),
-            description: section.title || '',
-            percentage: String(section.weight),
+            weight: sectionWeight,
+            description: '',
+            percentage: sectionWeight,
           },
         ];
       }
     };
 
-    // Convert all sections
-    convertSection('education', 'education');
-    convertSection('experience', 'experience');
-    convertSection('training', 'training');
-    convertSection('performance', 'performance');
-    convertSection('bei', 'behavioral');
+    // Convert all sections to arrays of objects
+    payload.education = convertSection('education');
+    payload.experience = convertSection('experience');
+    payload.training = convertSection('training');
+    payload.performance = convertSection('performance');
+    payload.behavioral = convertSection('bei');
+
+    console.log('=== FINAL PAYLOAD ===');
+    console.log(JSON.stringify(payload, null, 2));
+    console.log('=== END PAYLOAD ===');
 
     return payload;
   }
@@ -904,7 +741,7 @@
     });
 
     logAudit('BREAKDOWN_ADDED', `Added new breakdown field to ${section}`, 'SUCCESS', {
-      jobId: props.jobId,
+      criteriaId: props.criteriaId,
       section,
     });
   }
@@ -914,7 +751,7 @@
     editableCriteria.value[section].breakdownFields.splice(idx, 1);
 
     logAudit('BREAKDOWN_REMOVED', `Removed breakdown field ${idx + 1} from ${section}`, 'SUCCESS', {
-      jobId: props.jobId,
+      criteriaId: props.criteriaId,
       section,
       removedWeight,
     });
@@ -928,7 +765,7 @@
     if (!canModify.value) {
       console.warn('User does not have permission to edit criteria');
       logAudit('PERMISSION_DENIED', 'Attempted to switch to edit without permission', 'WARNING', {
-        jobId: props.jobId,
+        criteriaId: props.criteriaId,
       });
       $q.notify({
         type: 'warning',
@@ -938,21 +775,17 @@
     }
 
     logAudit('SWITCH_TO_EDIT', 'Switching from view to edit mode', 'SUCCESS', {
-      jobId: props.jobId,
+      criteriaId: props.criteriaId,
     });
 
     closeModal();
     nextTick(() => {
-      emit('switch-to-edit', props.jobId);
+      emit('switch-to-edit');
     });
   }
 
   function confirmSave() {
     if (!canModify.value) {
-      console.warn('User does not have permission to save criteria');
-      logAudit('PERMISSION_DENIED', 'Attempted to save without permission', 'WARNING', {
-        jobId: props.jobId,
-      });
       $q.notify({
         type: 'warning',
         message: 'You do not have permission to save criteria',
@@ -960,14 +793,10 @@
       return;
     }
 
-    if (totalWeight.value !== 100) {
-      logAudit('VALIDATION_ERROR', 'Total weight not equal to 100%', 'WARNING', {
-        jobId: props.jobId,
-        totalWeight: totalWeight.value,
-      });
+    if (!isFormValid.value) {
       $q.notify({
         type: 'warning',
-        message: 'The total weight must equal 100% before saving.',
+        message: 'Please ensure all fields are valid and total weight equals 100%',
       });
       return;
     }
@@ -979,72 +808,55 @@
    * Save the criteria
    */
   async function saveRatings() {
-    if (!canModify.value) {
-      console.warn('User does not have permission to save criteria');
-      logAudit('PERMISSION_DENIED', 'Attempted to save without permission', 'WARNING', {
-        jobId: props.jobId,
-      });
-      $q.notify({
-        type: 'warning',
-        message: 'You do not have permission to save criteria',
-      });
-      return;
-    }
-
-    if (totalWeight.value !== 100) {
-      logAudit('VALIDATION_ERROR', 'Total weight not equal to 100%', 'WARNING', {
-        jobId: props.jobId,
-        totalWeight: totalWeight.value,
-      });
-      $q.notify({
-        type: 'warning',
-        message: 'The total weight must equal 100% before saving.',
-      });
+    if (!canModify.value || !isFormValid.value) {
       return;
     }
 
     try {
-      logAudit('SAVE_START', 'Starting to save criteria', 'INFO', {
-        jobId: props.jobId,
+      logAudit('SAVE_START', 'Starting to save SG criteria', 'INFO', {
+        criteriaId: props.criteriaId,
         mode: props.mode,
-        usedSuggestedCriteria: suggestedCriteriaLoaded.value,
       });
 
       // Convert modal format to API format
-      const payload = convertModalFormatToApiPayload(editableCriteria.value, jobData.value.id);
+      const payload = convertModalFormatToApiPayload(editableCriteria.value);
 
       console.log('Modal: Payload before sending:', JSON.stringify(payload, null, 2));
 
-      // Save using the store
-      const response = await criteriaStore.saveCriteria(payload);
+      let response;
+      if (props.mode === 'edit') {
+        // Update existing criteria
+        response = await criteriaStore.updateCriteriaSG(props.criteriaId, payload);
+      } else {
+        // Create new criteria
+        response = await criteriaStore.saveCriteriaSG(payload);
+      }
 
       console.log('Modal: Response from store:', response);
 
-      logAudit('SAVE_SUCCESS', 'Successfully saved criteria', 'SUCCESS', {
-        jobId: props.jobId,
-        criteriaId: response?.id,
-        usedSuggestedCriteria: suggestedCriteriaLoaded.value,
+      logAudit('SAVE_SUCCESS', 'Successfully saved SG criteria', 'SUCCESS', {
+        criteriaId: props.criteriaId,
+        responseId: response?.id,
       });
 
       $q.notify({
         type: 'positive',
-        message: 'Rating criteria saved successfully!',
+        message: 'Salary Grade Criteria saved successfully!',
         position: 'top',
       });
 
       emit('saved', response);
       closeModal();
     } catch (error) {
-      console.error('Modal: Error saving criteria:', error);
-      console.error('Modal: Error stack:', error.stack);
-      logAudit('SAVE_ERROR', 'Failed to save criteria', 'FAILED', {
-        jobId: props.jobId,
+      console.error('Modal: Error saving SG criteria:', error);
+      logAudit('SAVE_ERROR', 'Failed to save SG criteria', 'FAILED', {
+        criteriaId: props.criteriaId,
         error: error.message,
       });
 
       $q.notify({
         type: 'negative',
-        message: error.message || 'Failed to save rating criteria',
+        message: error.message || 'Failed to save salary grade criteria',
         position: 'top',
       });
     }

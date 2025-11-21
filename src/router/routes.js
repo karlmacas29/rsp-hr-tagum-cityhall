@@ -30,6 +30,13 @@ const routes = [
         component: () => import('pages/admin/ApplicantPage.vue'),
         meta: { auth: true, role: 'admin' },
       },
+
+      {
+        path: '/schedule',
+        name: 'Schedule List',
+        component: () => import('pages/admin/SchedulePage.vue'),
+        meta: { auth: true, role: 'admin' },
+      },
       {
         path: '/plantilla',
         name: 'Admin Plantilla',
@@ -170,7 +177,7 @@ const routes = [
         component: () => import('pages/rater/RatersHomepage.vue'),
       },
       {
-        path: 'criteria', // Changed from '/uCriteria' to relative path
+        path: '/uCriteria', // Changed from '/uCriteria' to relative path
         name: 'Raters Criteria',
         meta: { auth: true, role: 'rater' },
         component: () => import('pages/rater/RatersCriteria.vue'),

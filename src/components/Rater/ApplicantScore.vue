@@ -27,8 +27,14 @@
       <q-separator />
 
       <q-card-section class="main-content-section q-pa-none">
+        <!-- Loading State -->
+        <div v-if="dataLoading" class="text-center q-pa-xl">
+          <q-spinner-dots color="primary" size="50px" />
+          <div class="q-mt-md text-grey-7">Loading applicant scores...</div>
+        </div>
+
         <!-- Individual Rater Scores -->
-        <div v-if="raterScores.length > 0" class="q-mb-lg q-pa-md">
+        <div v-else-if="raterScores.length > 0" class="q-mb-lg q-pa-md">
           <div class="section-title">Individual Rater Scores</div>
           <q-card flat class="modern-table-card">
             <q-table
@@ -99,7 +105,7 @@
         </div>
 
         <!-- Final/Average Scores -->
-        <div v-if="finalScores" class="q-pa-md">
+        <div v-if="!dataLoading && finalScores" class="q-pa-md">
           <div class="section-title">Final Averaged Scores</div>
           <q-card flat class="modern-table-card">
             <q-table
@@ -159,7 +165,7 @@
 
         <!-- No data message -->
         <div
-          v-if="raterScores.length === 0 && !finalScores"
+          v-if="!dataLoading && raterScores.length === 0 && !finalScores"
           class="text-center q-pa-md text-grey-6"
         >
           <q-icon name="info" size="2em" />
@@ -363,6 +369,7 @@
       const showControlNo = ref(false);
       const hiringLoading = ref(false);
       const hireConfirmationDialog = ref(false);
+      const dataLoading = ref(false);
 
       const jobPostStore = useJobPostStore();
       const authStore = useAuthStore();
@@ -517,6 +524,7 @@
         showControlNo.value = false;
         hiringLoading.value = false;
         hireConfirmationDialog.value = false;
+        dataLoading.value = false;
         emit('close');
       };
 
@@ -528,9 +536,9 @@
       };
 
       const formatScore = (score) => {
-        if (score === null || score === undefined || score === '') return '0.00';
+        if (score === null || score === undefined || score === '') return '-';
         const num = parseFloat(score);
-        return isNaN(num) ? '0.00' : num.toFixed(2);
+        return isNaN(num) ? '-' : num.toFixed(2);
       };
 
       const showHireConfirmation = () => {
@@ -599,31 +607,15 @@
         showHireConfirmation();
       };
 
-      const loadScoreData = () => {
+      const loadScoreData = async () => {
         console.log('Loading score data for applicant:', props.applicant);
 
-        if (!props.applicant) {
-          console.warn('No applicant data available');
+        if (!props.applicant || !props.applicant.nPersonalInfo_id) {
+          console.warn('No applicant data or ID available');
           return;
         }
 
-        // Set image URL
-        applicantImageUrl.value = props.applicant.image_url || 'https://placehold.co/100';
-
-        // Load individual rater scores from history
-        if (props.applicant.history && Array.isArray(props.applicant.history)) {
-          raterScores.value = props.applicant.history.map((score, index) => ({
-            ...score,
-            // Ensure we have a unique ID for each row
-            id: score.id || `rater-${index}`,
-          }));
-          console.log('Loaded rater scores:', raterScores.value);
-        } else {
-          console.log('No history data found in applicant:', props.applicant);
-          raterScores.value = [];
-        }
-
-        // Set final scores (the averaged scores from the main applicant data)
+        // Set final scores from props immediately (already averaged)
         finalScores.value = {
           education: props.applicant.education,
           experience: props.applicant.experience,
@@ -636,8 +628,49 @@
           nPersonalInfo_id: props.applicant.nPersonalInfo_id,
         };
 
-        console.log('Final scores set:', finalScores.value);
-        console.log('Rater scores set:', raterScores.value);
+        // Set image URL from props
+        applicantImageUrl.value = props.applicant.image_url || 'https://placehold.co/100';
+
+        try {
+          dataLoading.value = true;
+
+          // Fetch individual rater scores from API
+          const scoreData = await jobPostStore.fetchApplicantScoreDetails(
+            props.applicant.nPersonalInfo_id,
+          );
+
+          console.log('Fetched individual rater scores from API:', scoreData);
+
+          // Load individual rater scores from API response
+          if (scoreData && Array.isArray(scoreData)) {
+            raterScores.value = scoreData.map((score, index) => ({
+              ...score,
+              // Ensure we have a unique ID for each row
+              id: score.id || `rater-${index}`,
+            }));
+            console.log('Loaded rater scores:', raterScores.value);
+          } else if (scoreData && scoreData.history && Array.isArray(scoreData.history)) {
+            // Fallback if data is wrapped in history property
+            raterScores.value = scoreData.history.map((score, index) => ({
+              ...score,
+              id: score.id || `rater-${index}`,
+            }));
+          } else {
+            console.log('No rater score data found in API response');
+            raterScores.value = [];
+          }
+
+          console.log('Final scores set from props:', finalScores.value);
+          console.log('Rater scores set from API:', raterScores.value);
+        } catch (error) {
+          console.error('Error fetching individual rater scores:', error);
+          toast.error('Failed to load individual rater scores');
+
+          // Set empty rater scores on error
+          raterScores.value = [];
+        } finally {
+          dataLoading.value = false;
+        }
       };
 
       // NOW DEFINE WATCHERS AFTER ALL FUNCTIONS ARE DECLARED
@@ -694,6 +727,7 @@
         showHireConfirmation,
         confirmHireApplicant,
         canModifyJobPost,
+        dataLoading,
       };
     },
   };

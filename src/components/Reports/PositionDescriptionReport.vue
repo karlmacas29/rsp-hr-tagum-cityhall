@@ -51,52 +51,104 @@
               <!-- First Group: Province, City, Municipality -->
               <div class="checkbox-group">
                 <div class="checkbox-item">
-                  <input type="checkbox" id="province" class="custom-checkbox" />
-                  <label for="province">Province</label>
+                  <input
+                    type="checkbox"
+                    :id="`province-${componentId}`"
+                    :name="`government-unit-${componentId}`"
+                    class="custom-checkbox"
+                  />
+                  <label :for="`province-${componentId}`">Province</label>
                 </div>
                 <div class="checkbox-item">
-                  <input type="checkbox" id="city" class="custom-checkbox" checked />
-                  <label for="city">City</label>
+                  <input
+                    type="checkbox"
+                    :id="`city-${componentId}`"
+                    :name="`government-unit-${componentId}`"
+                    class="custom-checkbox"
+                    checked
+                  />
+                  <label :for="`city-${componentId}`">City</label>
                 </div>
                 <div class="checkbox-item">
-                  <input type="checkbox" id="municipality" class="custom-checkbox" />
-                  <label for="municipality">Municipality</label>
+                  <input
+                    type="checkbox"
+                    :id="`municipality-${componentId}`"
+                    :name="`government-unit-${componentId}`"
+                    class="custom-checkbox"
+                  />
+                  <label :for="`municipality-${componentId}`">Municipality</label>
                 </div>
               </div>
 
               <!-- Second Group: 1st Class, 2nd Class, 3rd Class, 4th Class -->
               <div class="checkbox-group">
                 <div class="checkbox-item">
-                  <input type="checkbox" id="1st-class" class="custom-checkbox" checked />
-                  <label for="1st-class">1st Class</label>
+                  <input
+                    type="checkbox"
+                    :id="`1st-class-${componentId}`"
+                    :name="`government-class-${componentId}`"
+                    class="custom-checkbox"
+                    checked
+                  />
+                  <label :for="`1st-class-${componentId}`">1st Class</label>
                 </div>
                 <div class="checkbox-item">
-                  <input type="checkbox" id="2nd-class" class="custom-checkbox" />
-                  <label for="2nd-class">2nd Class</label>
+                  <input
+                    type="checkbox"
+                    :id="`2nd-class-${componentId}`"
+                    :name="`government-class-${componentId}`"
+                    class="custom-checkbox"
+                  />
+                  <label :for="`2nd-class-${componentId}`">2nd Class</label>
                 </div>
                 <div class="checkbox-item">
-                  <input type="checkbox" id="3rd-class" class="custom-checkbox" />
-                  <label for="3rd-class">3rd Class</label>
+                  <input
+                    type="checkbox"
+                    :id="`3rd-class-${componentId}`"
+                    :name="`government-class-${componentId}`"
+                    class="custom-checkbox"
+                  />
+                  <label :for="`3rd-class-${componentId}`">3rd Class</label>
                 </div>
                 <div class="checkbox-item">
-                  <input type="checkbox" id="4th-class" class="custom-checkbox" />
-                  <label for="4th-class">4th Class</label>
+                  <input
+                    type="checkbox"
+                    :id="`4th-class-${componentId}`"
+                    :name="`government-class-${componentId}`"
+                    class="custom-checkbox"
+                  />
+                  <label :for="`4th-class-${componentId}`">4th Class</label>
                 </div>
               </div>
 
               <!-- Third Group: 5th Class, 6th Class, Special -->
               <div class="checkbox-group">
                 <div class="checkbox-item">
-                  <input type="checkbox" id="5th-class" class="custom-checkbox" />
-                  <label for="5th-class">5th Class</label>
+                  <input
+                    type="checkbox"
+                    :id="`5th-class-${componentId}`"
+                    :name="`government-class-${componentId}`"
+                    class="custom-checkbox"
+                  />
+                  <label :for="`5th-class-${componentId}`">5th Class</label>
                 </div>
                 <div class="checkbox-item">
-                  <input type="checkbox" id="6th-class" class="custom-checkbox" />
-                  <label for="6th-class">6th Class</label>
+                  <input
+                    type="checkbox"
+                    :id="`6th-class-${componentId}`"
+                    :name="`government-class-${componentId}`"
+                    class="custom-checkbox"
+                  />
+                  <label :for="`6th-class-${componentId}`">6th Class</label>
                 </div>
                 <div class="checkbox-item">
-                  <input type="checkbox" id="special" class="custom-checkbox" />
-                  <label for="special">Special</label>
+                  <input
+                    type="checkbox"
+                    :id="`special-${componentId}`"
+                    :name="`government-class-${componentId}`"
+                    class="custom-checkbox"
+                  />
+                  <label :for="`special-${componentId}`">Special</label>
                 </div>
               </div>
             </div>
@@ -119,7 +171,7 @@
           <td colspan="3" class="section-header">8. WORKSTATION / PLACE OF WORK</td>
         </tr>
         <tr>
-          <td colspan="3" class="data-cell">RESEARCH AND MANAGEMENT INFORMATION SYSTEM DIVISION</td>
+          <td colspan="3" class="data-cell">{{ data.Division }}</td>
           <td colspan="3" class="data-cell">
             CITY HALL GOVERNMENT CENTER, JV AYALA AVENUE, APOKON, TAGUM CITY
           </td>
@@ -185,8 +237,7 @@
           </td>
         </tr>
 
-        <!-- Contacts/Clients - MODIFIED SECTION -->
-        <!-- Contacts/Clients - FIXED SECTION -->
+        <!-- Contacts/Clients -->
         <tr>
           <td colspan="6" class="section-header">17. CONTACTS / CLIENTS / STAKEHOLDERS</td>
         </tr>
@@ -204,7 +255,8 @@
             <div class="checkbox-wrapper">
               <input
                 type="checkbox"
-                id="cb1"
+                :id="`cb1-${componentId}`"
+                :name="`contact1-occasional-${componentId}`"
                 class="custom-checkbox"
                 :checked="data.Contact1 === '1'"
               />
@@ -214,7 +266,8 @@
             <div class="checkbox-wrapper">
               <input
                 type="checkbox"
-                id="cb2"
+                :id="`cb2-${componentId}`"
+                :name="`contact1-frequent-${componentId}`"
                 class="custom-checkbox"
                 :checked="data.Contact1 === '2'"
               />
@@ -225,7 +278,8 @@
             <div class="checkbox-wrapper">
               <input
                 type="checkbox"
-                id="cb3"
+                :id="`cb3-${componentId}`"
+                :name="`contact5-occasional-${componentId}`"
                 class="custom-checkbox"
                 :checked="data.Contact5 === '1'"
               />
@@ -235,7 +289,8 @@
             <div class="checkbox-wrapper">
               <input
                 type="checkbox"
-                id="cb4"
+                :id="`cb4-${componentId}`"
+                :name="`contact5-frequent-${componentId}`"
                 class="custom-checkbox"
                 :checked="data.Contact5 === '2'"
               />
@@ -248,7 +303,8 @@
             <div class="checkbox-wrapper">
               <input
                 type="checkbox"
-                id="cb5"
+                :id="`cb5-${componentId}`"
+                :name="`contact2-occasional-${componentId}`"
                 class="custom-checkbox"
                 :checked="data.Contact2 === '1'"
               />
@@ -258,7 +314,8 @@
             <div class="checkbox-wrapper">
               <input
                 type="checkbox"
-                id="cb6"
+                :id="`cb6-${componentId}`"
+                :name="`contact2-frequent-${componentId}`"
                 class="custom-checkbox"
                 :checked="data.Contact2 === '2'"
               />
@@ -269,7 +326,8 @@
             <div class="checkbox-wrapper">
               <input
                 type="checkbox"
-                id="cb7"
+                :id="`cb7-${componentId}`"
+                :name="`contact6-occasional-${componentId}`"
                 class="custom-checkbox"
                 :checked="data.Contact6 === '1'"
               />
@@ -279,7 +337,8 @@
             <div class="checkbox-wrapper">
               <input
                 type="checkbox"
-                id="cb8"
+                :id="`cb8-${componentId}`"
+                :name="`contact6-frequent-${componentId}`"
                 class="custom-checkbox"
                 :checked="data.Contact6 === '2'"
               />
@@ -292,7 +351,8 @@
             <div class="checkbox-wrapper">
               <input
                 type="checkbox"
-                id="cb9"
+                :id="`cb9-${componentId}`"
+                :name="`contact3-occasional-${componentId}`"
                 class="custom-checkbox"
                 :checked="data.Contact3 === '1'"
               />
@@ -302,7 +362,8 @@
             <div class="checkbox-wrapper">
               <input
                 type="checkbox"
-                id="cb10"
+                :id="`cb10-${componentId}`"
+                :name="`contact3-frequent-${componentId}`"
                 class="custom-checkbox"
                 :checked="data.Contact3 === '2'"
               />
@@ -319,7 +380,8 @@
             <div class="checkbox-wrapper">
               <input
                 type="checkbox"
-                id="cb13"
+                :id="`cb13-${componentId}`"
+                :name="`contact4-occasional-${componentId}`"
                 class="custom-checkbox"
                 :checked="data.Contact4 === '1'"
               />
@@ -329,7 +391,8 @@
             <div class="checkbox-wrapper">
               <input
                 type="checkbox"
-                id="cb14"
+                :id="`cb14-${componentId}`"
+                :name="`contact4-frequent-${componentId}`"
                 class="custom-checkbox"
                 :checked="data.Contact4 === '2'"
               />
@@ -348,7 +411,8 @@
             <div class="checkbox-wrapper">
               <input
                 type="checkbox"
-                id="cb15"
+                :id="`cb15-${componentId}`"
+                :name="`working1-occasional-${componentId}`"
                 class="custom-checkbox"
                 :checked="data.Working1 === '1'"
               />
@@ -358,7 +422,8 @@
             <div class="checkbox-wrapper">
               <input
                 type="checkbox"
-                id="cb16"
+                :id="`cb16-${componentId}`"
+                :name="`working1-frequent-${componentId}`"
                 class="custom-checkbox"
                 :checked="data.Working1 === '2'"
               />
@@ -373,7 +438,8 @@
             <div class="checkbox-wrapper">
               <input
                 type="checkbox"
-                id="cb17"
+                :id="`cb17-${componentId}`"
+                :name="`working2-occasional-${componentId}`"
                 class="custom-checkbox"
                 :checked="data.Working2 === '1'"
               />
@@ -383,7 +449,8 @@
             <div class="checkbox-wrapper">
               <input
                 type="checkbox"
-                id="cb18"
+                :id="`cb18-${componentId}`"
+                :name="`working2-frequent-${componentId}`"
                 class="custom-checkbox"
                 :checked="data.Working2 === '2'"
               />
@@ -391,7 +458,15 @@
           </td>
           <td colspan="3"></td>
         </tr>
+      </tbody>
+    </table>
 
+    <!-- Page Break -->
+    <div class="page-break"></div>
+
+    <!-- Second Page -->
+    <table class="main-table">
+      <tbody>
         <!-- Brief Description -->
         <tr>
           <td colspan="6" class="section-header">
@@ -406,15 +481,6 @@
             }}
           </td>
         </tr>
-      </tbody>
-    </table>
-
-    <!-- Page Break -->
-    <div class="page-break"></div>
-
-    <!-- Second Page -->
-    <table class="main-table">
-      <tbody>
         <!-- Job Summary -->
         <tr>
           <td colspan="6" class="section-header">
@@ -422,8 +488,8 @@
           </td>
         </tr>
         <tr>
-          <td colspan="6" class="data-cell description-cell large-cell">
-            {{ data.DescriptionFunction }}
+          <td colspan="6" class="data-cell description-cell large-cell formatted-content">
+            <div v-html="formattedDescriptionFunction"></div>
           </td>
         </tr>
 
@@ -506,8 +572,8 @@
           <td colspan="3" class="signature-cell">
             <div class="signature-line">
               <div class="signature">
-                {{ data.Name4 || 'JOGRAD M. MAHUSAY' }} &nbsp;&nbsp;&nbsp;
-                {{ data.FromDate || '08/02/2024' }}
+                {{ data.Name4 || 'JOGRAD M. MAHUSAY' }} &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+                &nbsp;&nbsp;&nbsp;&nbsp;
               </div>
               <div class="signature-label">Employee's Name, Date and Signature</div>
             </div>
@@ -515,7 +581,7 @@
           <td colspan="3" class="signature-cell">
             <div class="signature-line">
               <div class="signature">
-                {{ data.Supervisor }} &nbsp;&nbsp;&nbsp; {{ data.ToDate || '08/01/2024' }}
+                {{ data.Supervisor }} &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;
               </div>
               <div class="signature-label">Supervisor's Name, Date and Signature</div>
             </div>
@@ -527,16 +593,50 @@
 </template>
 
 <script setup>
-  defineProps({
+  import { computed } from 'vue';
+
+  const props = defineProps({
     data: {
       type: Object,
       default: () => ({}),
     },
   });
+
+  // Generate a unique component ID to avoid duplicate IDs
+  const componentId = computed(() => {
+    return `comp-${Math.random().toString(36).substr(2, 9)}`;
+  });
+
+  // Format the description function to handle numbered lists
+  const formattedDescriptionFunction = computed(() => {
+    if (!props.data.DescriptionFunction) return '';
+
+    let text = props.data.DescriptionFunction;
+
+    // Pattern 1: Match numbered items like "1.", "2.", "3." etc.
+    // Replace with line break before the number
+    text = text.replace(/(\d+\.)\s*/g, '<br/>$1 ');
+
+    // Pattern 2: Match numbered items with closing parenthesis like "1)", "2)", "3)" etc.
+    text = text.replace(/(\d+\))\s*/g, '<br/>$1 ');
+
+    // Pattern 4: Match lettered items with closing parenthesis like "a)", "b)", "c)" etc.
+    text = text.replace(/([a-z]\))\s*/g, '<br/>$1 ');
+
+    // Pattern 5: Match roman numerals like "i.", "ii.", "iii." etc.
+    text = text.replace(/((?:i|ii|iii|iv|v|vi|vii|viii|ix|x)\.)\s*/gi, '<br/>$1 ');
+
+    // Remove the first <br/> if text starts with it
+    text = text.replace(/^<br\/>/, '');
+
+    // Replace multiple consecutive <br/> with just one
+    text = text.replace(/(<br\/>){2,}/g, '<br/>');
+
+    return text;
+  });
 </script>
 
 <style scoped>
-  /* ... (keep all your existing styles) ... */
   .position-description-container {
     width: 8.5in;
     margin: 0 auto;
@@ -579,7 +679,7 @@
   }
 
   .qualifications-table td {
-    width: 25%; /* Equal width for all 4 columns */
+    width: 25%;
     border: 1px solid #000;
     padding: 6px;
   }
@@ -658,6 +758,18 @@
   .large-cell {
     min-height: 400px;
     height: 400px;
+  }
+
+  /* Formatted content for numbered lists */
+  .formatted-content {
+    text-align: justify;
+    line-height: 1.6;
+  }
+
+  .formatted-content br {
+    display: block;
+    content: '';
+    margin: 0.5em 0;
   }
 
   tr:has(td:nth-child(1):empty) {
@@ -748,7 +860,7 @@
   .small-text {
     font-style: italic;
     font-size: 8pt;
-    font-weight: normal; /* Already normal */
+    font-weight: normal;
     text-align: center;
   }
 

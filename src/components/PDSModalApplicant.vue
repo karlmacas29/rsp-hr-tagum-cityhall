@@ -6,7 +6,7 @@
         <div class="text-h5 text-bold items-center flex">
           Personal Data Sheet (PDS)
 
-          <q-badge class="bg-blue">View PDS</q-badge>
+          <q-badge class="bg-blue q-ml-sm">View PDS</q-badge>
         </div>
         <q-btn icon="close" flat round dense class="close-btn" @click="closeModal" />
       </q-card-section>
@@ -21,9 +21,9 @@
                 <q-item
                   v-for="tab in tabs"
                   :key="tab.name"
-                  :clickable="!jobStore.loading"
+                  :clickable="!isLoadingPDS"
                   :active="currentTab === tab.name"
-                  @click="!jobStore.loading && (currentTab = tab.name)"
+                  @click="!isLoadingPDS && (currentTab = tab.name)"
                   active-class="active-tab"
                   class="tab-item q-py-sm"
                   style="border-radius: 5px"
@@ -43,23 +43,28 @@
           <!-- Right Side - Content Area -->
           <q-card class="col" style="overflow: hidden">
             <q-scroll-area style="height: 100%">
+              <!-- Loading State -->
               <div
-                v-if="jobStore.loading"
+                v-if="isLoadingPDS"
                 style="height: 70vh"
                 class="column items-center justify-center"
               >
                 <q-spinner-dots size="40px" color="primary" />
                 <div class="q-mt-sm text-grey">Loading PDS...</div>
               </div>
-              <!-- <div
-                v-else-if="jobStore.error"
+
+              <!-- Error State -->
+              <div
+                v-else-if="loadError"
                 style="height: 70vh"
                 class="column items-center justify-center"
               >
                 <q-icon name="error" color="negative" size="40px" />
                 <div class="q-mt-sm text-negative">Failed to load PDS data.</div>
-                <q-btn color="primary" class="q-mt-md" label="Retry" @click="fetchApplicantData" />
-              </div> -->
+                <q-btn color="primary" class="q-mt-md" label="Retry" @click="fetchPDSData" />
+              </div>
+
+              <!-- Content -->
               <div v-else>
                 <!-- Personal Information -->
                 <div v-if="currentTab === 'personal'" class="q-pa-md">
@@ -123,7 +128,7 @@
 </template>
 
 <script setup>
-  import { ref, watch, computed } from 'vue';
+  import { ref, watch, computed, onMounted } from 'vue';
   import { useJobPostStore } from 'stores/jobPostStore.js';
 
   import Personal_Information from './Applicant_pds/Personal_Information.vue';
@@ -147,6 +152,7 @@
       type: Object,
       default: () => ({
         nPersonalInfo_id: '',
+        submission_id: null,
         controlno: null,
         id: null,
         name: '',
@@ -161,13 +167,26 @@
 
   const localShowModal = ref(props.modelValue);
   const currentTab = ref('personal');
+  const isLoadingPDS = ref(false);
+  const loadError = ref(false);
 
   const applicantData = computed(() => {
+    if (jobStore.applicantPDS && Object.keys(jobStore.applicantPDS).length > 0) {
+      console.log('Using PDS data from store');
+      return jobStore.applicantPDS;
+    }
+
     let arr = jobStore.applicants || jobStore.applicant || [];
     if (arr.length && props.applicant && props.applicant.id) {
-      return arr.find((a) => a.id === props.applicant.id) || {};
+      const found = arr.find((a) => a.id === props.applicant.id);
+      if (found) {
+        console.log('Using data from applicants array');
+        return found;
+      }
     }
-    return {};
+
+    console.log('Using data from props');
+    return props.applicant || {};
   });
 
   const tabs = ref([
@@ -185,10 +204,39 @@
     { name: 'references', label: 'References' },
   ]);
 
+  const fetchPDSData = async () => {
+    const submissionId = props.applicant?.submission_id || props.applicant?.id;
+
+    if (!submissionId) {
+      console.warn('No submission_id or id provided');
+      loadError.value = false;
+      return;
+    }
+
+    isLoadingPDS.value = true;
+    loadError.value = false;
+
+    try {
+      console.log('Fetching PDS for submission_id:', submissionId);
+      await jobStore.fetchApplicantPDS(submissionId);
+      console.log('PDS data loaded successfully:', jobStore.applicantPDS);
+    } catch (error) {
+      console.error('Error fetching PDS data:', error);
+      loadError.value = true;
+    } finally {
+      isLoadingPDS.value = false;
+    }
+  };
+
   watch(
     () => localShowModal.value,
     (val) => {
       emit('update:modelValue', val);
+
+      if (val) {
+        currentTab.value = 'personal';
+        fetchPDSData();
+      }
     },
   );
 
@@ -202,16 +250,20 @@
   const closeModal = () => {
     emit('update:modelValue', false);
     emit('close');
+
+    setTimeout(() => {
+      jobStore.applicantPDS = null;
+      loadError.value = false;
+    }, 300);
   };
 
   const isTabCompleted = (tabName) => {
-    // Logic to determine if a tab is completed based on applicant data
     if (!applicantData.value) return false;
     switch (tabName) {
       case 'personal':
         return !!applicantData.value.firstname;
       case 'family':
-        return !!applicantData.value.family && applicantData.value.family.length > 0;
+        return applicantData.value.family && applicantData.value.family.length > 0;
       case 'education':
         return applicantData.value.education && applicantData.value.education.length > 0;
       case 'civilService':
@@ -221,23 +273,29 @@
           applicantData.value.work_experience && applicantData.value.work_experience.length > 0
         );
       case 'voluntary':
-        return true; // Optional section
+        return applicantData.value.voluntary_work && applicantData.value.voluntary_work.length > 0;
       case 'training':
         return applicantData.value.training && applicantData.value.training.length > 0;
       case 'skills':
         return applicantData.value.skills && applicantData.value.skills.length > 0;
       case 'nonAcademic':
-        return true; // Optional section
+        return true;
       case 'membership':
-        return true; // Optional section
+        return true;
       case 'other':
-        return true; // Optional section
+        return true;
       case 'references':
-        return true; // Optional section
+        return applicantData.value.reference && applicantData.value.reference.length > 0;
       default:
         return false;
     }
   };
+
+  onMounted(() => {
+    if (props.modelValue) {
+      fetchPDSData();
+    }
+  });
 </script>
 
 <style lang="scss" scoped>

@@ -10,18 +10,11 @@
     </div>
   </div>
   <div class="green-banner">
-    <div class="office-text">{{ officeName || '' }}</div>
+    <div class="office-text"></div>
   </div>
 </template>
 
-<script setup>
-  defineProps({
-    officeName: {
-      type: String,
-      required: true,
-    },
-  });
-</script>
+<script setup></script>
 
 <style scoped>
   .header-wrapper {

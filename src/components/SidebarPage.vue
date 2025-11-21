@@ -147,6 +147,7 @@
         ? [{ label: 'Job Posts', route: '/job-post', icon: 'post_add' }]
         : []),
       { label: 'Applicant', route: '/applicant', icon: 'group' },
+      { label: 'Schedule', route: '/schedule', icon: 'event' },
       ...(hasUserManagementAccess.value
         ? [{ label: 'User Management', route: '/user-access', icon: 'manage_accounts' }]
         : []),

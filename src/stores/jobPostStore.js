@@ -10,6 +10,7 @@ export const useJobPostStore = defineStore('jobPost', {
     jobPostsrater: [],
     applicantScores: null,
     previousApplicants: [],
+    applicantPDS: null,
     loading: false,
     error: null,
     previousApplicantsLoading: false,
@@ -159,6 +160,8 @@ export const useJobPostStore = defineStore('jobPost', {
         const response = await adminApi.post(
           `/job-batches-rsp/applicant/evaluation/${evaluationData.id}`,
           {
+            id: evaluationData.id,
+            submission_id: evaluationData.id,
             status: evaluationData.status,
             education_remark: evaluationData.education_remark,
             experience_remark: evaluationData.experience_remark,
@@ -266,6 +269,22 @@ export const useJobPostStore = defineStore('jobPost', {
       }
     },
 
+    async fetchApplicantScoreDetails(id) {
+      try {
+        this.loading = true;
+        const { data } = await adminApi.get(`/applicant/score/${id}`);
+        this.jobPosts = data;
+        this.error = null;
+        return data;
+      } catch (err) {
+        this.error = err;
+        this.jobPosts = null;
+        throw err;
+      } finally {
+        this.loading = false;
+      }
+    },
+
     async updateJobStatus(id, payload) {
       this.loading = true;
       try {
@@ -313,6 +332,22 @@ export const useJobPostStore = defineStore('jobPost', {
         this.error = null;
       } catch (err) {
         this.error = err;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async fetchApplicantPDS(id) {
+      this.loading = true;
+      try {
+        const { data } = await adminApi.get(`/applicant/${id}`);
+        this.applicantPDS = data; // Store in separate property
+        this.error = null;
+        return data;
+      } catch (err) {
+        this.error = err;
+        console.error('Error fetching applicant PDS:', err);
+        throw err;
       } finally {
         this.loading = false;
       }
@@ -488,6 +523,21 @@ export const useJobPostStore = defineStore('jobPost', {
       try {
         this.loading = true;
         const response = await adminApi.post(`/hire/${id}`, payload, {
+          validateStatus: (status) => status < 500,
+        });
+        return response;
+      } catch (err) {
+        console.error('Error hiring applicant:', err.message || err);
+        return { data: { success: false, message: 'An error occurred' } };
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async sendFinalEval(payload) {
+      try {
+        this.loading = true;
+        const response = await adminApi.post(`/email/send/status`, payload, {
           validateStatus: (status) => status < 500,
         });
         return response;

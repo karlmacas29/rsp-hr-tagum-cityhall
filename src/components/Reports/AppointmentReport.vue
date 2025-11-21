@@ -162,7 +162,7 @@
             <div class="signature-title">{{ signatoryTitle }}</div>
             <br />
             <div class="signing-date-container">
-              <strong class="signing-date">{{ formattedSigningDate || 'August 1, 2024' }}</strong>
+              <strong class="signing-date">{{ formattedSigningDate || '' }}</strong>
             </div>
             <div class="signing-label">Date of Signing</div>
           </div>
@@ -437,26 +437,36 @@
   });
 
   const publishStartDate = computed(() => {
-    return isCoterminousOrElective.value ? 'N/A' : 'November 22, 2024';
+    return isCoterminousOrElective.value ? 'N/A' : formatDate(props.data.post_date);
   });
 
   const publishEndDate = computed(() => {
-    return isCoterminousOrElective.value ? 'N/A' : 'December 7, 2024';
+    return isCoterminousOrElective.value ? 'N/A' : formatDate(props.data.end_date);
   });
 
   const postStartDate = computed(() => {
-    return isCoterminousOrElective.value ? 'N/A' : 'November 22, 2024';
+    return isCoterminousOrElective.value ? 'N/A' : formatDate(props.data.post_date);
   });
 
   const postEndDate = computed(() => {
-    return isCoterminousOrElective.value ? 'N/A' : 'December 7, 2024';
+    return isCoterminousOrElective.value ? 'N/A' : formatDate(props.data.end_date);
   });
 
   const assessmentDate = computed(() => {
-    return isCoterminousOrElective.value ? 'N/A' : 'December 13, 2024';
+    return isCoterminousOrElective.value ? 'N/A' : formatDate(props.data.end_date);
   });
 
   // Utility Functions
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  };
+
   const formatSalaryWords = (amount) => {
     if (!amount) return '';
 
@@ -564,16 +574,6 @@
       : '';
   };
 
-  const formatDate = (dateStr) => {
-    if (!dateStr) return '';
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-  };
-
   // Computed Properties
   const formattedSigningDate = computed(() => formatDate(props.data.signingDate));
 
@@ -581,6 +581,7 @@
 </script>
 
 <style scoped>
+  /* ... (all your existing styles remain the same) ... */
   /* Global Styles */
   .appointment-form-container {
     display: flex;

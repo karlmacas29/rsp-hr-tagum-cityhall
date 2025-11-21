@@ -212,6 +212,25 @@
                         <q-tooltip>Create Job Post</q-tooltip>
                       </q-btn>
 
+                      <!-- Add Employee button - show only if Funded==1, Name1 is empty, and user has permission -->
+                      <q-btn
+                        v-if="
+                          canModifyPlantilla &&
+                          props.row.Funded == '1' &&
+                          !props.row.Name1 &&
+                          !hasJobPost(props.row)
+                        "
+                        flat
+                        dense
+                        round
+                        color="purple"
+                        class="bg-purple-1"
+                        icon="person_add"
+                        @click="openAddEmployeeModal(props.row)"
+                      >
+                        <q-tooltip>Add Employee</q-tooltip>
+                      </q-btn>
+
                       <!-- Show view job post icon if job post exists -->
                       <q-btn
                         v-if="hasJobPost(props.row)"
@@ -251,7 +270,20 @@
                         icon="print"
                         @click="printPosition(props.row)"
                       >
-                        <q-tooltip>Print PDS</q-tooltip>
+                        <q-tooltip>Print Reports</q-tooltip>
+                      </q-btn>
+
+                      <q-btn
+                        v-if="canModifyPlantilla && props.row.Name1"
+                        flat
+                        dense
+                        round
+                        color="orange"
+                        class="bg-orange-1"
+                        icon="edit"
+                        @click="editPosition(props.row)"
+                      >
+                        <q-tooltip>Edit Reports</q-tooltip>
                       </q-btn>
                     </q-td>
                   </template>
@@ -299,9 +331,28 @@
       </div>
     </div>
 
+    <!-- Add Employee Modal -->
+    <q-dialog v-model="showAddEmployeeModal" backdrop-opacity="0.7">
+      <AddEmployeeModal
+        v-model:show="showAddEmployeeModal"
+        :position-data="selectedPositionForEmployee"
+        @employee-added="handleEmployeeAdded"
+        @close="showAddEmployeeModal = false"
+      />
+    </q-dialog>
+
     <!-- Reports Modal -->
     <q-dialog v-model="showReportModal" persistent>
       <Reports v-model="showReportModal" :employee="reportRow" @close="showReportModal = false" />
+    </q-dialog>
+
+    <!-- Edit Reports Modal -->
+    <q-dialog v-model="editReportModal" persistent>
+      <EditReports
+        v-model="editReportModal"
+        :employee="reportRow"
+        @close="showReportModal = false"
+      />
     </q-dialog>
 
     <!-- Funded Toggle Confirmation Modal -->
@@ -605,6 +656,8 @@
   import { usePlantillaStore } from 'stores/plantillaStore';
   import PDSModal from 'components/PDSModal.vue';
   import Reports from 'src/components/Reports/TabModal.vue';
+  import EditReports from 'src/components/Reports/EditTabModal.vue';
+  import AddEmployeeModal from 'components/AddEmployee.vue';
   import { useAuthStore } from 'stores/authStore';
   import { useJobPostStore } from 'stores/jobPostStore';
   import { toast } from 'src/boot/toast';
@@ -626,6 +679,7 @@
   });
 
   const showReportModal = ref(false);
+  const editReportModal = ref(false);
   const isSubmitting = ref(false);
   const reportRow = ref(null);
   const showFundedConfirmModal = ref(false);
@@ -638,6 +692,8 @@
   const filter = ref('');
   const qsDataLoad = ref([]);
   const currentStructure = ref(null);
+  const showAddEmployeeModal = ref(false);
+  const selectedPositionForEmployee = ref(null);
 
   const selectedApplicant = ref({
     id: null,
@@ -897,6 +953,26 @@
     }
   };
 
+  const openAddEmployeeModal = (row) => {
+    selectedPositionForEmployee.value = row;
+    showAddEmployeeModal.value = true;
+  };
+
+  const handleEmployeeAdded = async () => {
+    // Refresh plantilla data
+    await usePlantilla.fetchPlantilla();
+    positions.value = usePlantilla.plantilla.map((item) => ({
+      ...item,
+      Status: item.designationStatus || 'VACANT',
+    }));
+
+    // Refresh job posts
+    await jobPostStore.job_post();
+
+    // Force table re-render
+    tableKey.value++;
+  };
+
   const printPosition = async (row) => {
     try {
       const appointmentData = await usePlantilla.fetchAppointmentData(row.ControlNo);
@@ -907,6 +983,25 @@
           appointmentData: appointmentData,
         };
         showReportModal.value = true;
+      } else {
+        toast.error('No appointment data found for this employee');
+      }
+    } catch (error) {
+      console.error('Error fetching appointment data:', error);
+      toast.error('Failed to fetch appointment data');
+    }
+  };
+
+  const editPosition = async (row) => {
+    try {
+      const appointmentData = await usePlantilla.fetchAppointmentData(row.ControlNo);
+
+      if (appointmentData) {
+        reportRow.value = {
+          ...row,
+          appointmentData: appointmentData,
+        };
+        editReportModal.value = true;
       } else {
         toast.error('No appointment data found for this employee');
       }

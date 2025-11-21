@@ -156,7 +156,7 @@
       const positionApplicants = ref([]);
       const loadingModalData = ref(false);
 
-      // Table columns (without status and print)
+      // Table columns
       const columns = [
         {
           name: 'office',
@@ -230,6 +230,60 @@
           .join(' ');
       };
 
+      /**
+       * Transform criteria data from API format to modal format
+       * This ensures all criteria items with their percentages are properly passed
+       */
+      const transformCriteriaData = (criteriaData) => {
+        if (!criteriaData) return {};
+
+        // Get the weight (max rate) from the first item of each array
+        // All items in the same category should have the same weight
+        const educationWeight = criteriaData.educations?.[0]?.weight || '20';
+        const experienceWeight = criteriaData.experiences?.[0]?.weight || '20';
+        const trainingWeight = criteriaData.trainings?.[0]?.weight || '15';
+        const performanceWeight = criteriaData.performances?.[0]?.weight || '15';
+        const behavioralWeight = criteriaData.behaviorals?.[0]?.weight || '30';
+
+        return {
+          education: {
+            Rate: educationWeight,
+            items: (criteriaData.educations || []).map((item) => ({
+              percentage: item.percentage,
+              description: item.description,
+            })),
+          },
+          experience: {
+            Rate: experienceWeight,
+            items: (criteriaData.experiences || []).map((item) => ({
+              percentage: item.percentage,
+              description: item.description,
+            })),
+          },
+          training: {
+            Rate: trainingWeight,
+            items: (criteriaData.trainings || []).map((item) => ({
+              percentage: item.percentage,
+              description: item.description,
+            })),
+          },
+          performance: {
+            Rate: performanceWeight,
+            items: (criteriaData.performances || []).map((item) => ({
+              percentage: item.percentage,
+              description: item.description,
+            })),
+          },
+          behavioral: {
+            Rate: behavioralWeight,
+            items: (criteriaData.behaviorals || []).map((item) => ({
+              percentage: item.percentage,
+              description: item.description,
+            })),
+          },
+        };
+      };
+
       // Open rating modal for a position
       const openRatingModal = async (position) => {
         selectedPosition.value = position;
@@ -241,13 +295,8 @@
 
           if (result && result.criteria && result.criteria.length > 0) {
             const criteriaData = result.criteria[0];
-            positionCriteria.value = {
-              education: criteriaData.educations?.[0] || {},
-              experience: criteriaData.experiences?.[0] || {},
-              training: criteriaData.trainings?.[0] || {},
-              performance: criteriaData.performances?.[0] || {},
-              behavioral: criteriaData.behaviorals?.[0] || {},
-            };
+            // Transform the criteria data to include all items with their percentages
+            positionCriteria.value = transformCriteriaData(criteriaData);
           } else {
             positionCriteria.value = {};
           }
@@ -278,13 +327,8 @@
 
           if (result && result.criteria && result.criteria.length > 0) {
             const criteriaData = result.criteria[0];
-            positionCriteria.value = {
-              education: criteriaData.educations?.[0] || {},
-              experience: criteriaData.experiences?.[0] || {},
-              training: criteriaData.trainings?.[0] || {},
-              performance: criteriaData.performances?.[0] || {},
-              behavioral: criteriaData.behaviorals?.[0] || {},
-            };
+            // Transform the criteria data to include all items with their percentages
+            positionCriteria.value = transformCriteriaData(criteriaData);
           } else {
             positionCriteria.value = {};
           }

@@ -7,6 +7,8 @@ export const usePlantillaStore = defineStore('plantilla', {
     plantilla: [],
     office: [],
     plantillaData: [],
+    employee: [],
+    vice: [],
     qsData: [],
     qsLoad: false,
     loading: false,
@@ -169,6 +171,53 @@ export const usePlantillaStore = defineStore('plantilla', {
       }
     },
 
+    async fetchAllEmployee() {
+      this.loading = true;
+      this.error = null;
+      try {
+        const response = await adminApi.get(`/employee/list`);
+        this.employee = response.data;
+        return response.data;
+      } catch (err) {
+        this.error = err;
+        toast.error('Failed to fetch job post: ' + (err.response?.data?.message || err.message));
+        throw err;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async fetchVice(Designation, status) {
+      this.loading = true;
+      this.error = null;
+      try {
+        const response = await adminApi.get(`appointment/vice/name/${Designation}/${status}`);
+        this.vice = response.data;
+        return response.data;
+      } catch (err) {
+        this.error = err;
+        toast.error('Failed to fetch job post: ' + (err.response?.data?.message || err.message));
+        throw err;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async addEmployee(payload) {
+      try {
+        this.loading = true;
+        const response = await adminApi.post(`/appointment`, payload, {
+          validateStatus: (status) => status < 500,
+        });
+        return response;
+      } catch (err) {
+        console.error('Error hiring applicant:', err.message || err);
+        return { data: { success: false, message: 'An error occurred' } };
+      } finally {
+        this.loading = false;
+      }
+    },
+
     async fetchAppointmentData(ControlNo) {
       this.loading = true;
       this.error = null;
@@ -186,6 +235,8 @@ export const usePlantillaStore = defineStore('plantilla', {
           const tempRegInfo = appointmentData.temp_reg_appointments?.[0];
           const reorgExtInfo = appointmentData.temp_reg_appointment_reorg_ext?.[0];
           const x_personal = appointmentData.x_personal?.[0];
+          const jobpost = appointmentData.posting_date?.[0];
+          const plantilla = appointmentData.plantilla?.[0];
 
           const transformedData = {
             // Basic Info
@@ -193,6 +244,9 @@ export const usePlantillaStore = defineStore('plantilla', {
             TINNo: x_personal?.TINNo || '',
             Sex: plantillaInfo?.Sex,
             Name4: plantillaInfo?.Name4 || '',
+
+            post_date: jobpost?.post_date || '',
+            end_date: jobpost?.end_date || '',
 
             // Position Info
             NewDesignation: tempRegInfo?.NewDesignation || tempRegInfo?.Designation || '',
@@ -203,6 +257,11 @@ export const usePlantillaStore = defineStore('plantilla', {
             MRate: tempRegInfo?.MRate || '',
             ItemNo: tempRegInfo?.ItemNo || '',
             Pages: tempRegInfo?.Pages || '',
+            Office2: plantilla?.office2 || '',
+            Group: plantilla?.group || '',
+            Division: plantilla?.division || '',
+            Section: plantilla?.section || '',
+            Unit: plantilla?.unit || '',
 
             // Appointment Details
             Renew: tempRegInfo?.Renew || '',

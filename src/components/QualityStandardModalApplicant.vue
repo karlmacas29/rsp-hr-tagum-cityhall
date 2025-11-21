@@ -22,7 +22,14 @@
 
       <!-- Main Content Area -->
       <q-card-section class="main-content-section" style="flex: 1; overflow: hidden">
-        <div class="row no-wrap full-height">
+        <!-- Loading State -->
+        <div v-if="isLoadingPDS" style="height: 70vh" class="column items-center justify-center">
+          <q-spinner-dots size="40px" color="primary" />
+          <div class="q-mt-sm text-grey">Loading PDS data...</div>
+        </div>
+
+        <!-- Content -->
+        <div v-else class="row no-wrap full-height">
           <!-- Left Card (Applicant Info) -->
           <q-card class="col-2 q-mr-md">
             <q-card-section class="column justify-between items-center q-pa-md">
@@ -32,6 +39,7 @@
                 style="width: 100px; height: 100px; border-radius: 10px"
                 alt="Applicant Photo"
               />
+
               <div class="text-body text-bold text-center q-mb-xs">
                 {{ applicantData?.name || 'Please wait' }}
               </div>
@@ -66,7 +74,7 @@
                   </div>
                 </div>
               </div>
-              <!-- View PDS button - Always accessible -->
+              <!-- View PDS button -->
               <q-btn class="q-mt-md" label="View PDS" color="primary" rounded @click="onViewPDS" />
             </q-card-section>
           </q-card>
@@ -89,7 +97,7 @@
                 <q-tab name="eligibility" label="ELIGIBILITY" class="text-weight-medium" />
               </q-tabs>
 
-              <!-- View Supporting Docs button - Always accessible -->
+              <!-- View Supporting Docs button -->
               <q-btn
                 v-if="!applicantData?.ControlNo"
                 label="View Supporting Docs"
@@ -153,7 +161,7 @@
                         </template>
                       </q-table>
                     </q-card>
-                    <!-- Remarks - Only editable if has modify permission -->
+                    <!-- Remarks -->
                     <q-input
                       v-model="education_remark"
                       label="Remarks"
@@ -296,7 +304,6 @@
                         </template>
                       </q-table>
                     </q-card>
-                    <!-- Remarks - Only editable if has modify permission -->
                     <q-input
                       v-model="experience_remark"
                       label="Remarks"
@@ -436,7 +443,6 @@
                         </template>
                       </q-table>
                     </q-card>
-                    <!-- Remarks - Only editable if has modify permission -->
                     <q-input
                       v-model="training_remark"
                       label="Remarks"
@@ -498,7 +504,6 @@
                         </template>
                       </q-table>
                     </q-card>
-                    <!-- Remarks - Only editable if has modify permission -->
                     <q-input
                       v-model="eligibility_remark"
                       label="Remarks"
@@ -532,7 +537,6 @@
             <!-- Empty space -->
           </div>
 
-          <!-- Only show qualification status selection if has modify permission, not plantilla, not evaluation locked, and job is not occupied -->
           <div
             v-if="canModifyJobPost && !props.isPlantilla && !evaluationLocked && !isJobOccupied"
             class="column items-center"
@@ -560,7 +564,6 @@
             </div>
           </div>
 
-          <!-- Show message when job is occupied -->
           <div v-if="isJobOccupied && !props.isPlantilla" class="column items-center">
             <div class="text-caption text-orange-8 q-mb-xs">Job Status</div>
             <q-badge color="orange" class="text-caption q-px-sm">
@@ -569,7 +572,6 @@
             </q-badge>
           </div>
 
-          <!-- Show message when evaluation is locked -->
           <div v-if="evaluationLocked && !props.isPlantilla" class="column items-center">
             <div class="text-caption text-blue-8 q-mb-xs">Status</div>
             <q-badge color="blue" class="text-caption q-px-sm">
@@ -578,7 +580,6 @@
             </q-badge>
           </div>
 
-          <!-- Show message when no modify permission -->
           <div v-if="!canModifyJobPost && !props.isPlantilla" class="column items-center">
             <div class="text-caption text-grey-8 q-mb-xs">Permission</div>
             <q-badge color="grey" class="text-caption q-px-sm">
@@ -588,7 +589,6 @@
           </div>
 
           <div class="row justify-end">
-            <!-- Only show submit button if has modify permission, not plantilla, not evaluation locked, and job is not occupied -->
             <q-btn
               v-if="canModifyJobPost && !props.isPlantilla && !evaluationLocked && !isJobOccupied"
               label="SUBMIT EVALUATION"
@@ -610,6 +610,7 @@
   import { ref, computed, watch } from 'vue';
   import { usePlantillaStore } from 'stores/plantillaStore';
   import { useAuthStore } from 'stores/authStore';
+  import { useJobPostStore } from 'stores/jobPostStore';
   import PDSModalApplicant from './PDSModalApplicant.vue';
   import SupportingDocumentsModal from './SuppDocs.vue';
 
@@ -617,6 +618,7 @@
   const xEligibility = ref([]);
   const xExperience = ref([]);
   const xTraining = ref([]);
+  const isLoadingPDS = ref(false);
 
   // Selection tracking
   const selectedExperienceIds = ref([]);
@@ -634,8 +636,10 @@
   });
 
   const authStore = useAuthStore();
+  const jobPostStore = useJobPostStore();
+  const usePlantilla = usePlantillaStore();
 
-  // Permission check - Only for modify operations
+  // Permission check
   const canModifyJobPost = computed(() => {
     return authStore.user?.permissions?.modifyJobpostAccess == '1';
   });
@@ -663,7 +667,136 @@
   const tab = ref('education');
   const qualificationStatus = ref('');
 
-  // Toggle functions for experience and training selection
+  // ✅ UNIFIED DATA MAPPERS
+  const mapEducationData = (eduArray) => {
+    if (!eduArray || !Array.isArray(eduArray)) return [];
+
+    return eduArray.map((e, index) => {
+      // Handle applicant format (lowercase fields)
+      if (e.level || e.school_name) {
+        return {
+          uniqueId: e.uniqueId || e.id || `education_${index}`,
+          level: e.level || e.Education || '',
+          school_name: e.school_name || e.School || '',
+          degree: e.degree || e.Degree || '',
+          attendance_from: e.attendance_from || e.DateAttend?.split('-')[0]?.trim() || '',
+          attendance_to: e.attendance_to || e.DateAttend?.split('-')[1]?.trim() || '',
+          highest_units: e.highest_units || e.NumUnits || '',
+          year_graduated: e.year_graduated || e.DateAttend?.split('-')[1]?.trim() || '',
+          scholarship: e.scholarship || e.Honors || '',
+        };
+      }
+
+      // Handle internal employee format (uppercase fields)
+      return {
+        uniqueId: e.uniqueId || `education_${index}`,
+        level: e.Education || '',
+        school_name: e.School || '',
+        degree: e.Degree || '',
+        attendance_from: e.DateAttend?.split('-')[0]?.trim() || '',
+        attendance_to: e.DateAttend?.split('-')[1]?.trim() || '',
+        highest_units: e.NumUnits || '',
+        year_graduated: e.DateAttend?.split('-')[1]?.trim() || '',
+        scholarship: e.Honors || '',
+      };
+    });
+  };
+
+  const mapEligibilityData = (eligArray) => {
+    if (!eligArray || !Array.isArray(eligArray)) return [];
+
+    return eligArray.map((e, index) => {
+      // Handle applicant format
+      if (e.eligibility || e.rating) {
+        return {
+          uniqueId: e.uniqueId || e.id || `eligibility_${index}`,
+          eligibility: e.eligibility || e.CivilServe || '',
+          rating: e.rating || e.Rates || '',
+          date_of_examination: e.date_of_examination || e.Dates || '',
+          place_of_examination: e.place_of_examination || e.Place || '',
+          license_number: e.license_number || e.LNumber || '',
+          date_of_validity: e.date_of_validity || e.LDate || '',
+        };
+      }
+
+      // Handle internal employee format
+      return {
+        uniqueId: e.uniqueId || `eligibility_${index}`,
+        eligibility: e.CivilServe || '',
+        rating: e.Rates || '',
+        date_of_examination: e.Dates || '',
+        place_of_examination: e.Place || '',
+        license_number: e.LNumber || '',
+        date_of_validity: e.LDate || '',
+      };
+    });
+  };
+
+  const mapExperienceData = (expArray) => {
+    if (!expArray || !Array.isArray(expArray)) return [];
+
+    return expArray.map((e, index) => {
+      // Handle applicant format
+      if (e.position_title || e.work_date_from) {
+        return {
+          uniqueId: e.uniqueId || e.id || `experience_${index}`,
+          work_date_from: e.work_date_from || e.WFrom || '',
+          work_date_to: e.work_date_to || e.WTo || '',
+          position_title: e.position_title || e.WPosition || '',
+          department: e.department || e.WCompany || '',
+          monthly_salary: e.monthly_salary || e.WSalary || '0',
+          salary_grade: e.salary_grade || e.WGrade || '',
+          status_of_appointment: e.status_of_appointment || e.Status || '',
+          government_service: e.government_service || e.WGov || '',
+        };
+      }
+
+      // Handle internal employee format
+      return {
+        uniqueId: e.uniqueId || `experience_${index}`,
+        work_date_from: e.WFrom || '',
+        work_date_to: e.WTo || '',
+        position_title: e.WPosition || '',
+        department: e.WCompany || '',
+        monthly_salary: e.WSalary || '0',
+        salary_grade: e.WGrade || '',
+        status_of_appointment: e.Status || '',
+        government_service: e.WGov || '',
+      };
+    });
+  };
+
+  const mapTrainingData = (trainArray) => {
+    if (!trainArray || !Array.isArray(trainArray)) return [];
+
+    return trainArray.map((t, index) => {
+      // Handle applicant format
+      if (t.training_title || t.inclusive_date_from) {
+        return {
+          uniqueId: t.uniqueId || t.id || `training_${index}_${Date.now()}`,
+          training_title: t.training_title || t.Training || '',
+          inclusive_date_from: t.inclusive_date_from || t.DateFrom || '',
+          inclusive_date_to: t.inclusive_date_to || t.DateTo || '',
+          number_of_hours: t.number_of_hours || t.NumHours || '0',
+          type: t.type || '',
+          conducted_by: t.conducted_by || t.Conductor || '',
+        };
+      }
+
+      // Handle internal employee format
+      return {
+        uniqueId: t.uniqueId || `training_${index}_${Date.now()}`,
+        training_title: t.Training || '',
+        inclusive_date_from: t.DateFrom || '',
+        inclusive_date_to: t.DateTo || '',
+        number_of_hours: t.NumHours || '0',
+        type: t.type || '',
+        conducted_by: t.Conductor || '',
+      };
+    });
+  };
+
+  // Toggle functions
   const toggleExperienceSelection = (uniqueId) => {
     const index = selectedExperienceIds.value.indexOf(uniqueId);
     if (index > -1) {
@@ -682,11 +815,9 @@
     }
   };
 
-  // Experience duration calculation functions
+  // Experience duration calculations
   const parseDate = (dateString) => {
     if (!dateString) return null;
-
-    // Handle various date formats
     const date = new Date(dateString);
     return isNaN(date.getTime()) ? null : date;
   };
@@ -699,14 +830,12 @@
 
     if (!start || !end) return 0;
 
-    // Calculate the difference in months
     const yearDiff = end.getFullYear() - start.getFullYear();
     const monthDiff = end.getMonth() - start.getMonth();
     const dayDiff = end.getDate() - start.getDate();
 
     let totalMonths = yearDiff * 12 + monthDiff;
 
-    // If the end day is before the start day, subtract one month
     if (dayDiff < 0) {
       totalMonths -= 1;
     }
@@ -745,7 +874,6 @@
     return `Total: ${formatDuration(totalMonths)}`;
   };
 
-  // Computed property for experience with duration and unique ID
   const experienceWithDuration = computed(() => {
     if (!xExperience.value || xExperience.value.length === 0) {
       return [];
@@ -754,8 +882,7 @@
     return xExperience.value.map((exp, index) => {
       const durationMonths = calculateMonthsDifference(exp.work_date_from, exp.work_date_to);
       const durationText = formatDuration(durationMonths);
-      // Create a unique ID for each experience record
-      const uniqueId = exp.id || `experience_${index}_${Date.now()}`;
+      const uniqueId = exp.uniqueId || exp.id || `experience_${index}_${Date.now()}`;
 
       return {
         ...exp,
@@ -766,7 +893,6 @@
     });
   });
 
-  // Computed property for total experience in months (only selected)
   const totalSelectedExperienceMonths = computed(() => {
     return experienceWithDuration.value.reduce((total, exp) => {
       if (selectedExperienceIds.value.includes(exp.uniqueId)) {
@@ -776,19 +902,16 @@
     }, 0);
   });
 
-  // Function to parse training hours from various formats
+  // Training hours
   const parseTrainingHours = (hours) => {
     if (!hours) return 0;
 
-    // Convert to string for consistent handling
     const hoursStr = hours.toString().trim();
 
-    // If it's already a number, return it
     if (!isNaN(hoursStr) && hoursStr !== '') {
       return parseInt(hoursStr) || 0;
     }
 
-    // Try to extract numbers from strings like "40 hours", "40hrs", "40 hrs"
     const match = hoursStr.match(/(\d+(?:\.\d+)?)/);
     if (match) {
       return parseInt(match[1]) || 0;
@@ -797,18 +920,6 @@
     return 0;
   };
 
-  // Initialize training with unique IDs
-  const initializeTrainingData = (trainingData) => {
-    return trainingData.map((training, index) => {
-      const uniqueId = training.id || `training_${index}_${Date.now()}`;
-      return {
-        ...training,
-        uniqueId,
-      };
-    });
-  };
-
-  // Computed property for total training hours (only selected)
   const totalSelectedTrainingHours = computed(() => {
     if (!xTraining.value || xTraining.value.length === 0) {
       return 0;
@@ -823,7 +934,6 @@
     }, 0);
   });
 
-  // Computed property to check if job is occupied
   const isJobOccupied = computed(() => {
     return (
       props.applicantData?.Jobstatus === 'Occupied' ||
@@ -834,11 +944,9 @@
     );
   });
 
-  // Helper function to extract personal info from multiple possible structures
   const getPersonalInfo = (applicantData) => {
     if (!applicantData) return {};
 
-    // Check all possible paths to personal info
     const personalInfo =
       applicantData.n_personal_info ||
       applicantData.nPersonalInfo ||
@@ -873,26 +981,14 @@
     }
   };
 
-  const formattedEducation = computed(
-    () =>
-      xEdu.value?.map((e, index) => ({
-        uniqueId: e.uniqueId || `education_${index}`,
-        level: e.level || '',
-        school_name: e.school_name || '',
-        degree: e.degree || '',
-        attendance_from: e.attendance_from || '',
-        attendance_to: e.attendance_to || '',
-        highest_units: e.highest_units || '',
-        year_graduated: e.year_graduated || '',
-        scholarship: e.scholarship || '',
-      })) ?? [],
-  );
+  const formattedEducation = computed(() => xEdu.value || []);
 
   const formatSalary = (val) => {
     if (!val) return '';
     return parseFloat(val).toLocaleString('en-PH', { style: 'currency', currency: 'PHP' });
   };
 
+  // Column definitions
   const xEduCol = [
     {
       name: 'level',
@@ -1100,8 +1196,6 @@
     },
   ];
 
-  const usePlantilla = usePlantillaStore();
-
   const positionQS = ref([]);
 
   const educationCol = ref([
@@ -1112,6 +1206,7 @@
       field: 'Education',
     },
   ]);
+
   const ExperienceCol = ref([
     {
       name: 'Experience',
@@ -1120,6 +1215,7 @@
       field: 'Experience',
     },
   ]);
+
   const trainingCol = ref([
     {
       name: 'Training',
@@ -1128,6 +1224,7 @@
       field: 'Training',
     },
   ]);
+
   const eligibilityCol = ref([
     {
       name: 'Eligibility',
@@ -1185,9 +1282,18 @@
     tab.value = 'education';
     selectedExperienceIds.value = [];
     selectedTrainingIds.value = [];
+    // isLoadingPDS.value = true;
 
     try {
       console.log('Applicant Data:', props.applicantData);
+
+      // Fetch PDS data using submission_id
+      let pdsData = null;
+      if (props.applicantData?.submission_id) {
+        console.log('Fetching PDS for submission_id:', props.applicantData.submission_id);
+        pdsData = await jobPostStore.fetchApplicantPDS(props.applicantData.submission_id);
+        console.log('PDS Data received:', pdsData);
+      }
 
       // Load QS data
       if (props.applicantData?.PositionID) {
@@ -1195,43 +1301,55 @@
         positionQS.value = usePlantilla.qsData || [];
       }
 
-      // Get personal info from various possible data structures
-      const personalInfo = getPersonalInfo(props.applicantData);
-      console.log('Extracted Personal Info:', personalInfo);
+      // Use PDS data if available
+      if (pdsData) {
+        xEdu.value = mapEducationData(pdsData.education || []);
+        xEligibility.value = mapEligibilityData(pdsData.eligibity || pdsData.eligibility || []);
+        xExperience.value = mapExperienceData(pdsData.work_experience || []);
+        xTraining.value = mapTrainingData(pdsData.training || []);
 
-      // Set education data
-      if (props.education && props.education.length > 0) {
-        xEdu.value = props.education;
-      } else if (personalInfo?.education && personalInfo.education.length > 0) {
-        xEdu.value = personalInfo.education;
-      } else if (props.applicantData?.education && props.applicantData.education.length > 0) {
-        xEdu.value = props.applicantData.education;
+        supportingDocuments.value = {
+          training_images: pdsData.training_images || [],
+          education_images: pdsData.education_images || [],
+          eligibility_images: pdsData.eligibility_images || [],
+          experience_images: pdsData.experience_images || [],
+        };
       } else {
-        xEdu.value = [];
+        // Fallback
+        const personalInfo = getPersonalInfo(props.applicantData);
+        console.log('Extracted Personal Info:', personalInfo);
+
+        if (props.education && props.education.length > 0) {
+          xEdu.value = mapEducationData(props.education);
+        } else if (personalInfo?.education && personalInfo.education.length > 0) {
+          xEdu.value = mapEducationData(personalInfo.education);
+        } else if (props.applicantData?.education && props.applicantData.education.length > 0) {
+          xEdu.value = mapEducationData(props.applicantData.education);
+        } else {
+          xEdu.value = [];
+        }
+
+        xEligibility.value = mapEligibilityData(
+          personalInfo?.eligibility || personalInfo?.eligibity || [],
+        );
+        xExperience.value = mapExperienceData(personalInfo?.work_experience || []);
+        xTraining.value = mapTrainingData(personalInfo?.training || []);
+
+        if (props.applicantData) {
+          supportingDocuments.value = {
+            training_images: props.applicantData.training_images || [],
+            education_images: props.applicantData.education_images || [],
+            eligibility_images: props.applicantData.eligibility_images || [],
+            experience_images: props.applicantData.experience_images || [],
+          };
+        }
       }
 
-      // Set other PDS data
-      xEligibility.value = personalInfo?.eligibility || personalInfo?.eligibity || [];
-      xExperience.value = personalInfo?.work_experience || [];
-      xTraining.value = initializeTrainingData(personalInfo?.training || []);
-
-      // Initialize all experience records as selected by default
+      // Initialize selections
       selectedExperienceIds.value = experienceWithDuration.value.map((exp) => exp.uniqueId);
-
-      // Initialize all training records as selected by default
       selectedTrainingIds.value = xTraining.value.map((training) => training.uniqueId);
 
-      // Set supporting documents from applicant data
-      if (props.applicantData) {
-        supportingDocuments.value = {
-          training_images: props.applicantData.training_images || [],
-          education_images: props.applicantData.education_images || [],
-          eligibility_images: props.applicantData.eligibility_images || [],
-          experience_images: props.applicantData.experience_images || [],
-        };
-      }
-
-      // Set qualification status if available
+      // Set status
       if (
         props.applicantData?.status === 'Qualified' ||
         props.applicantData?.status === 'Unqualified'
@@ -1248,6 +1366,8 @@
       eligibility_remark.value = props.applicantData?.eligibility_remark || '';
     } catch (error) {
       console.error('Error in onModalShow:', error);
+    } finally {
+      isLoadingPDS.value = false;
     }
   };
 
@@ -1261,13 +1381,21 @@
     qualificationStatus.value = '';
     selectedExperienceIds.value = [];
     selectedTrainingIds.value = [];
+    jobPostStore.applicantPDS = null;
   };
 
-  const onViewPDS = () => {
-    // Show PDS Modal - Always accessible
-    showPDSModal.value = true;
-    // Also emit the event for parent components that may need it
-    emit('view-pds');
+  const onViewPDS = async () => {
+    try {
+      if (props.applicantData?.submission_id) {
+        await jobPostStore.fetchApplicantPDS(props.applicantData.submission_id);
+      }
+      showPDSModal.value = true;
+      emit('view-pds');
+    } catch (error) {
+      console.error('Error loading PDS:', error);
+      showPDSModal.value = true;
+      emit('view-pds');
+    }
   };
 
   watch(qualificationStatus, (newStatus) => {
@@ -1281,9 +1409,18 @@
       !isJobOccupied.value &&
       canModifyJobPost.value
     ) {
+      const applicantId = props.applicantData?.submission_id || props.applicantData?.id;
+
+      if (!applicantId) {
+        console.error('Applicant data:', props.applicantData);
+        return;
+      }
+
+      console.log('Submitting evaluation for applicant:', applicantId);
+
       emit('submit', {
         status: qualificationStatus.value,
-        id: props.applicantData?.id,
+        id: applicantId, // ✅ This is what the store needs
         education_remark: education_remark.value,
         experience_remark: experience_remark.value,
         training_remark: training_remark.value,

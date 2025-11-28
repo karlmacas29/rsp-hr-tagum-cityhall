@@ -589,6 +589,7 @@
   import { useQuasar } from 'quasar';
   import { useJobPostStore } from 'stores/jobPostStore';
   import { useUser_upload } from 'stores/user_upload';
+  import { useEmailStore } from 'stores/emailStore';
   import { toast } from 'src/boot/toast';
   import ZipInstructionModal from 'components/ZipFileModal.vue';
 
@@ -598,6 +599,7 @@
 
   const uploadStore = useUser_upload();
   const jobPostStore = useJobPostStore();
+  const emailStore = useEmailStore();
 
   const id = route.params.id;
 
@@ -623,6 +625,11 @@
     if ($q.screen.xs) return '24px';
     if ($q.screen.sm) return '30px';
     return '36px';
+  });
+
+  // ==================== USER EMAIL ====================
+  const userEmail = computed(() => {
+    return emailStore.getEmail || localStorage.getItem('userEmail') || '';
   });
 
   // ==================== UI STATE ====================
@@ -890,6 +897,18 @@
       });
       return;
     }
+
+    if (!userEmail.value) {
+      $q.notify({
+        type: 'negative',
+        message: 'Email not found. Please verify your email again.',
+        position: 'top',
+      });
+      emailStore.logout();
+      router.push('/');
+      return;
+    }
+
     confirmDialog.value = true;
   }
 
@@ -898,7 +917,7 @@
     uploadingLoading.value = true;
 
     try {
-      const response = await uploadStore.processSubmission();
+      const response = await uploadStore.processSubmission(userEmail.value);
       const data = response?.data ?? response;
       const message = data?.message ?? uploadStore.errorMessage ?? '';
 
@@ -922,7 +941,7 @@
         startConfirmationCountdown();
 
         jobPostStore.setConfirmationToken(confirmationToken.value, expiresInMinutes);
-      } else {
+      } else if (data?.success === false) {
         $q.notify({
           type: 'negative',
           message: message || 'Failed to upload submission',
@@ -960,6 +979,7 @@
       const payload = {
         confirm_update: confirmed ? 1 : 0,
         confirmation_token: confirmationToken.value,
+        email: userEmail.value,
       };
 
       const response = await jobPostStore.updateConfirmation(payload);
@@ -1011,6 +1031,20 @@
   // ==================== LIFECYCLE HOOKS ====================
 
   onMounted(async () => {
+    // Check if user is authenticated
+    if (!emailStore.isAuthenticated && !emailStore.checkAuthStatus()) {
+      toast.error('Please verify your email before applying');
+      router.push('/');
+      return;
+    }
+
+    if (!userEmail.value) {
+      toast.error('Email not found. Please verify your email again.');
+      emailStore.logout();
+      router.push('/');
+      return;
+    }
+
     if (!id) {
       console.error('No job ID provided in route params');
       toast.error('No job ID provided');

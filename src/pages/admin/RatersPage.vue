@@ -872,9 +872,8 @@
       isEditMode.value = true;
       currentRaterId.value = rater.id;
       currentRaterName.value = rater.Rater;
-      activeStatus.value = !!rater.active; // set toggle from record
+      activeStatus.value = !!rater.active;
 
-      // Ensure office options are present
       if (
         !offices.value.length &&
         Array.isArray(plantillaStore.office) &&
@@ -884,7 +883,7 @@
           new Set(
             plantillaStore.office
               .map((row) =>
-                typeof row === 'string' ? row : row?.Office || row?.office || row?.name,
+                typeof row === 'string' ? row.id : row?.Office || row?.office || row?.name,
               )
               .filter(Boolean),
           ),

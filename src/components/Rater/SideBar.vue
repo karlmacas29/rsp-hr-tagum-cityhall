@@ -1,90 +1,104 @@
 <template>
-  <q-drawer show-if-above v-model="drawer" side="left" :width="230" bordered>
+  <q-drawer
+    v-model="drawerModel"
+    show-if-above
+    side="left"
+    :width="230"
+    :mini="miniState"
+    :breakpoint="1024"
+    bordered
+    class="sidebar-drawer"
+  >
     <!-- Logo Section -->
     <div class="logo-container">
-      <img src="/logo.png" alt="Tagum City Logo" class="logo" style="width: 130px" />
+      <q-img
+        src="/logo.png"
+        alt="Tagum City Logo"
+        class="logo"
+        :class="{ 'logo-mini': miniState }"
+      />
     </div>
 
-    <!-- Header Section -->
-    <div class="header-container"></div>
-
-    <q-list dense>
+    <!-- Menu Items -->
+    <q-list dense class="menu-list">
       <q-item
-        dense
-        class="q-mx-xs q-my-xs"
-        style="border-radius: 17px; padding: 8px 11px"
         v-for="(item, index) in menuItems"
         :key="index"
+        dense
         clickable
         v-ripple
         :to="item.route"
-        :active-class="route.path === item.route ? 'active-menu' : ''"
+        class="menu-item q-mx-xs q-my-xs"
+        :active-class="'active-menu'"
+        :active="route.path === item.route"
       >
         <q-item-section avatar>
           <q-icon :name="item.icon" size="sm" />
         </q-item-section>
-        <q-item-section>{{ item.label }}</q-item-section>
+        <q-item-section v-if="!miniState">
+          {{ item.label }}
+        </q-item-section>
+        <q-tooltip v-if="miniState" anchor="center right" self="center left" :offset="[10, 10]">
+          {{ item.label }}
+        </q-tooltip>
       </q-item>
-      <!-- rater -->
     </q-list>
 
-    <!-- footer -->
-
-    <div class="absolute-bottom q-pb-md row justify-center items-center">
-      <!-- <q-btn color="negative q-px-xl" rounded @click="onLogout">Logout</q-btn> -->
+    <!-- Mini Toggle Button (Desktop only) -->
+    <div v-if="$q.screen.gt.sm" class="absolute-bottom q-pb-md row justify-center items-center">
+      <q-btn
+        dense
+        flat
+        round
+        :icon="miniState ? 'chevron_right' : 'chevron_left'"
+        @click="miniState = !miniState"
+        class="mini-toggle-btn"
+      >
+        <q-tooltip>{{ miniState ? 'Expand' : 'Collapse' }}</q-tooltip>
+      </q-btn>
     </div>
   </q-drawer>
 </template>
 
 <script setup>
-  import { onMounted, ref } from 'vue';
-  import { useRoute,} from 'vue-router';
-  // import { useRaterAuthStore } from 'stores/authStore_raters';
-  // import { useLogsStore } from 'stores/logsStore';
+  import { onMounted, ref, computed } from 'vue';
+  import { useRoute } from 'vue-router';
+  import { useQuasar } from 'quasar';
 
+  const props = defineProps({
+    modelValue: {
+      type: Boolean,
+      default: false,
+    },
+  });
 
+  const emit = defineEmits(['update:modelValue']);
 
-  // const raterAuthStore = useRaterAuthStore();
+  const drawerModel = computed({
+    get: () => props.modelValue,
+    set: (val) => emit('update:modelValue', val),
+  });
 
+  const $q = useQuasar();
   const route = useRoute();
-  const drawer = ref(true);
-  const expanded = ref(false);
-  // const logStore = useLogsStore();
-
-  // const onLogout = async () => {
-  //   await logStore.logAction('Logged Out');
-  //   await raterAuthStore.logout(); // Call the logout action from authStore
-
-
-  // };
+  const miniState = ref(false);
 
   const menuItems = ref([
     { label: 'Dashboard', route: '/uRater', icon: 'dashboard' },
     { label: 'Criteria', route: '/uCriteria', icon: 'list' },
   ]);
 
-  const ratersManage = ref([]);
-
   onMounted(() => {
-    // Set the active menu item based on the current route
-    const currentRoute = route.path;
-    // Check if the current route matches any of the main menu items
-    ratersManage.value.forEach((item) => {
-      if (currentRoute === item.route) {
-        expanded.value = true;
-      }
-    });
+    // Auto-collapse sidebar on small screens
+    if ($q.screen.lt.md) {
+      miniState.value = false;
+    }
   });
-
-
 </script>
 
 <style scoped>
-  .content-container {
-    border-left: 2px solid rgb(133, 133, 133);
-    /* Change color as needed */
-    padding-left: 5px;
-    margin-left: 25px;
+  .sidebar-drawer {
+    background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
   }
 
   /* Logo Section */
@@ -92,33 +106,50 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 5px 0;
-    /* Reduce padding */
-    margin-bottom: 2px;
-    /* Reduce space below logo */
-    margin-top: 40px;
+    padding: 20px 0;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
   }
 
   .logo {
-    width: 140px;
-    /* Slightly smaller logo */
+    width: 130px;
     height: auto;
+    transition: all 0.3s ease;
+  }
+
+  .logo-mini {
+    width: 50px;
   }
 
   /* Header Section */
   .header-container {
     text-align: center;
-    margin-bottom: 2px !important;
-    /* Further reduce space */
-    padding-bottom: 0 !important;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
   }
 
   .company-title {
-    font-size: 16px;
-    /* Reduce font size slightly */
-    font-weight: bold;
-    margin-bottom: 0 !important;
-    /* Remove extra space below title */
+    font-size: 11px;
+    line-height: 1.3;
+    color: #666;
+  }
+
+  /* Menu List */
+  .menu-list {
+    padding: 0 8px;
+  }
+
+  .menu-item {
+    border-radius: 12px;
+    padding: 10px 12px;
+    margin: 4px 0;
+    transition: all 0.2s ease;
+  }
+
+  .menu-item:hover {
+    background-color: rgba(0, 176, 52, 0.1);
   }
 
   /* Active menu styling */
@@ -126,5 +157,41 @@
     background-color: #00b034 !important;
     color: white !important;
     font-weight: bold;
+    box-shadow: 0 2px 8px rgba(0, 176, 52, 0.3);
+  }
+
+  .active-menu .q-icon {
+    color: white !important;
+  }
+
+  /* Mini toggle button */
+  .mini-toggle-btn {
+    color: #666;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 1023px) {
+    .logo-container {
+      padding: 15px 0;
+    }
+
+    .logo {
+      width: 100px;
+    }
+  }
+
+  @media (max-width: 599px) {
+    .logo-container {
+      padding: 10px 0;
+      margin-bottom: 5px;
+    }
+
+    .logo {
+      width: 80px;
+    }
+
+    .header-container {
+      margin-bottom: 10px;
+    }
   }
 </style>

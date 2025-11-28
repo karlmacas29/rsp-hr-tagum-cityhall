@@ -1,101 +1,110 @@
-// Updated user_upload store with defensive checks in processSubmission
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { adminApi } from 'boot/axios_admin';
 
 export const useUser_upload = defineStore('user_upload', () => {
+  const uploadedFile = ref(null);
+  const uploadedZipFile = ref(null);
   const isSubmitting = ref(false);
   const successDialog = ref(false);
   const errorMessage = ref('');
-  const uploadedFile = ref(null);
-  const uploadedZipFile = ref(null);
   const selectedJob = ref(null);
 
-  const setSelectedJob = (job) => {
+  /**
+   * Set the selected job for application
+   */
+  function setSelectedJob(job) {
     selectedJob.value = job;
-    console.log('Job set in upload store:', job);
-  };
+    console.log('Selected job set:', job);
+  }
 
-  const processSubmission = async () => {
-    // Defensive validation - return a consistent error shape so callers can handle it uniformly
-    if (!uploadedFile.value) {
-      errorMessage.value = 'No Excel file selected.';
-      return { data: { success: false, message: errorMessage.value } };
+  /**
+   * Process application submission with email
+   * @param {string} email - User's email address
+   */
+  async function processSubmission(email) {
+    if (!uploadedFile.value || !uploadedZipFile.value) {
+      errorMessage.value = 'Both Excel and ZIP files are required';
+      throw new Error(errorMessage.value);
     }
 
-    if (!uploadedZipFile.value) {
-      errorMessage.value = 'No ZIP file selected.';
-      return { data: { success: false, message: errorMessage.value } };
+    if (!selectedJob.value || !selectedJob.value.id) {
+      errorMessage.value = 'No job selected';
+      throw new Error(errorMessage.value);
     }
 
-    // Defensive: selectedJob might be null if consumer didn't set it
-    if (!selectedJob.value?.id) {
-      errorMessage.value = 'No job selected or missing ID';
-      console.error('Selected job is missing in upload store:', selectedJob.value);
-      return { data: { success: false, message: errorMessage.value } };
+    if (!email) {
+      errorMessage.value = 'Email address is required';
+      throw new Error(errorMessage.value);
     }
 
     isSubmitting.value = true;
     errorMessage.value = '';
-    successDialog.value = false;
-
-    const formData = new FormData();
-    formData.append('excel_file', uploadedFile.value);
-    formData.append('zip_file', uploadedZipFile.value);
-    formData.append('job_batches_rsp_id', selectedJob.value.id);
-
-    console.log('Submitting with job ID:', selectedJob.value.id);
-    console.log('Excel file:', uploadedFile.value.name);
-    console.log('ZIP file:', uploadedZipFile.value.name);
 
     try {
+      const formData = new FormData();
+      formData.append('job_batches_rsp_id', selectedJob.value.id);
+      formData.append('excel_file', uploadedFile.value);
+      formData.append('zip_file', uploadedZipFile.value);
+      formData.append('email', email); // Include email in submission
+
+      console.log('Submitting application with email:', email);
+      console.log('Job ID:', selectedJob.value.id);
+
       const response = await adminApi.post('/applicant/submissions', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
-        // Accept 4xx responses so we still get response.data and can show API errors
-        validateStatus: (status) => status < 500,
       });
 
       console.log('Submission response:', response);
-      if (response && response.data) {
-        if (response.data.success === true) {
-          successDialog.value = true;
-        } else {
-          errorMessage.value = response.data.message || 'Upload failed.';
-        }
-      } else {
-        errorMessage.value = 'Unexpected response format.';
-      }
 
-      return response;
-    } catch (err) {
-      console.error('Submission error:', err.message || err);
-      // Return normalized error shape instead of throwing so callers can handle uniformly
-      return { data: { success: false, message: 'An error occurred' } };
-    } finally {
       isSubmitting.value = false;
-    }
-  };
+      return response;
+    } catch (error) {
+      console.error('Submission error:', error);
+      isSubmitting.value = false;
 
-  const reset = () => {
+      errorMessage.value =
+        error.response?.data?.message || error.message || 'Failed to submit application';
+
+      throw error;
+    }
+  }
+
+  /**
+   * Reset the upload store state
+   */
+  function reset() {
     uploadedFile.value = null;
     uploadedZipFile.value = null;
+    isSubmitting.value = false;
     successDialog.value = false;
     errorMessage.value = '';
-    selectedJob.value = null;
-  };
+    // Note: Don't reset selectedJob as it might be needed for navigation
+  }
 
+  /**
+   * Clear all data including selected job
+   */
+  function clearAll() {
+    reset();
+    selectedJob.value = null;
+  }
 
   return {
+    // State
+    uploadedFile,
+    uploadedZipFile,
     isSubmitting,
     successDialog,
     errorMessage,
-    uploadedFile,
-    uploadedZipFile,
     selectedJob,
+
+    // Actions
     setSelectedJob,
     processSubmission,
     reset,
+    clearAll,
   };
 });

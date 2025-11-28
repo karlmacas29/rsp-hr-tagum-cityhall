@@ -167,6 +167,10 @@ export const useJobPostStore = defineStore('jobPost', {
             experience_remark: evaluationData.experience_remark,
             training_remark: evaluationData.training_remark,
             eligibility_remark: evaluationData.eligibility_remark,
+            education_qualification: evaluationData.education_qualification,
+            training_qualification: evaluationData.training_qualification,
+            experience_qualification: evaluationData.experience_qualification,
+            eligibility_qualification: evaluationData.eligibility_qualification,
           },
         );
 

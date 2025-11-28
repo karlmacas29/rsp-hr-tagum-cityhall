@@ -385,8 +385,8 @@
             >
               <template v-slot:body-cell-name="props">
                 <q-td :props="props">
-                  <div class="text-body2 text-weight-medium">
-                    {{ props.row.full_name || `${props.row.firstname} ${props.row.lastname}` }}
+                  <div class="text-body text-weight-medium">
+                    {{ props.row.applicant_name || `${props.row.firstname} ${props.row.lastname}` }}
                   </div>
                 </q-td>
               </template>
@@ -565,10 +565,10 @@
 
   const viewApplicantColumns = [
     {
-      name: 'name',
+      name: 'applicant_name',
       label: 'Applicant Name',
       align: 'left',
-      field: 'name',
+      field: 'applicant_name',
       sortable: true,
       style: 'width: 35%',
     },
@@ -877,7 +877,10 @@
         venue_interview: scheduleForm.value.venue_interview || null,
         date_interview: scheduleForm.value.date_interview,
         time_interview: formatTimeForApi(scheduleForm.value.time_interview),
-        applicants: scheduleForm.value.selected_applicants.map((app) => app.submission_id),
+        applicants: scheduleForm.value.selected_applicants.map((app) => ({
+          submission_id: app.submission_id,
+          job_batches_rsp: parseInt(app.job_batches_rsp_id),
+        })),
       };
 
       const response = await interviewStore.scheduleInterview(scheduleData);

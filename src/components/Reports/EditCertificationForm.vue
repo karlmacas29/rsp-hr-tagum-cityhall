@@ -3,9 +3,34 @@
     <!-- Personal Information Section -->
     <div class="section">
       <div class="section-header">Personal Information</div>
-
+      <!-- <div class="form-row">
+        <q-input
+          v-model="formData.Firstname"
+          label="First Name"
+          outlined
+          dense
+          class="form-field flex-2"
+          @update:model-value="emitUpdate"
+        />
+        <q-input
+          v-model="formData.MIddlename"
+          label="Middle Name"
+          outlined
+          dense
+          class="form-field flex-2"
+          @update:model-value="emitUpdate"
+        />
+        <q-input
+          v-model="formData.Surname"
+          label="Last Name"
+          outlined
+          dense
+          class="form-field flex-2"
+          @update:model-value="emitUpdate"
+        />
+      </div> -->
       <div class="form-row">
-        <q-select
+        <!-- <q-select
           v-model="formData.Sex"
           :options="['MALE', 'FEMALE']"
           label="Sex"
@@ -13,19 +38,7 @@
           dense
           class="form-field"
           @update:model-value="emitUpdate"
-        />
-
-        <q-input
-          v-model="formData.Name4"
-          label="Full Name"
-          outlined
-          dense
-          class="form-field flex-2"
-          @update:model-value="emitUpdate"
-        />
-      </div>
-
-      <div class="form-row">
+        /> -->
         <q-input
           v-model="formData.TINNo"
           label="TIN Number"
@@ -48,6 +61,7 @@
           label="Position Title"
           outlined
           dense
+          readonly
           class="form-field flex-2"
           @update:model-value="emitUpdate"
         />
@@ -59,6 +73,7 @@
           label="Office/Department/Unit"
           outlined
           dense
+          readonly
           class="form-field flex-2"
           @update:model-value="emitUpdate"
         />
@@ -71,6 +86,7 @@
           label="Employment Status"
           outlined
           dense
+          readonly
           class="form-field"
           @update:model-value="emitUpdate"
         />

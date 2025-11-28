@@ -7,6 +7,7 @@
             <h6 class="q-ma-none text-weight-bold">Rating Form for Qualification Standards</h6>
             <div class="text-subtitle1">{{ position.position }}</div>
             <div class="text-caption">Office: {{ position.office }}</div>
+            <div class="text-caption">Position ID: {{ positionID }}</div>
           </div>
           <q-btn flat round dense icon="close" @click="closeForm" />
         </div>
@@ -265,102 +266,127 @@
                 <tr v-if="expandedApplicant === applicant.id">
                   <td colspan="9" class="applicant-details">
                     <div class="row q-col-gutter-sm q-py-sm">
-                      <div></div>
-                      <!-- Education Details -->
-                      <div class="col-3">
-                        <div class="detail-panel">
-                          <div class="detail-title">Education</div>
-                          <div v-if="applicant.education && applicant.education.length > 0">
-                            <div
-                              v-for="(edu, index) in applicant.education"
-                              :key="index"
-                              class="q-mb-xs"
-                            >
-                              <div class="text-weight-bold">{{ edu.level }}</div>
-                              <div>{{ edu.school_name || 'N/A' }}</div>
-                              <div>{{ edu.degree || 'N/A' }}</div>
-                              <div v-if="edu.year_graduated">
-                                Graduated: {{ edu.year_graduated }}
-                              </div>
-                              <hr v-if="index < applicant.education.length - 1" class="q-my-xs" />
-                            </div>
-                          </div>
-                          <div v-else class="text-grey-6">No education data</div>
-                        </div>
+                      <div class="col-12 q-mb-sm">
+                        <q-btn
+                          label="View Qualification Standards"
+                          icon="visibility"
+                          color="primary"
+                          outline
+                          dense
+                          size="sm"
+                          @click="openQSModal(applicant)"
+                        />
                       </div>
-
-                      <!-- Work Experience Details -->
-                      <div class="col-3">
-                        <div class="detail-panel">
-                          <div class="detail-title">Work Experience</div>
-                          <div
-                            v-if="applicant.work_experience && applicant.work_experience.length > 0"
-                          >
-                            <div
-                              v-for="(work, index) in applicant.work_experience"
-                              :key="index"
-                              class="q-mb-xs"
-                            >
-                              <div class="text-weight-bold">{{ work.position_title }}</div>
-                              <div>{{ work.department }}</div>
-                              <div>
-                                {{ formatDate(work.work_date_from) }} to
-                                {{ formatDate(work.work_date_to) }}
+                      <div class="col-12">
+                        <div class="row q-col-gutter-sm">
+                          <!-- Education Details -->
+                          <div class="col-3">
+                            <div class="detail-panel">
+                              <div class="detail-title">Education</div>
+                              <div v-if="applicant.education && applicant.education.length > 0">
+                                <div
+                                  v-for="(edu, index) in applicant.education"
+                                  :key="index"
+                                  class="q-mb-xs"
+                                >
+                                  <div class="text-weight-bold">{{ edu.level }}</div>
+                                  <div>{{ edu.school_name || 'N/A' }}</div>
+                                  <div>{{ edu.degree || 'N/A' }}</div>
+                                  <div v-if="edu.year_graduated">
+                                    Graduated: {{ edu.year_graduated }}
+                                  </div>
+                                  <hr
+                                    v-if="index < applicant.education.length - 1"
+                                    class="q-my-xs"
+                                  />
+                                </div>
                               </div>
-                              <div>Salary: ₱{{ work.monthly_salary }}</div>
-                              <div>{{ work.status_of_appointment }}</div>
-                              <hr
-                                v-if="index < applicant.work_experience.length - 1"
-                                class="q-my-xs"
-                              />
+                              <div v-else class="text-grey-6">No education data</div>
                             </div>
                           </div>
-                          <div v-else class="text-grey-6">No work experience</div>
-                        </div>
-                      </div>
 
-                      <!-- Training Details -->
-                      <div class="col-3">
-                        <div class="detail-panel">
-                          <div class="detail-title">Training</div>
-                          <div v-if="applicant.training && applicant.training.length > 0">
-                            <div
-                              v-for="(train, index) in applicant.training"
-                              :key="index"
-                              class="q-mb-xs"
-                            >
-                              <div class="text-weight-bold">{{ train.training_title }}</div>
-                              <div>
-                                {{ formatDate(train.inclusive_date_from) }} to
-                                {{ formatDate(train.inclusive_date_to) }}
+                          <!-- Work Experience Details -->
+                          <div class="col-3">
+                            <div class="detail-panel">
+                              <div class="detail-title">Work Experience</div>
+                              <div
+                                v-if="
+                                  applicant.work_experience && applicant.work_experience.length > 0
+                                "
+                              >
+                                <div
+                                  v-for="(work, index) in applicant.work_experience"
+                                  :key="index"
+                                  class="q-mb-xs"
+                                >
+                                  <div class="text-weight-bold">{{ work.position_title }}</div>
+                                  <div>{{ work.department }}</div>
+                                  <div>
+                                    {{ formatDate(work.work_date_from) }} to
+                                    {{ formatDate(work.work_date_to) }}
+                                  </div>
+                                  <div>Salary: ₱{{ work.monthly_salary }}</div>
+                                  <div>{{ work.status_of_appointment }}</div>
+                                  <hr
+                                    v-if="index < applicant.work_experience.length - 1"
+                                    class="q-my-xs"
+                                  />
+                                </div>
                               </div>
-                              <div>{{ train.number_of_hours }} hours</div>
-                              <div>{{ train.conducted_by }}</div>
-                              <hr v-if="index < applicant.training.length - 1" class="q-my-xs" />
+                              <div v-else class="text-grey-6">No work experience</div>
                             </div>
                           </div>
-                          <div v-else class="text-grey-6">No training data</div>
-                        </div>
-                      </div>
 
-                      <!-- Eligibility Details -->
-                      <div class="col-3">
-                        <div class="detail-panel">
-                          <div class="detail-title">Eligibility</div>
-                          <div v-if="applicant.eligibity && applicant.eligibity.length > 0">
-                            <div
-                              v-for="(elig, index) in applicant.eligibity"
-                              :key="index"
-                              class="q-mb-xs"
-                            >
-                              <div class="text-weight-bold">{{ elig.eligibility }}</div>
-                              <div>Rating: {{ elig.rating }}%</div>
-                              <div>Exam Date: {{ formatDate(elig.date_of_examination) }}</div>
-                              <div>License: {{ elig.license_number }}</div>
-                              <hr v-if="index < applicant.eligibity.length - 1" class="q-my-xs" />
+                          <!-- Training Details -->
+                          <div class="col-3">
+                            <div class="detail-panel">
+                              <div class="detail-title">Training</div>
+                              <div v-if="applicant.training && applicant.training.length > 0">
+                                <div
+                                  v-for="(train, index) in applicant.training"
+                                  :key="index"
+                                  class="q-mb-xs"
+                                >
+                                  <div class="text-weight-bold">{{ train.training_title }}</div>
+                                  <div>
+                                    {{ formatDate(train.inclusive_date_from) }} to
+                                    {{ formatDate(train.inclusive_date_to) }}
+                                  </div>
+                                  <div>{{ train.number_of_hours }} hours</div>
+                                  <div>{{ train.conducted_by }}</div>
+                                  <hr
+                                    v-if="index < applicant.training.length - 1"
+                                    class="q-my-xs"
+                                  />
+                                </div>
+                              </div>
+                              <div v-else class="text-grey-6">No training data</div>
                             </div>
                           </div>
-                          <div v-else class="text-grey-6">No eligibility data</div>
+
+                          <!-- Eligibility Details -->
+                          <div class="col-3">
+                            <div class="detail-panel">
+                              <div class="detail-title">Eligibility</div>
+                              <div v-if="applicant.eligibity && applicant.eligibity.length > 0">
+                                <div
+                                  v-for="(elig, index) in applicant.eligibity"
+                                  :key="index"
+                                  class="q-mb-xs"
+                                >
+                                  <div class="text-weight-bold">{{ elig.eligibility }}</div>
+                                  <div>Rating: {{ elig.rating }}%</div>
+                                  <div>Exam Date: {{ formatDate(elig.date_of_examination) }}</div>
+                                  <div>License: {{ elig.license_number }}</div>
+                                  <hr
+                                    v-if="index < applicant.eligibity.length - 1"
+                                    class="q-my-xs"
+                                  />
+                                </div>
+                              </div>
+                              <div v-else class="text-grey-6">No eligibility data</div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -396,11 +422,19 @@
       </q-card-section>
     </q-card>
   </q-dialog>
+
+  <!-- Use existing QS Modal Component -->
+  <QualificationStandardModal
+    v-model:show="showQSModal"
+    :applicant-data="selectedApplicantForQS"
+    :variant="'applicant'"
+  />
 </template>
 
 <script setup>
   import { ref, computed, watch } from 'vue';
   import { useQuasar } from 'quasar';
+  import QualificationStandardModal from 'src/components/QSModal.vue';
 
   const $q = useQuasar();
 
@@ -415,6 +449,10 @@
       type: Object,
       default: () => ({}),
     },
+    rawCriteria: {
+      type: Object,
+      default: () => null,
+    },
     applicants: {
       type: Array,
       default: () => [],
@@ -423,12 +461,21 @@
   });
 
   // Emits
-  const emit = defineEmits(['update:modelValue', 'submit-ratings', 'save-draft']);
+  const emit = defineEmits(['close', 'update:modelValue', 'submit-ratings', 'save-draft']);
 
   // Computed
   const isOpen = computed({
     get: () => props.modelValue,
     set: (value) => emit('update:modelValue', value),
+  });
+
+  // Get PositionID from raw criteria
+  const positionID = computed(() => {
+    if (props.rawCriteria && props.rawCriteria.job_batch) {
+      return props.rawCriteria.job_batch.PositionID;
+    }
+    // Fallback to position data
+    return props.position.tblStructureDetails_ID || null;
   });
 
   // Transform criteria structure to include items array
@@ -557,6 +604,10 @@
   const sortBy = ref({ label: 'Name', value: 'name' });
   const sortOrder = ref('asc');
   const applicantsData = ref([]);
+
+  // QS Modal State
+  const showQSModal = ref(false);
+  const selectedApplicantForQS = ref(null);
 
   const sortOptions = [
     { label: 'Name', value: 'name' },
@@ -843,6 +894,52 @@
     }
   };
 
+  // QS Modal Methods
+  const openQSModal = async (applicant) => {
+    try {
+      console.log('Opening QS Modal');
+      console.log('Position ID:', positionID.value);
+      console.log('Applicant:', applicant);
+
+      // Prepare applicant data for the QS modal
+      selectedApplicantForQS.value = {
+        submission_id: applicant.id, // This is the application/submission ID
+        PositionID: positionID.value, // Get from computed property
+        name: `${applicant.firstname} ${applicant.lastname}`,
+        firstname: applicant.firstname,
+        lastname: applicant.lastname,
+        position: props.position.position,
+        office: props.position.office,
+        appliedDate: formatDate(applicant.created_at),
+        status: applicant.status || 'PENDING',
+
+        // Pass the PDS data directly from the applicant object
+        education: applicant.education || [],
+        work_experience: applicant.work_experience || [],
+        training: applicant.training || [],
+        eligibity: applicant.eligibity || [],
+        eligibility: applicant.eligibity || [],
+
+        // Additional fields
+        nPersonalInfo_id: applicant.nPersonalInfo_id,
+        ControlNo: applicant.ControlNo,
+      };
+
+      console.log('Selected Applicant for QS:', selectedApplicantForQS.value);
+
+      showQSModal.value = true;
+    } catch (error) {
+      console.error('Error opening QS modal:', error);
+      $q.notify({
+        color: 'negative',
+        message: 'Failed to open qualification standards',
+        icon: 'error',
+        position: 'top',
+        timeout: 3000,
+      });
+    }
+  };
+
   const saveDraft = () => {
     const formattedData = applicantsData.value.map((applicant) => {
       const qsScore = calculateQS(applicant);
@@ -990,13 +1087,6 @@
       min-height: 32px;
     }
   }
-
-  // .sticky-criteria {
-  //   position: sticky;
-  //   top: 0;
-  //   z-index: 9;
-  //   background-color: #f9f9f9;
-  // }
 
   .sticky-footer {
     position: sticky;

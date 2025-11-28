@@ -218,6 +218,21 @@ export const usePlantillaStore = defineStore('plantilla', {
       }
     },
 
+    async editEmployee(ControlNo, payload) {
+      try {
+        this.loading = true;
+        const response = await adminApi.put(`/employee/update/${ControlNo}`, payload, {
+          validateStatus: (status) => status < 500,
+        });
+        return response;
+      } catch (err) {
+        console.error('Error hiring applicant:', err.message || err);
+        return { data: { success: false, message: 'An error occurred' } };
+      } finally {
+        this.loading = false;
+      }
+    },
+
     async fetchAppointmentData(ControlNo) {
       this.loading = true;
       this.error = null;
@@ -242,8 +257,13 @@ export const usePlantillaStore = defineStore('plantilla', {
             // Basic Info
             SalaryAnnual: appointmentData.RateYear || '',
             TINNo: x_personal?.TINNo || '',
+            Address: x_personal?.Address || '',
             Sex: plantillaInfo?.Sex,
             Name4: plantillaInfo?.Name4 || '',
+            Firstname: x_personal?.Firstname || '',
+            MIddlename: x_personal?.MIddlename || '',
+            Surname: x_personal?.Surname || '',
+            BirthDate: x_personal?.BirthDate || '',
 
             post_date: jobpost?.post_date || '',
             end_date: jobpost?.end_date || '',
@@ -265,6 +285,7 @@ export const usePlantillaStore = defineStore('plantilla', {
 
             // Appointment Details
             Renew: tempRegInfo?.Renew || '',
+            vicename: tempRegInfo?.vicename || '',
             vicecause: tempRegInfo?.vicecause || '',
             sepcause: tempRegInfo?.sepcause || '',
             sepdate: tempRegInfo?.sepdate || '',
@@ -274,6 +295,7 @@ export const usePlantillaStore = defineStore('plantilla', {
             ToDate: appointmentData.ToDate || '',
 
             // Extended Info from temp_reg_appointment_reorg_ext
+            tempId: reorgExtInfo?.tempId || '',
             PresAppro: reorgExtInfo?.PresAppro || '',
             PrevAppro: reorgExtInfo?.PrevAppro || '',
             SalAuthorized: reorgExtInfo?.SalAuthorized || '',

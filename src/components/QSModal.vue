@@ -22,19 +22,13 @@
 
       <!-- Main Content Area -->
       <q-card-section class="main-content-section" style="flex: 1; overflow: hidden">
-        <!-- Loading State -->
-        <div v-if="isLoadingPDS" style="height: 70vh" class="column items-center justify-center">
-          <q-spinner-dots size="40px" color="primary" />
-          <div class="q-mt-sm text-grey">Loading PDS data...</div>
-        </div>
-
         <!-- Content -->
-        <div v-else class="row no-wrap full-height">
+        <div class="row no-wrap full-height">
           <!-- Left Card (Applicant Info) -->
           <q-card class="col-2 q-mr-md">
             <q-card-section class="column justify-between items-center q-pa-md">
               <q-img
-                :src="applicantData?.image_url || 'https://placehold.co/100'"
+                :src="xData?.image_url || 'https://placehold.co/100'"
                 class="bg-grey-4 q-mb-md"
                 style="width: 100px; height: 100px; border-radius: 10px"
                 alt="Applicant Photo"
@@ -57,13 +51,6 @@
                   <div class="text-caption text-grey-7 q-mb-xs">Applied Position</div>
                   <div class="text-body2 text-bold">
                     {{ applicantData?.position || 'Office of the ...' }}
-                  </div>
-                </div>
-
-                <div class="text-center q-mb-sm">
-                  <div class="text-caption text-grey-7 q-mb-xs">Application Date</div>
-                  <div class="text-weight-medium">
-                    {{ applicantData?.appliedDate || '#### ##, ####' }}
                   </div>
                 </div>
 
@@ -115,16 +102,7 @@
               <q-tab-panel name="education" class="row q-pa-none" style="display: flex">
                 <div class="col-9 q-pa-sm" style="border-right: 1px solid #e0e0e0">
                   <q-scroll-area style="height: 100%">
-                    <div class="row items-center justify-between q-mb-md">
-                      <div class="text-subtitle3">Applicant Education</div>
-                      <div class="row items-center q-gutter-sm">
-                        <q-badge
-                          color="primary"
-                          class="q-px-sm q-py-xs"
-                          :label="`${selectedEducationIds.length} selected`"
-                        />
-                      </div>
-                    </div>
+                    <div class="text-subtitle3">Applicant Education</div>
 
                     <q-card class="q-ma-sm">
                       <q-table
@@ -151,6 +129,12 @@
                         </template>
                       </q-table>
                     </q-card>
+
+                    <!-- show the actual selected ids (visible value) -->
+                    <div class="q-mt-sm text-caption">
+                      Selected education IDs:
+                      <code>{{ JSON.stringify(selectedEducationIds) }}</code>
+                    </div>
                   </q-scroll-area>
                 </div>
 
@@ -181,9 +165,8 @@
                       </q-table>
                     </q-card>
                     <!-- Remarks -->
-
                     <q-input
-                      v-model="xData.education_remark"
+                      v-model="education_remark"
                       label="Remarks"
                       autogrow
                       outlined
@@ -300,6 +283,12 @@
                         </template>
                       </q-table>
                     </q-card>
+
+                    <!-- show the actual selected experience ids -->
+                    <div class="q-mt-sm text-caption">
+                      Selected experience IDs:
+                      <code>{{ JSON.stringify(selectedExperienceIds) }}</code>
+                    </div>
                   </q-scroll-area>
                 </div>
 
@@ -325,7 +314,7 @@
                       </q-table>
                     </q-card>
                     <q-input
-                      v-model="xData.experience_remark"
+                      v-model="experience_remark"
                       label="Remarks"
                       autogrow
                       outlined
@@ -439,6 +428,12 @@
                         </template>
                       </q-table>
                     </q-card>
+
+                    <!-- show the actual selected training ids -->
+                    <div class="q-mt-sm text-caption">
+                      Selected training IDs:
+                      <code>{{ JSON.stringify(selectedTrainingIds) }}</code>
+                    </div>
                   </q-scroll-area>
                 </div>
 
@@ -464,7 +459,7 @@
                       </q-table>
                     </q-card>
                     <q-input
-                      v-model="xData.training_remark"
+                      v-model="training_remark"
                       label="Remarks"
                       autogrow
                       outlined
@@ -483,16 +478,7 @@
               <q-tab-panel name="eligibility" class="row q-pa-none" style="display: flex">
                 <div class="col-9 q-pa-sm" style="border-right: 1px solid #e0e0e0">
                   <q-scroll-area style="height: 100%">
-                    <div class="row items-center justify-between q-mb-md">
-                      <div class="text-subtitle3">Applicant Eligibility</div>
-                      <div class="row items-center q-gutter-sm">
-                        <q-badge
-                          color="primary"
-                          class="q-px-sm q-py-xs"
-                          :label="`${selectedEligibilityIds.length} selected`"
-                        />
-                      </div>
-                    </div>
+                    <div class="text-subtitle3 q-mb-md">Applicant Eligibility</div>
                     <q-card class="q-ma-sm">
                       <q-table
                         :rows="xEligibility"
@@ -519,6 +505,12 @@
                         </template>
                       </q-table>
                     </q-card>
+
+                    <!-- show the actual selected eligibility ids -->
+                    <div class="q-mt-sm text-caption">
+                      Selected eligibility IDs:
+                      <code>{{ JSON.stringify(selectedEligibilityIds) }}</code>
+                    </div>
                   </q-scroll-area>
                 </div>
 
@@ -544,7 +536,7 @@
                       </q-table>
                     </q-card>
                     <q-input
-                      v-model="xData.eligibility_remark"
+                      v-model="eligibility_remark"
                       label="Remarks"
                       autogrow
                       outlined
@@ -568,77 +560,6 @@
         :applicant-name="applicantData?.name || 'Unknown Applicant'"
         :supporting-documents="supportingDocuments"
       />
-
-      <!-- Footer Actions -->
-      <q-card-section class="footer-actions bg-grey-2 q-py-sm">
-        <div class="row justify-between items-center">
-          <div class="row items-center">
-            <!-- Empty space -->
-          </div>
-
-          <div
-            v-if="canModifyJobPost && !props.isPlantilla && !evaluationLocked && !isJobOccupied"
-            class="column items-center"
-          >
-            <div class="text-caption text-grey-7 q-mb-xs">Evaluation Status</div>
-            <div class="row justify-center q-gutter-md">
-              <q-radio
-                v-model="qualificationStatus"
-                val="Qualified"
-                label="Qualified"
-                color="positive"
-                class="radio-button"
-              >
-                <q-tooltip>Candidate meets all requirements</q-tooltip>
-              </q-radio>
-              <q-radio
-                v-model="qualificationStatus"
-                val="Unqualified"
-                label="Unqualified"
-                color="negative"
-                class="radio-button"
-              >
-                <q-tooltip>Candidate doesn't meet requirements</q-tooltip>
-              </q-radio>
-            </div>
-          </div>
-
-          <div v-if="isJobOccupied && !props.isPlantilla" class="column items-center">
-            <div class="text-caption text-orange-8 q-mb-xs">Job Status</div>
-            <q-badge color="orange" class="text-caption q-px-sm">
-              <q-icon name="lock" class="q-mr-xs" />
-              Evaluation Disabled
-            </q-badge>
-          </div>
-
-          <div v-if="evaluationLocked && !props.isPlantilla" class="column items-center">
-            <div class="text-caption text-blue-8 q-mb-xs">Status</div>
-            <q-badge color="blue" class="text-caption q-px-sm">
-              <q-icon name="lock" class="q-mr-xs" />
-              Evaluation Submitted
-            </q-badge>
-          </div>
-
-          <div v-if="!canModifyJobPost && !props.isPlantilla" class="column items-center">
-            <div class="text-caption text-grey-8 q-mb-xs">Permission</div>
-            <q-badge color="grey" class="text-caption q-px-sm">
-              <q-icon name="visibility" class="q-mr-xs" />
-              View Only
-            </q-badge>
-          </div>
-
-          <div class="row justify-end">
-            <q-btn
-              v-if="canModifyJobPost && !props.isPlantilla && !evaluationLocked && !isJobOccupied"
-              label="SUBMIT EVALUATION"
-              color="positive"
-              @click="onSubmit"
-              :disable="!qualificationStatus"
-              class="q-mx-sm"
-            />
-          </div>
-        </div>
-      </q-card-section>
     </q-card>
   </q-dialog>
 
@@ -653,26 +574,22 @@
   import PDSModalApplicant from './PDSModalApplicant.vue';
   import SupportingDocumentsModal from './SuppDocs.vue';
 
-  const xData = ref({
-    education_remark: '',
-    training_remark: '',
-    experience_remark: '',
-    eligibility_remark: '',
-    // server might put education_qualification here (and other qualification arrays)
-  });
+  const xData = ref({});
   const xEdu = ref([]);
   const xEligibility = ref([]);
   const xExperience = ref([]);
   const xTraining = ref([]);
   const isLoadingPDS = ref(false);
 
-  // Selection tracking — stored as the actual uniqueId values from the rows
+  // Selection tracking
   const selectedEducationIds = ref([]);
   const selectedExperienceIds = ref([]);
   const selectedTrainingIds = ref([]);
   const selectedEligibilityIds = ref([]);
 
+  // PDS Modal
   const showPDSModal = ref(false);
+
   const showSupportingDocsModal = ref(false);
   const supportingDocuments = ref({
     training_images: [],
@@ -685,6 +602,7 @@
   const jobPostStore = useJobPostStore();
   const usePlantilla = usePlantillaStore();
 
+  // Permission check
   const canModifyJobPost = computed(() => {
     return authStore.user?.permissions?.modifyJobpostAccess == '1';
   });
@@ -707,56 +625,55 @@
   });
 
   const emit = defineEmits(['update:show', 'view-pds', 'toggle-qualification', 'submit', 'close']);
-  const localShow = ref(props.show);
+  const localShow = computed({
+    get: () => props.show,
+    set: (value) => emit('update:show', value),
+  });
 
   const tab = ref('education');
   const qualificationStatus = ref('');
 
-  // Helper to read selection arrays from a source by trying multiple key variants
+  // small helper: try several possible property names on a source object and return an array if found
   const readSelectionFrom = (source, variants = []) => {
-    if (!source) return null;
+    if (!source) return undefined;
     for (const key of variants) {
-      if (Object.prototype.hasOwnProperty.call(source, key)) {
-        const v = source[key];
-        if (Array.isArray(v)) return v;
-        if (typeof v === 'string') {
-          try {
-            const parsed = JSON.parse(v);
-            if (Array.isArray(parsed)) return parsed;
-          } catch {
-            const splitted = v
-              .split(',')
-              .map((s) => s.trim())
-              .filter(Boolean);
-            if (splitted.length) return splitted;
-          }
+      if (!Object.prototype.hasOwnProperty.call(source, key)) continue;
+      const v = source[key];
+      if (v === null) return null;
+      if (Array.isArray(v)) return v;
+      if (typeof v === 'string') {
+        try {
+          const parsed = JSON.parse(v);
+          if (Array.isArray(parsed)) return parsed;
+        } catch {
+          const splitted = v
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean);
+          if (splitted.length) return splitted;
         }
-
-        if (v === null) return null;
       }
     }
     return undefined;
   };
 
+  // Map server-provided selection values to matching row.uniqueId values (preserve the row's uniqueId type).
   const mapServerSelectionToRowIds = (selectionFromServer, rows) => {
     if (!selectionFromServer || !Array.isArray(selectionFromServer) || !rows) return null;
-
     const serverSet = new Set(selectionFromServer.map((v) => String(v).trim()));
     const result = [];
     const seen = new Set();
-
     for (const r of rows) {
       const uidStr = String(r.uniqueId).trim();
       if (serverSet.has(uidStr) && !seen.has(uidStr)) {
-        result.push(r.uniqueId); // keep original type (number or string)
+        result.push(r.uniqueId);
         seen.add(uidStr);
       }
     }
-
     return result.length ? result : null;
   };
 
-  // UNIFIED DATA MAPPERS (same as before)
+  // UNIFIED DATA MAPPERS
   const mapEducationData = (eduArray) => {
     if (!eduArray || !Array.isArray(eduArray)) return [];
 
@@ -776,7 +693,7 @@
       }
 
       return {
-        uniqueId: e.uniqueId || `education_${index}`,
+        uniqueId: e.uniqueId || e.id || `education_${index}`,
         level: e.Education || '',
         school_name: e.School || '',
         degree: e.Degree || '',
@@ -806,7 +723,7 @@
       }
 
       return {
-        uniqueId: e.uniqueId || `eligibility_${index}`,
+        uniqueId: e.uniqueId || e.id || `eligibility_${index}`,
         eligibility: e.CivilServe || '',
         rating: e.Rates || '',
         date_of_examination: e.Dates || '',
@@ -836,7 +753,7 @@
       }
 
       return {
-        uniqueId: e.uniqueId || `experience_${index}`,
+        uniqueId: e.uniqueId || e.id || `experience_${index}`,
         work_date_from: e.WFrom || '',
         work_date_to: e.WTo || '',
         position_title: e.WPosition || '',
@@ -866,7 +783,7 @@
       }
 
       return {
-        uniqueId: t.uniqueId || `training_${index}_${Date.now()}`,
+        uniqueId: t.uniqueId || t.id || `training_${index}_${Date.now()}`,
         training_title: t.Training || '',
         inclusive_date_from: t.DateFrom || '',
         inclusive_date_to: t.DateTo || '',
@@ -877,7 +794,7 @@
     });
   };
 
-  // Toggle functions — use the actual row.uniqueId values
+  // Toggle functions for selections
   const toggleEducationSelection = (uniqueId) => {
     const idx = selectedEducationIds.value.indexOf(uniqueId);
     if (idx > -1) {
@@ -914,7 +831,6 @@
     }
   };
 
-  // Date helpers (unchanged)
   const parseDate = (dateString) => {
     if (!dateString) return null;
     const date = new Date(dateString);
@@ -1001,7 +917,7 @@
     }, 0);
   });
 
-  // Training hours helpers
+  // Training hours
   const parseTrainingHours = (hours) => {
     if (!hours) return 0;
 
@@ -1043,18 +959,6 @@
     );
   });
 
-  const getPersonalInfo = (applicantData) => {
-    if (!applicantData) return {};
-
-    const personalInfo =
-      applicantData.n_personal_info ||
-      applicantData.nPersonalInfo ||
-      (applicantData.firstname ? applicantData : null) ||
-      {};
-
-    return personalInfo;
-  };
-
   const getStatusClass = (status) => {
     if (!status) return 'grey';
     switch (status.toLowerCase()) {
@@ -1087,21 +991,74 @@
     return parseFloat(val).toLocaleString('en-PH', { style: 'currency', currency: 'PHP' });
   };
 
-  // Column definitions (unchanged)
+  // Column definitions (added select for education & eligibility)
   const xEduCol = [
-    { name: 'select', label: 'Select', field: 'select', align: 'center', style: 'width: 50px' },
-    { name: 'level', label: 'Level', align: 'left', field: 'level', sortable: true },
-    { name: 'school_name', label: 'Name of School', align: 'left', field: 'school_name' },
-    { name: 'course', label: 'Degree/Course', align: 'left', field: 'degree' },
-    { name: 'fromYear', label: 'From', align: 'left', field: 'attendance_from' },
-    { name: 'toYear', label: 'To', align: 'left', field: 'attendance_to' },
-    { name: 'highestLevel', label: 'Units Earned', align: 'left', field: 'highest_units' },
-    { name: 'yearGraduated', label: 'Year Graduated', align: 'left', field: 'year_graduated' },
-    { name: 'honors', label: 'Honors', align: 'left', field: 'scholarship' },
+    {
+      name: 'select',
+      label: 'Select',
+      field: 'select',
+      align: 'center',
+      style: 'width: 50px',
+    },
+    {
+      name: 'level',
+      label: 'Level',
+      align: 'left',
+      field: 'level',
+      sortable: true,
+    },
+    {
+      name: 'school_name',
+      label: 'Name of School',
+      align: 'left',
+      field: 'school_name',
+    },
+    {
+      name: 'course',
+      label: 'Degree/Course',
+      align: 'left',
+      field: 'degree',
+    },
+    {
+      name: 'fromYear',
+      label: 'From',
+      align: 'left',
+      field: 'attendance_from',
+    },
+    {
+      name: 'toYear',
+      label: 'To',
+      align: 'left',
+      field: 'attendance_to',
+    },
+    {
+      name: 'highestLevel',
+      label: 'Units Earned',
+      align: 'left',
+      field: 'highest_units',
+    },
+    {
+      name: 'yearGraduated',
+      label: 'Year Graduated',
+      align: 'left',
+      field: 'year_graduated',
+    },
+    {
+      name: 'honors',
+      label: 'Honors',
+      align: 'left',
+      field: 'scholarship',
+    },
   ];
 
   const xEligibilityCol = [
-    { name: 'select', label: 'Select', field: 'select', align: 'center', style: 'width: 50px' },
+    {
+      name: 'select',
+      label: 'Select',
+      field: 'select',
+      align: 'center',
+      style: 'width: 50px',
+    },
     {
       name: 'eligibility',
       label: 'Eligibility',
@@ -1109,7 +1066,13 @@
       sortable: true,
       align: 'left',
     },
-    { name: 'rating', label: 'Rating', field: 'rating', sortable: true, align: 'center' },
+    {
+      name: 'rating',
+      label: 'Rating',
+      field: 'rating',
+      sortable: true,
+      align: 'center',
+    },
     {
       name: 'examDate',
       label: 'Date of Exam',
@@ -1141,41 +1104,157 @@
   ];
 
   const xExperienceCol = [
-    { name: 'select', label: 'Select', field: 'select', align: 'center', style: 'width: 50px' },
-    { name: 'fromDate', label: 'From', field: 'work_date_from', align: 'center' },
-    { name: 'toDate', label: 'To', field: 'work_date_to', align: 'center' },
-    { name: 'positionTitle', label: 'Position Title', field: 'position_title', align: 'left' },
-    { name: 'department', label: 'Department', field: 'department', align: 'left' },
-    { name: 'monthlySalary', label: 'Monthly Salary', field: 'monthly_salary', align: 'right' },
-    { name: 'salaryGrade', label: 'SG', field: 'salary_grade', align: 'center' },
-    { name: 'appointmentStatus', label: 'Status', field: 'status_of_appointment', align: 'left' },
-    { name: 'govtService', label: "Gov't", field: 'government_service', align: 'center' },
-    { name: 'duration', label: 'Duration', field: 'durationText', align: 'center' },
+    {
+      name: 'select',
+      label: 'Select',
+      field: 'select',
+      align: 'center',
+      style: 'width: 50px',
+    },
+    {
+      name: 'fromDate',
+      label: 'From',
+      field: 'work_date_from',
+      align: 'center',
+    },
+    {
+      name: 'toDate',
+      label: 'To',
+      field: 'work_date_to',
+      align: 'center',
+    },
+    {
+      name: 'positionTitle',
+      label: 'Position Title',
+      field: 'position_title',
+      align: 'left',
+    },
+    {
+      name: 'department',
+      label: 'Department',
+      field: 'department',
+      align: 'left',
+    },
+    {
+      name: 'monthlySalary',
+      label: 'Monthly Salary',
+      field: 'monthly_salary',
+      align: 'right',
+    },
+    {
+      name: 'salaryGrade',
+      label: 'SG',
+      field: 'salary_grade',
+      align: 'center',
+    },
+    {
+      name: 'appointmentStatus',
+      label: 'Status',
+      field: 'status_of_appointment',
+      align: 'left',
+    },
+    {
+      name: 'govtService',
+      label: "Gov't",
+      field: 'government_service',
+      align: 'center',
+    },
+    {
+      name: 'duration',
+      label: 'Duration',
+      field: 'durationText',
+      align: 'center',
+    },
   ];
 
   const xTrainingCol = [
-    { name: 'select', label: 'Select', field: 'select', align: 'center', style: 'width: 50px' },
-    { name: 'title', label: 'Title', field: 'training_title', align: 'left' },
-    { name: 'fromDate', label: 'From', field: 'inclusive_date_from', align: 'center' },
-    { name: 'toDate', label: 'To', field: 'inclusive_date_to', align: 'center' },
-    { name: 'hours', label: 'Hours', field: 'number_of_hours', align: 'center' },
-    { name: 'type', label: 'Type', field: 'type', align: 'left' },
-    { name: 'conductor', label: 'Conducted/Sponsored By', field: 'conducted_by', align: 'left' },
+    {
+      name: 'select',
+      label: 'Select',
+      field: 'select',
+      align: 'center',
+      style: 'width: 50px',
+    },
+    {
+      name: 'title',
+      label: 'Title',
+      field: 'training_title',
+      align: 'left',
+    },
+    {
+      name: 'fromDate',
+      label: 'From',
+      field: 'inclusive_date_from',
+      align: 'center',
+    },
+    {
+      name: 'toDate',
+      label: 'To',
+      field: 'inclusive_date_to',
+      align: 'center',
+    },
+    {
+      name: 'hours',
+      label: 'Hours',
+      field: 'number_of_hours',
+      align: 'center',
+    },
+    {
+      name: 'type',
+      label: 'Type',
+      field: 'type',
+      align: 'left',
+    },
+    {
+      name: 'conductor',
+      label: 'Conducted/Sponsored By',
+      field: 'conducted_by',
+      align: 'left',
+    },
   ];
 
   const positionQS = ref([]);
+
   const educationCol = ref([
-    { name: 'Education', label: 'Education', align: 'left', field: 'Education' },
+    {
+      name: 'Education',
+      label: 'Education',
+      align: 'left',
+      field: 'Education',
+    },
   ]);
+
   const ExperienceCol = ref([
-    { name: 'Experience', label: 'Experience', align: 'left', field: 'Experience' },
+    {
+      name: 'Experience',
+      label: 'Experience',
+      align: 'left',
+      field: 'Experience',
+    },
   ]);
+
   const trainingCol = ref([
-    { name: 'Training', label: 'Training', align: 'left', field: 'Training' },
+    {
+      name: 'Training',
+      label: 'Training',
+      align: 'left',
+      field: 'Training',
+    },
   ]);
+
   const eligibilityCol = ref([
-    { name: 'Eligibility', label: 'Eligibility', align: 'left', field: 'Eligibility' },
+    {
+      name: 'Eligibility',
+      label: 'Eligibility',
+      align: 'left',
+      field: 'Eligibility',
+    },
   ]);
+
+  const education_remark = ref('');
+  const experience_remark = ref('');
+  const training_remark = ref('');
+  const eligibility_remark = ref('');
 
   const evaluationLocked = computed(() => props.isSubmitted);
 
@@ -1201,35 +1280,26 @@
     }
   });
 
-  watch(
-    () => props.show,
-    (newVal) => {
-      localShow.value = newVal;
-    },
-  );
-
-  watch(localShow, (newVal) => {
-    emit('update:show', newVal);
-  });
-
   const showSupportingDocs = () => {
     showSupportingDocsModal.value = true;
   };
 
   const onModalShow = async () => {
     tab.value = 'education';
+    selectedEducationIds.value = [];
     selectedExperienceIds.value = [];
     selectedTrainingIds.value = [];
-    selectedEducationIds.value = [];
     selectedEligibilityIds.value = [];
     isLoadingPDS.value = true;
 
     try {
+      // Fetch PDS data using submission_id
       let pdsData = null;
       if (props.applicantData?.submission_id) {
         pdsData = await jobPostStore.fetchApplicantPDS(props.applicantData.submission_id);
       }
 
+      // Load QS data
       if (props.applicantData?.PositionID) {
         await usePlantilla.fetchQsData(props.applicantData.PositionID);
         positionQS.value = usePlantilla.qsData || [];
@@ -1237,67 +1307,32 @@
 
       const source = pdsData || props.applicantData || {};
 
-      // populate remarks and rows
-      xData.value.education_remark =
-        source.education_remark || source.educationRemark || xData.value.education_remark || '';
-      xData.value.experience_remark =
-        source.experience_remark || source.experienceRemark || xData.value.experience_remark || '';
-      xData.value.training_remark =
-        source.training_remark || source.trainingRemark || xData.value.training_remark || '';
-      xData.value.eligibility_remark =
-        source.eligibility_remark ||
-        source.eligibilityRemark ||
-        xData.value.eligibility_remark ||
-        '';
-
-      xEdu.value = mapEducationData(
-        (pdsData && pdsData.education) ||
-          props.education ||
-          getPersonalInfo(props.applicantData).education ||
-          props.applicantData?.education ||
-          [],
-      );
-      xEligibility.value = mapEligibilityData(
-        (pdsData && (pdsData.eligibity || pdsData.eligibility)) ||
-          getPersonalInfo(props.applicantData)?.eligibility ||
-          [],
-      );
-      xExperience.value = mapExperienceData(
-        (pdsData && pdsData.work_experience) ||
-          getPersonalInfo(props.applicantData)?.work_experience ||
-          [],
-      );
-      xTraining.value = mapTrainingData(
-        (pdsData && pdsData.training) || getPersonalInfo(props.applicantData)?.training || [],
-      );
+      xData.value = source || {};
+      xEdu.value = mapEducationData(source.education || []);
+      xEligibility.value = mapEligibilityData(source.eligibity || source.eligibility || []);
+      xExperience.value = mapExperienceData(source.work_experience || []);
+      xTraining.value = mapTrainingData(source.training || []);
 
       supportingDocuments.value = {
-        training_images:
-          (pdsData && pdsData.training_images) || props.applicantData?.training_images || [],
-        education_images:
-          (pdsData && pdsData.education_images) || props.applicantData?.education_images || [],
-        eligibility_images:
-          (pdsData && pdsData.eligibility_images) || props.applicantData?.eligibility_images || [],
-        experience_images:
-          (pdsData && pdsData.experience_images) || props.applicantData?.experience_images || [],
+        training_images: source.training_images || [],
+        education_images: source.education_images || [],
+        eligibility_images: source.eligibility_images || [],
+        experience_images: source.experience_images || [],
       };
 
-      // Candidate sources to search for selection arrays:
-      // IMPORTANT: include xData.value here because you said the server selection lives in xData
-      const candidateSources = [
-        xData.value,
-        pdsData,
-        props.applicantData,
-        jobPostStore.applicantPDS,
-        source,
-      ];
+      // remarks
+      education_remark.value = source.education_remark ?? '';
+      experience_remark.value = source.experience_remark ?? '';
+      training_remark.value = source.training_remark ?? '';
+      eligibility_remark.value = source.eligibility_remark ?? '';
 
-      const tryReadFirst = (variants) => {
+      // read selection arrays (education_qualification etc.) from xData (preferred) then fallback to props
+      const candidateSources = [xData.value, props.applicantData];
+
+      const tryReadFirst = (keys) => {
         for (const s of candidateSources) {
-          if (!s) continue;
-          const found = readSelectionFrom(s, variants);
-          // return found even if it's an empty array - we want to respect explicit empty arrays
-          if (found !== undefined) return found;
+          const found = readSelectionFrom(s, keys);
+          if (found !== undefined) return found; // may be array or null
         }
         return undefined;
       };
@@ -1305,72 +1340,38 @@
       const educationSelectionRaw = tryReadFirst([
         'education_qualification',
         'educationQualification',
-        'education qualification',
-        'educationQualificationIds',
-        'education_quals',
-        'educationqualification',
-        'education_qualification_ids',
-        'selectedEducationIds',
       ]);
-
       const experienceSelectionRaw = tryReadFirst([
         'experience_qualification',
         'experienceQualification',
-        'experience qualification',
-        'experienceQualificationIds',
-        'selectedExperienceIds',
       ]);
-
       const trainingSelectionRaw = tryReadFirst([
         'training_qualification',
         'trainingQualification',
-        'training qualification',
-        'trainingQualificationIds',
-        'selectedTrainingIds',
       ]);
-
       const eligibilitySelectionRaw = tryReadFirst([
         'eligibility_qualification',
         'eligibilityQualification',
-        'eligibility qualification',
-        'eligibilityQualificationIds',
-        'selectedEligibilityIds',
       ]);
 
-      // Map server selection values to the actual row.uniqueId values (preserve row type)
-      const educationSelection = mapServerSelectionToRowIds(educationSelectionRaw, xEdu.value);
-      const experienceSelection = mapServerSelectionToRowIds(
+      const normalizeMap = (raw, rows) => mapServerSelectionToRowIds(raw, rows) ?? [];
+
+      selectedEducationIds.value = normalizeMap(educationSelectionRaw, xEdu.value);
+      selectedExperienceIds.value = normalizeMap(
         experienceSelectionRaw,
         experienceWithDuration.value,
       );
-      const trainingSelection = mapServerSelectionToRowIds(trainingSelectionRaw, xTraining.value);
-      const eligibilitySelection = mapServerSelectionToRowIds(
-        eligibilitySelectionRaw,
-        xEligibility.value,
-      );
+      selectedTrainingIds.value = normalizeMap(trainingSelectionRaw, xTraining.value);
+      selectedEligibilityIds.value = normalizeMap(eligibilitySelectionRaw, xEligibility.value);
 
-      // OPTION A: treat null/undefined/missing selection as "no selection" (empty array).
-      // Use nullish coalescing to ensure explicit empty arrays from server are respected.
-      selectedEducationIds.value = educationSelection ?? [];
-      selectedExperienceIds.value = experienceSelection ?? [];
-      selectedTrainingIds.value = trainingSelection ?? [];
-      selectedEligibilityIds.value = eligibilitySelection ?? [];
-
-      // debug to help you verify
-      console.debug(
-        'onModalShow: xEdu uniqueIds ->',
-        (xEdu.value || []).map((r) => r.uniqueId),
-      );
-      console.debug('onModalShow: xData.education_qualification/raw ->', educationSelectionRaw);
-      console.debug('onModalShow: applied selectedEducationIds ->', selectedEducationIds.value);
-
+      // Set status
       if (
         props.applicantData?.status === 'Qualified' ||
         props.applicantData?.status === 'Unqualified'
       ) {
         qualificationStatus.value = props.applicantData.status;
       } else {
-        qualificationStatus.value = '';
+        qualificationStatus.value = xData.value?.status ?? '';
       }
     } catch (error) {
       console.error('Error in onModalShow:', error);
@@ -1380,14 +1381,8 @@
   };
 
   const onClose = () => {
-    emit('close');
+    // Reset all state
     positionQS.value = [];
-    xData.value = {
-      education_remark: '',
-      training_remark: '',
-      experience_remark: '',
-      eligibility_remark: '',
-    };
     xEdu.value = [];
     xEligibility.value = [];
     xExperience.value = [];
@@ -1397,7 +1392,19 @@
     selectedExperienceIds.value = [];
     selectedTrainingIds.value = [];
     selectedEligibilityIds.value = [];
+    education_remark.value = '';
+    experience_remark.value = '';
+    training_remark.value = '';
+    eligibility_remark.value = '';
+
+    // Clear store data
     jobPostStore.applicantPDS = null;
+
+    // Emit close event
+    emit('close');
+
+    // Close the modal
+    localShow.value = false;
   };
 
   const onViewPDS = async () => {
@@ -1417,40 +1424,6 @@
   watch(qualificationStatus, (newStatus) => {
     emit('toggle-qualification', newStatus);
   });
-
-  const onSubmit = () => {
-    if (
-      !evaluationLocked.value &&
-      qualificationStatus.value &&
-      !isJobOccupied.value &&
-      canModifyJobPost.value
-    ) {
-      const applicantId = props.applicantData?.submission_id || props.applicantData?.id;
-      if (!applicantId) {
-        console.error('Applicant data:', props.applicantData);
-        return;
-      }
-
-      // emit the actual uniqueId values that are selected (deduped)
-      const dedupe = (arr) => Array.from(new Set(arr));
-
-      const payload = {
-        status: qualificationStatus.value,
-        id: applicantId,
-        education_remark: xData.value.education_remark || '',
-        experience_remark: xData.value.experience_remark || '',
-        training_remark: xData.value.training_remark || '',
-        eligibility_remark: xData.value.eligibility_remark || '',
-        education_qualification: dedupe(selectedEducationIds.value),
-        experience_qualification: dedupe(selectedExperienceIds.value),
-        training_qualification: dedupe(selectedTrainingIds.value),
-        eligibility_qualification: dedupe(selectedEligibilityIds.value),
-      };
-
-      console.debug('Submitting evaluation payload:', payload);
-      emit('submit', payload);
-    }
-  };
 </script>
 
 <style scoped>

@@ -6,6 +6,19 @@
         <div class="row justify-between items-center">
           <div class="col">
             <h6 class="q-my-none text-weight-bold">Dashboard</h6>
+            <p class="text-caption text-grey-7 q-mb-none" v-if="raterStore.user">
+              Welcome, {{ raterStore.user.name }}
+            </p>
+          </div>
+          <div class="col-auto">
+            <q-btn
+              flat
+              round
+              dense
+              icon="refresh"
+              @click="refreshData"
+              :loading="raterStore.loading"
+            />
           </div>
         </div>
       </div>
@@ -16,20 +29,11 @@
       <q-spinner-dots size="50px" color="primary" />
     </div>
 
-    <!-- Error State -->
-    <div v-if="raterStore.error" class="row q-mb-md">
-      <div class="col-12">
-        <q-banner class="bg-negative text-white">
-          <template v-slot:avatar>
-            <q-icon name="error" />
-          </template>
-          {{ raterStore.error }}
-        </q-banner>
-      </div>
-    </div>
-
-    <!-- Simplified Stats Cards - Only 2 cards now -->
-    <div v-if="!raterStore.loading" class="row q-col-gutter-md q-mb-lg">
+    <!-- Stats Cards -->
+    <div
+      v-if="!raterStore.loading && raterStore.isAuthenticated"
+      class="row q-col-gutter-md q-mb-lg"
+    >
       <div class="col-12 col-md-4">
         <q-card class="bg-white stat-card">
           <q-card-section>
@@ -37,7 +41,7 @@
               <div class="col">
                 <div class="text-h6">Total Assigned Jobs</div>
                 <div class="text-h5 q-mt-sm text-primary">
-                  {{ dashboardStats.totalAssignedJobs }}
+                  {{ raterStore.assignedJobsCount }}
                 </div>
               </div>
               <div class="col-auto">
@@ -47,13 +51,16 @@
           </q-card-section>
         </q-card>
       </div>
+
       <div class="col-12 col-md-4">
         <q-card class="bg-white stat-card">
           <q-card-section>
             <div class="row items-center no-wrap">
               <div class="col">
-                <div class="text-h6">Completed Ratings</div>
-                <div class="text-h5 q-mt-sm text-positive">{{ dashboardStats.ratedPositions }}</div>
+                <div class="text-h6">Completed Jobs</div>
+                <div class="text-h5 q-mt-sm text-positive">
+                  {{ raterStore.completedJobsCount }}
+                </div>
               </div>
               <div class="col-auto">
                 <q-icon name="check_circle" size="48px" color="positive" />
@@ -62,14 +69,15 @@
           </q-card-section>
         </q-card>
       </div>
+
       <div class="col-12 col-md-4">
         <q-card class="bg-white stat-card">
           <q-card-section>
             <div class="row items-center no-wrap">
               <div class="col">
-                <div class="text-h6">Not Started</div>
+                <div class="text-h6">Pending Jobs</div>
                 <div class="text-h5 q-mt-sm text-warning">
-                  {{ notStartedJobs }}
+                  {{ raterStore.pendingJobsCount }}
                 </div>
               </div>
               <div class="col-auto">
@@ -82,7 +90,10 @@
     </div>
 
     <!-- Charts and Summary -->
-    <div v-if="!raterStore.loading && dataLoaded" class="row q-col-gutter-md q-mb-lg">
+    <div
+      v-if="!raterStore.loading && raterStore.assignedJobs.length > 0"
+      class="row q-col-gutter-md q-mb-lg"
+    >
       <!-- Status Chart -->
       <div class="col-12 col-md-8">
         <q-card class="bg-white content-card">
@@ -103,36 +114,23 @@
             <div class="stats-list">
               <div class="stat-item">
                 <span class="stat-label">Total Jobs:</span>
-                <span class="stat-value">{{ dashboardStats.totalAssignedJobs }}</span>
+                <span class="stat-value">{{ raterStore.assignedJobsCount }}</span>
               </div>
               <div class="stat-item">
                 <span class="stat-label">Completion Rate:</span>
-                <span class="stat-value text-positive">{{ completionRate }}%</span>
+                <span class="stat-value text-positive">{{ raterStore.completionRate }}</span>
               </div>
               <div class="stat-item">
                 <span class="stat-label">Completed:</span>
-                <span class="stat-value text-positive">{{ dashboardStats.ratedPositions }}</span>
+                <span class="stat-value text-positive">{{ raterStore.completedJobsCount }}</span>
               </div>
               <div class="stat-item">
-                <span class="stat-label">Not Started:</span>
-                <span class="stat-value text-warning">{{ notStartedJobs }}</span>
+                <span class="stat-label">Pending:</span>
+                <span class="stat-value text-warning">{{ raterStore.pendingJobsCount }}</span>
               </div>
             </div>
           </q-card-section>
         </q-card>
-      </div>
-    </div>
-
-    <!-- Empty State -->
-    <div
-      v-if="!raterStore.loading && raterStore.assignedJobs.length === 0"
-      class="row justify-center q-mt-xl"
-    >
-      <div class="col-12 text-center">
-        <q-icon name="assignment_turned_in" size="100px" color="grey-5" />
-        <div class="text-h6 text-grey-6 q-mt-md">No assigned positions found</div>
-        <div class="text-body2 text-grey-5">Check back later for new assignments</div>
-        <q-btn color="primary" label="Refresh" @click="refreshData" class="q-mt-md" />
       </div>
     </div>
   </q-page>
@@ -141,85 +139,37 @@
 <script setup>
   import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
   import { Chart, registerables } from 'chart.js';
-  import { use_rater_store } from 'stores/rater_store';
+  import { useRaterAuthStore } from 'stores/authStore_raters'; // Updated import
 
   Chart.register(...registerables);
 
   // Reactive data
   const statusChart = ref(null);
   const chartInstance = ref(null);
-  const dataLoaded = ref(false);
 
-  // Store
-  const raterStore = use_rater_store();
+  // Store - using the correct store name
+  const raterStore = useRaterAuthStore();
 
-  // Computed properties
-  const assignedJobs = computed(() => raterStore.assignedJobs);
-
-  const dashboardStats = computed(() => {
-    const stats = {
-      totalAssignedJobs: assignedJobs.value.length,
-      ratedPositions: 0, // Only count completed (submitted) jobs
-    };
-
-    console.log('Computing dashboard stats for jobs:', assignedJobs.value.length);
-
-    assignedJobs.value.forEach((job) => {
-      console.log(`Job ${job.id}: status=${job.status}, submitted=${job.submitted}`);
-
-      // Count completed ratings - check if submitted is true (regardless of status)
-      // or if status indicates completion
-      if (
-        job.submitted === true ||
-        job.status === 'rated' ||
-        job.status === 'assessed' ||
-        job.status === 'Occupied'
-      ) {
-        stats.ratedPositions++;
-        console.log(`Job ${job.id} counted as completed`);
-      }
-    });
-
-    console.log('Final dashboard stats:', stats);
-    return stats;
-  });
-
-  const notStartedJobs = computed(() => {
-    return dashboardStats.value.totalAssignedJobs - dashboardStats.value.ratedPositions;
-  });
-
-  const completionRate = computed(() => {
-    if (dashboardStats.value.totalAssignedJobs === 0) return 0;
-    return Math.round(
-      (dashboardStats.value.ratedPositions / dashboardStats.value.totalAssignedJobs) * 100,
-    );
-  });
-
+  // Computed properties for chart data
   const chartData = computed(() => {
-    return [
-      dashboardStats.value.ratedPositions, // Completed
-      notStartedJobs.value, // Not Started
-    ];
+    return [raterStore.completedJobsCount, raterStore.pendingJobsCount];
   });
 
-  // Methods
   const initChart = () => {
     console.log('Initializing chart...');
-    console.log('Chart ref:', statusChart.value);
-    console.log('Chart data:', chartData.value);
 
     if (chartInstance.value) {
       chartInstance.value.destroy();
       chartInstance.value = null;
     }
 
-    if (statusChart.value) {
+    if (statusChart.value && raterStore.assignedJobs.length > 0) {
       const ctx = statusChart.value.getContext('2d');
 
       chartInstance.value = new Chart(ctx, {
         type: 'doughnut',
         data: {
-          labels: ['Completed', 'Not Started'],
+          labels: ['Completed', 'Pending'],
           datasets: [
             {
               label: 'Rating Status',
@@ -274,38 +224,13 @@
       });
 
       console.log('Chart initialized successfully');
-    } else {
-      console.error('Chart canvas ref not found');
-    }
-  };
-
-  const updateChartSize = () => {
-    if (chartInstance.value) {
-      chartInstance.value.resize();
     }
   };
 
   const refreshData = async () => {
     console.log('Refreshing data...');
-    dataLoaded.value = false;
-    try {
-      await raterStore.fetch_assigned_jobs();
-      dataLoaded.value = true;
-      console.log('Data refreshed successfully');
-    } catch (error) {
-      console.error('Error refreshing data:', error);
-    }
-  };
-
-  const loadInitialData = async () => {
-    console.log('Loading initial data...');
-    try {
-      await raterStore.fetch_assigned_jobs();
-      dataLoaded.value = true;
-      console.log('Initial data loaded successfully');
-    } catch (error) {
-      console.error('Error loading initial data:', error);
-    }
+    // This will call checkAuth_rater internally
+    await raterStore.fetch_assigned_jobs();
   };
 
   // Watchers
@@ -313,45 +238,43 @@
     chartData,
     (newData) => {
       console.log('Chart data changed:', newData);
-      if (chartInstance.value && dataLoaded.value) {
+      if (chartInstance.value) {
         chartInstance.value.data.datasets[0].data = newData;
-        chartInstance.value.update('none'); // No animation for better performance
+        chartInstance.value.update('none');
       }
     },
     { deep: true },
   );
 
-  watch(dataLoaded, (newVal) => {
-    console.log('Data loaded status changed:', newVal);
-    if (newVal) {
-      nextTick(() => {
+  watch(
+    () => raterStore.assignedJobs.length,
+    async (newLength) => {
+      if (newLength > 0) {
+        await nextTick();
         if (statusChart.value && !chartInstance.value) {
           initChart();
         }
-      });
-    }
-  });
+      }
+    },
+  );
 
   // Lifecycle hooks
   onMounted(async () => {
     console.log('Dashboard mounted');
 
-    // Load data first
-    await loadInitialData();
+    // Fetch data on mount using checkAuth_rater
+    if (raterStore.isAuthenticated) {
+      await raterStore.fetch_assigned_jobs();
 
-    // Initialize chart after data is loaded and DOM is ready
-    await nextTick();
-    if (statusChart.value && dataLoaded.value) {
-      initChart();
+      await nextTick();
+      if (statusChart.value && raterStore.assignedJobs.length > 0) {
+        initChart();
+      }
     }
-
-    // Add resize listener
-    window.addEventListener('resize', updateChartSize);
   });
 
   onBeforeUnmount(() => {
     console.log('Dashboard unmounting');
-    window.removeEventListener('resize', updateChartSize);
     if (chartInstance.value) {
       chartInstance.value.destroy();
       chartInstance.value = null;

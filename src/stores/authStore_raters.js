@@ -3,10 +3,9 @@ import { ref } from 'vue';
 import { raterApi } from 'boot/axios_rater';
 import { toast } from 'src/boot/toast';
 import { useLogsStore } from 'stores/raterlogsStore';
-// import { usePlantillaStore } from 'stores/plantillaStore';
 
 export const useRaterAuthStore = defineStore('rater_auth', () => {
-  // State
+  // State - Authentication
   const token = ref(null);
   const isAuthenticated = ref(false);
   const user = ref(null);
@@ -15,6 +14,13 @@ export const useRaterAuthStore = defineStore('rater_auth', () => {
   const errors = ref([]);
   const users = ref([]);
   const selectedUser = ref(null);
+
+  // State - Dashboard Data
+  const assignedJobsCount = ref(0);
+  const completedJobsCount = ref(0);
+  const pendingJobsCount = ref(0);
+  const completionRate = ref('0%');
+  const assignedJobs = ref([]);
 
   // Helper functions
   function getToken() {
@@ -28,6 +34,60 @@ export const useRaterAuthStore = defineStore('rater_auth', () => {
       ?.split('=')[1];
   }
 
+  function extractUserData(data) {
+    // Extract user information
+    user.value = {
+      id: data.id,
+      name: data.name,
+      username: data.username,
+      position: data.position,
+      active: data.active,
+      rspControl: data.rspControl,
+    };
+
+    // Extract dashboard statistics
+    assignedJobsCount.value = data.assigned_jobs_count || 0;
+    completedJobsCount.value = data.completed_jobs_count || 0;
+    pendingJobsCount.value = data.pending_jobs_count || 0;
+    completionRate.value = data.completion_rate || '0%';
+    assignedJobs.value = data.assigned_jobs || [];
+
+    console.log('Dashboard data extracted:', {
+      user: user.value.name,
+      assigned: assignedJobsCount.value,
+      completed: completedJobsCount.value,
+      pending: pendingJobsCount.value,
+      rate: completionRate.value,
+      jobsCount: assignedJobs.value.length,
+    });
+  }
+
+  function clearAuthState() {
+    token.value = null;
+    isAuthenticated.value = false;
+    user.value = null;
+    errors.value = {};
+    loading.value = false;
+
+    // Clear dashboard data
+    assignedJobsCount.value = 0;
+    completedJobsCount.value = 0;
+    pendingJobsCount.value = 0;
+    completionRate.value = '0%';
+    assignedJobs.value = [];
+  }
+
+  function clearCookies() {
+    const cookieSettings = [
+      'rater_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;',
+      'rater_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=None; Secure;',
+      'rater_token=; path=/; domain=' +
+        window.location.hostname +
+        '; expires=Thu, 01 Jan 1970 00:00:00 GMT;',
+    ];
+    cookieSettings.forEach((setting) => (document.cookie = setting));
+  }
+
   async function login(username, password) {
     errors.value = {};
     loading.value = true;
@@ -38,13 +98,14 @@ export const useRaterAuthStore = defineStore('rater_auth', () => {
       if (response.data.status) {
         token.value = response.data.token;
         isAuthenticated.value = true;
-        user.value = response.data.user;
 
-        // document.cookie = `rater_token=${token.value}; path=/; SameSite=None; Secure`;
-             document.cookie = `rater_token=${response.data.token}; path=/`;
+        // Set cookie
+        document.cookie = `rater_token=${response.data.token}; path=/`;
 
         toast.success('You are now logged in!');
-        loading.value = false;
+
+        // Fetch complete user data and dashboard stats using checkAuth_rater
+        await checkAuth_rater();
       } else {
         loading.value = false;
         if (response.data.errors?.role_id) {
@@ -64,7 +125,7 @@ export const useRaterAuthStore = defineStore('rater_auth', () => {
           );
         }
       } else if (error.response?.status === 0 || !error.response) {
-        toast.error(' Please check your internet connection and try again later.');
+        toast.error('Please check your internet connection and try again later.');
       } else {
         toast.error('Login Failed!');
       }
@@ -86,7 +147,7 @@ export const useRaterAuthStore = defineStore('rater_auth', () => {
       errors.value = error.response.data.errors;
       toast.error('Validation error. Please check the form.');
     } else if (error.response?.status === 0 || !error.response) {
-      // toast.error('Unable to connect to the server. Please check your internet connection.');
+      // Network error - silent or minimal notification
     } else {
       console.error(error);
       toast.error(defaultMessage);
@@ -126,7 +187,6 @@ export const useRaterAuthStore = defineStore('rater_auth', () => {
       } else {
         if (response.data.errors) {
           errors.value = response.data.errors;
-          // Show specific error messages if available
           if (response.data.errors.old_password) {
             toast.error(response.data.errors.old_password[0] || 'Current password is incorrect');
           } else {
@@ -147,10 +207,7 @@ export const useRaterAuthStore = defineStore('rater_auth', () => {
 
   async function logout() {
     loading.value = true;
-    const authToken = document.cookie
-      .split('; ')
-      .find((row) => row.startsWith('rater_token='))
-      ?.split('=')[1];
+    const authToken = getToken();
 
     try {
       await raterApi.post('/rater/logout', null, {
@@ -159,27 +216,20 @@ export const useRaterAuthStore = defineStore('rater_auth', () => {
         },
       });
 
-      token.value = null;
-      isAuthenticated.value = false;
-      user.value = null;
-      errors.value = {};
-      loading.value = false;
-
-      const cookieSettings = [
-        'rater_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;',
-        'rater_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=None; Secure;',
-        'rater_token=; path=/; domain=' +
-          window.location.hostname +
-          '; expires=Thu, 01 Jan 1970 00:00:00 GMT;',
-      ];
-      cookieSettings.forEach((setting) => (document.cookie = setting));
+      clearAuthState();
+      clearCookies();
 
       toast.success('Logout Success!');
       this.router.push({ name: 'Rater Login' });
     } catch (error) {
       toast.error('An error occurred during logout or token error');
       console.log(error);
+      clearAuthState();
+      clearCookies();
       this.router.push({ name: 'Rater Login' });
+    } finally {
+      const logsStore = useLogsStore();
+      await logsStore.logAction('Logged Out');
     }
   }
 
@@ -209,11 +259,12 @@ export const useRaterAuthStore = defineStore('rater_auth', () => {
     }
   }
 
+  /**
+   * Check authentication and fetch all user data including dashboard statistics
+   * This is the single source of truth for dashboard data
+   */
   async function checkAuth_rater() {
-    const authToken = document.cookie
-      .split('; ')
-      .find((row) => row.startsWith('rater_token='))
-      ?.split('=')[1];
+    const authToken = getToken();
 
     if (authToken) {
       try {
@@ -223,70 +274,85 @@ export const useRaterAuthStore = defineStore('rater_auth', () => {
           },
         });
 
-        token.value = authToken;
-        isAuthenticated.value = true;
-        user.value = res.data.data;
-        errors.value = {};
-        loading.value = false;
-      } catch (error) {
-        toast.error('Error: ' + error.response.data.message);
-        token.value = null;
-        isAuthenticated.value = false;
-        user.value = null;
-        errors.value = {};
-        loading.value = false;
+        if (res.data.status && res.data.data) {
+          token.value = authToken;
+          isAuthenticated.value = true;
 
-        const cookieSettings = [
-          'rater_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;',
-          'rater_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=None; Secure;',
-          'rater_token=; path=/; domain=' +
-            window.location.hostname +
-            '; expires=Thu, 01 Jan 1970 00:00:00 GMT;',
-        ];
-        cookieSettings.forEach((setting) => (document.cookie = setting));
+          // Extract all user and dashboard data
+          extractUserData(res.data.data);
+
+          errors.value = {};
+          loading.value = false;
+
+          console.log('Auth check successful - Dashboard data loaded');
+        } else {
+          throw new Error('Invalid response format');
+        }
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        if (error.response?.data?.message) {
+          toast.error('Error: ' + error.response.data.message);
+        }
+
+        clearAuthState();
+        clearCookies();
       }
     } else {
-      token.value = null;
-      isAuthenticated.value = false;
-      user.value = null;
-      errors.value = {};
+      clearAuthState();
+    }
+  }
+
+  /**
+   * Fetch/refresh assigned jobs and dashboard statistics
+   * This is an alias for checkAuth_rater to maintain compatibility
+   */
+  async function fetch_assigned_jobs() {
+    loading.value = true;
+    console.log('Fetching assigned jobs...');
+
+    try {
+      await checkAuth_rater();
+      console.log('Jobs fetched successfully:', assignedJobs.value.length);
+    } catch (error) {
+      console.error('Error fetching assigned jobs:', error);
+      handleError(error, 'Failed to fetch assigned jobs');
+    } finally {
       loading.value = false;
     }
   }
 
-  // Delete a user
   async function deleteUser(id) {
-    this.loading = true;
-    this.errors = {};
+    loading.value = true;
+    errors.value = {};
 
     try {
-      const token = this.getToken();
+      const authToken = getToken();
 
-      if (!token) {
+      if (!authToken) {
         throw new Error('No authentication token found');
       }
 
       const response = await raterApi.delete(`/rater/${id}`, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${authToken}`,
         },
       });
 
       if (response.data.status) {
         // Remove the user from the users array
-        this.users = this.users.filter((user) => user.id !== id);
+        users.value = users.value.filter((user) => user.id !== id);
 
         toast.success('Rater deleted successfully');
-        this.loading = false;
+        loading.value = false;
         return true;
       } else {
         toast.error('Failed to delete rater');
-        this.loading = false;
+        loading.value = false;
         return false;
       }
     } catch (error) {
-      this.handleError(error, 'Failed to delete rater');
-      this.loading = false;
+      handleError(error, 'Failed to delete rater');
+      loading.value = false;
       return false;
     } finally {
       const logsStore = useLogsStore();
@@ -296,6 +362,7 @@ export const useRaterAuthStore = defineStore('rater_auth', () => {
 
   // Return all refs and functions
   return {
+    // Authentication State
     token,
     isAuthenticated,
     user,
@@ -304,15 +371,24 @@ export const useRaterAuthStore = defineStore('rater_auth', () => {
     errors,
     users,
     selectedUser,
-    // Rater_register,
+
+    // Dashboard State
+    assignedJobsCount,
+    completedJobsCount,
+    pendingJobsCount,
+    completionRate,
+    assignedJobs,
+
+    // Methods
     login,
     logout,
     deleteUser,
-    // get_all_raters,
     getToken,
     checkAuth_rater,
     handleError,
     get_rater_usernames,
     changePassword,
+    fetch_assigned_jobs, // Alias for checkAuth_rater
+    clearAuthState,
   };
 });

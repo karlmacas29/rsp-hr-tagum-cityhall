@@ -9,6 +9,7 @@
           label="Position Title (as approved by authorized agency)"
           outlined
           dense
+          readonly
           class="form-field flex-2"
           @update:model-value="emitUpdate"
         />
@@ -24,6 +25,7 @@
           label="Item Number"
           outlined
           dense
+          readonly
           class="form-field"
           @update:model-value="emitUpdate"
         />
@@ -32,6 +34,7 @@
           label="Salary Grade"
           outlined
           dense
+          readonly
           class="form-field"
           @update:model-value="emitUpdate"
         />
@@ -385,6 +388,7 @@
           label="21A. Education"
           outlined
           dense
+          readonly
           type="textarea"
           rows="3"
           class="form-field"
@@ -395,6 +399,7 @@
           label="21B. Experience"
           outlined
           dense
+          readonly
           type="textarea"
           rows="3"
           class="form-field"
@@ -408,6 +413,7 @@
           label="21C. Training"
           outlined
           dense
+          readonly
           type="textarea"
           rows="3"
           class="form-field"
@@ -418,6 +424,7 @@
           label="21D. Eligibility"
           outlined
           dense
+          readonly
           type="textarea"
           rows="3"
           class="form-field"

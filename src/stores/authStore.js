@@ -388,11 +388,24 @@ export const useAuthStore = defineStore('auth', {
           // Only include permissions if they exist
           ...(userData.permissions && {
             permissions: {
-              isFunded: userData.permissions.isFunded || false,
-              isUserM: userData.permissions.isUserM || false,
-              isRaterM: userData.permissions.isRaterM || false,
-              isCriteria: userData.permissions.isCriteria || false,
-              isDashboardStat: userData.permissions.isDashboardStat || false,
+              // isFunded: userData.permissions.isFunded || false,
+              // isUserM: userData.permissions.isUserM || false,
+              // isRaterM: userData.permissions.isRaterM || false,
+              // isCriteria: userData.permissions.isCriteria || false,
+              // isDashboardStat: userData.permissions.isDashboardStat || false,
+
+              viewDashboardStat: userData.permissions?.viewDashboardStat || '0',
+              viewPlantillaAccess: userData.permissions?.viewPlantillaAccess || '0',
+              modifyPlantillaAccess: userData.permissions?.modifyPlantillaAccess || '0',
+              viewJobpostAccess: userData.permissions?.viewJobpostAccess || '0',
+              modifyJobpostAccess: userData.permissions?.modifyJobpostAccess || '0',
+              viewActivityLogs: userData.permissions?.viewActivityLogs || '0',
+              userManagement: userData.permissions?.userManagement || '0',
+              viewRater: userData.permissions?.viewRater || '0',
+              modifyRater: userData.permissions?.modifyRater || '0',
+              viewCriteria: userData.permissions?.viewCriteria || '0',
+              modifyCriteria: userData.permissions?.modifyCriteria || '0',
+              viewReport: userData.permissions?.viewReport || '0',
             },
           }),
         };

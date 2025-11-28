@@ -558,15 +558,17 @@
   // Computed Properties
   const filteredEmployees = computed(() => {
     if (!employeeSearch.value) {
-      return employeeList.value;
+      return Array.isArray(employeeList.value) ? employeeList.value : [];
     }
     const search = employeeSearch.value.toLowerCase();
-    return employeeList.value.filter(
-      (emp) =>
-        emp.Firstname?.toLowerCase().includes(search) ||
-        emp.Surname?.toLowerCase().includes(search) ||
-        emp.ControlNo?.toLowerCase().includes(search),
-    );
+    return Array.isArray(employeeList.value)
+      ? employeeList.value.filter(
+          (emp) =>
+            emp.Firstname?.toLowerCase().includes(search) ||
+            emp.Surname?.toLowerCase().includes(search) ||
+            emp.ControlNo?.toLowerCase().includes(search),
+        )
+      : [];
   });
 
   const viceOptions = computed(() => {

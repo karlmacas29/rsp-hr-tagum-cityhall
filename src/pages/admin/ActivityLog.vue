@@ -13,14 +13,14 @@
           row-key="id"
           :loading="logStore.loading"
         >
-          <template v-slot:body-cell-actions="props">
-            <q-td :props="props" style="white-space: normal; word-wrap: break-word">
-              {{ props.row.actions }}
+          <template v-slot:body-cell-Description="props">
+  <q-td :props="props" class="text-wrap" style="max-width: 300px;">
+              {{ props.value }}
             </q-td>
           </template>
           <!-- Add body cell template for position -->
-          <template v-slot:body-cell-date_performed="props">
-            <q-td :props="props" style="width: 230px; white-space: normal">
+          <template v-slot:body-cell-created_at_formatted="props">
+            <q-td :props="props" style="width: 250px; white-space: normal">
               <q-badge rounded class="bg-purple" outline>
                 {{
                   new Date(props.value).toLocaleString('en-US', {
@@ -36,8 +36,8 @@
             </q-td>
           </template>
           <!-- Add body cell template for useragent -->
-          <template v-slot:body-cell-user_agent="props">
-            <q-td :props="props" style="width: 230px; white-space: normal">
+<template v-slot:body-cell-userAgent="props">
+  <q-td :props="props" class="text-wrap" style="max-width: 250px;">
               {{ props.value }}
             </q-td>
           </template>
@@ -56,17 +56,25 @@
   const logs = ref([]);
 
   const columns = [
-    { name: 'id', label: 'User ID', field: 'user_id' },
-    { name: 'username', label: 'Username', field: 'username' },
-    { name: 'actions', label: 'Action', field: 'actions' },
-    { name: 'position', label: 'Position', field: 'position' },
-    { name: 'date_performed', label: 'Date', field: 'date_performed' },
-    { name: 'user_agent', label: 'User Agent', field: 'user_agent' },
-    { name: 'ip_address', label: 'IP Address', field: 'ip_address' },
+    // { name: 'id', label: 'User ID', field: 'id' },
+    { name: 'log_name', label: 'Activity', field: 'log_name' },
+    { name: 'Description', label: 'Description', field: 'Description' },
+    // { name: 'position', label: 'Position', field: 'position' },
+    { name: 'created_at_formatted', label: 'Date', field: 'created_at_formatted' },
+    { name: 'userAgent', label: 'User Agent', field: 'userAgent' },
+    { name: 'ip', label: 'IP Address', field: 'ip' },
   ];
 
   onMounted(async () => {
     await logStore.fetchLogs();
     logs.value = logStore.logs;
+  
   });
 </script>
+<style>
+.text-wrap {
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  word-break: break-all; /* optional */
+}
+</style>

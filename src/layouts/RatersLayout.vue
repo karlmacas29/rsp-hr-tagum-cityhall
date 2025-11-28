@@ -1,10 +1,11 @@
 <template>
   <q-layout view="lHh Lpr lFf">
-    <!-- Sidebar -->
-    <SideBar />
+    <SideBar v-model="leftDrawerOpen" />
+
     <q-header class="text-black">
-      <NavBarPage />
+      <NavBarPage @toggle-menu="leftDrawerOpen = !leftDrawerOpen" />
     </q-header>
+
     <q-page-container>
       <router-view />
     </q-page-container>
@@ -14,7 +15,9 @@
 <script setup>
   import SideBar from '../components/Rater/SideBar.vue';
   import NavBarPage from 'components/Rater/Navbar.vue';
-  import { onMounted } from 'vue';
+  import { ref } from 'vue';
+  import { useQuasar } from 'quasar';
 
-  onMounted(async () => {});
+  const $q = useQuasar();
+  const leftDrawerOpen = ref($q.screen.gt.sm);
 </script>

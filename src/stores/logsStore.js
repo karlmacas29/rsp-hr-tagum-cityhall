@@ -12,9 +12,11 @@ export const useLogsStore = defineStore('logs', {
     async fetchLogs() {
       try {
         this.loading = true;
-        const response = await adminApi.get('/logs');
+        // const response = await adminApi.get('/logs');
+        const response = await adminApi.get('/activity_log');
+
         this.logs = response.data;
-        // console.log(response.data)
+        console.log(response.data)
         this.error = null;
       } catch (err) {
         this.error = err.message;

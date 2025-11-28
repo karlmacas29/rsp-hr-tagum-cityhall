@@ -13,7 +13,6 @@
         <div class="row items-center justify-between q-mb-lg">
           <q-btn icon="arrow_back" round flat color="primary" @click="goBack" size="md" dense />
           <div class="row items center">
-            <!-- ✅ FIXED: Only show q-select when history exists -->
             <q-select
               v-if="historyOptions.length > 0"
               :model-value="displayHistoryId"
@@ -23,7 +22,7 @@
               outlined
               class="text-subtitle1"
               color="primary"
-              label="View Old Post"
+              label="History"
               option-label="label"
               option-value="value"
               style="width: 250px; padding-right: 15px"
@@ -31,7 +30,6 @@
               emit-value
               map-options
             />
-            <!-- ✅ FIXED: Show placeholder text when no history -->
             <div
               v-else
               class="text-subtitle1 q-pa-md"
@@ -268,11 +266,11 @@
                   <q-badge
                     rounded
                     :color="
-                      props.row.status === 'Hired'
+                      props.row.status === 'Hired' || props.row.status === 'hired'
                         ? 'green'
-                        : props.row.status === 'Qualified'
+                        : props.row.status === 'Qualified' || props.row.status === 'qualified'
                           ? 'yellow-8'
-                          : props.row.status === 'Unqualified'
+                          : props.row.status === 'Unqualified' || props.row.status === 'unqualified'
                             ? 'red'
                             : 'grey'
                     "
@@ -664,7 +662,7 @@
     });
 
     return sortedHistory.map((historyItem) => ({
-      label: `${historyItem.id}: ${formatDate(historyItem.post_date, 'MMM D, YYYY')} - ${formatDate(historyItem.end_date, 'MMM D, YYYY')}`,
+      label: ` ${formatDate(historyItem.post_date, 'MMM D, YYYY')} - ${formatDate(historyItem.end_date, 'MMM D, YYYY')}`,
       value: historyItem.id,
       historyData: historyItem,
     }));

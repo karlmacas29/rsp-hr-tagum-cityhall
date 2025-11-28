@@ -5,7 +5,6 @@
       <div class="row items-center q-mb-lg">
         <div class="col">
           <div class="text-h4">Account Settings</div>
-          <div class="text-caption text-grey">Last login: {{ currentDateTime }} UTC</div>
         </div>
         <div class="col-auto">
           <q-chip color="primary" text-color="white">
@@ -44,80 +43,77 @@
               </div>
 
               <!-- Password Change Section -->
-            <!-- Password Change Section -->
-  <div class="col-12">
-    <q-separator class="q-my-md" />
-    <div class="text-subtitle1 q-mb-md">Change Password (Optional)</div>
-  </div>
+              <!-- Password Change Section -->
+              <div class="col-12">
+                <q-separator class="q-my-md" />
+                <div class="text-subtitle1 q-mb-md">Change Password (Optional)</div>
+              </div>
 
-  <div class="col-12 col-md-4">
-    <q-input
-      outlined
-      v-model="form.old_password"
-      label="Current Password"
-      :type="showOldPassword ? 'text' : 'password'"
-      :rules="[
-        val => !form.new_password || !!val || 'Current password is required'
-      ]"
-    >
-      <template v-slot:append>
-        <q-btn
-          @click="showOldPassword = !showOldPassword"
-          round
-          flat
-          color="white"
-          class="text-black"
-          :icon="showOldPassword ? 'visibility' : 'visibility_off'"
-        />
-      </template>
-    </q-input>
-  </div>
+              <div class="col-12 col-md-4">
+                <q-input
+                  outlined
+                  v-model="form.old_password"
+                  label="Current Password"
+                  :type="showOldPassword ? 'text' : 'password'"
+                  :rules="[(val) => !form.new_password || !!val || 'Current password is required']"
+                >
+                  <template v-slot:append>
+                    <q-btn
+                      @click="showOldPassword = !showOldPassword"
+                      round
+                      flat
+                      color="white"
+                      class="text-black"
+                      :icon="showOldPassword ? 'visibility' : 'visibility_off'"
+                    />
+                  </template>
+                </q-input>
+              </div>
 
-  <div class="col-12 col-md-4">
-    <q-input
-      outlined
-      v-model="form.new_password"
-      label="New Password"
-      :type="showNewPassword ? 'text' : 'password'"
-      :rules="[
-        val => !val || val.length >= 8 || 'Minimum 8 characters'
-      ]"
-    >
-      <template v-slot:append>
-        <q-btn
-          @click="showNewPassword = !showNewPassword"
-          round
-          flat
-          color="white"
-          class="text-black"
-          :icon="showNewPassword ? 'visibility' : 'visibility_off'"
-        />
-      </template>
-    </q-input>
-  </div>
+              <div class="col-12 col-md-4">
+                <q-input
+                  outlined
+                  v-model="form.new_password"
+                  label="New Password"
+                  :type="showNewPassword ? 'text' : 'password'"
+                  :rules="[(val) => !val || val.length >= 8 || 'Minimum 8 characters']"
+                >
+                  <template v-slot:append>
+                    <q-btn
+                      @click="showNewPassword = !showNewPassword"
+                      round
+                      flat
+                      color="white"
+                      class="text-black"
+                      :icon="showNewPassword ? 'visibility' : 'visibility_off'"
+                    />
+                  </template>
+                </q-input>
+              </div>
 
-  <div class="col-12 col-md-4">
-    <q-input
-      outlined
-      v-model="form.new_password_confirmation"
-      label="Confirm New Password"
-      :type="showConfirmPassword ? 'text' : 'password'"
-      :rules="[
-        val => !form.new_password || val === form.new_password || 'Passwords must match'
-      ]"
-    >
-      <template v-slot:append>
-        <q-btn
-          @click="showConfirmPassword = !showConfirmPassword"
-          round
-          flat
-          color="white"
-          class="text-black"
-          :icon="showConfirmPassword ? 'visibility' : 'visibility_off'"
-        />
-      </template>
-    </q-input>
-  </div>
+              <div class="col-12 col-md-4">
+                <q-input
+                  outlined
+                  v-model="form.new_password_confirmation"
+                  label="Confirm New Password"
+                  :type="showConfirmPassword ? 'text' : 'password'"
+                  :rules="[
+                    (val) =>
+                      !form.new_password || val === form.new_password || 'Passwords must match',
+                  ]"
+                >
+                  <template v-slot:append>
+                    <q-btn
+                      @click="showConfirmPassword = !showConfirmPassword"
+                      round
+                      flat
+                      color="white"
+                      class="text-black"
+                      :icon="showConfirmPassword ? 'visibility' : 'visibility_off'"
+                    />
+                  </template>
+                </q-input>
+              </div>
 
               <!-- Permissions Section -->
               <!-- <div class="col-12">
@@ -234,7 +230,6 @@
 <script>
   import { defineComponent, ref, onMounted } from 'vue';
 
-  
   import { toast } from 'src/boot/toast';
   import { useRaterAuthStore } from 'stores/authStore_raters';
 
@@ -316,43 +311,38 @@
       // Save changes to user account
       // Update the saveChanges function:
 
-const saveChanges = async () => {
-  try {
-    resetValidationErrors();
-    const isValid = await accountForm.value.validate();
-    if (!isValid) return;
-    loading.value = true;
+      const saveChanges = async () => {
+        try {
+          resetValidationErrors();
+          const isValid = await accountForm.value.validate();
+          if (!isValid) return;
+          loading.value = true;
 
+          if (form.value.new_password) {
+            const passwordChanged = await useRaterStore.changePassword({
+              old_password: form.value.old_password,
+              new_password: form.value.new_password,
+              new_password_confirmation: form.value.new_password_confirmation,
+            });
 
-
-    if (form.value.new_password) {
-      const passwordChanged = await useRaterStore.changePassword({
-        old_password: form.value.old_password,
-        new_password: form.value.new_password,
-        new_password_confirmation: form.value.new_password_confirmation,
-      });
-
-      if (!passwordChanged) {
-        loading.value = false;
-        return;
-      }
-    }
-
-
-  } catch (error) {
-    console.error('Error updating account:', error);
-    if (error.response?.data?.errors?.old_password) {
-      toast.error('Current password is incorrect');
-    } else if (error.response?.data?.message) {
-      toast.error(error.response.data.message);
-    } else {
-      toast.error('Failed to update account. Please try again.');
-    }
-  } finally {
-    loading.value = false;
-  }
-};
-
+            if (!passwordChanged) {
+              loading.value = false;
+              return;
+            }
+          }
+        } catch (error) {
+          console.error('Error updating account:', error);
+          if (error.response?.data?.errors?.old_password) {
+            toast.error('Current password is incorrect');
+          } else if (error.response?.data?.message) {
+            toast.error(error.response.data.message);
+          } else {
+            toast.error('Failed to update account. Please try again.');
+          }
+        } finally {
+          loading.value = false;
+        }
+      };
 
       return {
         useRaterStore,

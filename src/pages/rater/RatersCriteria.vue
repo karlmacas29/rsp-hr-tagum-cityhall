@@ -98,6 +98,7 @@
       v-model="showRatingModal"
       :position="selectedPosition"
       :criteria="positionCriteria"
+      :raw-criteria="rawCriteria"
       :applicants="positionApplicants"
       :loading="loadingModalData"
       @submit-ratings="handleRatingsSubmit"
@@ -110,6 +111,7 @@
       v-model="showViewRatedModal"
       :position="selectedPosition"
       :criteria="positionCriteria"
+      :raw-criteria="rawCriteria"
       :applicants="positionApplicants"
       :loading="loadingModalData"
       @close="handleViewRatedModalClose"
@@ -153,6 +155,7 @@
       const showViewRatedModal = ref(false);
       const selectedPosition = ref({});
       const positionCriteria = ref({});
+      const rawCriteria = ref(null);
       const positionApplicants = ref([]);
       const loadingModalData = ref(false);
 
@@ -293,12 +296,22 @@
         try {
           const result = await raterStore.fetch_criteria_applicant(position.id);
 
+          console.log('Fetched criteria result:', result);
+
           if (result && result.criteria && result.criteria.length > 0) {
             const criteriaData = result.criteria[0];
+
+            // Store the raw criteria data
+            rawCriteria.value = criteriaData;
+
             // Transform the criteria data to include all items with their percentages
             positionCriteria.value = transformCriteriaData(criteriaData);
+
+            console.log('Raw criteria:', rawCriteria.value);
+            console.log('Transformed criteria:', positionCriteria.value);
           } else {
             positionCriteria.value = {};
+            rawCriteria.value = null;
           }
 
           positionApplicants.value = result && result.applicants ? result.applicants : [];
@@ -327,10 +340,15 @@
 
           if (result && result.criteria && result.criteria.length > 0) {
             const criteriaData = result.criteria[0];
+
+            // Store the raw criteria data
+            rawCriteria.value = criteriaData;
+
             // Transform the criteria data to include all items with their percentages
             positionCriteria.value = transformCriteriaData(criteriaData);
           } else {
             positionCriteria.value = {};
+            rawCriteria.value = null;
           }
 
           positionApplicants.value = result && result.applicants ? result.applicants : [];
@@ -433,6 +451,7 @@
         showViewRatedModal,
         selectedPosition,
         positionCriteria,
+        rawCriteria,
         positionApplicants,
         loadingModalData,
 

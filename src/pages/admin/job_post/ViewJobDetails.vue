@@ -209,8 +209,8 @@
 
                 <div class="assessment-status">
                   <q-btn
-                    v-if="canModifyJobPost && assessedCount > 0"
-                    label="Send Final Evaluation"
+                    v-if="canModifyJobPost && selectedJob?.status == 'assessed'"
+                    label="Notify Unqualified Applicants"
                     color="green-9"
                     icon="email"
                     rounded

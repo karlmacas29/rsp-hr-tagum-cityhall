@@ -5,7 +5,7 @@
       <div class="q-pa-md q-gutter-sm">
         <q-breadcrumbs class="q-ma-none">
           <template v-slot:separator>
-            <q-icon size="1.2em" name="arrow_forward" />
+            <q-icon size="1. 2em" name="arrow_forward" />
           </template>
           <q-breadcrumbs-el label="Rater Management" icon="assignment_ind" />
           <q-breadcrumbs-el label="Raters" icon="groups" />
@@ -63,15 +63,15 @@
         >
           <template v-slot:body-cell-job_batches_rsp="props">
             <q-td :props="props">
-              <div class="position-cell" :title="props.row.job_batches_rsp">
+              <div class="position-cell">
                 <q-badge
-                  v-for="(pos, index) in props.row.job_batches_rsp.split(',')"
+                  v-for="(pos, index) in props.row.job_batches_rsp_array"
                   :key="index"
                   color="primary"
                   text-color="white"
                   class="q-pa-xs q-mb-xs badge-block"
                 >
-                  {{ pos.trim() }}
+                  {{ pos.position }}
                 </q-badge>
               </div>
             </q-td>
@@ -80,7 +80,7 @@
           <template v-slot:body-cell-Office="props">
             <q-td :props="props">
               <div style="white-space: normal; overflow-wrap: break-word">
-                {{ props.row.Office }}
+                {{ props.row.office }}
               </div>
             </q-td>
           </template>
@@ -182,6 +182,8 @@
                     <q-checkbox
                       :model-value="isPositionSelected(scope.opt.id)"
                       @update:model-value="(val) => togglePosition(scope.opt.id, val)"
+                      @click.
+                      stop
                     />
                   </q-item-section>
                 </q-item>
@@ -539,7 +541,7 @@
   const isLoadingJobs = ref(false);
   const jobLoadError = ref('');
 
-  // NEW: Loading state for the main table
+  // Loading state for the main table
   const isLoadingTable = ref(false);
 
   // Modal state
@@ -578,12 +580,10 @@
   // Form selections
   const selectedPositions = ref([]);
   const selectedRater = ref(null);
-  // store office as NAME string (no ID)
   const selectedOffice = ref('');
-  const activeStatus = ref(true); // NEW: status toggle
+  const activeStatus = ref(true);
 
   // Options data
-  // offices options are [{ label: 'Office Name', value: 'Office Name' }]
   const offices = ref([]);
   const positions = ref([]);
 
@@ -594,19 +594,53 @@
 
   // Columns definition
   const columns = [
-    { name: 'id', label: 'ID', field: 'id', align: 'left' },
-    { name: 'Rater', label: 'Rater Name', field: 'Rater', align: 'left' },
+    { name: 'id', label: 'ID', field: 'id', align: 'left', style: 'width: 5%' },
+    {
+      name: 'name',
+      label: 'Rater Name',
+      field: 'name',
+      align: 'left',
+      style: 'width: 15%; word-wrap: break-word; white-space: normal;',
+    },
     {
       name: 'job_batches_rsp',
       label: 'Jobs Position to Rate',
       field: 'job_batches_rsp',
       align: 'left',
+      style: 'width: 25%',
     },
-    { name: 'Office', label: 'Office', field: 'Office', align: 'left' },
-    { name: 'pending', label: 'Pending', field: 'pending', align: 'center', sortable: false },
-    { name: 'completed', label: 'Completed', field: 'completed', align: 'center', sortable: false },
-    { name: 'active', align: 'left', label: 'Status', field: 'active', sortable: true },
-    { name: 'actions', label: 'Actions', align: 'center' },
+    {
+      name: 'office',
+      label: 'Office',
+      field: 'office',
+      align: 'left',
+      style: 'width: 20%; word-wrap: break-word; white-space: normal;',
+    },
+    {
+      name: 'pending',
+      label: 'Pending',
+      field: 'pending',
+      align: 'center',
+      sortable: false,
+      style: 'width: 10%',
+    },
+    {
+      name: 'completed',
+      label: 'Completed',
+      field: 'completed',
+      align: 'center',
+      sortable: false,
+      style: 'width: 10%',
+    },
+    {
+      name: 'active',
+      align: 'left',
+      label: 'Status',
+      field: 'active',
+      sortable: true,
+      style: 'width: 10%',
+    },
+    { name: 'actions', label: 'Actions', align: 'center', style: 'width: 5%' },
   ];
 
   // Updated job columns to match API response
@@ -641,16 +675,35 @@
     },
   ];
 
+  // **NEW: Process raters to handle new API structure**
+  const processedRaters = computed(() => {
+    return raters.value.map((rater) => {
+      // Handle job_batches_rsp being an array of objects
+      const jobBatchesArray = Array.isArray(rater.job_batches_rsp) ? rater.job_batches_rsp : [];
+
+      return {
+        ...rater,
+        job_batches_rsp_array: jobBatchesArray, // Store the array for display
+        Rater: rater.name || rater.Rater, // Backwards compatibility
+        Office: rater.office || rater.Office, // Backwards compatibility
+      };
+    });
+  });
+
   // Computed
   const filteredRaters = computed(() => {
-    if (!globalSearch.value) return raters.value;
+    if (!globalSearch.value) return processedRaters.value;
     const searchTerm = globalSearch.value.toLowerCase();
-    return raters.value.filter((rater) => {
+    return processedRaters.value.filter((rater) => {
+      const positionsText = rater.job_batches_rsp_array
+        .map((p) => p.position)
+        .join(' ')
+        .toLowerCase();
       return (
         String(rater.id).includes(searchTerm) ||
-        (rater.Rater || '').toLowerCase().includes(searchTerm) ||
-        (rater.Position || '').toLowerCase().includes(searchTerm) ||
-        (rater.Office || '').toLowerCase().includes(searchTerm)
+        (rater.name || '').toLowerCase().includes(searchTerm) ||
+        positionsText.includes(searchTerm) ||
+        (rater.office || '').toLowerCase().includes(searchTerm)
       );
     });
   });
@@ -684,14 +737,15 @@
     isEditMode.value = false;
     showModal.value = true;
     resetForm();
-    activeStatus.value = true; // default new rater to active
+    activeStatus.value = true;
   };
 
+  // **FIXED: Position selection methods**
   const isPositionSelected = (id) => {
     if (id === 'all') {
       return (
         positions.value.length > 0 &&
-        positions.value.every((p) => selectedPositions.value.includes(p.id))
+        selectedPositions.value.filter((p) => p !== 'all').length === positions.value.length
       );
     }
     return selectedPositions.value.includes(id);
@@ -699,35 +753,29 @@
 
   const togglePosition = (id, checked) => {
     if (id === 'all') {
-      selectedPositions.value = checked ? ['all', ...positions.value.map((p) => p.id)] : [];
+      if (checked) {
+        selectedPositions.value = positions.value.map((p) => p.id);
+      } else {
+        selectedPositions.value = [];
+      }
       return;
     }
-    let newSelection = [...selectedPositions.value];
-    const allIndex = newSelection.indexOf('all');
+
     if (checked) {
-      if (!newSelection.includes(id)) newSelection.push(id);
-      const allSelected = positions.value.every((p) => newSelection.includes(p.id));
-      if (allSelected && allIndex === -1) newSelection.push('all');
+      if (!selectedPositions.value.includes(id)) {
+        selectedPositions.value = [...selectedPositions.value, id];
+      }
     } else {
-      newSelection = newSelection.filter((item) => item !== id);
-      if (allIndex !== -1) newSelection.splice(allIndex, 1);
+      selectedPositions.value = selectedPositions.value.filter((item) => item !== id);
     }
-    selectedPositions.value = newSelection;
   };
 
   const handlePositionSelection = (newSelection) => {
-    const allOptionId = 'all';
-    const regularIds = positions.value.map((p) => p.id);
-    if (newSelection.includes(allOptionId)) {
-      selectedPositions.value = [allOptionId, ...regularIds];
-    } else {
-      selectedPositions.value = newSelection.filter((id) => id !== allOptionId);
-      const allSelected =
-        regularIds.length > 0 && regularIds.every((id) => newSelection.includes(id));
-      if (allSelected) {
-        selectedPositions.value = [allOptionId, ...regularIds];
-      }
-    }
+    // Remove 'all' from the array - we don't store it, just use it for UI
+    const filtered = newSelection.filter((id) => id !== 'all');
+
+    // Remove duplicates using Set
+    selectedPositions.value = [...new Set(filtered)];
   };
 
   // Fetch employees by selected office name (server-side filtered)
@@ -739,13 +787,13 @@
       const resp = await adminApi.get('/active', { params: { office: officeName } });
       const list = (Array.isArray(resp.data) ? resp.data : [])
         .map((e) => ({
-          id: e.ControlNo, // keep ControlNo as unique value
-          name: e.Name4, // label shown in the select
+          id: e.ControlNo,
+          name: e.Name4,
           Office: e.Office,
           Designation: e.Designation,
           BirthDate: e.BirthDate,
         }))
-        .filter((e) => e.id && e.name); // ensure usable
+        .filter((e) => e.id && e.name);
       officeRatersRaw.value = list;
       filteredRatersByOffice.value = list;
       currentOfficeRaters.value = list;
@@ -759,7 +807,7 @@
 
   // When office is changed, fetch employees under that office
   const handleOfficeChange = async (OfficeName) => {
-    selectedRater.value = null; // reset selected rater
+    selectedRater.value = null;
     if (!OfficeName) {
       filteredRatersByOffice.value = [];
       officeRatersRaw.value = [];
@@ -808,9 +856,9 @@
   const viewRater = async (rater) => {
     currentViewRater.value = {
       id: rater.id,
-      name: rater.Rater,
+      name: rater.name,
       position: rater.Position || 'N/A',
-      office: rater.Office,
+      office: rater.office,
       status: rater.status,
     };
 
@@ -821,30 +869,22 @@
     showViewDialog.value = true;
 
     try {
-      // Use the assign_job_list method from jobPostStore
       await jobPostStore.assign_job_list(rater.id);
 
-      // Debug: Log the actual response structure
-      console.log('jobPostStore.jobPosts after assign_job_list:', jobPostStore.jobPosts);
-
-      // Handle the response structure properly
       let jobsData = [];
 
       if (jobPostStore.jobPosts) {
         if (Array.isArray(jobPostStore.jobPosts)) {
-          // If jobPosts is directly an array of jobs
           jobsData = jobPostStore.jobPosts;
         } else if (
           jobPostStore.jobPosts.job_batches_rsp &&
           Array.isArray(jobPostStore.jobPosts.job_batches_rsp)
         ) {
-          // If the response has job_batches_rsp as an array
           jobsData = jobPostStore.jobPosts.job_batches_rsp;
         } else if (
           typeof jobPostStore.jobPosts === 'object' &&
           jobPostStore.jobPosts.job_batches_rsp
         ) {
-          // Handle single object response
           jobsData = Array.isArray(jobPostStore.jobPosts.job_batches_rsp)
             ? jobPostStore.jobPosts.job_batches_rsp
             : [jobPostStore.jobPosts.job_batches_rsp];
@@ -867,11 +907,12 @@
     }
   };
 
+  // **FIXED: Edit rater function to handle new API structure**
   const editRater = async (rater) => {
     try {
       isEditMode.value = true;
       currentRaterId.value = rater.id;
-      currentRaterName.value = rater.Rater;
+      currentRaterName.value = rater.name;
       activeStatus.value = !!rater.active;
 
       if (
@@ -892,7 +933,7 @@
       }
 
       // Pre-select office by name
-      selectedOffice.value = rater.Office || '';
+      selectedOffice.value = rater.office || '';
 
       // Populate rater list for that office
       if (selectedOffice.value) {
@@ -900,14 +941,28 @@
         currentOfficeRaters.value = officeRatersRaw.value;
       }
 
-      // Pre-select positions by name
-      const positionNames = (rater.job_batches_rsp || '')
-        .split(',')
-        .map((name) => name.trim())
-        .filter(Boolean);
-      selectedPositions.value = positions.value
-        .filter((pos) => positionNames.includes(pos.name))
-        .map((pos) => pos.id);
+      // **FIXED: Handle new API structure for job_batches_rsp**
+      selectedPositions.value = [];
+
+      // Get position IDs directly from the array of objects
+      const jobBatchesArray = Array.isArray(rater.job_batches_rsp) ? rater.job_batches_rsp : [];
+
+      console.log('Job batches from rater:', jobBatchesArray);
+      console.log('Available positions:', positions.value);
+
+      // Extract IDs directly from the job_batches_rsp array
+      const matchedIds = [];
+      jobBatchesArray.forEach((jobBatch) => {
+        const id = jobBatch.id;
+        if (id && !matchedIds.includes(id)) {
+          matchedIds.push(id);
+        }
+      });
+
+      console.log('Matched position IDs:', matchedIds);
+
+      // Set the selected positions (no 'all', no duplicates)
+      selectedPositions.value = matchedIds;
 
       showModal.value = true;
     } catch (error) {
@@ -931,14 +986,14 @@
 
       const userData = {
         job_batches_rsp_id: selectedPositions.value.filter((id) => id !== 'all'),
-        Office: selectedOffice.value, // name-only
-        active: activeStatus.value, // NEW: pass status
+        Office: selectedOffice.value,
+        active: activeStatus.value,
       };
 
       const result = await authStore.rater_edit(raterId, userData);
 
       if (result.success) {
-        await loadRaters(); // Use the new loadRaters method
+        await loadRaters();
         closeModal();
         toast.success('Rater updated successfully');
       } else {
@@ -969,18 +1024,18 @@
 
       const userData = {
         name: raterData.name,
-        controlNo: raterData.id, // ControlNo
-        BirthDate: raterData.BirthDate || '', // optional
-        Designation: raterData.Designation || '', // optional
+        controlNo: raterData.id,
+        BirthDate: raterData.BirthDate || '',
+        Designation: raterData.Designation || '',
         job_batches_rsp_id: jobBatchIds,
-        Office: selectedOffice.value, // name-only
-        active: activeStatus.value, // NEW: pass status
+        Office: selectedOffice.value,
+        active: activeStatus.value,
       };
 
       const result = await authStore.Rater_register(userData);
 
       if (result.success) {
-        await loadRaters(); // Use the new loadRaters method
+        await loadRaters();
         closeModal();
         toast.success('Rater added successfully');
       } else {
@@ -995,7 +1050,7 @@
     }
   };
 
-  // NEW: Centralized method to load raters with loading state
+  // Centralized method to load raters with loading state
   const loadRaters = async () => {
     isLoadingTable.value = true;
     try {
@@ -1010,11 +1065,6 @@
     }
   };
 
-  // const confirmDeleteRater = (rater) => {
-  //   raterToDelete.value = rater.id;
-  //   showDeleteDialog.value = true;
-  // };
-
   const deleteRater = () => {
     raters.value = raters.value.filter((r) => r.id !== raterToDelete.value);
     showDeleteDialog.value = false;
@@ -1026,7 +1076,7 @@
     try {
       await Promise.all([
         jobPostStore.job_post_list(),
-        loadRaters(), // Use the new loadRaters method
+        loadRaters(),
         plantillaStore.fetch_office_rater(),
       ]);
     } catch (error) {
@@ -1052,7 +1102,6 @@
     }
   });
 
-  // If you want to sync the toggle when opening edit modal, do it here:
   watch(showModal, (val) => {
     if (val && isEditMode.value) {
       // already set in editRater
@@ -1081,7 +1130,7 @@
     white-space: normal;
     max-width: 100%;
     font-size: 12px;
-    line-height: 1.3;
+    line-height: 1 3;
     padding-left: 8px;
     padding-right: 8px;
     box-sizing: border-box;
@@ -1141,7 +1190,7 @@
     position: sticky;
     top: 0;
     z-index: 2;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0 1);
   }
 
   .sticky-info {
@@ -1149,7 +1198,7 @@
     top: 65px;
     z-index: 2;
     background: white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0 05);
   }
 
   .scrollable-content {

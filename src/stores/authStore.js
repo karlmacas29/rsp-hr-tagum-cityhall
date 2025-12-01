@@ -84,7 +84,7 @@ export const useAuthStore = defineStore('auth', {
           this.user = response.data.user;
 
           // document.cookie = `admin_token=${this.token}; path=/; SameSite=None; Secure`;
-        document.cookie = `admin_token=${response.data.token}; path=/`;
+          document.cookie = `admin_token=${response.data.token}; path=/`;
           toast.success('You are now logged in!');
           this.router.push({ name: 'Admin Dashboard' });
           this.loading = false;
@@ -455,7 +455,6 @@ export const useAuthStore = defineStore('auth', {
 
       try {
         const token = this.getToken();
-        console.log('Auth token:', token);
 
         if (!token) {
           throw new Error('No authentication token found');
@@ -467,34 +466,20 @@ export const useAuthStore = defineStore('auth', {
           },
         });
 
-        console.log('API response:', response);
+        console.log('API response:', response.data);
 
         if (response.data.status) {
-          console.log('Response data:', response.data.data);
+          // Store the data directly without transformation
+          // The component will handle the transformation in processedRaters computed
+          this.users = response.data.data || [];
 
-          // Handle both array and object responses
-          const ratersData = Array.isArray(response.data.data)
-            ? response.data.data
-            : Object.values(response.data.data);
-
-          console.log('Parsed ratersData:', ratersData);
-
-          this.users = ratersData.map((rater) => ({
-            id: rater.id,
-            Rater: rater.name,
-            Office: rater.office || 'No office assigned',
-            job_batches_rsp: rater.job_batches_rsp || 'No positions assigned',
-            active: rater.active,
-            pending: rater.pending || 0,
-            completed: rater.completed || 0,
-          }));
-          console.log('Final users:', this.users.value);
+          console.log('Raters loaded:', this.users);
           this.loadUser = false;
-          return this.users.value;
+          return this.users; // Remove . value - this is Pinia, not Composition API
         } else {
           console.error('Failed response message:', response.data.message);
           toast.error(response.data.message || 'Failed to retrieve raters');
-          this.loadUser.value = false;
+          this.loadUser = false;
           return [];
         }
       } catch (error) {
@@ -502,6 +487,9 @@ export const useAuthStore = defineStore('auth', {
         this.handleError(error, 'Failed to retrieve raters');
         this.loadUser = false;
         return [];
+      } finally {
+        const logsStore = useLogsStore();
+        await logsStore.logAction('Retrieved Raters List');
       }
     },
 

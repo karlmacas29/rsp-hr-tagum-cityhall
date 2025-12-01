@@ -950,9 +950,18 @@
       }
     } catch (err) {
       console.error('Submission process error:', err);
+
+      let errorMessage = 'Network error. Please try again.';
+
+      if (err.response?.data) {
+        errorMessage = err.response.data.message || err.response.data.error || errorMessage;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+
       $q.notify({
         type: 'negative',
-        message: 'Network error. Please try again.',
+        message: errorMessage,
         position: 'top',
       });
     } finally {
